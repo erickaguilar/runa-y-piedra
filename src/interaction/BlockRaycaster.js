@@ -13,13 +13,25 @@ export class BlockRaycaster {
   }
 
   getTargetInteraction(playerPos, maxDistance = 5.0) {
-    // 1. Chequeo por proximidad a la Gran Puerta (x ~ 11.5, z ~ 12)
-    const distToDoor = Math.hypot(playerPos.x - 11.5, playerPos.z - 12);
-    if (distToDoor < 3.2 && !this.world.isDoorOpen) {
-      return { type: 'door', message: 'Gran Puerta de la Mazmorra' };
+    // 1. Chequeo por proximidad a la Puerta 1 (z ~ 11)
+    const distToDoor1 = Math.hypot(playerPos.x - 11.5, playerPos.z - 11);
+    if (distToDoor1 < 3.2 && !this.world.isDoor1Open) {
+      return { type: 'door', doorId: 1, message: 'Puerta 1 (Vestíbulo)' };
     }
 
-    // 2. Chequeo por Raycaster mirando a bloques
+    // 2. Chequeo por proximidad a la Puerta 2 (z ~ 24)
+    const distToDoor2 = Math.hypot(playerPos.x - 11.5, playerPos.z - 24);
+    if (distToDoor2 < 3.2 && !this.world.isDoor2Open) {
+      return { type: 'door', doorId: 2, message: 'Puerta 2 (Santuario)' };
+    }
+
+    // 3. Chequeo por proximidad al pedestal ancestral (z ~ 30)
+    const distToPedestal = Math.hypot(playerPos.x - 12.0, playerPos.z - 30);
+    if (distToPedestal < 3.2) {
+      return { type: 'pedestal', message: 'Pedestal Ancestral del Santuario' };
+    }
+
+    // 4. Chequeo por Raycaster mirando a bloques en el punto de mira
     this.raycaster.setFromCamera(this.screenCenter, this.camera);
     const hits = this.raycaster.intersectObject(this.voxelMap.mesh, false);
 
@@ -31,20 +43,18 @@ export class BlockRaycaster {
           const { x, y, z } = VoxelMap.blockIndexToXYZ(bIdx);
           const blockType = this.world.get(x, y, z);
 
-          if (blockType === BLOCK_TYPES.DOOR && !this.world.isDoorOpen) {
-            return { type: 'door', x, y, z, message: 'Gran Puerta de la Mazmorra' };
+          if (blockType === BLOCK_TYPES.DOOR) {
+            const doorId = z <= 15 ? 1 : 2;
+            const isOpen = doorId === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
+            if (!isOpen) {
+              return { type: 'door', doorId, x, y, z, message: `Puerta ${doorId}` };
+            }
           }
           if (blockType === BLOCK_TYPES.PEDESTAL) {
-            return { type: 'pedestal', x, y, z, message: 'Pedestal Ancestral de la Cripta' };
+            return { type: 'pedestal', x, y, z, message: 'Pedestal Ancestral del Santuario' };
           }
         }
       }
-    }
-
-    // 3. Chequeo por proximidad al pedestal ancestral
-    const distToPedestal = Math.hypot(playerPos.x - 12.5, playerPos.z - 18.5);
-    if (distToPedestal < 3.0) {
-      return { type: 'pedestal', message: 'Pedestal Ancestral de la Cripta' };
     }
 
     return null;

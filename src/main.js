@@ -162,26 +162,36 @@ class VoxelSandboxGame {
     }
 
     if (interaction.type === 'door') {
-      if (this.world.isDoorOpen) return;
+      const doorId = interaction.doorId || 1;
+      const isOpen = doorId === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
+      if (isOpen) return;
+
       if (this.mode === 'host') {
-        this.openDoor();
+        this.openDoor(doorId);
       } else {
-        this.network.sendToHost(Proto.serializeDoorOpen());
-        this.ui.showNarrativeMessage('Abriendo la Gran Puerta...', 2500);
+        this.network.sendToHost(Proto.serializeDoorOpen(doorId));
+        this.ui.showNarrativeMessage(`Abriendo Puerta ${doorId}...`, 2500);
       }
     } else if (interaction.type === 'pedestal') {
-      this.ui.showNarrativeMessage('✨ Pedestal Ancestral: ¡Habéis alcanzado el Santuario interior de la Mazmorra!', 6000);
+      this.ui.showNarrativeMessage('✨ ¡Pedestal Ancestral Activado! Habéis completado la Mazmorra Cooperativa con éxito.', 6000);
     }
   }
 
-  openDoor() {
-    if (this.world.isDoorOpen) return;
-    this.world.openDungeonDoor();
-    this.voxelMap.openDungeonDoor();
-    this.ui.showNarrativeMessage('🚪 ¡La Gran Puerta ha sido abierta! Avanzad hacia la Cripta.', 4500);
+  openDoor(doorId = 1) {
+    const isOpen = doorId === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
+    if (isOpen) return;
+
+    this.world.openDoor(doorId);
+    this.voxelMap.openDoor(doorId);
+
+    if (doorId === 1) {
+      this.ui.showNarrativeMessage('🚪 ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!', 6500);
+    } else if (doorId === 2) {
+      this.ui.showNarrativeMessage('🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.', 5000);
+    }
 
     if (this.mode === 'host') {
-      this.network.broadcast(Proto.serializeDoorOpen());
+      this.network.broadcast(Proto.serializeDoorOpen(doorId));
     }
   }
 
@@ -259,8 +269,9 @@ class VoxelSandboxGame {
       }
     });
 
-    this.network.addEventListener('door-open', () => {
-      this.openDoor();
+    this.network.addEventListener('door-open', (e) => {
+      const doorId = e.detail?.doorId || 1;
+      this.openDoor(doorId);
     });
 
     this.network.addEventListener('snapshot', (e) => {
@@ -276,8 +287,10 @@ class VoxelSandboxGame {
       this.world.setFromArray(e.detail.blocks);
       this.voxelMap.rebuildFromWorld();
       this.playerManager.setLocalId(e.detail.playerId);
-      if (this.world.isDoorOpen) {
-        this.ui.showNarrativeMessage('La Gran Puerta ya está abierta. Explorad la Cripta.', 4000);
+      if (this.world.isDoor2Open) {
+        this.ui.showNarrativeMessage('Las dos puertas ya están abiertas. El Santuario os espera.', 4000);
+      } else if (this.world.isDoor1Open) {
+        this.ui.showNarrativeMessage('Puerta 1 abierta. ¡Cruza el Abismo con el botón SALTAR!', 4000);
       }
     });
   }

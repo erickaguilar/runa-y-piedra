@@ -85,7 +85,8 @@ export class NetworkManager extends EventTarget {
         break;
       }
       case Proto.MSG.DOOR: {
-        this.dispatchEvent(new CustomEvent('door-open', { detail: { conn } }));
+        const d = Proto.deserializeDoorOpen(buf);
+        this.dispatchEvent(new CustomEvent('door-open', { detail: { doorId: d.doorId, conn } }));
         break;
       }
       case Proto.MSG.PLAYER_META: {

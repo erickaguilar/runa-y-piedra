@@ -87,11 +87,17 @@ export function deserializeInit(buf) {
   return { playerId: v.getUint8(1), blocks: new Uint8Array(buf, 2) };
 }
 
-// DOOR: [type (0x05)] -> 1 byte
-export function serializeDoorOpen() {
-  const buf = new ArrayBuffer(1);
-  new DataView(buf).setUint8(0, MSG.DOOR);
+// DOOR: [type (0x05)][doorId (1 o 2)] -> 2 bytes
+export function serializeDoorOpen(doorId = 1) {
+  const buf = new ArrayBuffer(2);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.DOOR);
+  v.setUint8(1, doorId);
   return buf;
+}
+export function deserializeDoorOpen(buf) {
+  const v = new DataView(buf);
+  return { doorId: v.byteLength > 1 ? v.getUint8(1) : 1 };
 }
 
 const textEncoder = new TextEncoder();

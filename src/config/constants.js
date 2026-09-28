@@ -1,8 +1,8 @@
 export const WORLD_CONFIG = {
   SIZE_X: 24,
   SIZE_Y: 16,
-  SIZE_Z: 24,
-  SPAWN_X: 12.5,
+  SIZE_Z: 36,
+  SPAWN_X: 12.0,
   SPAWN_Y: 2.1,
   SPAWN_Z: 4.5,
   VOID_RESCUE_Y: -5.0,
@@ -31,6 +31,8 @@ export const BLOCK_TYPES = {
   DOOR: 3,
   PILLAR: 4,
   PEDESTAL: 5,
+  JUMP_PAD: 6,
+  LAVA: 7,
 };
 
 export const BLOCK_COLORS = {
@@ -39,6 +41,8 @@ export const BLOCK_COLORS = {
   3: 0xd97706, // Puerta de madera/hierro
   4: 0x475569, // Columnas/Pilares
   5: 0xf59e0b, // Pedestal/Luz
+  6: 0x0ea5e9, // Plataforma de Salto (celeste rúnico)
+  7: 0x7f1d1d, // Fondo del Abismo
 };
 
 export const PLAYER_PALETTE = [

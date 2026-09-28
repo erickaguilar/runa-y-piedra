@@ -9,6 +9,8 @@ const THREE_COLORS = {
   3: new THREE.Color(BLOCK_COLORS[3]),
   4: new THREE.Color(BLOCK_COLORS[4]),
   5: new THREE.Color(BLOCK_COLORS[5]),
+  6: new THREE.Color(BLOCK_COLORS[6]),
+  7: new THREE.Color(BLOCK_COLORS[7]),
 };
 
 export class VoxelMap {
@@ -87,11 +89,22 @@ export class VoxelMap {
     this.freeSlots.push(inst);
   }
 
+  openDoor(doorId = 1) {
+    if (doorId === 1) {
+      this.removeBlock(11, 1, 11);
+      this.removeBlock(11, 2, 11);
+      this.removeBlock(12, 1, 11);
+      this.removeBlock(12, 2, 11);
+    } else if (doorId === 2) {
+      this.removeBlock(11, 1, 24);
+      this.removeBlock(11, 2, 24);
+      this.removeBlock(12, 1, 24);
+      this.removeBlock(12, 2, 24);
+    }
+  }
+
   openDungeonDoor() {
-    this.removeBlock(11, 1, 12);
-    this.removeBlock(11, 2, 12);
-    this.removeBlock(12, 1, 12);
-    this.removeBlock(12, 2, 12);
+    this.openDoor(1);
   }
 
   rebuildFromWorld() {

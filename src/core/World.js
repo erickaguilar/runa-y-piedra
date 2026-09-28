@@ -7,7 +7,8 @@ export const WORLD_Z = WORLD_CONFIG.SIZE_Z;
 export class World {
   constructor() {
     this.blocks = new Uint8Array(WORLD_X * WORLD_Y * WORLD_Z);
-    this.isDoorOpen = false;
+    this.isDoor1Open = false;
+    this.isDoor2Open = false;
     this._generateDungeon();
   }
 
@@ -24,7 +25,7 @@ export class World {
   }
 
   isDoorCoord(x, y, z) {
-    return (x === 11 || x === 12) && z === 12 && (y === 1 || y === 2);
+    return (x === 11 || x === 12) && (y === 1 || y === 2) && (z === 11 || z === 24);
   }
 
   get(x, y, z) {
@@ -40,22 +41,45 @@ export class World {
 
   setFromArray(arr) {
     this.blocks.set(arr);
-    this.isDoorOpen = (this.get(11, 1, 12) === BLOCK_TYPES.AIR);
+    this.isDoor1Open = (this.get(11, 1, 11) === BLOCK_TYPES.AIR);
+    this.isDoor2Open = (this.get(11, 1, 24) === BLOCK_TYPES.AIR);
+  }
+
+  openDoor(doorId = 1) {
+    if (doorId === 1) {
+      this.isDoor1Open = true;
+      this.set(11, 1, 11, BLOCK_TYPES.AIR);
+      this.set(11, 2, 11, BLOCK_TYPES.AIR);
+      this.set(12, 1, 11, BLOCK_TYPES.AIR);
+      this.set(12, 2, 11, BLOCK_TYPES.AIR);
+    } else if (doorId === 2) {
+      this.isDoor2Open = true;
+      this.set(11, 1, 24, BLOCK_TYPES.AIR);
+      this.set(11, 2, 24, BLOCK_TYPES.AIR);
+      this.set(12, 1, 24, BLOCK_TYPES.AIR);
+      this.set(12, 2, 24, BLOCK_TYPES.AIR);
+    }
   }
 
   openDungeonDoor() {
-    this.isDoorOpen = true;
-    this.set(11, 1, 12, BLOCK_TYPES.AIR);
-    this.set(11, 2, 12, BLOCK_TYPES.AIR);
-    this.set(12, 1, 12, BLOCK_TYPES.AIR);
-    this.set(12, 2, 12, BLOCK_TYPES.AIR);
+    this.openDoor(1);
+  }
+
+  get isDoorOpen() {
+    return this.isDoor1Open;
   }
 
   _generateDungeon() {
-    // 1. Suelo de losas de piedra en toda la mazmorra (y = 0)
+    // 1. Suelos base (y = 0)
     for (let x = 0; x < WORLD_X; x++) {
       for (let z = 0; z < WORLD_Z; z++) {
-        this.set(x, 0, z, BLOCK_TYPES.STONE_FLOOR);
+        if (z >= 12 && z <= 23) {
+          // Sala 2: Fondo del abismo (lava/foso)
+          this.set(x, 0, z, BLOCK_TYPES.LAVA);
+        } else {
+          // Salas 1 y 3: Losas de piedra
+          this.set(x, 0, z, BLOCK_TYPES.STONE_FLOOR);
+        }
       }
     }
 
@@ -70,30 +94,81 @@ export class World {
       }
     }
 
-    // 3. Muro divisor entre Área 1 (Vestíbulo) y Área 2 (Cripta) en z = 12
+    // 3. Muro divisor 1 en z = 11 (Separa Sala 1 y Sala 2)
     for (let x = 1; x < WORLD_X - 1; x++) {
       for (let y = 1; y <= 3; y++) {
-        // En el centro (x = 11, 12) colocamos la Gran Puerta de la Mazmorra
         if (x === 11 || x === 12) {
           if (y === 1 || y === 2) {
-            this.set(x, y, 12, BLOCK_TYPES.DOOR);
+            this.set(x, y, 11, BLOCK_TYPES.DOOR);
           } else {
-            this.set(x, y, 12, BLOCK_TYPES.WALL); // Dintel superior de la puerta
+            this.set(x, y, 11, BLOCK_TYPES.WALL); // Dintel superior
           }
         } else {
-          this.set(x, y, 12, BLOCK_TYPES.WALL);
+          this.set(x, y, 11, BLOCK_TYPES.WALL);
         }
       }
     }
 
-    // 4. Columnas arquitectónicas en Área 1 (Vestíbulo)
-    this._buildPillar(6, 6);
-    this._buildPillar(17, 6);
+    // 4. Muro divisor 2 en z = 24 (Separa Sala 2 y Sala 3)
+    for (let x = 1; x < WORLD_X - 1; x++) {
+      for (let y = 1; y <= 3; y++) {
+        if (x === 11 || x === 12) {
+          if (y === 1 || y === 2) {
+            this.set(x, y, 24, BLOCK_TYPES.DOOR);
+          } else {
+            this.set(x, y, 24, BLOCK_TYPES.WALL); // Dintel superior
+          }
+        } else {
+          this.set(x, y, 24, BLOCK_TYPES.WALL);
+        }
+      }
+    }
 
-    // 5. Columnas arquitectónicas y pedestal en Área 2 (Cripta)
-    this._buildPillar(6, 18);
-    this._buildPillar(17, 18);
-    this.set(12, 1, 18, BLOCK_TYPES.PEDESTAL);
+    // 5. Sala 1 (Vestíbulo de entrada): Columnas arquitectónicas
+    this._buildPillar(6, 5);
+    this._buildPillar(17, 5);
+
+    // 6. Sala 2: ¡ZONA DE SALTO OBLIGATORIO (PARKOUR SOBRE EL ABISMO)!
+    // Plataforma de salida tras la Puerta 1
+    for (let x = 10; x <= 13; x++) {
+      this.set(x, 1, 12, BLOCK_TYPES.STONE_FLOOR);
+    }
+
+    // Plataforma de Salto 1 (z = 14, tras hueco z = 13)
+    this.set(11, 1, 14, BLOCK_TYPES.JUMP_PAD);
+    this.set(12, 1, 14, BLOCK_TYPES.JUMP_PAD);
+
+    // Plataforma de Salto 2 (z = 17, tras hueco doble z = 15, 16)
+    for (let x = 10; x <= 13; x++) {
+      this.set(x, 1, 17, BLOCK_TYPES.JUMP_PAD);
+    }
+
+    // Plataforma de Salto 3 ELEVADA a y = 2 (z = 19, tras hueco z = 18 - ¡Requiere SALTAR hacia arriba!)
+    this.set(11, 1, 19, BLOCK_TYPES.PILLAR); // Pilar de soporte
+    this.set(12, 1, 19, BLOCK_TYPES.PILLAR);
+    this.set(11, 2, 19, BLOCK_TYPES.JUMP_PAD); // Plataforma superior
+    this.set(12, 2, 19, BLOCK_TYPES.JUMP_PAD);
+
+    // Plataforma de Salto 4 ELEVADA a y = 2 (z = 21, tras hueco z = 20)
+    this.set(11, 1, 21, BLOCK_TYPES.PILLAR); // Pilar de soporte
+    this.set(12, 1, 21, BLOCK_TYPES.PILLAR);
+    this.set(11, 2, 21, BLOCK_TYPES.JUMP_PAD); // Plataforma superior
+    this.set(12, 2, 21, BLOCK_TYPES.JUMP_PAD);
+
+    // Plataforma de llegada ante la Puerta 2 (z = 23, tras hueco z = 22)
+    for (let x = 10; x <= 13; x++) {
+      this.set(x, 1, 23, BLOCK_TYPES.STONE_FLOOR);
+    }
+
+    // Escalera lateral de retorno / rescate si caen al fondo del abismo
+    this.set(21, 1, 13, BLOCK_TYPES.STONE_FLOOR);
+    this.set(21, 1, 12, BLOCK_TYPES.STONE_FLOOR);
+    this.set(20, 1, 12, BLOCK_TYPES.STONE_FLOOR);
+
+    // 7. Sala 3 (Santuario Interior): Columnas y Pedestal Ancestral
+    this._buildPillar(6, 29);
+    this._buildPillar(17, 29);
+    this.set(12, 1, 30, BLOCK_TYPES.PEDESTAL);
   }
 
   _buildPillar(x, z) {

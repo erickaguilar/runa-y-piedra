@@ -2,7 +2,7 @@
 
 > Mazmorra cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](package.json)
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-RTCDataChannel-green.svg)](https://webrtc.org/)
 [![Vite](https://img.shields.io/badge/Bundler-Vite%205-purple.svg)](https://vitejs.dev/)
@@ -110,7 +110,7 @@ npm run build
 | **Moverse** | Joystick virtual (pulgar izquierdo) | Teclas `W`, `A`, `S`, `D` |
 | **Mirar / Girar** | Arrastrar en la mitad derecha | Mover ratón (clic en pantalla para Pointer Lock) |
 | **Saltar** | Botón flotante `SALTAR` | Barra `Espaciadora` |
-| **Interactuar / Abrir Puerta** | Botón flotante `ABRIR` | Teclas `E`, `F` o Clic izquierdo |
+| **Interactuar / Acción** | Botón flotante `ACTION` | Teclas `E`, `F` o Clic izquierdo |
 
 ---
 
