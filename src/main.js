@@ -345,22 +345,21 @@ class VoxelSandboxGame {
     setTimeout(() => { this.transitioning = false; }, 2600);
   }
 
-  /** Oscurece el pozo (peldaños en degradado + fondo y muros casi negros). */
+  /** Oscurece el pozo (serpentina en degradado + fondo y muros casi negros). */
   tintStairPit(rect) {
     if (!rect) return;
     const BOTTOM = WORLD_CONFIG.MIN_Y ?? -8;
     const shade = (y) => {
-      // Degradado 0x4a (arriba) -> 0x0b (fondo) según profundidad
       const f = Math.min(1, Math.max(0, (-1 - y) / (-1 - BOTTOM)));
       const v = Math.round(74 - f * (74 - 11));
       return (v << 16) | (v << 8) | v;
     };
-    let i = 0;
-    for (let x = rect.x1; x <= rect.x2; x++, i++) {
-      const d = -1 - i;
-      for (let z = rect.z1; z <= rect.z2; z++) {
-        this.voxelMap.setTint(x, d, z, shade(d));
-      }
+    const PATH = [
+      [0, 0, -1], [1, 0, -2], [1, 1, -3],
+      [0, 1, -4], [0, 2, -5], [1, 2, -6],
+    ];
+    for (const [dx, dz, y] of PATH) {
+      this.voxelMap.setTint(rect.x1 + dx, y, rect.z1 + dz, shade(y));
     }
     for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
       for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
@@ -374,47 +373,61 @@ class VoxelSandboxGame {
   }
 
   /**
-   * Abre la fosa real en el mundo: retira el suelo del rectángulo y construye una
-   * escalinata con colisión a lo largo de X (un peldaño de 1 m por bloque) hasta
-   * el fondo (MIN_Y), con macizo bajo los peldaños y pozo revestido de muros.
+   * Abre la fosa real en el mundo: retira el suelo del rectángulo 2x3 y talla una
+   * serpentina descendente con colisión (un peldaño de 1 m por celda, 6 peldaños
+   * hasta cima -5.0), con macizo, altura libre y pozo revestido de muros.
    * Determinista: host y clientes aplican lo mismo.
    */
   applyStairPit(rect) {
     if (!rect) return;
     const BOTTOM = WORLD_CONFIG.MIN_Y ?? -8;
-    const setSolid = (x, y, z, type) => {
+    // Recorrido en serpentina dentro del hueco 2x3 (dx,dz relativos + bloque y)
+    const PATH = [
+      { dx: 0, dz: 0, y: -1 },
+      { dx: 1, dz: 0, y: -2 },
+      { dx: 1, dz: 1, y: -3 },
+      { dx: 0, dz: 1, y: -4 },
+      { dx: 0, dz: 2, y: -5 },
+      { dx: 1, dz: 2, y: -6 },
+    ];
+    const setCell = (x, y, z, type) => {
       this.world.set(x, y, z, type);
-      this.voxelMap.addBlock(x, y, z, type);
+      this.voxelMap.removeBlock(x, y, z);
+      if (type !== BLOCK_TYPES.AIR) this.voxelMap.addBlock(x, y, z, type);
     };
     // 1. Retirar suelo y=0 del rectángulo
     for (let x = rect.x1; x <= rect.x2; x++) {
       for (let z = rect.z1; z <= rect.z2; z++) {
-        this.world.set(x, 0, z, BLOCK_TYPES.AIR);
-        this.voxelMap.removeBlock(x, 0, z);
+        setCell(x, 0, z, BLOCK_TYPES.AIR);
       }
     }
-    // 2. Revestir el pozo con muros (anillo expandido, hasta el fondo, solo aire)
+    // 2. Macizar el hueco hasta el fondo
+    for (let x = rect.x1; x <= rect.x2; x++) {
+      for (let z = rect.z1; z <= rect.z2; z++) {
+        for (let y = BOTTOM; y <= -1; y++) setCell(x, y, z, BLOCK_TYPES.WALL);
+      }
+    }
+    // 3. Revestir el pozo con muros (anillo expandido, hasta el fondo, solo aire)
     for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
       for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
         const inside = x >= rect.x1 && x <= rect.x2 && z >= rect.z1 && z <= rect.z2;
         if (inside) continue;
         for (let y = BOTTOM; y <= -1; y++) {
           if (this.world.get(x, y, z) === BLOCK_TYPES.AIR) {
-            setSolid(x, y, z, BLOCK_TYPES.WALL);
+            setCell(x, y, z, BLOCK_TYPES.WALL);
           }
         }
       }
     }
-    // 3. Escalinata descendente hacia +X + macizo (sin bloques flotantes)
-    let i = 0;
-    for (let x = rect.x1; x <= rect.x2; x++, i++) {
-      const d = -1 - i; // bloque del peldaño (cima = d + 1)
-      for (let z = rect.z1; z <= rect.z2; z++) {
-        setSolid(x, d, z, floorVariant(x, z));
-        for (let y = BOTTOM; y <= d - 1; y++) setSolid(x, y, z, BLOCK_TYPES.WALL);
-      }
+    // 4. Tallar peldaños + altura libre (2 m sobre cada peldaño)
+    for (const s of PATH) {
+      const x = rect.x1 + s.dx;
+      const z = rect.z1 + s.dz;
+      setCell(x, s.y, z, floorVariant(x, z));
+      for (let y = s.y + 1; y <= -1; y++) setCell(x, y, z, BLOCK_TYPES.AIR);
     }
   }
+
   /** Ceremonia local del portal: altar y (si no es el final) apertura de la escalinata. */
   startPortalCeremony({ isLast = false } = {}) {
     if (this.transitioning) return;

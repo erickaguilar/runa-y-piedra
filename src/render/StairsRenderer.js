@@ -5,6 +5,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 // Máquina de estados de la losa: closed -> shaking -> sliding -> open
 const SHAKE_TIME = 0.5;
 const SLIDE_TIME = 1.4;
+const SLIDE_DIST = 2.6;
 const FOG_COUNT = 24;
 
 export class StairsRenderer {
@@ -68,13 +69,13 @@ export class StairsRenderer {
 
     // --- Luz brasienta tenue desde el fondo + niebla ascendente ---
     const pitLight = new THREE.PointLight(0xea580c, 0, 7, 2.0);
-    pitLight.position.set(0, -6.5, 0);
+    pitLight.position.set(0, -4.2, 0);
     root.add(pitLight);
 
     const fogPos = new Float32Array(FOG_COUNT * 3);
     for (let k = 0; k < FOG_COUNT; k++) {
       fogPos[k * 3] = (Math.random() - 0.5) * (w - 0.4);
-      fogPos[k * 3 + 1] = -7.8 + Math.random() * 8.2;
+      fogPos[k * 3 + 1] = -6.8 + Math.random() * 7.2;
       fogPos[k * 3 + 2] = (Math.random() - 0.5) * (d - 0.4);
     }
     const fogGeo = new THREE.BufferGeometry();
@@ -90,8 +91,6 @@ export class StairsRenderer {
     this.group.add(root);
     this.stairs = {
       rect, root, slab, pitLight, fog,
-      // La losa se desliza al norte (eje corto): despeja el tiro y reposa en el suelo
-      slideDist: d + 0.8,
       state: 'closed', t: 0, shakeSeed: Math.random() * 10,
     };
   }
@@ -112,7 +111,7 @@ export class StairsRenderer {
   setOpenInstant() {
     if (!this.stairs) return;
     this.stairs.state = 'open';
-    this.stairs.slab.position.z = -this.stairs.slideDist;
+    this.stairs.slab.position.x = SLIDE_DIST;
     this.stairs.fog.visible = true;
     this.stairs.fog.material.opacity = 0.6;
     this.stairs.pitLight.intensity = 0.9;
@@ -138,7 +137,7 @@ export class StairsRenderer {
       s.t += safeDt;
       const k = Math.min(1, s.t / SLIDE_TIME);
       const eased = 1 - Math.pow(1 - k, 3);
-      s.slab.position.z = -eased * s.slideDist;
+      s.slab.position.x = eased * SLIDE_DIST;
       s.fog.visible = k > 0.3;
       s.fog.material.opacity = 0.6 * k;
       s.pitLight.intensity = 0.9 * k;
@@ -149,7 +148,7 @@ export class StairsRenderer {
       const arr = attr.array;
       for (let i = 0; i < FOG_COUNT; i++) {
         let y = arr[i * 3 + 1] + safeDt * 0.22;
-        if (y > 0.5) y = -7.8;
+        if (y > 0.5) y = -6.8;
         arr[i * 3 + 1] = y;
       }
       attr.needsUpdate = true;
