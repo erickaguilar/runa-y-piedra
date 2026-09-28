@@ -34,8 +34,10 @@ export class Player {
   }
 
   updateVisualSmoothing(dt) {
+    // Clampear dt a un máximo de 50ms para evitar tirones de cámara al reanudar tabs o tras caídas de FPS
+    const safeDt = Math.min(dt, 0.05);
     // Suavizado visual exponencial (~0.5 por frame a 60 FPS)
-    const t = 1 - Math.pow(0.001, dt);
+    const t = 1 - Math.pow(0.001, safeDt);
     this.visualPos.x += (this.pos.x - this.visualPos.x) * t;
     this.visualPos.y += (this.pos.y - this.visualPos.y) * t;
     this.visualPos.z += (this.pos.z - this.visualPos.z) * t;

@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.16.0] - 2026-09-28
+
+### Changed
+- **Adopción Incondicional de Replay Autoritativo en Estado Lógico ([`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js))**:
+  - Corrección del desvío congelado en la zona de tolerancia ($\le 0.09\text{ m}$): `localPlayer.pos`, `localPlayer.vel` y `localPlayer.onGround` adoptan **siempre e incondicionalmente** el resultado exacto del replay de `ghostPlayer` para cualquier error $\le 2.5\text{ m}$.
+  - Se erradica la preservación de líneas base no autoritativas en el cliente, asegurando que el error de predicción converja bit a bit a cero tras cada snapshot sin acumular saltos retardados por hipos de rAF.
+  - La zonificación tri-banda rige de manera exclusiva la interpolación visual (`visualPos`) y la telemetría diagnóstica:
+    - $\le 0.09\text{ m}$: `visualPos` sigue suave a `pos` en el render loop. 0 correcciones contadas.
+    - $0.09\text{ m} \text{ a } 1.0\text{ m}$: `visualPos` se amortigua exponencialmente hacia `pos` sin sobresaltos. Registra `Soft/s`.
+    - $1.0\text{ m} \text{ a } 2.5\text{ m}$: `visualPos` salta instantáneamente a `pos` para impedir que la cámara traspase esquinas o muros. Registra `Soft/s`.
+    - $> 2.5\text{ m}$: Snap directo a coordenadas autoritativas del host y reseteo de `pendingInputs`. Registra `Tele/s`.
+
+### Fixed
+- **Protección de Cámara ante Reanudación de Pestaña y Lag Spikes ([`Player.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/Player.js))**:
+  - Acotamiento de seguridad `safeDt = Math.min(dt, 0.05)` en `updateVisualSmoothing(dt)`.
+  - Impide que deltas gigantescos generados al volver de pestañas en segundo plano o bloqueos de renderizado hagan tender $1 - 0.001^{\Delta t}$ a $1.0$, suprimiendo sacudidas bruscas en la cámara orbital.
+
+---
+
 ## [1.15.0] - 2026-09-28
 
 ### Added

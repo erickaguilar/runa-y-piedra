@@ -139,29 +139,36 @@ export class ClientReconciler {
         localPlayer.onGround = localEntry.onGround !== undefined ? localEntry.onGround : false;
         this.pendingInputs.length = 0;
         this._recordTeleport();
-      } else if (this.predictionError > this.blendUpperThreshold) {
-        // Desfase medio-alto (1.0 m a 2.5 m): snap directo a la posición del replay lógico y visual
+      } else {
+        // En TODAS las zonas de error normal (<= 2.5 m), la posición y velocidad LÓGICA
+        // adoptan SIEMPRE e incondicionalmente el resultado exacto del replay autoritativo.
+        // Esto garantiza que el baseline de la física jamás congele errores residuales y converja a 0 m.
         localPlayer.pos.x = this.ghostPlayer.pos.x;
         localPlayer.pos.y = this.ghostPlayer.pos.y;
         localPlayer.pos.z = this.ghostPlayer.pos.z;
-        if (localPlayer.visualPos) {
-          localPlayer.visualPos.x = this.ghostPlayer.pos.x;
-          localPlayer.visualPos.y = this.ghostPlayer.pos.y;
-          localPlayer.visualPos.z = this.ghostPlayer.pos.z;
+        localPlayer.vel.x = this.ghostPlayer.vel.x;
+        localPlayer.vel.y = this.ghostPlayer.vel.y;
+        localPlayer.vel.z = this.ghostPlayer.vel.z;
+        localPlayer.onGround = this.ghostPlayer.onGround;
+
+        if (this.predictionError > this.blendUpperThreshold) {
+          // Desfase medio-alto (1.0 m a 2.5 m): snap directo también en la posición visual
+          // para evitar que la cámara interpole a través de muros o esquinas.
+          if (localPlayer.visualPos) {
+            localPlayer.visualPos.x = this.ghostPlayer.pos.x;
+            localPlayer.visualPos.y = this.ghostPlayer.pos.y;
+            localPlayer.visualPos.z = this.ghostPlayer.pos.z;
+          }
+          this._recordSoftCorrection();
+        } else if (this.predictionError > this.snapThreshold) {
+          // Desfase suave (0.09 m a 1.0 m):
+          // visualPos NO se altera aquí: se aproxima de forma continua en onRender(dt)
+          // hacia localPlayer.pos sin saltos ("pops") en la cámara.
+          this._recordSoftCorrection();
         }
-        localPlayer.vel.y = this.ghostPlayer.vel.y;
-        localPlayer.onGround = this.ghostPlayer.onGround;
-        this._recordSoftCorrection();
-      } else if (this.predictionError > this.snapThreshold) {
-        // Desfase suave (0.09 m a 1.0 m):
-        // La posición LÓGICA adopta el resultado exacto del replay (cero drift en la simulación)
-        localPlayer.pos.x = this.ghostPlayer.pos.x;
-        localPlayer.pos.y = this.ghostPlayer.pos.y;
-        localPlayer.pos.z = this.ghostPlayer.pos.z;
-        localPlayer.vel.y = this.ghostPlayer.vel.y;
-        localPlayer.onGround = this.ghostPlayer.onGround;
-        // La posición VISUAL NO se altera aquí: se suaviza en onRender(dt) hacia localPlayer.pos sin pops
-        this._recordSoftCorrection();
+        // Zona de tolerancia (<= 0.09 m):
+        // visualPos no se altera y sigue naturalmente a pos en onRender(dt).
+        // No se registran correcciones para no inflar la telemetría ante jitter residual.
       }
     }
 

@@ -95,19 +95,21 @@ El proceso en [`ClientReconciler.js`](file:///data/data/com.termux/files/home/de
    $$\text{pendingInputs} = \text{pendingInputs.filter}(\text{inp} \to \text{inp.seq} > \text{lastInputSeq})$$
 5. **Simulación de Replay Determinista (Zero-GC)**:
    Se utiliza un `ghostPlayer` pre-asignado que comienza en la coordenada autoritativa $(X_h, Y_h, Z_h)$, inicializa su velocidad vertical (`velY`) y estado `onGround`, y alinea su `yaw` con el último input pendiente en vuelo para no girar hacia atrás. Se itera sobre todos los inputs pendientes en vuelo ejecutando `simulationEngine.integratePlayer(ghost, inp.dt, inp.actions)`.
-6. **Corrección Tri-Banda de Error de Predicción**:
-   $$\Delta_{\text{error}} = \sqrt{(X_{\text{ghost}} - X_{\text{local}})^2 + (Y_{\text{ghost}} - Y_{\text{local}})^2 + (Z_{\text{ghost}} - Z_{\text{local}})^2}$$
-   - **Zona de Tolerancia ($\Delta_{\text{error}} \le 0.09\text{ m}$)**: Tolerancia calibrada a medio tick de movimiento regular. Cero intervención, fluidez máxima.
+6. **Adopción Incondicional en Física Lógica y Zonificación Visual**:
+   La posición y velocidad **lógicas** ($\vec{P}_{\text{local}}$, $\vec{V}_{\text{local}}$, $\text{onGround}$) adoptan **SIEMPRE e incondicionalmente** el resultado del replay ($\vec{P}_{\text{ghost}}$, $\vec{V}_{\text{ghost}}$) para cualquier error $\le 2.5\text{ m}$. Esto erradica por completo la acumulación de desvíos subcentimétricos no autoritativos ("drift congelado") y garantiza convergencia matemática a $0\text{ m}$.
+
+   La zonificación tri-banda rige **exclusivamente** el comportamiento de `visualPos` (el suavizado seguido por la cámara) y las métricas diagnósticas:
+   - **Zona de Tolerancia ($\Delta_{\text{error}} \le 0.09\text{ m}$)**: Tolerancia calibrada a medio tick de movimiento regular. `pos` adopta el replay exacto. `visualPos` se mantiene libre para seguir a `pos` en el bucle de render sin tirones perceptibles. Cero correcciones registradas.
    - **Zona de Mezcla Suave ($0.09\text{ m} < \Delta_{\text{error}} \le 1.0\text{ m}$)**:
      - La posición **lógica** adopta el resultado exacto del replay: $\vec{P}_{\text{local}} \gets \vec{P}_{\text{ghost}}$. Cero *drift* en la física.
      - La posición **visual** (`visualPos`) se aproxima exponencialmente en `onRender(dt)` (60 FPS):
-       $$\vec{P}_{\text{visual}} \gets \vec{P}_{\text{visual}} + (\vec{P}_{\text{local}} - \vec{P}_{\text{visual}}) \cdot (1 - 0.001^{\Delta t})$$
-       Elimina por completo cualquier "pop" o salto visual perceptible. Registra `Soft/s`.
-   - **Zona de Snap Directo ($1.0\text{ m} < \Delta_{\text{error}} \le 2.5\text{ m}$)**: Se adoptan inmediatamente la posición lógica y visual del replay para no interpolar a través de muros. Registra `Soft/s`.
-   - **Zona de Teletransporte / Rescate ($\Delta_{\text{error}} > 2.5\text{ m}$)**: Caída al abismo, respawn o cambio de sala. Snap autoritativo instantáneo y vaciado de inputs pendientes. Registra `Tele/s`.
+       $$\vec{P}_{\text{visual}} \gets \vec{P}_{\text{visual}} + (\vec{P}_{\text{local}} - \vec{P}_{\text{visual}}) \cdot (1 - 0.001^{\Delta t_{\text{safe}}})$$
+       donde $\Delta t_{\text{safe}} = \min(\Delta t, 0.05)$ protege contra saltos abruptos de cámara al reanudar pestañas en segundo plano. Elimina cualquier "pop" visual perceptible. Registra `Soft/s`.
+   - **Zona de Snap Directo ($1.0\text{ m} < \Delta_{\text{error}} \le 2.5\text{ m}$)**: Se adoptan inmediatamente la posición lógica y visual del replay para no interpolar a través de muros o esquinas. Registra `Soft/s`.
+   - **Zona de Teletransporte / Rescate ($\Delta_{\text{error}} > 2.5\text{ m}$)**: Caída al abismo, respawn o cambio de sala. Snap autoritativo instantáneo al host y vaciado de inputs pendientes. Registra `Tele/s`.
 
 > [!NOTE]
-> **Coordinación de DESTROY, PLACE e INTERACT**: Actualmente los eventos de edición de bloques (`MSG.BLOCK`) y cofres/puertas viajan en eventos paralelos; su sincronización dentro del paquete de inputs por `seq` queda agendada para v1.16. En co-op actual, las modificaciones de bloques son globales y se aplican inmediatamente sobre la malla compartida.
+> **Coordinación de DESTROY, PLACE e INTERACT**: Actualmente los eventos de edición de bloques (`MSG.BLOCK`) y cofres/puertas viajan en eventos paralelos; su sincronización dentro del paquete de inputs por `seq` queda agendada para v1.17. En co-op actual, las modificaciones de bloques son globales y se aplican inmediatamente sobre la malla compartida.
 
 ---
 
