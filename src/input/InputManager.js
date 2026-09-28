@@ -150,6 +150,10 @@ export class InputManager {
     btn.style.display = 'none'; // Oculto inicialmente; UIManager lo activa solo al entrar en juego
     const handler = (e) => {
       e.preventDefault();
+      // Háptica sutil en móviles que la soporten
+      if (navigator.vibrate) {
+        try { navigator.vibrate(12); } catch { /* sin háptica */ }
+      }
       callback();
     };
     btn.addEventListener('touchstart', handler, { passive: false });

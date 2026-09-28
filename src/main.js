@@ -74,14 +74,10 @@ class VoxelSandboxGame {
     this.soundManager = soundManager;
     this.network.stats.setRenderer(this.sceneManager.renderer);
 
-    // 3. Controles
+    // 3. Controles (el sonido de salto se emite al ejecutarse en el tick, con buffer)
     this.input = new InputManager({
       canvas: this.canvas,
-      onJump: () => {
-        if (this.playerManager.localPlayer?.onGround) {
-          this.soundManager.playJump();
-        }
-      },
+      onJump: () => {},
       onInteract: () => this.handleInteract(),
     });
 
@@ -91,6 +87,9 @@ class VoxelSandboxGame {
     this.inputQueue = new InputQueue();
     this.reconciler = new ClientReconciler();
     this.transitioning = false; // Ceremonia de portal en curso (bloquea re-activaciones)
+    // Salto con perdón: buffer 150ms + coyote time 120ms
+    this.jumpBufferTime = 0;
+    this.lastGroundTime = 0;
     // Descenso sincronizado por la escalinata
     this.descentActive = false;
     this.descentInitiator = null;
@@ -992,8 +991,19 @@ class VoxelSandboxGame {
         local.setInput(move.forward, move.right, this.input.yaw);
         local.pitch = this.input.pitch;
 
-        // Muestreo determinista edge-triggered de acciones en el inicio del tick
-        const jumpAction = this.input.consumeJump() ? Proto.ACTION_FLAGS.JUMP : 0;
+        // Salto con perdón: buffer 150ms (pulsa antes de aterrizar) + coyote 120ms
+        // (salta justo después de dejar el borde). El sonido va en la ejecución.
+        const nowMs = performance.now();
+        if (this.input.consumeJump()) this.jumpBufferTime = nowMs;
+        if (local.onGround) this.lastGroundTime = nowMs;
+        const hasBuffer = nowMs - (this.jumpBufferTime || -1e9) <= 150;
+        const canCoyote = nowMs - (this.lastGroundTime || -1e9) <= 120;
+        let jumpAction = 0;
+        if (hasBuffer && (local.onGround || canCoyote)) {
+          jumpAction = Proto.ACTION_FLAGS.JUMP;
+          this.jumpBufferTime = 0;
+          this.soundManager.playJump();
+        }
 
         if (this.mode === 'host') {
           // 1. Simular jugador local del Host aplicando su acción con dt fijo
@@ -1050,6 +1060,13 @@ class VoxelSandboxGame {
           const livesHud = document.getElementById('hud-lives');
           if (livesHud) {
             livesHud.classList.toggle('invuln', !!local.isInvulnerable);
+          }
+
+          // Botón contextual (~8 Hz): qué se puede usar cerca sin raycast costoso
+          this._interactUiAcc = (this._interactUiAcc || 0) + dt;
+          if (this._interactUiAcc >= 0.12) {
+            this._interactUiAcc = 0;
+            this.ui.setInteractTarget(this.raycaster.getProximityTarget(local.pos));
           }
 
           if (this.mode === 'client') {

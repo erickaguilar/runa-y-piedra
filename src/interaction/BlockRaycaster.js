@@ -12,8 +12,13 @@ export class BlockRaycaster {
     this.screenCenter = new THREE.Vector2(0, 0);
   }
 
-  getTargetInteraction(playerPos, maxDistance = 5.0) {
-    // 1. Chequeo por proximidad a puertas definidas en el nivel
+  /**
+   * Solo chequeos por proximidad (puertas, objetivos, losa, cofres), sin raycast.
+   * Barato: apto para actualizar el botón contextual a ~8-10 Hz.
+   * Retorna { type, ... } o null.
+   */
+  getProximityTarget(playerPos) {
+    // 1. Puertas definidas en el nivel
     if (Array.isArray(this.world.doors) && this.world.doors.length > 0) {
       for (const door of this.world.doors) {
         const isOpen = door.id === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
@@ -25,19 +30,9 @@ export class BlockRaycaster {
           }
         }
       }
-    } else {
-      const distToDoor1 = Math.hypot(playerPos.x - 11.5, playerPos.z - 11);
-      if (distToDoor1 < 3.2 && !this.world.isDoor1Open) {
-        return { type: 'door', doorId: 1, message: 'Puerta 1 (Vestíbulo)' };
-      }
-      const distToDoor2 = Math.hypot(playerPos.x - 11.5, playerPos.z - 24);
-      if (distToDoor2 < 3.2 && !this.world.isDoor2Open) {
-        return { type: 'door', doorId: 2, message: 'Puerta 2 (Santuario)' };
-      }
     }
 
-    // 2. Chequeo por proximidad a objetivos/pedestales del nivel
-    // (sin fallback: los niveles sin altar no tienen esta interacción)
+    // 2. Objetivos/pedestales del nivel
     if (Array.isArray(this.world.objectives) && this.world.objectives.length > 0) {
       for (let i = 0; i < this.world.objectives.length; i++) {
         const obj = this.world.objectives[i];
@@ -48,8 +43,7 @@ export class BlockRaycaster {
       }
     }
 
-    // 2b. Losa sellada de la escalinata (interactuable mientras siga cerrada).
-    // Distancia al punto más cercano del rectángulo (el tiro puede ser largo).
+    // 2b. Losa sellada de la escalinata (mientras siga cerrada)
     if (Array.isArray(this.world.stairwells) && this.world.stairwells.length > 0) {
       for (const w of this.world.stairwells) {
         if (w.open) continue;
@@ -61,7 +55,7 @@ export class BlockRaycaster {
       }
     }
 
-    // 3. Chequeo por proximidad a cofres del tesoro
+    // 3. Cofres del tesoro
     if (Array.isArray(this.world.chests) && this.world.chests.length > 0) {
       for (const chest of this.world.chests) {
         if (!chest.isOpen) {
@@ -76,6 +70,26 @@ export class BlockRaycaster {
             };
           }
         }
+      }
+    }
+
+    return null;
+  }
+
+  getTargetInteraction(playerPos, maxDistance = 5.0) {
+    // 1-3. Proximidad (puertas con fallback legacy, objetivos, losa, cofres)
+    const prox = this.getProximityTarget(playerPos);
+    if (prox) return prox;
+
+    // Fallback legacy solo para puertas si el nivel no define ninguna
+    if (!Array.isArray(this.world.doors) || this.world.doors.length === 0) {
+      const distToDoor1 = Math.hypot(playerPos.x - 11.5, playerPos.z - 11);
+      if (distToDoor1 < 3.2 && !this.world.isDoor1Open) {
+        return { type: 'door', doorId: 1, message: 'Puerta 1 (Vestíbulo)' };
+      }
+      const distToDoor2 = Math.hypot(playerPos.x - 11.5, playerPos.z - 24);
+      if (distToDoor2 < 3.2 && !this.world.isDoor2Open) {
+        return { type: 'door', doorId: 2, message: 'Puerta 2 (Santuario)' };
       }
     }
 

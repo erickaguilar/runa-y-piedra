@@ -15,6 +15,7 @@ export class UIManager {
     this._lastLives = -1;
     this._lastMaxLives = 3;
     this._hasKey = false;
+    this._interactKey = null;
 
     // Estado de pantallas
     this.currentScreen = 'menu'; // 'menu' | 'host_room' | 'in_game'
@@ -733,6 +734,39 @@ export class UIManager {
     const btnJump = document.getElementById('btn-jump');
     if (btnInteract) btnInteract.style.display = visible ? 'flex' : 'none';
     if (btnJump) btnJump.style.display = visible ? 'flex' : 'none';
+    if (!visible) this._interactKey = null;
+  }
+
+  /**
+   * Botón de interactuar contextual: muestra qué se va a usar
+   * (puerta/cofre/losa/altar) con pulso, o estado tenue si no hay nada cerca.
+   */
+  setInteractTarget(target) {
+    const btn = document.getElementById('btn-interact');
+    if (!btn) return;
+    const key = target?.type || 'none';
+    if (key === this._interactKey) return;
+    this._interactKey = key;
+
+    const iconEl = document.getElementById('interact-icon');
+    const labelEl = document.getElementById('interact-label');
+    const MAP = {
+      door: ['🚪', 'ABRIR'],
+      chest: ['📦', 'ABRIR'],
+      stairs: ['🪨', 'EMPUJAR'],
+      pedestal: ['✨', 'ACTIVAR'],
+    };
+    if (MAP[key]) {
+      if (iconEl) iconEl.textContent = MAP[key][0];
+      if (labelEl) labelEl.textContent = MAP[key][1];
+      btn.classList.remove('dim');
+      btn.classList.add('ready');
+    } else {
+      if (iconEl) iconEl.textContent = '✦';
+      if (labelEl) labelEl.textContent = 'USAR';
+      btn.classList.add('dim');
+      btn.classList.remove('ready');
+    }
   }
 
   setLivesVisible(visible) {
