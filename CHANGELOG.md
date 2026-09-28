@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.5.0] - 2026-09-28
+
+### Added
+- **Techo Abovedado de Piedra en la Mazmorra**:
+  - Implementación de la directiva `ceiling` en [`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js) para techar de forma completa y sólida las estancias de la mazmorra.
+  - Techo colocado a altura $y = 6$ ($5.0\text{ m}$ de altura interior libre), permitiendo saltos máximos sobre plataformas elevadas con más de $1\text{ m}$ de holgura y sin colisiones incómodas.
+  - Elevación de muros perimetrales y muros divisores hasta $y = 5$, cerrando por completo los laterales de la mazmorra.
+  - Columnas de soporte alargadas hasta $y = 5$ conectando el suelo de piedra con el techo, junto con vigas de arcos fajones transversales.
+- **Ambientación Subterránea Inmersiva**:
+  - Sustitución del fondo celeste de cielo abierto por un entorno oscuro de cripta (`0x090d16`) con niebla de profundidad atmosférica en [`SceneManager.js`](file:///data/data/com.termux/files/home/develop/game/src/render/SceneManager.js).
+  - Iluminación cálida estilo antorchas cenitales (`0xffedd5`) con rebotes volumétricos en piedra y pizarra.
+- **Física de Rebote en Techos y Dinteles**:
+  - En [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js), cuando el jugador salta y colisiona su cabeza con un techo o dintel (`r.hitY && p.vel.y > 0`), la velocidad vertical ascendente se anula inmediatamente, provocando una caída natural y suave sin quedarse adherido.
+
+---
+
 ## [1.4.1] - 2026-09-28
 
 ### Fixed
