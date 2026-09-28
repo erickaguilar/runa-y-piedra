@@ -7,6 +7,29 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.17.0] - 2026-09-28
+
+### Changed
+- **Corrección Taxonómica de Animaciones ([`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html))**:
+  - Reetiquetado formal de la curva `cubic-bezier(0.16, 1, 0.3, 1)` de `.hud-alert-card` como **ease-out-expo** asintótica (puntos de control $Y \le 1.0$, sin rebasamiento ni oscilación).
+
+### Added
+- **Integrador Físico de Resortes Amortiguados ([`Spring.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Spring.js))**:
+  - Implementación autónoma de resorte basado en Euler semi-implícito con 4 sub-pasos numéricos por tick y umbral de reposo estricto ($5 \times 10^{-4}$), sin dependencias externas ni overhead en background.
+- **Física de Apertura con Masa y Rebote en Cofre 3D ([`ChestRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js))**:
+  - Sustitución de la curva fija sinusoidal por `Spring(200, 14)` para la bisagra de la tapa, aportando un overshoot elástico del $\sim 112\%$ y rebote físico al abrirse.
+  - Normalización de la luz de botín (`lootLight.intensity`) acotada a $[0.0, 1.0]$ con respecto al ángulo objetivo, evitando parpadeos de sobre-brillo durante el rebote elástico.
+- **Asimetría Táctil en Botones de Acción ([`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html))**:
+  - Presión (*Press*) ultra rápida y responsiva a 80 ms con `ease-out`.
+  - Liberación (*Release*) elástica a 180 ms con curva de resorte `cubic-bezier(0.34, 1.56, 0.64, 1)` y supresión de destello gris en iOS vía `-webkit-tap-highlight-color: transparent`.
+- **Keyframes de Spring Real para Iconos del HUD ([`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html), [`Icons.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js), [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js))**:
+  - `@keyframes springPopIn`: Overshoot elástico único a 420 ms para cabeceras y títulos de alertas.
+  - `@keyframes springBounce`: Rebote con 2-3 oscilaciones elásticas a 620 ms para items de recompensa (gemas, llaves, monedas).
+  - Selectores duales `.svg-icon` y `.narrative-icon` acelerados 100% por hardware en el hilo compositor de la GPU, con limpieza automática de `will-change`.
+  - Función de utilidad [`replaySpringAnimation(el, variant)`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js) para disparar o reiniciar animaciones de resorte mediante reflow forzado sin clonar nodos del DOM.
+
+---
+
 ## [1.16.0] - 2026-09-28
 
 ### Changed

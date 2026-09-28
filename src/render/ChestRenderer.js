@@ -1,4 +1,10 @@
 import * as THREE from 'three';
+import { Spring } from '../ui/Spring.js';
+
+const LID_OPEN_ANGLE = 1.45; // ~83 grados de apertura completa
+const LID_SPRING_K = 200;    // Rigidez sub-amortiguada con 1 overshoot visible
+const LID_SPRING_C = 14;     // Amortiguación que produce rebote tangible
+const LIGHT_MAX_INTENSITY = 3.0;
 
 export class ChestRenderer {
   constructor(scene) {
@@ -116,6 +122,9 @@ export class ChestRenderer {
 
       this.group.add(chestGroup);
 
+      const lidSpring = new Spring(LID_SPRING_K, LID_SPRING_C, 0);
+      lidSpring.snap(0);
+
       this.chests.set(chestId, {
         id: chestId,
         name: cfg.name || 'Cofre del Tesoro',
@@ -125,10 +134,10 @@ export class ChestRenderer {
         y,
         z,
         isOpen: false,
-        openProgress: 0,
         lidPivot,
         lootLight,
         chestGroup,
+        lidSpring,
       });
     }
   }
@@ -138,6 +147,7 @@ export class ChestRenderer {
     if (!chest || chest.isOpen) return false;
 
     chest.isOpen = true;
+    chest.lidSpring.set(LID_OPEN_ANGLE);
     return true;
   }
 
@@ -148,13 +158,14 @@ export class ChestRenderer {
 
   update(dt = 0.016) {
     for (const chest of this.chests.values()) {
-      if (chest.isOpen && chest.openProgress < 1.0) {
-        chest.openProgress = Math.min(1.0, chest.openProgress + dt * 3.5);
-        // Curva suave de apertura de bisagra 3D (~83 grados)
-        const angle = Math.sin(chest.openProgress * Math.PI * 0.5) * 1.45;
+      if (chest.isOpen && (!chest.lidSpring.isSettled || chest.lidPivot.rotation.x === 0)) {
+        const angle = chest.lidSpring.update(dt);
         chest.lidPivot.rotation.x = -angle;
         if (chest.lootLight) {
-          chest.lootLight.intensity = chest.openProgress * 3.0;
+          // Luz normalizada: evita parpadeo cuando el spring sobrepasa
+          // el ángulo objetivo en el primer overshoot elástico.
+          const t = Math.min(1.0, Math.max(0.0, angle / LID_OPEN_ANGLE));
+          chest.lootLight.intensity = t * LIGHT_MAX_INTENSITY;
         }
       }
     }

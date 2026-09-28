@@ -740,7 +740,7 @@ export class UIManager {
 
     let html = `
       <div class="hud-alert-header">
-        <span class="hud-alert-title">${replaceEmojisWithSvg(title)}</span>
+        <span class="hud-alert-title">${replaceEmojisWithSvg(title, { className: 'narrative-icon pop-in' })}</span>
       </div>
     `;
 
@@ -750,7 +750,7 @@ export class UIManager {
           ${items.map(item => `
             <div class="hud-alert-row">
               <span class="hud-alert-bullet">•</span>
-              <span>${replaceEmojisWithSvg(item)}</span>
+              <span>${replaceEmojisWithSvg(item, { className: 'narrative-icon reward' })}</span>
             </div>
           `).join('')}
         </div>

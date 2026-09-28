@@ -342,3 +342,22 @@ export function replaceEmojisWithSvg(text, options = {}) {
 
   return result;
 }
+
+/**
+ * Reinicia o dispara una animación CSS de resorte (Spring) sobre un elemento SVG o icono
+ * utilizando el patrón estándar de reflow forzado (void el.offsetWidth) sin clonar el nodo.
+ * 
+ * @param {HTMLElement} el - Elemento SVG o contenedor del icono
+ * @param {'pop-in' | 'reward'} [variant='pop-in'] - Tipo de animación de resorte
+ */
+export function replaySpringAnimation(el, variant = 'pop-in') {
+  if (!el || !el.classList) return;
+  el.classList.remove('pop-in', 'reward', 'done');
+  void el.offsetWidth; // fuerza reflow para reiniciar la animación
+  el.classList.add(variant);
+  // Liberar will-change cuando termine la animación
+  el.addEventListener('animationend', () => {
+    el.classList.remove(variant);
+    el.classList.add('done');
+  }, { once: true });
+}
