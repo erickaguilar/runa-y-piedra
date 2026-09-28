@@ -1,5 +1,6 @@
 import Peer from 'peerjs';
 import * as Proto from './Protocol.js';
+import { NetworkStats } from './NetworkStats.js';
 
 export class NetworkManager extends EventTarget {
   constructor() {
@@ -9,12 +10,24 @@ export class NetworkManager extends EventTarget {
     this.hostConn = null;     // client: canal hacia el host
     this.isHost = false;
     this.roomId = null;
+
+    // Monitor y telemetría de red (?debug=1)
+    this.stats = new NetworkStats({ protocolVersion: Proto.PROTOCOL_VERSION });
+    this._pingInterval = null;
+
+    // Notificar cierre ordenado a peers cuando el anfitrión cierra la ventana
+    window.addEventListener('beforeunload', () => {
+      if (this.isHost && this.connections.length > 0) {
+        this.broadcast(Proto.serializeHostClosing(0));
+      }
+    });
   }
 
   host() {
     this.isHost = true;
     const pin = Math.floor(1000 + Math.random() * 9000);
     this.roomId = 'VOXELSALA-' + pin;
+    this.stats.setMode('HOST', 0);
 
     this.peer = new Peer(this.roomId, { debug: 0 });
 
@@ -28,11 +41,13 @@ export class NetworkManager extends EventTarget {
   _setupHostChannel(conn) {
     conn.on('open', () => {
       this.connections.push(conn);
+      this.stats.setMode('HOST', this.connections.length);
       this.dispatchEvent(new CustomEvent('peer-joined', { detail: { conn } }));
     });
     conn.on('data', (data) => this._handleIncoming(data, conn));
     conn.on('close', () => {
       this.connections = this.connections.filter(c => c !== conn);
+      this.stats.setMode('HOST', this.connections.length);
       this.dispatchEvent(new CustomEvent('peer-left', { detail: { conn } }));
     });
   }
@@ -42,9 +57,9 @@ export class NetworkManager extends EventTarget {
     this.peer = new Peer({ debug: 0 });
     return new Promise((resolve, reject) => {
       this.peer.on('open', () => {
-        // ordered:false + maxRetransmits:0 ≈ UDP mode
+        // Canales ordenados y fiables para evitar pérdida y congelamiento
         const conn = this.peer.connect('VOXELSALA-' + pin, {
-          reliable: false,
+          reliable: true,
           serialization: 'binary',
         });
         const onErr = (e) => reject(e);
@@ -52,6 +67,17 @@ export class NetworkManager extends EventTarget {
         conn.on('open', () => {
           conn.off('error', onErr);
           this.hostConn = conn;
+          this.stats.setMode('CLIENT', 1);
+
+          // Iniciar sonda periódica de latencia (Ping RTT cada 1000ms)
+          if (this._pingInterval) clearInterval(this._pingInterval);
+          this._pingInterval = setInterval(() => {
+            if (this.hostConn?.open) {
+              const pingBuf = Proto.serializePing(performance.now());
+              this.sendToHost(pingBuf);
+            }
+          }, 1000);
+
           conn.on('data', (d) => this._handleIncoming(d, conn));
           resolve();
         });
@@ -63,38 +89,91 @@ export class NetworkManager extends EventTarget {
   _handleIncoming(data, conn) {
     // PeerJS binary entrega ArrayBuffer
     const buf = data instanceof ArrayBuffer ? data : data.buffer || data;
+    this.stats.recordPacketIn(buf.byteLength);
+
     const v = new DataView(buf);
     const type = v.getUint8(0);
+
     switch (type) {
       case Proto.MSG.INPUT: {
-        const m = Proto.deserializeInput(buf); m.conn = conn;
+        const m = Proto.deserializeInput(buf);
+        m.conn = conn;
         this.dispatchEvent(new CustomEvent('input', { detail: m }));
         break;
       }
+
       case Proto.MSG.SNAPSHOT: {
-        this.dispatchEvent(new CustomEvent('snapshot', { detail: Proto.deserializeSnapshot(buf) }));
+        const s = Proto.deserializeSnapshot(buf);
+        this.stats.recordSnapshotSeq(s.seq);
+        this.dispatchEvent(new CustomEvent('snapshot', { detail: s.players, seq: s.seq, time: s.time }));
         break;
       }
+
+      case Proto.MSG.PING: {
+        // El Host responde de inmediato con PONG y el mismo timestamp del cliente
+        if (this.isHost) {
+          const p = Proto.deserializePing(buf);
+          this.sendTo(conn, Proto.serializePong(p.time));
+        }
+        break;
+      }
+
+      case Proto.MSG.PONG: {
+        // El cliente calcula el RTT exacto
+        const p = Proto.deserializePong(buf);
+        const rtt = Math.round(performance.now() - p.time);
+        this.stats.recordRtt(rtt);
+        this.dispatchEvent(new CustomEvent('rtt-update', { detail: { rtt } }));
+        break;
+      }
+
+      case Proto.MSG.INIT: {
+        const init = Proto.deserializeInit(buf);
+        // Comprobación estricta de versión del protocolo
+        if (init.version !== Proto.PROTOCOL_VERSION) {
+          this.dispatchEvent(new CustomEvent('version-mismatch', {
+            detail: {
+              hostVersion: init.version,
+              clientVersion: Proto.PROTOCOL_VERSION,
+            }
+          }));
+          return;
+        }
+        this.dispatchEvent(new CustomEvent('init', { detail: init }));
+        break;
+      }
+
+      case Proto.MSG.HOST_CLOSING: {
+        this.dispatchEvent(new CustomEvent('host-closing', { detail: Proto.deserializeHostClosing(buf) }));
+        break;
+      }
+
+      case Proto.MSG.LEVEL_CHANGE: {
+        const lvl = Proto.deserializeLevelChange(buf);
+        this.dispatchEvent(new CustomEvent('level-change', { detail: lvl }));
+        break;
+      }
+
       case Proto.MSG.BLOCK: {
-        const m = Proto.deserializeBlock(buf); m.conn = conn;
+        const m = Proto.deserializeBlock(buf);
+        m.conn = conn;
         this.dispatchEvent(new CustomEvent('block-edit', { detail: m }));
         break;
       }
-      case Proto.MSG.INIT: {
-        this.dispatchEvent(new CustomEvent('init', { detail: Proto.deserializeInit(buf) }));
-        break;
-      }
+
       case Proto.MSG.DOOR: {
         const d = Proto.deserializeDoorOpen(buf);
         this.dispatchEvent(new CustomEvent('door-open', { detail: { doorId: d.doorId, conn } }));
         break;
       }
+
       case Proto.MSG.PLAYER_META: {
         const m = Proto.deserializePlayerMeta(buf);
         m.conn = conn;
         this.dispatchEvent(new CustomEvent('player-meta', { detail: m }));
         break;
       }
+
       case Proto.MSG.CHEST_OPEN: {
         const c = Proto.deserializeChestOpen(buf);
         this.dispatchEvent(new CustomEvent('chest-open', { detail: { chestId: c.chestId, conn } }));
@@ -103,7 +182,46 @@ export class NetworkManager extends EventTarget {
     }
   }
 
-  sendToHost(buf) { if (this.hostConn?.open) this.hostConn.send(buf); }
-  sendTo(conn, buf) { if (conn?.open) conn.send(buf); }
-  broadcast(buf) { for (const c of this.connections) if (c.open) c.send(buf); }
+  sendToHost(buf) {
+    if (this.hostConn?.open) {
+      this.stats.recordPacketOut(buf.byteLength);
+      this.hostConn.send(buf);
+    }
+  }
+
+  sendTo(conn, buf) {
+    if (conn?.open) {
+      this.stats.recordPacketOut(buf.byteLength);
+      conn.send(buf);
+    }
+  }
+
+  broadcast(buf) {
+    if (this.connections.length > 0) {
+      this.stats.recordPacketOut(buf.byteLength * this.connections.length);
+    }
+    for (const c of this.connections) {
+      if (c.open) c.send(buf);
+    }
+  }
+
+  disconnect() {
+    if (this._pingInterval) {
+      clearInterval(this._pingInterval);
+      this._pingInterval = null;
+    }
+    if (this.hostConn) {
+      this.hostConn.close();
+      this.hostConn = null;
+    }
+    for (const c of this.connections) {
+      c.close();
+    }
+    this.connections = [];
+    if (this.peer) {
+      this.peer.destroy();
+      this.peer = null;
+    }
+    this.stats.setMode('OFFLINE', 0);
+  }
 }

@@ -1,0 +1,166 @@
+/**
+ * NetworkStats.js - Real-time Network Telemetry & Diagnostics Monitor
+ * 
+ * Tracks RTT (ping), packet throughput (PPS In/Out), bandwidth consumption (KB/s),
+ * packet sequence drops, and active peer topology for P2P WebRTC data channels.
+ */
+
+export class NetworkStats {
+  constructor({ protocolVersion = 2 } = {}) {
+    this.protocolVersion = protocolVersion;
+    this.mode = 'OFFLINE';
+    this.peerCount = 0;
+    this.rttMs = 0;
+    this.drops = 0;
+    this.lastSnapshotSeq = null;
+
+    // Conteo continuo
+    this.totalPacketsIn = 0;
+    this.totalPacketsOut = 0;
+    this.totalBytesIn = 0;
+    this.totalBytesOut = 0;
+
+    // Métricas por segundo (sliding window de 1s)
+    this.ppsIn = 0;
+    this.ppsOut = 0;
+    this.kbpsIn = 0;
+    this.kbpsOut = 0;
+
+    this._windowPacketsIn = 0;
+    this._windowPacketsOut = 0;
+    this._windowBytesIn = 0;
+    this._windowBytesOut = 0;
+    this._lastWindowTime = performance.now();
+
+    // Estado de visualización
+    this.enabled = this._checkInitialEnabled();
+    this.domElement = null;
+
+    if (this.enabled) {
+      this.initDom();
+    }
+  }
+
+  _checkInitialEnabled() {
+    if (typeof window === 'undefined') return false;
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('debug') === '1' || localStorage.getItem('dungeon_debug') === '1';
+  }
+
+  setEnabled(enable) {
+    this.enabled = enable;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('dungeon_debug', enable ? '1' : '0');
+    }
+    if (enable) {
+      this.initDom();
+    } else if (this.domElement) {
+      this.domElement.style.display = 'none';
+    }
+  }
+
+  setMode(mode, peerCount = 0) {
+    this.mode = mode;
+    this.peerCount = peerCount;
+  }
+
+  recordPacketIn(byteLength = 0) {
+    this.totalPacketsIn++;
+    this._windowPacketsIn++;
+    this.totalBytesIn += byteLength;
+    this._windowBytesIn += byteLength;
+    this._maybeUpdateWindow();
+  }
+
+  recordPacketOut(byteLength = 0) {
+    this.totalPacketsOut++;
+    this._windowPacketsOut++;
+    this.totalBytesOut += byteLength;
+    this._windowBytesOut += byteLength;
+    this._maybeUpdateWindow();
+  }
+
+  recordRtt(rttMs) {
+    // Media móvil exponencial para suavizar el jitter
+    this.rttMs = this.rttMs === 0 ? rttMs : Math.round(this.rttMs * 0.7 + rttMs * 0.3);
+  }
+
+  recordSnapshotSeq(seq) {
+    if (this.lastSnapshotSeq !== null) {
+      const expected = (this.lastSnapshotSeq + 1) & 0xFFFF;
+      if (seq !== expected) {
+        // Paquete fuera de secuencia o perdido
+        this.drops++;
+      }
+    }
+    this.lastSnapshotSeq = seq;
+  }
+
+  _maybeUpdateWindow() {
+    const now = performance.now();
+    const dt = (now - this._lastWindowTime) / 1000;
+    if (dt >= 1.0) {
+      this.ppsIn = Math.round(this._windowPacketsIn / dt);
+      this.ppsOut = Math.round(this._windowPacketsOut / dt);
+      this.kbpsIn = ((this._windowBytesIn / 1024) / dt).toFixed(1);
+      this.kbpsOut = ((this._windowBytesOut / 1024) / dt).toFixed(1);
+
+      this._windowPacketsIn = 0;
+      this._windowPacketsOut = 0;
+      this._windowBytesIn = 0;
+      this._windowBytesOut = 0;
+      this._lastWindowTime = now;
+
+      if (this.enabled) {
+        this.renderDom();
+      }
+    }
+  }
+
+  initDom() {
+    if (this.domElement) {
+      this.domElement.style.display = 'block';
+      return;
+    }
+    const el = document.createElement('div');
+    el.id = 'net-debug-panel';
+    el.style.cssText = `
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.4;
+      padding: 8px 12px;
+      border-radius: 10px;
+      z-index: 100;
+      pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      user-select: none;
+    `;
+    document.body.appendChild(el);
+    this.domElement = el;
+    this.renderDom();
+  }
+
+  renderDom() {
+    if (!this.domElement || !this.enabled) return;
+    const rttColor = this.rttMs <= 25 ? '#22c55e' : (this.rttMs <= 65 ? '#f59e0b' : '#ef4444');
+    this.domElement.innerHTML = `
+      <div style="font-weight:bold;color:#f8fafc;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:2px;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;">
+        <span>NET DEBUG · P2P</span>
+        <span style="color:#fbbf24">v${this.protocolVersion}</span>
+      </div>
+      <div>Rol: <strong>${this.mode}</strong> | Peers: <strong>${this.peerCount}</strong></div>
+      ${this.mode === 'CLIENT' ? `<div>RTT (Ping): <strong style="color:${rttColor}">${this.rttMs} ms</strong></div>` : ''}
+      <div>In: <strong>${this.ppsIn}</strong> pps (${this.kbpsIn} KB/s)</div>
+      <div>Out: <strong>${this.ppsOut}</strong> pps (${this.kbpsOut} KB/s)</div>
+      <div>Drops / OOO: <strong style="color:${this.drops > 0 ? '#f59e0b' : '#94a3b8'}">${this.drops}</strong></div>
+    `;
+  }
+}

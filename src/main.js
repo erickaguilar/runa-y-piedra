@@ -50,6 +50,8 @@ class VoxelSandboxGame {
     });
 
     this.currentJoinUrl = null;
+    this.inputSeq = 0;
+    this.snapshotSeq = 0;
 
     // Aplicar calidad gráfica guardada
     const savedDpr = parseFloat(localStorage.getItem('dungeon_dpr') || '1.5');
@@ -97,6 +99,9 @@ class VoxelSandboxGame {
       onSelectLevel: (lvlId) => {
         this.switchLevel(lvlId);
       },
+      onToggleDebug: (enable) => {
+        this.network.stats.setEnabled(enable);
+      },
     });
   }
 
@@ -135,7 +140,7 @@ class VoxelSandboxGame {
     }
   }
 
-  switchLevel(levelId) {
+  switchLevel(levelId, broadcast = true) {
     const levelData = this.world.levelRegistry.getLevel(levelId);
     if (!levelData) return;
     this.world.levelRegistry.setCurrentLevel(levelId);
@@ -149,6 +154,10 @@ class VoxelSandboxGame {
     local.respawn();
 
     this.ui.showNarrativeMessage(`Mapa cargado: ${levelData.name}`, 3500);
+
+    if (broadcast && this.mode === 'host') {
+      this.network.broadcast(Proto.serializeLevelChange(levelId));
+    }
   }
 
   async joinRoom(pin, profile = {}) {
@@ -264,6 +273,12 @@ class VoxelSandboxGame {
       // 1. Enviar INIT con el mapa y el ID asignado
       this.network.sendTo(conn, Proto.serializeInit(this.world.blocks, remotePlayer.id));
 
+      // Sincronizar el nivel actual activo con el cliente que ingresa
+      const currentLvl = this.world.levelRegistry.getCurrentLevel();
+      if (currentLvl) {
+        this.network.sendTo(conn, Proto.serializeLevelChange(currentLvl.id));
+      }
+
       // 2. Enviar metadatos del Host al nuevo jugador
       const local = this.playerManager.localPlayer;
       this.network.sendTo(conn, Proto.serializePlayerMeta(local.id, local.colorIndex, local.name));
@@ -292,6 +307,26 @@ class VoxelSandboxGame {
         this.avatars.remove(removedPlayer.id);
         this.ui.showNarrativeMessage(`⚠️ ${removedPlayer.name} ha abandonado la partida.`, 4000);
         this.ui.updatePartyList(this.playerManager.getAllPlayers());
+      }
+    });
+
+    this.network.addEventListener('version-mismatch', (e) => {
+      const { hostVersion, clientVersion } = e.detail;
+      alert(`⚠️ Versión de protocolo incompatible.\nHost v${hostVersion} vs Cliente v${clientVersion}.\nPor favor, actualiza tu versión del juego.`);
+      window.location.href = window.location.origin + window.location.pathname;
+    });
+
+    this.network.addEventListener('host-closing', () => {
+      this.ui.showNarrativeMessage('🏰 El anfitrión ha abandonado o cerrado la partida.', 5000);
+      setTimeout(() => {
+        window.location.href = window.location.origin + window.location.pathname;
+      }, 1500);
+    });
+
+    this.network.addEventListener('level-change', (e) => {
+      const lvlId = e.detail?.levelId;
+      if (lvlId) {
+        this.switchLevel(lvlId, false);
       }
     });
 
@@ -363,18 +398,20 @@ class VoxelSandboxGame {
   }
 
   initNetworkTimers() {
-    // 1. Envío de inputs (Cliente -> Host @ 30 Hz)
+    // 1. Envío de inputs (Cliente -> Host @ 30 Hz con sequence number)
     setInterval(() => {
       if (this.mode !== 'client') return;
       const local = this.playerManager.localPlayer;
-      this.network.sendToHost(Proto.serializeInput(local.inputRight, local.inputForward, local.yaw));
+      this.inputSeq = (this.inputSeq + 1) & 0xFFFF;
+      this.network.sendToHost(Proto.serializeInput(this.inputSeq, local.inputRight, local.inputForward, local.yaw));
     }, 1000 / NET_CONFIG.INPUT_HZ);
 
-    // 2. Broadcast de snapshots (Host -> Clientes @ 20 Hz)
+    // 2. Broadcast de snapshots (Host -> Clientes @ 20 Hz con sequence number)
     setInterval(() => {
       if (this.mode !== 'host') return;
+      this.snapshotSeq = (this.snapshotSeq + 1) & 0xFFFF;
       const snapshots = this.playerManager.getSnapshots();
-      this.network.broadcast(Proto.serializeSnapshot(snapshots));
+      this.network.broadcast(Proto.serializeSnapshot(this.snapshotSeq, snapshots));
 
       // Actualizar réplicas visuales en el host
       for (const p of snapshots) {

@@ -1,29 +1,162 @@
+/**
+ * Protocol.js - High-Performance Binary Protocol (v2)
+ * 
+ * Optimized hybrid binary protocol using Zero-GC DataView buffers on hot paths
+ * (INPUT at 30 Hz, SNAPSHOT at 20 Hz, PING/PONG at 1 Hz) and structured data
+ * for rare game events (DOOR, CHEST, INIT, LEVEL_CHANGE, HOST_CLOSING).
+ */
+
+export const PROTOCOL_VERSION = 2;
+
 export const MSG = {
-  INPUT:       0x01,
-  SNAPSHOT:    0x02,
-  BLOCK:       0x03,
-  INIT:        0x04,
-  DOOR:        0x05,
-  PLAYER_META: 0x06,
-  CHEST_OPEN:  0x07,
+  HANDSHAKE:    0x00,
+  INPUT:        0x01, // Client -> Host (hot path: 15 bytes)
+  SNAPSHOT:     0x02, // Host -> Clients (hot path: 8 + N*17 bytes)
+  BLOCK:        0x03, // Block modifications (14 bytes)
+  INIT:         0x04, // World snapshot + player ID assignment (with protocol version)
+  DOOR:         0x05, // Door state sync
+  PLAYER_META:  0x06, // Player identity & class hero metadata
+  CHEST_OPEN:   0x07, // Chest opened event
+  PING:         0x08, // Latency probe (5 bytes)
+  PONG:         0x09, // Latency reply (5 bytes)
+  HOST_CLOSING: 0x0A, // Graceful host disconnect (2 bytes)
+  LEVEL_CHANGE: 0x0B, // Dynamic map change in hot state
 };
 
-// INPUT: [type][f32 dx][f32 dz][f32 yaw]  -> 13 bytes
-export function serializeInput(dx, dz, yaw) {
-  const buf = new ArrayBuffer(13);
-  const v = new DataView(buf);
-  v.setUint8(0, MSG.INPUT);
-  v.setFloat32(1, dx, true);
-  v.setFloat32(5, dz, true);
-  v.setFloat32(9, yaw, true);
-  return buf;
-}
-export function deserializeInput(buf) {
-  const v = new DataView(buf);
-  return { dx: v.getFloat32(1, true), dz: v.getFloat32(5, true), yaw: v.getFloat32(9, true) };
+// ==========================================
+// 1. INPUT (Hot Path - Zero-GC Buffer Reutilizable)
+// [type:1][seq:2][f32 dx:4][f32 dz:4][f32 yaw:4] -> 15 bytes
+// ==========================================
+const inputBuffer = new ArrayBuffer(15);
+const inputView = new DataView(inputBuffer);
+
+export function serializeInput(seq = 0, dx = 0, dz = 0, yaw = 0) {
+  inputView.setUint8(0, MSG.INPUT);
+  inputView.setUint16(1, seq & 0xFFFF, true);
+  inputView.setFloat32(3, dx, true);
+  inputView.setFloat32(7, dz, true);
+  inputView.setFloat32(11, yaw, true);
+  return inputBuffer;
 }
 
-// BLOCK: [type][u8 action][i32 x][i32 y][i32 z] -> 14 bytes
+export function deserializeInput(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  if (v.byteLength >= 15) {
+    return {
+      seq: v.getUint16(1, true),
+      dx: v.getFloat32(3, true),
+      dz: v.getFloat32(7, true),
+      yaw: v.getFloat32(11, true),
+    };
+  }
+  // Compatibilidad con paquetes antiguos de 13 bytes sin seq
+  return {
+    seq: 0,
+    dx: v.getFloat32(1, true),
+    dz: v.getFloat32(5, true),
+    yaw: v.getFloat32(9, true),
+  };
+}
+
+// ==========================================
+// 2. SNAPSHOT (Hot Path - Host a Clientes)
+// [type:1][seq:2][u32 time:4][count:1][ {u8 id, f32 x, f32 y, f32 z, f32 yaw} * N ]
+// ==========================================
+export function serializeSnapshot(seq = 0, players = []) {
+  const n = players.length;
+  const buf = new ArrayBuffer(8 + n * 17);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.SNAPSHOT);
+  v.setUint16(1, seq & 0xFFFF, true);
+  v.setUint32(3, (performance.now() | 0) >>> 0, true);
+  v.setUint8(7, n);
+
+  let o = 8;
+  for (const p of players) {
+    v.setUint8(o, p.id);          o += 1;
+    v.setFloat32(o, p.x, true);   o += 4;
+    v.setFloat32(o, p.y, true);   o += 4;
+    v.setFloat32(o, p.z, true);   o += 4;
+    v.setFloat32(o, p.yaw, true); o += 4;
+  }
+  return buf;
+}
+
+export function deserializeSnapshot(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  const isV2 = v.byteLength >= 8 && ((v.byteLength - 8) % 17 === 0);
+  const seq = isV2 ? v.getUint16(1, true) : 0;
+  const time = isV2 ? v.getUint32(3, true) : 0;
+  const n = isV2 ? v.getUint8(7) : v.getUint8(1);
+  let o = isV2 ? 8 : 2;
+
+  const players = [];
+  for (let i = 0; i < n; i++) {
+    players.push({
+      id:  v.getUint8(o),
+      x:   v.getFloat32(o + 1, true),
+      y:   v.getFloat32(o + 5, true),
+      z:   v.getFloat32(o + 9, true),
+      yaw: v.getFloat32(o + 13, true),
+    });
+    o += 17;
+  }
+  return { seq, time, players };
+}
+
+// ==========================================
+// 3. PING & PONG (Medición de RTT / Latencia en caliente)
+// ==========================================
+const pingBuffer = new ArrayBuffer(5);
+const pingView = new DataView(pingBuffer);
+export function serializePing(timeMs = 0) {
+  pingView.setUint8(0, MSG.PING);
+  pingView.setUint32(1, (timeMs | 0) >>> 0, true);
+  return pingBuffer;
+}
+export function deserializePing(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  return { time: v.getUint32(1, true) };
+}
+
+const pongBuffer = new ArrayBuffer(5);
+const pongView = new DataView(pongBuffer);
+export function serializePong(timeMs = 0) {
+  pongView.setUint8(0, MSG.PONG);
+  pongView.setUint32(1, (timeMs | 0) >>> 0, true);
+  return pongBuffer;
+}
+export function deserializePong(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  return { time: v.getUint32(1, true) };
+}
+
+// ==========================================
+// 4. INIT & VERIFICACIÓN DE PROTOCOLO
+// [type:1][version:1][u8 playerId:1][world bytes...]
+// ==========================================
+export function serializeInit(blocks, playerId) {
+  const buf = new ArrayBuffer(3 + blocks.length);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.INIT);
+  v.setUint8(1, PROTOCOL_VERSION);
+  v.setUint8(2, playerId);
+  new Uint8Array(buf, 3).set(blocks);
+  return buf;
+}
+
+export function deserializeInit(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  const version = v.getUint8(1);
+  const playerId = v.getUint8(2);
+  const blocks = new Uint8Array(buf, 3);
+  return { version, playerId, blocks };
+}
+
+// ==========================================
+// 5. BLOQUES (14 bytes)
+// [type:1][action:1][i32 x:4][i32 y:4][i32 z:4]
+// ==========================================
 export function serializeBlock(action, x, y, z) {
   const buf = new ArrayBuffer(14);
   const v = new DataView(buf);
@@ -34,61 +167,15 @@ export function serializeBlock(action, x, y, z) {
   v.setInt32(10, z, true);
   return buf;
 }
+
 export function deserializeBlock(buf) {
-  const v = new DataView(buf);
+  const v = buf instanceof DataView ? buf : new DataView(buf);
   return { action: v.getUint8(1), x: v.getInt32(2, true), y: v.getInt32(6, true), z: v.getInt32(10, true) };
 }
 
-// SNAPSHOT: [type][u8 count][ {u8 id, f32 x, f32 y, f32 z, f32 yaw} * N ] -> 2 + N*17
-export function serializeSnapshot(players) {
-  const n = players.length;
-  const buf = new ArrayBuffer(2 + n * 17);
-  const v = new DataView(buf);
-  v.setUint8(0, MSG.SNAPSHOT);
-  v.setUint8(1, n);
-  let o = 2;
-  for (const p of players) {
-    v.setUint8(o, p.id);            o += 1;
-    v.setFloat32(o, p.x, true);     o += 4;
-    v.setFloat32(o, p.y, true);     o += 4;
-    v.setFloat32(o, p.z, true);     o += 4;
-    v.setFloat32(o, p.yaw, true);   o += 4;
-  }
-  return buf;
-}
-export function deserializeSnapshot(buf) {
-  const v = new DataView(buf);
-  const n = v.getUint8(1);
-  const out = [];
-  let o = 2;
-  for (let i = 0; i < n; i++) {
-    out.push({
-      id:  v.getUint8(o),
-      x:   v.getFloat32(o + 1, true),
-      y:   v.getFloat32(o + 5, true),
-      z:   v.getFloat32(o + 9, true),
-      yaw: v.getFloat32(o + 13, true),
-    });
-    o += 17;
-  }
-  return out;
-}
-
-// INIT: [type][u8 playerId][Uint8Array world data]  (payload variable)
-export function serializeInit(blocks, playerId) {
-  const buf = new ArrayBuffer(2 + blocks.length);
-  const v = new DataView(buf);
-  v.setUint8(0, MSG.INIT);
-  v.setUint8(1, playerId);
-  new Uint8Array(buf, 2).set(blocks);
-  return buf;
-}
-export function deserializeInit(buf) {
-  const v = new DataView(buf);
-  return { playerId: v.getUint8(1), blocks: new Uint8Array(buf, 2) };
-}
-
-// DOOR: [type (0x05)][doorId (1 o 2)] -> 2 bytes
+// ==========================================
+// 6. PUERTAS & COFRES (2 bytes)
+// ==========================================
 export function serializeDoorOpen(doorId = 1) {
   const buf = new ArrayBuffer(2);
   const v = new DataView(buf);
@@ -97,14 +184,28 @@ export function serializeDoorOpen(doorId = 1) {
   return buf;
 }
 export function deserializeDoorOpen(buf) {
-  const v = new DataView(buf);
+  const v = buf instanceof DataView ? buf : new DataView(buf);
   return { doorId: v.byteLength > 1 ? v.getUint8(1) : 1 };
 }
 
+export function serializeChestOpen(chestId = 1) {
+  const buf = new ArrayBuffer(2);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.CHEST_OPEN);
+  v.setUint8(1, chestId);
+  return buf;
+}
+export function deserializeChestOpen(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  return { chestId: v.getUint8(1) };
+}
+
+// ==========================================
+// 7. METADATOS DE JUGADOR & TEXTO
+// ==========================================
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-// PLAYER_META: [type 0x06][u8 playerId][u8 colorIndex][u8 nameLen][name bytes] -> 4 + N bytes
 export function serializePlayerMeta(playerId, colorIndex, name) {
   const nameBytes = textEncoder.encode(name || 'Aventurero');
   const clampedLen = Math.min(nameBytes.length, 24);
@@ -119,7 +220,7 @@ export function serializePlayerMeta(playerId, colorIndex, name) {
 }
 
 export function deserializePlayerMeta(buf) {
-  const v = new DataView(buf);
+  const v = buf instanceof DataView ? buf : new DataView(buf);
   const playerId = v.getUint8(1);
   const colorIndex = v.getUint8(2);
   const len = v.getUint8(3);
@@ -128,18 +229,35 @@ export function deserializePlayerMeta(buf) {
   return { playerId, colorIndex, name };
 }
 
-// CHEST_OPEN: [type][u8 chestId] -> 2 bytes
-export function serializeChestOpen(chestId) {
+// ==========================================
+// 8. CIERRE ORDENADO & CAMBIO DE NIVEL
+// ==========================================
+export function serializeHostClosing(reason = 0) {
   const buf = new ArrayBuffer(2);
   const v = new DataView(buf);
-  v.setUint8(0, MSG.CHEST_OPEN);
-  v.setUint8(1, chestId);
+  v.setUint8(0, MSG.HOST_CLOSING);
+  v.setUint8(1, reason);
   return buf;
 }
 
-export function deserializeChestOpen(buf) {
-  const v = new DataView(buf);
-  return { chestId: v.getUint8(1) };
+export function deserializeHostClosing(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  return { reason: v.getUint8(1) };
 }
 
+export function serializeLevelChange(levelId = 'dungeon_classic') {
+  const bytes = textEncoder.encode(levelId);
+  const buf = new ArrayBuffer(2 + bytes.length);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.LEVEL_CHANGE);
+  v.setUint8(1, bytes.length);
+  new Uint8Array(buf, 2).set(bytes);
+  return buf;
+}
 
+export function deserializeLevelChange(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  const len = v.getUint8(1);
+  const idBytes = new Uint8Array(buf, 2, len);
+  return { levelId: textDecoder.decode(idBytes) };
+}

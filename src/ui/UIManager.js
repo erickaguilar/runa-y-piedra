@@ -288,6 +288,7 @@ export class UIManager {
     const inGame = this.currentScreen === 'in_game';
     const sens = parseFloat(localStorage.getItem('dungeon_sensitivity') || '1.0');
     const dpr = parseFloat(localStorage.getItem('dungeon_dpr') || '1.5');
+    const debugEnabled = localStorage.getItem('dungeon_debug') === '1' || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1');
 
     const heroesHtml = PLAYER_HEROES.map((h, i) => `
       <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
@@ -407,7 +408,27 @@ export class UIManager {
           </div>
         </div>
 
-        <!-- 4. SALA DE EXPEDICIÓN (si está en partida) -->
+        <!-- 4. Telemetría de Red (?debug=1) -->
+        <div class="settings-group" style="margin-top:10px;">
+          <div class="setting-row">
+            <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
+              ${renderIcon('sparkles', { size: 14, color: '#38bdf8' })} Telemetría de Red (?debug=1)
+            </span>
+          </div>
+          <div class="quality-selector">
+            <button class="quality-btn ${!debugEnabled ? 'active' : ''}" id="btn-net-debug-off">
+              Oculto
+            </button>
+            <button class="quality-btn ${debugEnabled ? 'active' : ''}" id="btn-net-debug-on">
+              Activo (Overlay RTT)
+            </button>
+          </div>
+          <div style="font-size:10px;color:#64748b;margin-top:4px;">
+            Monitorea RTT (ping en ms), paquetes/seg, KB/s y pérdidas de paquetes en tiempo real.
+          </div>
+        </div>
+
+        <!-- 5. SALA DE EXPEDICIÓN (si está en partida) -->
         ${inGame && state.roomPin ? `
           <div class="divider" style="margin:12px 0"></div>
           <div class="settings-group" style="background:rgba(11,17,32,0.85);border-radius:14px;padding:14px;border:1px solid #1e293b;text-align:center;">
@@ -491,6 +512,20 @@ export class UIManager {
     };
     btnDpr1.onclick = () => setDpr(1.0);
     btnDpr15.onclick = () => setDpr(1.5);
+
+    // Botones de Telemetría de Red (?debug=1)
+    const btnNetDebugOff = document.getElementById('btn-net-debug-off');
+    const btnNetDebugOn = document.getElementById('btn-net-debug-on');
+    const setNetDebug = (val) => {
+      localStorage.setItem('dungeon_debug', val ? '1' : '0');
+      if (btnNetDebugOff && btnNetDebugOn) {
+        btnNetDebugOff.classList.toggle('active', !val);
+        btnNetDebugOn.classList.toggle('active', val);
+      }
+      this.settingsCallbacks?.onToggleDebug?.(val);
+    };
+    if (btnNetDebugOff) btnNetDebugOff.onclick = () => setNetDebug(false);
+    if (btnNetDebugOn) btnNetDebugOn.onclick = () => setNetDebug(true);
 
     // QR Canvas en Configuración
     const qrCanvas = document.getElementById('settings-qr-canvas');

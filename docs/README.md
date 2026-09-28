@@ -67,3 +67,11 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Maquetación elástica anti-desbordamiento del botón "Unirse" en resoluciones móviles estrechas.
     - Visibilidad contextual inteligente de botones de acción táctiles.
 
+11. [**11. Protocolo Híbrido v2, Telemetría de Red y Resiliencia WebRTC**](./11-protocolo-hibrido-v2-telemetria-y-resiliencia.md)
+    - Protocolo híbrido DataView Zero-GC para hot paths (15 bytes INPUT, 8+N*17 bytes SNAPSHOT).
+    - `PROTOCOL_VERSION = 2` y handshake de verificación estricta contra versiones obsoletas.
+    - Medición en caliente de RTT (Ping/Pong a 1 Hz) con media móvil de jitter.
+    - Cierre ordenado de sala (`HOST_CLOSING`) en `beforeunload` y sincronización de `LEVEL_CHANGE`.
+    - Monitor HUD de telemetría en tiempo real (`NetworkStats.js`) con toggle `?debug=1`.
+
+

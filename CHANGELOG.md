@@ -7,6 +7,32 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.11.0] - 2026-09-28
+
+### Added
+- **Protocolo de Red Híbrido v2 de Alto Rendimiento ([`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js))**:
+  - Introducción de `PROTOCOL_VERSION = 2` para versionado estricto en el handshake de inicialización.
+  - **Zero-GC Hot Path Buffer**: Implementación de buffers estáticos reutilizables con vistas `DataView` nativas para eliminar por completo la recolección de basura (*GC Pauses*) a 30 Hz y 60 FPS en navegadores móviles.
+  - **Inputs Secuenciados (15 bytes)**: Paquete `INPUT` ampliado con contador cíclico de secuencia `seq` (`Uint16`) para detección precisa de orden y paquetes perdidos (`dx`, `dz`, `yaw`).
+  - **Snapshots Secuenciados con Timestamp ($8 + N \times 17$ bytes)**: Paquete `SNAPSHOT` autoritativo con cabecera de 8 bytes (`type`, `seq`, `simulationTime`, `playerCount`) y 17 bytes por entidad (`playerId`, `x`, `y`, `z`, `yaw`).
+  - **Sonda Periódica de Latencia RTT Ping / Pong (5 bytes)**: Paquetes `0x08` (`PING`) y `0x09` (`PONG`) a 1 Hz que permiten al cliente calcular el RTT en milisegundos con suavizado de jitter exponencial sin requerir sincronización de relojes.
+  - **Cierre Ordenado de Sala ([`HOST_CLOSING`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js#L235-L246))**: Paquete de 2 bytes emitido en el evento `beforeunload` del anfitrión para desconexión limpia de clientes y retorno narrativo al menú principal.
+  - **Conmutación Dinámica de Nivel ([`LEVEL_CHANGE`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js#L248-L263))**: Paquete de sincronización en caliente para cambiar de mapa (`dungeon_classic`, `crypt_inferno`) sin reiniciar conexiones WebRTC.
+
+- **Monitor y Telemetría de Red en Tiempo Real ([`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js))**:
+  - Creación del monitor de diagnóstico y telemetría de red con panel flotante HUD (`#net-debug-panel`).
+  - Métricas en tiempo real: Modo de conexión (`HOST` o `CLIENT`), peers activos, latencia RTT (Ping en ms con código de color dinámico), caudal de paquetes (`PPS In` / `PPS Out`), ancho de banda consumido (`KB/s In` / `KB/s Out`) y contador de pérdidas de secuencia (`Drops`).
+  - Activación múltiple y persistente: Mediante query param `?debug=1`, interruptor de telemetría en el modal de ⚙️ Configuración, o `localStorage.getItem('dungeon_debug')`.
+
+### Changed
+- **Configuración de Canales WebRTC de Máxima Fiabilidad ([`NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js))**:
+  - Actualización de los canales de datos hacia `reliable: true` y `serialization: 'binary'`, eliminando pérdidas de snapshots en redes Wi-Fi locales que anteriormente congelaban el movimiento suave (*Lerp*) de los avatares remotos.
+  - Detección proactiva de incompatibilidad de versiones (`version-mismatch`) al procesar `MSG.INIT`, alertando al usuario de actualizar la versión en caso de discrepancias entre host y cliente.
+- **Gestión de Configuración y Diagnóstico en UI ([`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js))**:
+  - Incorporación del selector visual *"Telemetría de Red (?debug=1)"* en la sección de rendimiento del modal de ajustes, permitiendo alternar el HUD de diagnóstico en pantallas táctiles sin necesidad de editar la URL manualmente.
+
+---
+
 ## [1.10.0] - 2026-09-28
 
 ### Added
