@@ -24,6 +24,7 @@ export class LevelLoader {
     world.checkpoints = levelData.checkpoints || [];
     world.objectives = levelData.objectives || [];
     world.torches = levelData.torches || [];
+    world.chests = (levelData.chests || []).map(c => ({ ...c, isOpen: false }));
     world.spawnPoint = levelData.spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
 
     // 3. Procesar regiones declarativas

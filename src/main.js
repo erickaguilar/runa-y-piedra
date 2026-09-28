@@ -1,7 +1,7 @@
 import { SceneManager } from './render/SceneManager.js';
 import { VoxelMap } from './render/VoxelMap.js';
 import { AvatarRenderer } from './render/AvatarRenderer.js';
-import { TorchRenderer } from './render/TorchRenderer.js';
+import { ChestRenderer } from './render/ChestRenderer.js';
 import { World } from './core/World.js';
 import { GameLoop } from './core/GameLoop.js';
 import { PlayerManager } from './entities/PlayerManager.js';
@@ -23,8 +23,8 @@ class VoxelSandboxGame {
     this.sceneManager = new SceneManager(this.canvas);
     this.world = new World();
     this.voxelMap = new VoxelMap(this.sceneManager.scene, this.world);
-    this.torchRenderer = new TorchRenderer(this.sceneManager.scene);
-    this.torchRenderer.loadTorches(this.world.torches);
+    this.chestRenderer = new ChestRenderer(this.sceneManager.scene);
+    this.chestRenderer.loadChests(this.world.chests);
     this.avatars = new AvatarRenderer(this.sceneManager.scene);
     this.playerManager = new PlayerManager();
     this.simulation = new SimulationEngine(this.world, {
@@ -143,7 +143,7 @@ class VoxelSandboxGame {
     this.world.levelRegistry.setCurrentLevel(levelId);
     this.world.loadLevel(levelData);
     this.voxelMap.rebuildFromWorld();
-    this.torchRenderer.loadTorches(this.world.torches);
+    this.chestRenderer.loadChests(this.world.chests);
 
     const spawn = levelData.spawn || { x: 12.0, y: 1.2, z: 4.5 };
     const local = this.playerManager.localPlayer;
@@ -207,10 +207,35 @@ class VoxelSandboxGame {
         this.network.sendToHost(Proto.serializeDoorOpen(doorId));
         this.ui.showNarrativeMessage(`Abriendo Puerta ${doorId}...`, 2500);
       }
+    } else if (interaction.type === 'chest') {
+      const chestId = interaction.chestId || 1;
+      if (this.chestRenderer.isChestOpen(chestId)) return;
+
+      if (this.mode === 'host') {
+        this.openChest(chestId);
+      } else {
+        this.network.sendToHost(Proto.serializeChestOpen(chestId));
+        this.ui.showNarrativeMessage('Abriendo cofre...', 1500);
+      }
     } else if (interaction.type === 'pedestal') {
       const msg = interaction.message || '✨ ¡Pedestal Ancestral Activado! Habéis completado la Mazmorra Cooperativa con éxito.';
       this.ui.showNarrativeMessage(msg, 6000);
     }
+  }
+
+  openChest(chestId = 1) {
+    const opened = this.chestRenderer.openChest(chestId);
+    if (!opened) return;
+
+    const chestData = this.world.chests?.find(c => c.id === chestId);
+    if (chestData) chestData.isOpen = true;
+
+    if (this.mode === 'host') {
+      this.network.broadcast(Proto.serializeChestOpen(chestId));
+    }
+
+    const msg = chestData?.message || `📦 ¡Has abierto el ${chestData?.name || 'Cofre'}! Recompensa: ${chestData?.reward || 'Tesoros de la Mazmorra'}`;
+    this.ui.showNarrativeMessage(msg, 5000);
   }
 
   openDoor(doorId = 1) {
@@ -310,6 +335,11 @@ class VoxelSandboxGame {
       this.openDoor(doorId);
     });
 
+    this.network.addEventListener('chest-open', (e) => {
+      const chestId = e.detail?.chestId || 1;
+      this.openChest(chestId);
+    });
+
     this.network.addEventListener('snapshot', (e) => {
       if (this.mode !== 'client') return;
       for (const p of e.detail) {
@@ -322,7 +352,7 @@ class VoxelSandboxGame {
     this.network.addEventListener('init', (e) => {
       this.world.setFromArray(e.detail.blocks);
       this.voxelMap.rebuildFromWorld();
-      this.torchRenderer.loadTorches(this.world.torches);
+      this.chestRenderer.loadChests(this.world.chests);
       this.playerManager.setLocalId(e.detail.playerId);
       if (this.world.isDoor2Open) {
         this.ui.showNarrativeMessage('Las dos puertas ya están abiertas. El Santuario os espera.', 4000);
@@ -380,7 +410,7 @@ class VoxelSandboxGame {
           this.cameraController.update(local, local.yaw, local.pitch);
           this.avatars.update(dt);
         }
-        this.torchRenderer.update();
+        this.chestRenderer.update(dt);
         this.sceneManager.render();
       },
     });

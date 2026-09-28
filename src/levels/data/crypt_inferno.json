@@ -74,19 +74,25 @@
       "completeMessage": "🔥 ¡Altar Ígneo Consagrado! Habéis conquistado la Cripta del Fuego con éxito."
     }
   ],
-  "torches": [
-    { "id": "brazier_s1_w", "x": 5.0, "y": 2.6, "z": 4.0, "color": "0xff5722", "intensity": 2.2, "distance": 14, "hasLight": true },
-    { "id": "brazier_s1_e", "x": 18.0, "y": 2.6, "z": 4.0, "color": "0xff5722", "intensity": 2.2, "distance": 14, "hasLight": true },
-    { "id": "torch_door1_in", "x": 11.5, "y": 2.8, "z": 10.4, "color": "0xff7043", "intensity": 2.0, "distance": 13, "hasLight": true },
-    { "id": "torch_door1_left", "x": 9.8, "y": 2.4, "z": 10.4, "color": "0xff7043", "hasLight": false },
-    { "id": "torch_door1_right", "x": 13.2, "y": 2.4, "z": 10.4, "color": "0xff7043", "hasLight": false },
-    { "id": "brazier_lava_arch", "x": 11.5, "y": 3.4, "z": 17.0, "color": "0xff3d00", "intensity": 2.6, "distance": 16, "hasLight": true },
-    { "id": "torch_door2_in", "x": 11.5, "y": 2.8, "z": 23.4, "color": "0xff7043", "intensity": 2.0, "distance": 13, "hasLight": true },
-    { "id": "torch_door2_left", "x": 9.8, "y": 2.4, "z": 23.4, "color": "0xff7043", "hasLight": false },
-    { "id": "torch_door2_right", "x": 13.2, "y": 2.4, "z": 23.4, "color": "0xff7043", "hasLight": false },
-    { "id": "brazier_s3_w", "x": 5.0, "y": 2.6, "z": 30.0, "color": "0xff5722", "intensity": 2.2, "distance": 14, "hasLight": true },
-    { "id": "brazier_s3_e", "x": 18.0, "y": 2.6, "z": 30.0, "color": "0xff5722", "intensity": 2.2, "distance": 14, "hasLight": true },
-    { "id": "altar_infernal", "x": 12.0, "y": 2.3, "z": 30.0, "color": "0xffab00", "intensity": 2.8, "distance": 16, "hasLight": true }
+  "chests": [
+    {
+      "id": 1,
+      "name": "Cofre de Brasas del Vestíbulo",
+      "x": 4.5,
+      "y": 1.0,
+      "z": 4.0,
+      "reward": "🔥 Esquirla de Magma y 💎 Gemas Ígneas",
+      "message": "📦 ¡Has abierto el Cofre de Brasas! Has obtenido: 🔥 Esquirla de Magma y 💎 120 Gemas Volcánicas."
+    },
+    {
+      "id": 2,
+      "name": "Cofre Volcánico del Altar",
+      "x": 19.5,
+      "y": 1.0,
+      "z": 30.0,
+      "reward": "🌋 Corazón del Volcán",
+      "message": "📦 ¡Has abierto el Cofre del Altar Ígneo! Has obtenido: 🌋 Corazón del Volcán y 💎 300 Gemas de Obsidiana."
+    }
   ],
   "regions": [
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },

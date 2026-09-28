@@ -5,6 +5,7 @@ export const MSG = {
   INIT:        0x04,
   DOOR:        0x05,
   PLAYER_META: 0x06,
+  CHEST_OPEN:  0x07,
 };
 
 // INPUT: [type][f32 dx][f32 dz][f32 yaw]  -> 13 bytes
@@ -125,6 +126,20 @@ export function deserializePlayerMeta(buf) {
   const nameBytes = new Uint8Array(buf, 4, len);
   const name = textDecoder.decode(nameBytes);
   return { playerId, colorIndex, name };
+}
+
+// CHEST_OPEN: [type][u8 chestId] -> 2 bytes
+export function serializeChestOpen(chestId) {
+  const buf = new ArrayBuffer(2);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.CHEST_OPEN);
+  v.setUint8(1, chestId);
+  return buf;
+}
+
+export function deserializeChestOpen(buf) {
+  const v = new DataView(buf);
+  return { chestId: v.getUint8(1) };
 }
 
 

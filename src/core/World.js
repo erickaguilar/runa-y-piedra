@@ -14,6 +14,7 @@ export class World {
     this.checkpoints = [];
     this.objectives = [];
     this.torches = [];
+    this.chests = [];
     this.spawnPoint = { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
     this.levelRegistry = new LevelRegistry();
 

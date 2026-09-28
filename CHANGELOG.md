@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.7.0] - 2026-09-28
+
+### Added
+- **Cofres del Tesoro Interactivos y Jugables (`ChestRenderer`)**:
+  - Implementación de [`ChestRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js) con modelo 3D detallado de cofre voxel: madera de roble, refuerzos y bisagras doradas, cerradura de hierro y botín interior brillante (oro y gemas rúnicas resplandecientes).
+  - Animación suave de apertura de tapa en tiempo real ($77^\circ$) al interactuar con el botón **ACTION**.
+  - Distribución estratégica en los niveles:
+    - **[`dungeon_classic.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/dungeon_classic.json)**: *Cofre Antiguo del Vestíbulo* (contiene la Llave Antigua del Santuario y 100 Gemas) y *Cofre Oculto del Santuario* (contiene el Cáliz Sagrado y 250 Gemas).
+    - **[`crypt_inferno.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/crypt_inferno.json)**: *Cofre de Brasas del Vestíbulo* y *Cofre Volcánico del Altar*.
+  - Sincronización multijugador P2P: nuevo mensaje binario [`CHEST_OPEN`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js#L131) en [`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js) y [`NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js) para que todos los jugadores vean abrirse el cofre y reciban la notificación cooperativa.
+
+### Changed
+- **Iluminación Ambiental Clara y Mazmorra Despejada**:
+  - Eliminación de las antorchas fijas y luces puntuales para reducir la saturación de elementos estáticos y priorizar objetos interactivos y jugables.
+  - Aumento de la luz ambiental general ([`AmbientLight`](file:///data/data/com.termux/files/home/develop/game/src/render/SceneManager.js)) a `0.95` (blanco puro) y luz direccional cenital a `0.70`, proporcionando visibilidad clara, uniforme y sin zonas oscuras en toda la mazmorra.
+  - Ajuste de niebla a distancia lejana ($35\text{ m}$ a $80\text{ m}$) con fondo limpio slate-800 (`0x1e293b`), permitiendo apreciar las salas con total amplitud y nitidez.
+
+---
+
 ## [1.6.0] - 2026-09-28
 
 ### Added

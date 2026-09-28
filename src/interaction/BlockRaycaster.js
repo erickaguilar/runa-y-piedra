@@ -51,6 +51,24 @@ export class BlockRaycaster {
       }
     }
 
+    // 3. Chequeo por proximidad a cofres del tesoro
+    if (Array.isArray(this.world.chests) && this.world.chests.length > 0) {
+      for (const chest of this.world.chests) {
+        if (!chest.isOpen) {
+          const dist = Math.hypot(playerPos.x - chest.x, playerPos.z - chest.z);
+          if (dist < 2.8) {
+            return {
+              type: 'chest',
+              chestId: chest.id,
+              name: chest.name || 'Cofre del Tesoro',
+              reward: chest.reward,
+              message: chest.message,
+            };
+          }
+        }
+      }
+    }
+
     // 4. Chequeo por Raycaster mirando a bloques en el punto de mira
     this.raycaster.setFromCamera(this.screenCenter, this.camera);
     const hits = this.raycaster.intersectObject(this.voxelMap.mesh, false);

@@ -95,6 +95,11 @@ export class NetworkManager extends EventTarget {
         this.dispatchEvent(new CustomEvent('player-meta', { detail: m }));
         break;
       }
+      case Proto.MSG.CHEST_OPEN: {
+        const c = Proto.deserializeChestOpen(buf);
+        this.dispatchEvent(new CustomEvent('chest-open', { detail: { chestId: c.chestId, conn } }));
+        break;
+      }
     }
   }
 

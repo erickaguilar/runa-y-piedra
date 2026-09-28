@@ -14,8 +14,8 @@ export class SceneManager {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0f172a); // Fondo de cripta nocturna (slate-900)
-    this.scene.fog = new THREE.Fog(0x0f172a, 26, 62);  // Niebla atmosférica suave y profunda
+    this.scene.background = new THREE.Color(0x1e293b); // Fondo limpio y claro (slate-800)
+    this.scene.fog = new THREE.Fog(0x1e293b, 35, 80);  // Niebla lejana muy suave para máxima claridad
 
     this.camera = new THREE.PerspectiveCamera(
       72,
@@ -24,12 +24,12 @@ export class SceneManager {
       200
     );
 
-    // Iluminación ambiental y de relleno cálida
-    this.scene.add(new THREE.AmbientLight(0xe2e8f0, 0.78));
-    const mainLight = new THREE.DirectionalLight(0xffedd5, 0.85);
-    mainLight.position.set(12, 10, 18);
+    // Iluminación ambiental limpia y luminosa para visibilidad perfecta
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+    const mainLight = new THREE.DirectionalLight(0xffffff, 0.70);
+    mainLight.position.set(12, 14, 18);
     this.scene.add(mainLight);
-    const hemi = new THREE.HemisphereLight(0xffedd5, 0x334155, 0.45);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x64748b, 0.45);
     this.scene.add(hemi);
 
     window.addEventListener('resize', () => this._onResize());

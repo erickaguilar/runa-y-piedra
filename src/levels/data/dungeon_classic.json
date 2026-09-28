@@ -74,19 +74,25 @@
       "completeMessage": "✨ ¡Pedestal Ancestral Activado! Habéis completado la Mazmorra Cooperativa con éxito."
     }
   ],
-  "torches": [
-    { "id": "torch_s1_col_w", "x": 6.0, "y": 2.6, "z": 5.0, "color": "0xffa726", "intensity": 2.2, "distance": 14, "hasLight": true },
-    { "id": "torch_s1_col_e", "x": 17.0, "y": 2.6, "z": 5.0, "color": "0xffa726", "intensity": 2.2, "distance": 14, "hasLight": true },
-    { "id": "torch_door1_in", "x": 11.5, "y": 2.8, "z": 10.4, "color": "0xff9800", "intensity": 2.0, "distance": 13, "hasLight": true },
-    { "id": "torch_door1_left", "x": 9.8, "y": 2.4, "z": 10.4, "color": "0xff9800", "hasLight": false },
-    { "id": "torch_door1_right", "x": 13.2, "y": 2.4, "z": 10.4, "color": "0xff9800", "hasLight": false },
-    { "id": "torch_abyss_arch", "x": 11.5, "y": 3.4, "z": 17.0, "color": "0xffb74d", "intensity": 2.5, "distance": 16, "hasLight": true },
-    { "id": "torch_door2_in", "x": 11.5, "y": 2.8, "z": 23.4, "color": "0xff9800", "intensity": 2.0, "distance": 13, "hasLight": true },
-    { "id": "torch_door2_left", "x": 9.8, "y": 2.4, "z": 23.4, "color": "0xff9800", "hasLight": false },
-    { "id": "torch_door2_right", "x": 13.2, "y": 2.4, "z": 23.4, "color": "0xff9800", "hasLight": false },
-    { "id": "torch_s3_col_w", "x": 6.0, "y": 2.6, "z": 29.0, "color": "0xffa726", "intensity": 2.2, "distance": 14, "hasLight": true },
-    { "id": "torch_s3_col_e", "x": 17.0, "y": 2.6, "z": 29.0, "color": "0xffa726", "intensity": 2.2, "distance": 14, "hasLight": true },
-    { "id": "torch_pedestal", "x": 12.0, "y": 2.3, "z": 30.0, "color": "0xfbbf24", "intensity": 2.6, "distance": 16, "hasLight": true }
+  "chests": [
+    {
+      "id": 1,
+      "name": "Cofre Antiguo del Vestíbulo",
+      "x": 4.5,
+      "y": 1.0,
+      "z": 5.0,
+      "reward": "🗝️ Llave Rúnica y 💎 Gemas",
+      "message": "📦 ¡Has abierto el Cofre del Vestíbulo! Has obtenido: 🗝️ Llave Antigua del Santuario y 💎 100 Gemas."
+    },
+    {
+      "id": 2,
+      "name": "Cofre Oculto del Santuario",
+      "x": 19.5,
+      "y": 1.0,
+      "z": 29.0,
+      "reward": "🏆 Reliquia Dorada",
+      "message": "📦 ¡Has abierto el Cofre Secreto del Santuario! Has obtenido: 🏆 Cáliz Sagrado y 💎 250 Gemas Legendarias."
+    }
   ],
   "regions": [
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
