@@ -776,7 +776,7 @@ export class UIManager {
   showGameOver(lives, maxLives) {
     this.updateLives(lives, maxLives);
     this.showNarrativeMessage(
-      '💀 ¡GAME OVER! Te quedaste sin vidas. Reapareces en el inicio con corazones llenos.',
+      '💀 ¡GAME OVER! Vuelves al lobby con todo reseteado.',
       5000
     );
   }

@@ -1,0 +1,86 @@
+{
+  "id": "lobby_tutorial",
+  "name": "Lobby: Sala de Práctica",
+  "description": "Aprende lo esencial: salta las losas, abre el cofre, usa la llave, empuja la losa y desciende.",
+  "difficulty": "Tutorial",
+  "icon": "compass",
+  "dimensions": {
+    "sizeX": 24,
+    "sizeY": 16,
+    "sizeZ": 36
+  },
+  "spawn": {
+    "x": 12.0,
+    "y": 1.2,
+    "z": 4.5
+  },
+  "doors": [
+    {
+      "id": 1,
+      "name": "Puerta del Aprendiz",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 18,
+      "swingDir": 1,
+      "coords": [
+        { "x": 11, "y": 1, "z": 18 },
+        { "x": 11, "y": 2, "z": 18 },
+        { "x": 12, "y": 1, "z": 18 },
+        { "x": 12, "y": 2, "z": 18 }
+      ],
+      "openMessage": "🚪 ¡Puerta abierta! La escalinata sellada te espera al fondo de la sala.",
+      "requiresKey": "llave_santuario",
+      "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave del Cofre de Práctica."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "sala_a",
+      "name": "Sala A (Práctica)",
+      "minZ": 0,
+      "maxZ": 18.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 4.5 }
+    },
+    {
+      "id": "sala_b",
+      "name": "Sala B (Descenso)",
+      "minZ": 18.5,
+      "maxZ": 36.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 19.5 }
+    }
+  ],
+  "objectives": [],
+  "stairs": { "x1": 11, "x2": 12, "z1": 31, "z2": 33, "openFromStart": false },
+  "chests": [
+    {
+      "id": 1,
+      "name": "Cofre de Práctica",
+      "x": 6.5,
+      "y": 1.0,
+      "z": 8.5,
+      "reward": "🗝️ Llave del Aprendiz",
+      "message": "📦 ¡Has abierto el Cofre de Práctica! Has obtenido: 🗝️ Llave del Aprendiz.",
+      "givesKey": "llave_santuario",
+      "keyName": "Llave del Aprendiz"
+    }
+  ],
+  "regions": [
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 34] },
+    { "type": "perimeter", "height": 5, "block": "WALL" },
+    { "type": "divider", "z": 18, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
+    { "type": "ceiling", "y": 6, "block": "WALL", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+    { "type": "pillar", "x": 5, "z": 5, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 5, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 5, "z": 14, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 14, "height": 5, "block": "PILLAR" },
+    { "type": "fill", "block": "JUMP_PAD", "from": [10, 1, 6], "to": [11, 1, 6] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [12, 1, 8], "to": [13, 1, 8] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [10, 1, 10], "to": [11, 1, 10] },
+    { "type": "pillar", "x": 6, "z": 24, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 24, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 29, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 29, "height": 5, "block": "PILLAR" }
+  ]
+}

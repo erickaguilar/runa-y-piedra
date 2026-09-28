@@ -52,8 +52,11 @@ class VoxelSandboxGame {
         if (gameOver) {
           this.soundManager.playGameOver();
           this.ui.showGameOver(lives, maxLives);
-          // Tras Game Over las vidas ya se restauraron a 3: refrescar HUD lleno
-          this.ui.updateLives(p.lives, p.maxLives ?? 3);
+          // Game Over = vuelta al lobby con todo reseteado (hub de la party)
+          if (this.mode === 'host') {
+            const lobbyId = this.world.levelRegistry.getAllLevels()[0]?.id || 'lobby_tutorial';
+            this.switchLevel(lobbyId, true);
+          }
         } else {
           this.soundManager.playHurt();
           const roomMsg = cp?.roomName ? ` en ${cp.roomName}` : '';
@@ -222,6 +225,9 @@ class VoxelSandboxGame {
     this.inputQueue.clear();
 
     this.ui.showNarrativeMessage(`Mapa cargado: ${levelData.name}`, 3500);
+    if (levelData.id === 'lobby_tutorial') {
+      this.ui.showNarrativeMessage('🎯 Practica: salta las losas ámbar, abre el 📦 cofre, usa la 🗝️ llave en la 🚪 puerta, empuja la 🪨 losa y baja.', 6500);
+    }
 
     if (broadcast && this.mode === 'host') {
       this.network.broadcast(Proto.serializeLevelChange(levelId));
@@ -630,7 +636,9 @@ class VoxelSandboxGame {
     this.ui.setHasKey(true);
     this.soundManager.playKeyPickup();
     const keyName = chestData.keyName || 'Llave del Santuario';
-    this.ui.showNarrativeMessage(`🗝️ ¡${keyName} conseguida! Ahora puedes abrir la Puerta 2.`, 4500);
+    const door = this.world.doors?.find(d => d.requiresKey === chestData.givesKey);
+    const doorMsg = door?.name ? ` Ahora puedes abrir: ${door.name}.` : '';
+    this.ui.showNarrativeMessage(`🗝️ ¡${keyName} conseguida!${doorMsg}`, 4500);
     void local;
   }
 
