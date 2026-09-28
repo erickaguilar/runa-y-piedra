@@ -1,82 +1,42 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>3D Mobile Voxel Sandbox P2P</title>
-    <link rel="stylesheet" href="/src/style.css" />
-  </head>
-  <body>
-    <!-- 3D Canvas Container -->
-    <div id="canvas-container"></div>
-
-    <!-- UI Overlay -->
-    <div id="ui-overlay">
-      <!-- Performance Stats & Info -->
-      <div id="perf-hud">
-        <span id="fps-counter">60 FPS</span> | 
-        <span id="draw-calls">Calls: 1</span> | 
-        <span id="tri-count">Tris: 0</span> | 
-        <span id="ping-hud">P2P: Offline</span>
-      </div>
-
-      <!-- Lobby / Room Connection Panel -->
-      <div id="lobby-panel" class="panel">
-        <h1 class="title">Voxel Arena 3D</h1>
-        <p class="subtitle">Sandbox P2P WebGL 2.0 (60 FPS)</p>
-        
-        <div class="actions">
-          <button id="btn-create-room" class="btn btn-primary">Crear Sala (Host)</button>
-          
-          <div class="join-box">
-            <input type="text" id="input-room-code" placeholder="PIN de Sala (ej. 4321)" maxlength="6" />
-            <button id="btn-join-room" class="btn btn-secondary">Unirse</button>
-          </div>
-        </div>
-
-        <div id="room-status" class="room-status hidden"></div>
-      </div>
-
-      <!-- QR Code Share Modal -->
-      <div id="qr-modal" class="panel hidden">
-        <h2 class="title" style="font-size: 20px;">Invitar Jugador</h2>
-        <p class="subtitle" style="margin-bottom: 12px;">Escanea este código con la cámara de tu celular para unirte instantáneamente:</p>
-        
-        <div id="qr-container">
-          <canvas id="qr-canvas"></canvas>
-        </div>
-
-        <p id="qr-pin-text" style="font-size: 16px; font-weight: 700; margin: 10px 0; color: #38bdf8;"></p>
-        <p id="qr-link-text" style="font-size: 11px; word-break: break-all; color: #94a3b8; margin-bottom: 14px;"></p>
-
-        <button id="btn-close-qr" class="btn btn-primary" style="width: 100%;">Entrar a la Partida</button>
-      </div>
-
-      <!-- In-Game Mobile Touch Controls -->
-      <div id="touch-controls" class="hidden">
-        <!-- Left half: Nipple.js Joystick Zone -->
-        <div id="joystick-zone"></div>
-
-        <!-- Right half: Camera Look Zone -->
-        <div id="camera-zone"></div>
-
-        <!-- Floating Action Buttons -->
-        <div id="action-buttons">
-          <button id="btn-jump" class="touch-btn">SALTO</button>
-          <button id="btn-break" class="touch-btn" style="border-color: #f43f5e; color: #fda4af;">ROMPER</button>
-          <button id="btn-place" class="touch-btn" style="border-color: #38bdf8; color: #bae6fd;">COLOCAR</button>
-        </div>
-      </div>
-
-      <!-- Crosshair / Reticle for Block Interaction -->
-      <div id="reticle" class="hidden">+</div>
-    </div>
-
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <title>Voxel Sandbox P2P</title>
+  <style>
+    html,body{margin:0;padding:0;overflow:hidden;background:#000;touch-action:none;user-select:none;-webkit-user-select:none;font-family:system-ui,-apple-system,sans-serif}
+    #canvas{display:block;width:100vw;height:100vh}
+    #ui{position:fixed;inset:0;pointer-events:none;z-index:20}
+    #ui > *{pointer-events:auto}
+    .menu{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      background:rgba(10,12,20,.9);color:#fff;padding:24px 28px;border-radius:14px;
+      text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:240px;max-width:320px}
+    .menu h1{margin:0 0 16px;font-size:18px;letter-spacing:.5px}
+    .menu button{padding:12px 20px;margin:4px;font-size:15px;border:0;border-radius:10px;
+      background:#4caf50;color:#fff;cursor:pointer;font-weight:600}
+    .menu button:hover{filter:brightness(1.1)}
+    .menu input{padding:11px;font-size:16px;width:88px;text-align:center;border-radius:10px;
+      border:1px solid #333;background:#181a24;color:#fff;letter-spacing:4px}
+    .status{margin-top:12px;font-size:12px;color:#999;min-height:16px}
+    .crosshair{position:fixed;top:50%;left:50%;width:8px;height:8px;margin:-4px 0 0 -4px;
+      border-radius:50%;background:rgba(255,255,255,.7);box-shadow:0 0 4px #000;pointer-events:none;z-index:15;display:none}
+    .action-btn{position:fixed;width:76px;height:76px;border-radius:50%;border:0;
+      color:#fff;font-weight:700;font-size:13px;z-index:25;box-shadow:0 4px 16px rgba(0,0,0,.5);
+      display:none;align-items:center;justify-content:center;user-select:none}
+    #btn-place{right:120px;bottom:110px;background:#3b82f6}
+    #btn-destroy{right:30px;bottom:170px;background:#ef4444}
+    #btn-jump{right:30px;bottom:60px;background:#6b7280}
+    #qr-canvas{border-radius:8px;margin:8px 0;background:#fff;padding:4px}
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="crosshair" id="crosshair"></div>
+  <button class="action-btn" id="btn-place">PONER</button>
+  <button class="action-btn" id="btn-destroy">ROMPER</button>
+  <button class="action-btn" id="btn-jump">SALTAR</button>
+  <div id="ui"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
 </html>

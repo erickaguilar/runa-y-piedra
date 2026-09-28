@@ -1,0 +1,44 @@
+import * as THREE from 'three';
+
+export class SceneManager {
+  constructor(canvas) {
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,                // ← móvil: OFF
+      powerPreference: 'high-performance',
+      stencil: false,
+      depth: true,
+    });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    this.renderer.setSize(window.innerWidth, window.innerHeight, false);
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x8ecbf0);
+    this.scene.fog = new THREE.Fog(0x8ecbf0, 28, 70);
+
+    this.camera = new THREE.PerspectiveCamera(
+      72,
+      window.innerWidth / window.innerHeight,
+      0.05,
+      200
+    );
+
+    // Luces fijas: sin sombras dinámicas
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+    const sun = new THREE.DirectionalLight(0xfff2d9, 0.85);
+    sun.position.set(60, 100, 40);
+    this.scene.add(sun);
+    const fill = new THREE.HemisphereLight(0xffffff, 0x555522, 0.25);
+    this.scene.add(fill);
+
+    window.addEventListener('resize', () => this._onResize());
+  }
+  _onResize() {
+    const w = window.innerWidth, h = window.innerHeight;
+    this.renderer.setSize(w, h, false);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+  }
+  render() { this.renderer.render(this.scene, this.camera); }
+}
