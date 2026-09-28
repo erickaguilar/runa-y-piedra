@@ -7,6 +7,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.4.1] - 2026-09-28
+
+### Fixed
+- **Corrección de Suelo Bajo las Puertas (Hueco al Abrir)**:
+  - Corregido el problema por el cual los cubos de suelo situados debajo de la puerta desaparecían o quedaban vacíos al abrirla.
+  - La directiva `divider` de [`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js) ahora garantiza explícitamente la colocación de losas de piedra sólidas (`STONE_FLOOR`) en la cota $y = 0$ a lo largo de todo el muro y umbral.
+  - Actualizados los archivos de nivel JSON ([`dungeon_classic.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/dungeon_classic.json) y [`crypt_inferno.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/crypt_inferno.json)) para extender la cobertura del suelo continuo a $z = 11$ y $z = 24$. Al abrir la puerta, el umbral permanece 100% sólido y transitable.
+
+---
+
 ## [1.4.0] - 2026-09-28
 
 ### Added
