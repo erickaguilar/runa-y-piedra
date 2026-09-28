@@ -134,13 +134,8 @@ class VoxelSandboxGame {
         isHost: this.mode === 'host',
         roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
         joinUrl: this.currentJoinUrl,
-        levels: this.world.levelRegistry.getAllLevels(),
-        currentLevelId: this.world.levelRegistry.getCurrentLevel().id,
         players: this.playerManager.getAllPlayers(),
       }),
-      onSelectLevel: (lvlId) => {
-        this.switchLevel(lvlId);
-      },
       onToggleDebug: (enable) => {
         this.network.stats.setEnabled(enable);
       },

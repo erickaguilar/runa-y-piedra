@@ -347,26 +347,7 @@ export class UIManager {
         </div>`;
     }
 
-    const levelsHtml = (state.isHost && state.levels?.length > 0) ? `
-      <div style="margin-top:12px;text-align:left;">
-        <div style="font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Cambiar Mapa de la Mazmorra</div>
-        <div class="level-btn-group" id="settings-level-buttons">
-          ${state.levels.map(lvl => {
-            const isSelected = lvl.id === state.currentLevelId;
-            const iconName = lvl.icon || (lvl.id.includes('inferno') ? 'volcano' : 'castle');
-            const iconColor = iconName === 'volcano' ? '#f97316' : '#fbbf24';
-            return `
-              <button class="level-select-btn ${isSelected ? 'active' : ''}" data-level-id="${lvl.id}" type="button">
-                <span class="level-btn-icon" style="color:${iconColor};display:inline-flex;align-items:center;">
-                  ${renderIcon(iconName, { size: 16, color: 'currentColor' })}
-                </span>
-                <span>${lvl.name}</span>
-              </button>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    ` : '';
+    // (Selección de mazmorra eliminada: la progresión es lineal por escalinatas)
 
     this.uiEl.innerHTML = `
       <div class="menu" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
@@ -480,8 +461,6 @@ export class UIManager {
             <canvas id="settings-qr-canvas" style="border-radius:8px;margin:6px auto;background:#fff;padding:4px;display:block;"></canvas>
             <div style="font-size:10px;color:#94a3b8;margin-top:2px;margin-bottom:8px">O escanea el código con la cámara</div>
 
-            ${levelsHtml}
-
             <div class="party-box" style="margin-top:12px;text-align:left">
               <div class="party-title">Compañeros en la Mazmorra</div>
               <div id="settings-party-list">
@@ -594,18 +573,6 @@ export class UIManager {
     if (copyBtn && state.joinUrl) {
       copyBtn.onclick = () => this.copyLink(state.joinUrl);
     }
-
-    // Selector de nivel en configuración (botones compactos)
-    const levelBtns = this.uiEl.querySelectorAll('#settings-level-buttons .level-select-btn');
-    levelBtns.forEach(btn => {
-      btn.onclick = () => {
-        soundManager.playClick();
-        const id = btn.dataset.levelId;
-        levelBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.settingsCallbacks?.onSelectLevel?.(id);
-      };
-    });
 
     // Salir al menú
     document.getElementById('btn-leave-game')?.addEventListener('click', () => {
