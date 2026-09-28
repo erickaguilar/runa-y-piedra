@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.8.0] - 2026-09-28
+
+### Changed
+- **Eliminación del Segundo Modal de Sala e Integración Completa en Configuración (`UIManager`, `main.js`)**:
+  - Al pulsar "🏰 Crear Mazmorra", el Host entra de forma instantánea a la aventura (`in_game`) sin ventanas intermedias ni interrupciones, activando la cruceta, controles táctiles y un aviso narrativo superior con el PIN de la sala.
+  - La suite completa de la **Sala de Expedición** se trasladó de forma nativa al modal de ⚙️ **Configuración**:
+    - **Display de PIN destacado** de 4 dígitos para unirse rápidamente.
+    - **Botones de difusión cooperativa**: *Compartir en Mensajería* (Web Share API para WhatsApp/Telegram) y *Copiar Enlace* directo al portapapeles.
+    - **Código QR dinámico** generado mediante canvas con `qrcode` para escaneo directo con cámara móvil.
+    - **Selector interactivo de nivel/mapa en tiempo real** (*Mazmorra Ancestral*, *Cripta del Fuego*), permitiendo al Host alternar escenarios sobre la marcha sin reiniciar el servidor P2P.
+    - **Lista de Compañeros sincronizada en vivo**, actualizando los nombres y clases de héroe de los aventureros conectados tanto en el modal como en partida.
+  - Al cerrar la ventana de Configuración, el Host regresa inmediatamente al juego fluido sin redirecciones secundarias.
+
+---
+
 ## [1.7.1] - 2026-09-28
 
 ### Fixed

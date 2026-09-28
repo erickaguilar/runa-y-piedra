@@ -274,6 +274,60 @@ export class UIManager {
     `).join('');
     const currentHero = PLAYER_HEROES[this.selectedColorIndex];
 
+    const playersList = state.players || [];
+    let partyHtml = '';
+    if (playersList.length > 0) {
+      partyHtml = playersList.map((p, idx) => {
+        const hero = PLAYER_HEROES[p.colorIndex] || PLAYER_HEROES[0];
+        const isHost = idx === 0 || p.id === 0;
+        return `
+          <div class="party-item">
+            <div class="party-member">
+              <span class="party-dot" style="background:${hero.color}"></span>
+              <span>${p.name || 'Aventurero'} (${hero.name})</span>
+            </div>
+            <span class="party-badge" style="${isHost ? '' : 'background:rgba(56,189,248,.2);color:#38bdf8'}">${isHost ? 'Host' : 'Listo'}</span>
+          </div>`;
+      }).join('');
+      if (playersList.length < 2) {
+        partyHtml += `
+          <div class="party-item" style="color:#64748b;font-style:italic">
+            <span>Esperando compañero...</span>
+          </div>`;
+      }
+    } else {
+      const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
+      partyHtml = `
+        <div class="party-item">
+          <div class="party-member">
+            <span class="party-dot" style="background:${hero.color}"></span>
+            <span>${this.playerName} (${hero.name})</span>
+          </div>
+          <span class="party-badge">${state.isHost ? 'Host' : 'Tú'}</span>
+        </div>
+        <div class="party-item" style="color:#64748b;font-style:italic">
+          <span>Esperando compañero...</span>
+        </div>`;
+    }
+
+    const levelsHtml = (state.isHost && state.levels?.length > 0) ? `
+      <div class="level-box" style="margin-top:12px;text-align:left;">
+        <div class="level-title">Cambiar Mapa de la Mazmorra</div>
+        <div class="level-grid" id="settings-level-grid">
+          ${state.levels.map(lvl => `
+            <div class="level-card ${lvl.id === state.currentLevelId ? 'selected' : ''}" data-level-id="${lvl.id}">
+              <div class="level-card-header">
+                <span class="level-icon">${lvl.icon || '🏰'}</span>
+                <span class="level-badge">${lvl.difficulty || 'Normal'}</span>
+              </div>
+              <div class="level-name">${lvl.name}</div>
+              <div class="level-desc">${lvl.description || ''}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : '';
+
     this.uiEl.innerHTML = `
       <div class="menu" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
         <div class="settings-header">
@@ -325,14 +379,40 @@ export class UIManager {
           </div>
         </div>
 
-        <!-- 4. Acciones de Sala (si está en partida) -->
+        <!-- 4. SALA DE EXPEDICIÓN (si está en partida) -->
         ${inGame && state.roomPin ? `
-          <div class="divider" style="margin:10px 0"></div>
-          <div class="settings-group" style="background:rgba(11,17,32,0.7);border-radius:10px;padding:8px 10px;border:1px solid #1e293b;">
-            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px">SALA ACTUAL: <strong style="color:#fbbf24;font-size:13px">${state.roomPin}</strong></div>
-            <div style="display:flex;gap:6px">
-              <button id="btn-settings-share" class="copy-btn" style="flex:1">📱 Compartir</button>
-              <button id="btn-settings-copy" class="copy-btn" style="flex:1">📋 Copiar Link</button>
+          <div class="divider" style="margin:12px 0"></div>
+          <div class="settings-group" style="background:rgba(11,17,32,0.85);border-radius:14px;padding:14px;border:1px solid #1e293b;text-align:center;">
+            <div class="lobby-label" style="text-align:center;margin-bottom:2px">🏰 SALA DE EXPEDICIÓN</div>
+            <div class="room-pin-display" style="font-size:32px;letter-spacing:6px;margin:2px 0;">${state.roomPin}</div>
+            <div style="font-size:11px;color:#64748b;margin-bottom:12px">PIN de 4 dígitos para unirse</div>
+
+            <button id="btn-settings-share" class="share-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              <span>Compartir en Mensajería</span>
+            </button>
+
+            <button id="btn-settings-copy" class="copy-btn" style="margin-bottom:10px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              <span id="copy-btn-text">Copiar Enlace</span>
+            </button>
+
+            <canvas id="settings-qr-canvas" style="border-radius:8px;margin:6px auto;background:#fff;padding:4px;display:block;"></canvas>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;margin-bottom:8px">O escanea el código con la cámara</div>
+
+            ${levelsHtml}
+
+            <div class="party-box" style="margin-top:12px;text-align:left">
+              <div class="party-title">Compañeros en la Mazmorra</div>
+              <div id="settings-party-list">
+                ${partyHtml}
+              </div>
             </div>
           </div>
         ` : ''}
@@ -386,6 +466,12 @@ export class UIManager {
     btnDpr1.onclick = () => setDpr(1.0);
     btnDpr15.onclick = () => setDpr(1.5);
 
+    // QR Canvas en Configuración
+    const qrCanvas = document.getElementById('settings-qr-canvas');
+    if (qrCanvas && state.joinUrl) {
+      QRCode.toCanvas(qrCanvas, state.joinUrl, { width: 120, margin: 1 });
+    }
+
     // Compartir y copiar dentro de partida
     const shareBtn = document.getElementById('btn-settings-share');
     if (shareBtn && state.joinUrl) {
@@ -395,6 +481,17 @@ export class UIManager {
     if (copyBtn && state.joinUrl) {
       copyBtn.onclick = () => this.copyLink(state.joinUrl);
     }
+
+    // Selector de nivel en configuración
+    const levelCards = this.uiEl.querySelectorAll('#settings-level-grid .level-card');
+    levelCards.forEach(card => {
+      card.onclick = () => {
+        const id = card.dataset.levelId;
+        levelCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        this.settingsCallbacks?.onSelectLevel?.(id);
+      };
+    });
 
     // Salir al menú
     document.getElementById('btn-leave-game')?.addEventListener('click', () => {
@@ -426,8 +523,6 @@ export class UIManager {
       this.hideMenu();
       this.setCrosshairVisible(true);
       this.setActionButtonsVisible(true);
-    } else if (this.currentScreen === 'host_room' && this.lastHostParams) {
-      this.showHostRoom(this.lastHostParams.pin, this.lastHostParams.joinUrl, this.lastHostParams.options);
     } else if (this.lastMenuParams) {
       this.showMenu(this.lastMenuParams);
     }
@@ -475,30 +570,30 @@ export class UIManager {
   }
 
   updatePartyList(players) {
-    const partyList = document.getElementById('party-list');
-    if (!partyList) return;
+    const partyLists = document.querySelectorAll('#settings-party-list, #party-list');
+    if (!partyLists || partyLists.length === 0) return;
 
-    partyList.innerHTML = players.map(p => {
+    const partyHtml = players.map(p => {
       const hero = PLAYER_HEROES[p.colorIndex] || PLAYER_HEROES[0];
       const isHost = p.id === 0;
       return `
         <div class="party-item">
           <div class="party-member">
             <span class="party-dot" style="background:${hero.color}"></span>
-            <span>${p.name || 'Aventurero'}</span>
+            <span>${p.name || 'Aventurero'} (${hero.name})</span>
           </div>
           <span class="party-badge" style="${isHost ? '' : 'background:rgba(56,189,248,.2);color:#38bdf8'}">
             ${isHost ? 'Host' : 'Listo'}
           </span>
         </div>`;
-    }).join('');
-
-    if (players.length < 2) {
-      partyList.innerHTML += `
+    }).join('') + (players.length < 2 ? `
         <div class="party-item" style="color:#64748b;font-style:italic">
           <span>Esperando compañero...</span>
-        </div>`;
-    }
+        </div>` : '');
+
+    partyLists.forEach(el => {
+      el.innerHTML = partyHtml;
+    });
   }
 
   hideMenu() {

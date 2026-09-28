@@ -87,9 +87,16 @@ class VoxelSandboxGame {
       },
       getGameState: () => ({
         inGame: this.mode !== null,
+        isHost: this.mode === 'host',
         roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
         joinUrl: this.currentJoinUrl,
+        levels: this.world.levelRegistry.getAllLevels(),
+        currentLevelId: this.world.levelRegistry.getCurrentLevel().id,
+        players: this.playerManager.getAllPlayers(),
       }),
+      onSelectLevel: (lvlId) => {
+        this.switchLevel(lvlId);
+      },
     });
   }
 
@@ -115,23 +122,14 @@ class VoxelSandboxGame {
       const joinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
       this.currentJoinUrl = joinUrl;
 
-      const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
-      const allLevels = this.world.levelRegistry.getAllLevels();
-      const currentLevel = this.world.levelRegistry.getCurrentLevel();
+      // Entrar directamente a la partida sin segundo modal
+      this.ui.currentScreen = 'in_game';
+      this.ui.hideMenu();
+      this.ui.setCrosshairVisible(true);
+      this.ui.setActionButtonsVisible(true);
 
-      this.ui.showHostRoom(pin, joinUrl, {
-        hostName: name,
-        hostColorHex: hero.color,
-        levels: allLevels,
-        selectedLevelId: currentLevel.id,
-        onSelectLevel: (lvlId) => {
-          this.switchLevel(lvlId);
-        },
-        onPlay: () => {
-          const lvl = this.world.levelRegistry.getCurrentLevel();
-          this.ui.showNarrativeMessage(`🏰 ${lvl.name}. ¡Adelante, ${name}!`, 5000);
-        },
-      });
+      const lvl = this.world.levelRegistry.getCurrentLevel();
+      this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}). Toca ⚙️ para invitar amigos o cambiar mapa.`, 5500);
     } catch (e) {
       this.ui.setStatus('Error al crear sala: ' + (e?.message || e));
     }
