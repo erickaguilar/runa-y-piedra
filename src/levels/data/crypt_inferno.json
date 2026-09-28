@@ -80,7 +80,7 @@
       "name": "Cofre de Brasas del Vestíbulo",
       "x": 4.5,
       "y": 1.0,
-      "z": 4.0,
+      "z": 4.5,
       "reward": "🔥 Esquirla de Magma y 💎 Gemas Ígneas",
       "message": "📦 ¡Has abierto el Cofre de Brasas! Has obtenido: 🔥 Esquirla de Magma y 💎 120 Gemas Volcánicas."
     },
@@ -89,7 +89,7 @@
       "name": "Cofre Volcánico del Altar",
       "x": 19.5,
       "y": 1.0,
-      "z": 30.0,
+      "z": 30.5,
       "reward": "🌋 Corazón del Volcán",
       "message": "📦 ¡Has abierto el Cofre del Altar Ígneo! Has obtenido: 🌋 Corazón del Volcán y 💎 300 Gemas de Obsidiana."
     }

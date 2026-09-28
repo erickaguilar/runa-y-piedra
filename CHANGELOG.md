@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.12.0] - 2026-09-28
+
+### Added
+- **Cofre Cúbico 1x1x1 con Bisagra 3D ([`ChestRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js))**:
+  - Remodelado geométrico completo del cofre para ocupar exactamente el volumen unitario de un bloque vóxel ($1.0 \times 1.0 \times 1.0\text{ m}$):
+    - Base de roble noble de $0.96\text{ m} \times 0.62\text{ m} \times 0.96\text{ m}$ con refuerzos perimetrales dorados, cantoneras esquineras y rodapié de hierro forjado oscuro.
+    - Tapa cúbica de $0.96\text{ m} \times 0.34\text{ m} \times 0.96\text{ m}$ pivotada en el borde superior trasero (`z = -0.48, y = 0.62`) con cerradura frontal de hierro forjado.
+    - Rotación cinemática suave de apertura de bisagra de hasta $83^\circ$ (`1.45 rad`).
+    - Cámara interior espaciosa con tesoros ampliados: pila de lingotes de oro, gema rúnica celeste y rubí ancestral carmesí (`#ef4444`).
+    - Punto de luz dorada interior (`THREE.PointLight`) que se ilumina gradualmente hasta intensidad 3.0 al abrir la tapa.
+  - Centrado de coordenadas en [`dungeon_classic.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/dungeon_classic.json) y [`crypt_inferno.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/crypt_inferno.json) para encajar con precisión en las celdas $(4, 1, 5)$ y $(19, 1, 29)$.
+
+- **Pila y Feed de Alertas en Lista para Móviles ([`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js) e [`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html))**:
+  - Transformación del sistema de alertas HUD desde una píldora monolínea comprimida hacia una **pila vertical de tarjetas estructuradas en lista**.
+  - **Parser Reactivo de Mensajes**: Separa automáticamente títulos, oraciones y elementos de recompensa (llaves, gemas, monedas, reliquias) en viñetas ordenadas con iconos SVG vectoriales.
+  - **Experiencia Móvil Optimizada**: Ancho adaptativo `calc(100vw - 110px)` (máx. 350px) centrado en pantalla, previniendo colisiones con el botón de ajustes (⚙️) o la telemetría de red.
+  - Animaciones fluidas de entrada (`alertSlideDown`) y salida (`alertFadeOut`), con límite dinámico de 3 alertas activas simultáneas sin desbordar el viewport táctil.
+
+---
+
 ## [1.11.0] - 2026-09-28
 
 ### Added

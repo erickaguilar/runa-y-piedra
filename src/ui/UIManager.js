@@ -680,20 +680,109 @@ export class UIManager {
     if (btnJump) btnJump.style.display = visible ? 'flex' : 'none';
   }
 
-  showNarrativeMessage(text, durationMs = 4000) {
-    if (!this.hudMessage) return;
-    this.hudMessage.innerHTML = replaceEmojisWithSvg(text);
-    this.hudMessage.style.display = 'inline-flex';
-    if (this.messageTimeout) clearTimeout(this.messageTimeout);
-    if (durationMs > 0) {
-      this.messageTimeout = setTimeout(() => {
-        this.hideNarrativeMessage();
-      }, durationMs);
+  parseMessageToList(content) {
+    if (typeof content === 'object' && content !== null) {
+      if (Array.isArray(content)) {
+        return { title: content[0] || '', items: content.slice(1) };
+      }
+      return {
+        title: content.title || '',
+        items: Array.isArray(content.items) ? content.items : (content.items ? [content.items] : []),
+      };
     }
+
+    const text = String(content || '').trim();
+    if (!text) return { title: '', items: [] };
+
+    // 1. Mensajes de cofre o recompensas: "📦 ¡Has abierto...! Has obtenido: 🗝️ Llave... y 💎 100..."
+    if (/Has obtenido:|Recompensa:/i.test(text)) {
+      const match = text.split(/Has obtenido:|Recompensa:/i);
+      const title = match[0].trim();
+      const rawItems = match[1] ? match[1].trim() : '';
+      const items = rawItems
+        .split(/\s+y\s+|,\s*/)
+        .map(i => i.trim().replace(/^\.*|\.*$/g, ''))
+        .filter(Boolean);
+      return { title, items };
+    }
+
+    // 2. Mensajes con salto de línea explícito (\n)
+    if (text.includes('\n')) {
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      return { title: lines[0], items: lines.slice(1) };
+    }
+
+    // 3. Múltiples oraciones separadas por delimitadores (. ! ?)
+    const sentences = text
+      .split(/(?<=[.!?])\s+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (sentences.length > 1) {
+      return {
+        title: sentences[0],
+        items: sentences.slice(1),
+      };
+    }
+
+    return { title: text, items: [] };
+  }
+
+  showNarrativeMessage(content, durationMs = 4500) {
+    if (!this.hudMessage) return;
+    const { title, items } = this.parseMessageToList(content);
+    if (!title && items.length === 0) return;
+
+    this.hudMessage.style.display = 'flex';
+
+    const card = document.createElement('div');
+    card.className = 'hud-alert-card';
+
+    let html = `
+      <div class="hud-alert-header">
+        <span class="hud-alert-title">${replaceEmojisWithSvg(title)}</span>
+      </div>
+    `;
+
+    if (items.length > 0) {
+      html += `
+        <div class="hud-alert-list">
+          ${items.map(item => `
+            <div class="hud-alert-row">
+              <span class="hud-alert-bullet">•</span>
+              <span>${replaceEmojisWithSvg(item)}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    card.innerHTML = html;
+
+    // Mantener como máximo 3 alertas activas simultáneas en la lista vertical
+    while (this.hudMessage.children.length >= 3) {
+      this.hudMessage.removeChild(this.hudMessage.firstElementChild);
+    }
+
+    this.hudMessage.appendChild(card);
+
+    // Animación de salida y limpieza automática
+    setTimeout(() => {
+      card.classList.add('fade-out');
+      setTimeout(() => {
+        if (card.parentNode === this.hudMessage) {
+          this.hudMessage.removeChild(card);
+          if (this.hudMessage.children.length === 0) {
+            this.hudMessage.style.display = 'none';
+          }
+        }
+      }, 240);
+    }, durationMs);
   }
 
   hideNarrativeMessage() {
     if (this.hudMessage) {
+      this.hudMessage.innerHTML = '';
       this.hudMessage.style.display = 'none';
     }
   }
