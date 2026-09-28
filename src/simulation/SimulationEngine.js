@@ -20,6 +20,9 @@ export class SimulationEngine {
     }
 
     const r = tryMove(this.world, p.pos, p.vel.x * dt, p.vel.y * dt, p.vel.z * dt);
+    if (r.hitY && p.vel.y > 0) {
+      p.vel.y = 0; // Impulso detenido al chocar con techo o dintel
+    }
     if (r.onGround) {
       p.onGround = true;
       if (p.vel.y < 0) p.vel.y = 0;
@@ -64,8 +67,8 @@ export class SimulationEngine {
       }
     }
 
-    // 4. Seguridad Anti-Barda: Si termina en lo alto de las bardas perimetrales exteriores
-    if (p.pos.y >= 3.8 && (p.pos.x <= 1.0 || p.pos.x >= WORLD_CONFIG.SIZE_X - 2.0 || p.pos.z <= 1.0 || p.pos.z >= WORLD_CONFIG.SIZE_Z - 2.0)) {
+    // 4. Seguridad Anti-Barda y Techo: Si escapa por encima de las bardas perimetrales o el techo
+    if (p.pos.y >= 6.0 || (p.pos.y >= 5.0 && (p.pos.x <= 1.0 || p.pos.x >= WORLD_CONFIG.SIZE_X - 2.0 || p.pos.z <= 1.0 || p.pos.z >= WORLD_CONFIG.SIZE_Z - 2.0))) {
       const cp = p.respawn();
       if (this.onPlayerRespawn) {
         this.onPlayerRespawn(p, cp);

@@ -114,6 +114,22 @@ export class LevelLoader {
         break;
       }
 
+      case 'ceiling': {
+        const y = region.y ?? 6;
+        const blockType = BLOCK_TYPES[region.block] ?? BLOCK_TYPES.WALL;
+        const fromX = region.fromX ?? 1;
+        const toX = region.toX ?? (sizeX - 2);
+        const fromZ = region.fromZ ?? 1;
+        const toZ = region.toZ ?? (sizeZ - 2);
+
+        for (let x = fromX; x <= toX; x++) {
+          for (let z = fromZ; z <= toZ; z++) {
+            world.set(x, y, z, blockType);
+          }
+        }
+        break;
+      }
+
       case 'block': {
         const [x, y, z] = region.pos;
         const blockType = BLOCK_TYPES[region.block] ?? 1;

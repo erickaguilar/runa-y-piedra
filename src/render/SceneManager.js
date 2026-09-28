@@ -14,8 +14,8 @@ export class SceneManager {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x8ecbf0);
-    this.scene.fog = new THREE.Fog(0x8ecbf0, 28, 70);
+    this.scene.background = new THREE.Color(0x090d16); // Fondo de mazmorra oscura subterránea
+    this.scene.fog = new THREE.Fog(0x090d16, 18, 50);  // Niebla atmosférica de mazmorra
 
     this.camera = new THREE.PerspectiveCamera(
       72,
@@ -24,13 +24,13 @@ export class SceneManager {
       200
     );
 
-    // Luces fijas: sin sombras dinámicas
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.65));
-    const sun = new THREE.DirectionalLight(0xfff2d9, 0.85);
-    sun.position.set(60, 100, 40);
-    this.scene.add(sun);
-    const fill = new THREE.HemisphereLight(0xffffff, 0x555522, 0.25);
-    this.scene.add(fill);
+    // Iluminación atmosférica de mazmorra subterránea
+    this.scene.add(new THREE.AmbientLight(0xcfd8dc, 0.65));
+    const torch = new THREE.DirectionalLight(0xffedd5, 0.75);
+    torch.position.set(12, 16, 18);
+    this.scene.add(torch);
+    const hemi = new THREE.HemisphereLight(0x94a3b8, 0x1e293b, 0.40);
+    this.scene.add(hemi);
 
     window.addEventListener('resize', () => this._onResize());
   }
