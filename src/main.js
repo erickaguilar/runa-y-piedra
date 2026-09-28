@@ -248,6 +248,7 @@ class VoxelSandboxGame {
     if (pitOpen) {
       this.world.stairsOpen = true;
       for (const w of this.world.stairwells) w.open = true;
+      this.tintStairPit(rect);
       this.stairsRenderer.setOpenInstant();
     }
   }
@@ -297,20 +298,66 @@ class VoxelSandboxGame {
     return this.world.stairwells?.[0] || null;
   }
 
+  /** Oscurece el pozo (peldaños en degradado + fondo y muros casi negros). */
+  tintStairPit(rect) {
+    if (!rect) return;
+    for (let x = rect.x1; x <= rect.x2; x++) {
+      this.voxelMap.setTint(x, -1, rect.z1, 0x3a3a3a); // peldaño 1
+      this.voxelMap.setTint(x, -2, rect.z1 + 1, 0x232323); // peldaño 2
+      this.voxelMap.setTint(x, -3, rect.z1 + 2, 0x0b0b0b); // fondo oscuro
+    }
+    for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
+      for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
+        for (let y = -3; y <= -1; y++) {
+          if (this.world.get(x, y, z) === BLOCK_TYPES.WALL) {
+            this.voxelMap.setTint(x, y, z, 0x141414);
+          }
+        }
+      }
+    }
+  }
+
   /**
-   * Abre la fosa real en el mundo: retira 6 bloques de suelo, pone fondo en y=-1
-   * y actualiza el render. Determinista: host y clientes aplican lo mismo.
+   * Abre la fosa real en el mundo: retira 6 bloques de suelo, construye escalones
+   * con colisión (y=-1, y=-2), descansillo oscuro (y=-3) y reviste el pozo con
+   * muros de piedra. Determinista: host y clientes aplican lo mismo.
    */
   applyStairPit(rect) {
     if (!rect) return;
+    const setSolid = (x, y, z, type) => {
+      this.world.set(x, y, z, type);
+      this.voxelMap.addBlock(x, y, z, type);
+    };
+    // 1. Retirar suelo y=0 del rectángulo 2x3
     for (let x = rect.x1; x <= rect.x2; x++) {
       for (let z = rect.z1; z <= rect.z2; z++) {
         this.world.set(x, 0, z, BLOCK_TYPES.AIR);
         this.voxelMap.removeBlock(x, 0, z);
-        const t = floorVariant(x, z);
-        this.world.set(x, -1, z, t);
-        this.voxelMap.addBlock(x, -1, z, t);
       }
+    }
+    // 2. Revestir el pozo con muros (anillo expandido, y=-1..-3, solo donde hay aire)
+    for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
+      for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
+        const inside = x >= rect.x1 && x <= rect.x2 && z >= rect.z1 && z <= rect.z2;
+        if (inside) continue;
+        for (let y = -3; y <= -1; y++) {
+          if (this.world.get(x, y, z) === BLOCK_TYPES.AIR) {
+            setSolid(x, y, z, BLOCK_TYPES.WALL);
+          }
+        }
+      }
+    }
+    // 3. Escalones reales descendentes + macizo bajo ellos (sin bloques flotantes)
+    for (let x = rect.x1; x <= rect.x2; x++) {
+      const s1 = floorVariant(x, rect.z1);
+      setSolid(x, -1, rect.z1, s1); // peldaño 1 (cima 0.0)
+      setSolid(x, -2, rect.z1, BLOCK_TYPES.WALL);
+      setSolid(x, -3, rect.z1, BLOCK_TYPES.WALL);
+      const s2 = floorVariant(x, rect.z1 + 1);
+      setSolid(x, -2, rect.z1 + 1, s2); // peldaño 2 (cima -1.0)
+      setSolid(x, -3, rect.z1 + 1, BLOCK_TYPES.WALL);
+      const land = floorVariant(x, rect.z1 + 2);
+      setSolid(x, -3, rect.z1 + 2, land); // fondo oscuro (cima -2.0)
     }
   }
 
@@ -334,6 +381,7 @@ class VoxelSandboxGame {
     const rect = this.stairPitRect();
     if (rect) {
       this.applyStairPit(rect);
+      this.tintStairPit(rect);
       this.world.stairsOpen = true;
       for (const w of this.world.stairwells) w.open = true;
     }

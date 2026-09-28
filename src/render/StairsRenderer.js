@@ -64,31 +64,18 @@ export class StairsRenderer {
     slab.add(runes);
     root.add(slab);
 
-    // --- Escalones de piedra descendentes (visuales, dentro de la fosa) ---
-    const steps = new THREE.Group();
-    const stepTops = [0.72, 0.48, 0.24, 0.02];
-    stepTops.forEach((top, i) => {
-      const h = top + 1.0; // desde y=-1.0 hasta el peldaño
-      const step = new THREE.Mesh(new THREE.BoxGeometry(w - 0.15, h, 0.72), this.stoneMat);
-      step.position.set(0, -1.0 + h / 2, -d / 2 + 0.4 + i * 0.73);
-      steps.add(step);
-    });
-    // Garganta oscura entre peldaños (vende la profundidad)
-    const throat = new THREE.Mesh(new THREE.BoxGeometry(w - 0.1, 0.9, d - 0.2), this.blackMat);
-    throat.position.set(0, -0.55, 0);
-    steps.add(throat);
-    steps.visible = false;
-    root.add(steps);
+    // NOTA: peldaños y muros son bloques reales con colisión (main.js); el fondo
+    // oscuro se logra tiñendo esos bloques de negro (VoxelMap.setTint) + luz tenue.
 
-    // --- Luz brasienta desde abajo + niebla ascendente ---
-    const pitLight = new THREE.PointLight(0xfb9235, 0, 7, 2.0);
-    pitLight.position.set(0, -0.3, 0);
+    // --- Luz brasienta tenue desde el fondo + niebla ascendente ---
+    const pitLight = new THREE.PointLight(0xea580c, 0, 6, 2.0);
+    pitLight.position.set(0, -1.8, 0);
     root.add(pitLight);
 
     const fogPos = new Float32Array(FOG_COUNT * 3);
     for (let k = 0; k < FOG_COUNT; k++) {
       fogPos[k * 3] = (Math.random() - 0.5) * (w - 0.4);
-      fogPos[k * 3 + 1] = -0.8 + Math.random() * 1.4;
+      fogPos[k * 3 + 1] = -2.8 + Math.random() * 3.2;
       fogPos[k * 3 + 2] = (Math.random() - 0.5) * (d - 0.4);
     }
     const fogGeo = new THREE.BufferGeometry();
@@ -103,7 +90,7 @@ export class StairsRenderer {
 
     this.group.add(root);
     this.stairs = {
-      rect, root, slab, steps, pitLight, fog,
+      rect, root, slab, pitLight, fog,
       state: 'closed', t: 0, shakeSeed: Math.random() * 10,
     };
   }
@@ -125,10 +112,9 @@ export class StairsRenderer {
     if (!this.stairs) return;
     this.stairs.state = 'open';
     this.stairs.slab.position.x = SLIDE_DIST;
-    this.stairs.steps.visible = true;
     this.stairs.fog.visible = true;
-    this.stairs.fog.material.opacity = 0.55;
-    this.stairs.pitLight.intensity = 1.6;
+    this.stairs.fog.material.opacity = 0.6;
+    this.stairs.pitLight.intensity = 0.9;
   }
 
   update(dt = 0.016, time = performance.now() / 1000) {
@@ -151,22 +137,21 @@ export class StairsRenderer {
       const k = Math.min(1, s.t / SLIDE_TIME);
       const eased = 1 - Math.pow(1 - k, 3);
       s.slab.position.x = eased * SLIDE_DIST;
-      s.steps.visible = k > 0.15;
       s.fog.visible = k > 0.3;
-      s.fog.material.opacity = 0.55 * k;
-      s.pitLight.intensity = 1.6 * k;
+      s.fog.material.opacity = 0.6 * k;
+      s.pitLight.intensity = 0.9 * k;
       if (k >= 1) s.state = 'open';
     } else if (s.state === 'open') {
-      // Niebla ascendiendo en bucle desde la fosa
+      // Niebla ascendiendo en bucle desde el fondo del pozo
       const attr = s.fog.geometry.getAttribute('position');
       const arr = attr.array;
       for (let i = 0; i < FOG_COUNT; i++) {
         let y = arr[i * 3 + 1] + safeDt * 0.22;
-        if (y > 0.7) y = -0.8;
+        if (y > 0.5) y = -2.8;
         arr[i * 3 + 1] = y;
       }
       attr.needsUpdate = true;
-      s.pitLight.intensity = 1.6 + Math.sin(time * 5.1) * 0.25;
+      s.pitLight.intensity = 0.9 + Math.sin(time * 5.1) * 0.15;
     }
   }
 

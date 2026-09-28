@@ -2,7 +2,7 @@ export const WORLD_CONFIG = {
   SIZE_X: 24,
   SIZE_Y: 16,
   SIZE_Z: 36,
-  MIN_Y: -1, // Capa inferior: permite fosa de lava hundida (y=-1) bajo el suelo (y=0)
+  MIN_Y: -3, // Capas inferiores: fosa de lava (y=-1) y pozo de escalinata (hasta y=-3)
   SPAWN_X: 12.0,
   SPAWN_Y: 2.1,
   SPAWN_Z: 4.5,

@@ -128,8 +128,7 @@ varying vec2 vAtlasOffset;`
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
   }
 
-  removeBlock(x, y, z) {
-    const bIdx = this.world.idx(x, y, z);
+  removeBlock(x, y, z) {    const bIdx = this.world.idx(x, y, z);
     const inst = this.blockToInst[bIdx];
     if (inst === -1) return;
 
@@ -143,6 +142,19 @@ varying vec2 vAtlasOffset;`
     this.blockToInst[bIdx] = -1;
     this.instToBlock[inst] = -1;
     this.freeSlots.push(inst);
+  }
+
+  /**
+   * Tiñe un bloque instanciado (multiplica su color, p. ej. para oscurecer el pozo).
+   * Se pierde al rebuildFromWorld; debe re-aplicarse tras recargar el nivel.
+   */
+  setTint(x, y, z, hex) {
+    const bIdx = this.world.idx(x, y, z);
+    const inst = this.blockToInst[bIdx];
+    if (inst === undefined || inst === -1) return false;
+    this.mesh.setColorAt(inst, new THREE.Color(hex));
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    return true;
   }
 
   openDoor(doorId = 1) {
