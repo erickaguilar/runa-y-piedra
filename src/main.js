@@ -19,7 +19,7 @@ import { ClientReconciler } from './network/ClientReconciler.js';
 import { InputQueue } from './network/InputQueue.js';
 import { UIManager } from './ui/UIManager.js';
 import { soundManager } from './audio/SoundManager.js';
-import { NET_CONFIG, BLOCK_TYPES, PHYSICS_CONFIG, PLAYER_HEROES } from './config/constants.js';
+import { NET_CONFIG, BLOCK_TYPES, PHYSICS_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from './config/constants.js';
 
 class VoxelSandboxGame {
   constructor() {
@@ -348,16 +348,23 @@ class VoxelSandboxGame {
   /** Oscurece el pozo (peldaños en degradado + fondo y muros casi negros). */
   tintStairPit(rect) {
     if (!rect) return;
+    const BOTTOM = WORLD_CONFIG.MIN_Y ?? -8;
+    const shade = (y) => {
+      // Degradado 0x4a (arriba) -> 0x0b (fondo) según profundidad
+      const f = Math.min(1, Math.max(0, (-1 - y) / (-1 - BOTTOM)));
+      const v = Math.round(74 - f * (74 - 11));
+      return (v << 16) | (v << 8) | v;
+    };
     for (let x = rect.x1; x <= rect.x2; x++) {
-      this.voxelMap.setTint(x, -1, rect.z1, 0x4a4a4a); // peldaño 1
-      this.voxelMap.setTint(x, -2, rect.z1 + 1, 0x2e2e2e); // peldaño 2
-      this.voxelMap.setTint(x, -3, rect.z1 + 2, 0x1c1c1c); // peldaño 3
-      this.voxelMap.setTint(x, -4, rect.z1 + 2, 0x121212); // peldaño 4
-      this.voxelMap.setTint(x, -5, rect.z1 + 2, 0x0b0b0b); // fondo oscuro
+      this.voxelMap.setTint(x, -1, rect.z1, shade(-1));
+      this.voxelMap.setTint(x, -2, rect.z1 + 1, shade(-2));
+      for (let y = BOTTOM; y <= -3; y++) {
+        this.voxelMap.setTint(x, y, rect.z1 + 2, shade(y));
+      }
     }
     for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
       for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
-        for (let y = -5; y <= -1; y++) {
+        for (let y = BOTTOM; y <= -1; y++) {
           if (this.world.get(x, y, z) === BLOCK_TYPES.WALL) {
             this.voxelMap.setTint(x, y, z, 0x141414);
           }
@@ -368,12 +375,13 @@ class VoxelSandboxGame {
 
   /**
    * Abre la fosa real en el mundo: retira 6 bloques de suelo y construye una
-   * escalinata con colisión hasta y=-5 (peldaños en z1:-1, z1+1:-2, z1+2:-3/-4/-5),
-   * con macizo bajo los peldaños y pozo revestido de muros.
-   * Determinista: host y clientes aplican lo mismo.
+   * escalinata con colisión hasta el fondo (MIN_Y): peldaños en z1:-1, z1+1:-2
+   * y columna transitable en z1+2 hasta el fondo oscuro, con macizo y pozo
+   * revestido de muros. Determinista: host y clientes aplican lo mismo.
    */
   applyStairPit(rect) {
     if (!rect) return;
+    const BOTTOM = WORLD_CONFIG.MIN_Y ?? -8;
     const setSolid = (x, y, z, type) => {
       this.world.set(x, y, z, type);
       this.voxelMap.addBlock(x, y, z, type);
@@ -385,12 +393,12 @@ class VoxelSandboxGame {
         this.voxelMap.removeBlock(x, 0, z);
       }
     }
-    // 2. Revestir el pozo con muros (anillo expandido, y=-5..-1, solo donde hay aire)
+    // 2. Revestir el pozo con muros (anillo expandido, hasta el fondo, solo aire)
     for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
       for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
         const inside = x >= rect.x1 && x <= rect.x2 && z >= rect.z1 && z <= rect.z2;
         if (inside) continue;
-        for (let y = -5; y <= -1; y++) {
+        for (let y = BOTTOM; y <= -1; y++) {
           if (this.world.get(x, y, z) === BLOCK_TYPES.AIR) {
             setSolid(x, y, z, BLOCK_TYPES.WALL);
           }
@@ -399,16 +407,15 @@ class VoxelSandboxGame {
     }
     // 3. Escalinata real descendente + macizo (sin bloques flotantes)
     for (let x = rect.x1; x <= rect.x2; x++) {
-      setSolid(x, -1, rect.z1, floorVariant(x, rect.z1)); // peldaño 1 (cima 0.0)
-      for (let y = -5; y <= -2; y++) setSolid(x, y, rect.z1, BLOCK_TYPES.WALL);
-      setSolid(x, -2, rect.z1 + 1, floorVariant(x, rect.z1 + 1)); // peldaño 2 (cima -1.0)
-      for (let y = -5; y <= -3; y++) setSolid(x, y, rect.z1 + 1, BLOCK_TYPES.WALL);
-      setSolid(x, -3, rect.z1 + 2, floorVariant(x, rect.z1 + 2)); // peldaño 3 (cima -2.0)
-      setSolid(x, -4, rect.z1 + 2, floorVariant(x, rect.z1 + 2)); // peldaño 4 (cima -3.0)
-      setSolid(x, -5, rect.z1 + 2, floorVariant(x, rect.z1 + 2)); // fondo oscuro (cima -4.0)
+      setSolid(x, -1, rect.z1, floorVariant(x, rect.z1)); // peldaño (cima 0.0)
+      for (let y = BOTTOM; y <= -2; y++) setSolid(x, y, rect.z1, BLOCK_TYPES.WALL);
+      setSolid(x, -2, rect.z1 + 1, floorVariant(x, rect.z1 + 1)); // peldaño (cima -1.0)
+      for (let y = BOTTOM; y <= -3; y++) setSolid(x, y, rect.z1 + 1, BLOCK_TYPES.WALL);
+      for (let y = BOTTOM; y <= -3; y++) { // columna transitable hasta el fondo
+        setSolid(x, y, rect.z1 + 2, floorVariant(x, rect.z1 + 2));
+      }
     }
   }
-
   /** Ceremonia local del portal: altar y (si no es el final) apertura de la escalinata. */
   startPortalCeremony({ isLast = false } = {}) {
     if (this.transitioning) return;

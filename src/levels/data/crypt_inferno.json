@@ -81,9 +81,9 @@
     {
       "id": 1,
       "name": "Cofre de Brasas del Vestíbulo",
-      "x": 4.5,
+      "x": 18.5,
       "y": 1.0,
-      "z": 4.5,
+      "z": 6.5,
       "reward": "🗝️ Llave del Santuario y 💎 Gemas Ígneas",
       "message": "📦 ¡Has abierto el Cofre de Brasas! Has obtenido: 🗝️ Llave del Santuario y 💎 120 Gemas Volcánicas.",
       "givesKey": "llave_santuario",
@@ -92,9 +92,9 @@
     {
       "id": 2,
       "name": "Cofre Volcánico del Altar",
-      "x": 19.5,
+      "x": 4.5,
       "y": 1.0,
-      "z": 30.5,
+      "z": 31.5,
       "reward": "🌋 Corazón del Volcán",
       "message": "📦 ¡Has abierto el Cofre del Altar Ígneo! Has obtenido: 🌋 Corazón del Volcán y 💎 300 Gemas de Obsidiana."
     }

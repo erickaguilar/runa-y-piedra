@@ -81,9 +81,9 @@
     {
       "id": 1,
       "name": "Cofre Antiguo del Vestíbulo",
-      "x": 4.5,
+      "x": 18.5,
       "y": 1.0,
-      "z": 5.5,
+      "z": 8.5,
       "reward": "🗝️ Llave Rúnica y 💎 Gemas",
       "message": "📦 ¡Has abierto el Cofre del Vestíbulo! Has obtenido: 🗝️ Llave Antigua del Santuario y 💎 100 Gemas.",
       "givesKey": "llave_santuario",
@@ -92,9 +92,9 @@
     {
       "id": 2,
       "name": "Cofre Oculto del Santuario",
-      "x": 19.5,
+      "x": 4.5,
       "y": 1.0,
-      "z": 29.5,
+      "z": 27.5,
       "reward": "🏆 Reliquia Dorada",
       "message": "📦 ¡Has abierto el Cofre Secreto del Santuario! Has obtenido: 🏆 Cáliz Sagrado y 💎 250 Gemas Legendarias."
     }

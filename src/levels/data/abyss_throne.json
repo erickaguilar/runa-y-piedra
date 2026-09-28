@@ -91,9 +91,9 @@
     {
       "id": 1,
       "name": "Cofre del Umbral",
-      "x": 4.5,
+      "x": 5.5,
       "y": 1.0,
-      "z": 5.5,
+      "z": 8.5,
       "reward": "🗝️ Llave del Santuario y 💎 Gemas Abisales",
       "message": "📦 ¡Has abierto el Cofre del Umbral! Has obtenido: 🗝️ Llave del Santuario y 💎 200 Gemas Abisales.",
       "givesKey": "llave_santuario",
@@ -102,9 +102,9 @@
     {
       "id": 2,
       "name": "Cofre del Trono",
-      "x": 19.5,
+      "x": 18.5,
       "y": 1.0,
-      "z": 28.5,
+      "z": 26.5,
       "reward": "👑 Corona del Vacío",
       "message": "📦 ¡Has abierto el Cofre del Trono! Has obtenido: 👑 Corona del Vacío y 💎 500 Gemas Eternas."
     }
