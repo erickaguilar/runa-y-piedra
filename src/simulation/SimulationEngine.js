@@ -59,8 +59,8 @@ export class SimulationEngine {
       }
     }
 
-    // 3. Rescate y Reaparición al Caer al Abismo / Vacío
-    if (p.pos.y < -0.5) {
+    // 3. Rescate y Reaparición al Caer al Abismo / Vacío (extendido 4 bloques: de -0.5 a -4.5)
+    if (p.pos.y < (WORLD_CONFIG.VOID_RESCUE_Y ?? -4.5)) {
       const cp = p.respawn();
       if (this.onPlayerRespawn) {
         this.onPlayerRespawn(p, cp);

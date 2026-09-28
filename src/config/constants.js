@@ -5,7 +5,7 @@ export const WORLD_CONFIG = {
   SPAWN_X: 12.0,
   SPAWN_Y: 2.1,
   SPAWN_Z: 4.5,
-  VOID_RESCUE_Y: -5.0,
+  VOID_RESCUE_Y: -4.5,
 };
 
 export const PHYSICS_CONFIG = {

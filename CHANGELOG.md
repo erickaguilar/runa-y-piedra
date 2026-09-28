@@ -7,6 +7,18 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.5.1] - 2026-09-28
+
+### Changed
+- **Extensión de la Profundidad de Caída al Abismo (Sensación de Vértigo y Caída Libre)**:
+  - Ajustado el umbral de rescate del vacío [`VOID_RESCUE_Y`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js) de $-0.5$ a $-4.5$ en [`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js) y [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js).
+  - La distancia total de caída libre desde la superficie del suelo ($y = 1.0$) se amplía de $1.5\text{ m}$ a $5.5\text{ m}$ (4 bloques exactos adicionales de recorrido vertical al vacío).
+  - Tiempo de caída libre extendido a $\approx 0.74\text{ s}$ bajo gravedad acelerada ($g = -20\text{ m/s}^2$), alcanzando velocidades de descenso cercanas a $-15\text{ m/s}$ y proporcionando una auténtica sensación de precipicio y vértigo antes del punto de reaparición.
+- **Física AABB Optimizada en Caída Libre**:
+  - En [`PhysicsAABB.js`](file:///data/data/com.termux/files/home/develop/game/src/core/PhysicsAABB.js), se garantiza que cuando no existe superficie sólida de apoyo inferior (`floorTop === -Infinity`), el jugador continúe cayendo verticalmente (`pos.y = oldY + dy`) sin congelar su posición en el aire al rozar paredes o salientes durante la trayectoria.
+
+---
+
 ## [1.5.0] - 2026-09-28
 
 ### Added

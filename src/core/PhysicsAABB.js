@@ -93,15 +93,16 @@ export function tryMove(world, pos, dx, dy, dz) {
         if (floorTop !== -Infinity) {
           pos.y = floorTop;
           onGround = true;
+          hitY = true;
         } else {
-          // No hay suelo transitable debajo; chocó en el aire lateralmente
-          pos.y = oldY;
+          // No hay superficie de aterrizaje; continúa la caída libre vertical en el abismo
+          pos.y = oldY + dy;
         }
       } else {
         // Movimiento ascendente: choca contra techo o dintel
         pos.y = oldY;
+        hitY = true;
       }
-      hitY = true;
     }
   }
 
