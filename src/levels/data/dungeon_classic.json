@@ -3,7 +3,7 @@
   "name": "Mazmorra Ancestral: Las Tres Cámaras",
   "description": "Explora el vestíbulo, supera el abismo mediante saltos precisos y activa el pedestal del Santuario.",
   "difficulty": "Normal",
-  "icon": "🏰",
+  "icon": "castle",
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,

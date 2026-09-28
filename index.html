@@ -24,11 +24,12 @@
       transition:transform .15s,border-color .15s;box-shadow:0 2px 8px rgba(0,0,0,.4)}
     .hero-chip.selected{border-color:#fff;transform:scale(1.2);box-shadow:0 0 12px var(--hero-color)}
     .hero-chip:active{transform:scale(0.95)}
-    .hero-badge{text-align:center;font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:2px}
+    .hero-badge{display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:2px}
     .divider{height:1px;background:rgba(255,255,255,0.1);margin:14px 0}
     .btn-primary{width:100%;padding:12px 18px;font-size:15px;border:0;border-radius:11px;
       background:linear-gradient(135deg,#059669,#10b981);color:#fff;cursor:pointer;font-weight:700;
-      box-shadow:0 4px 14px rgba(16,185,129,.35);transition:filter .15s}
+      box-shadow:0 4px 14px rgba(16,185,129,.35);transition:filter .15s;
+      display:flex;align-items:center;justify-content:center;gap:8px}
     .btn-primary:active{filter:brightness(0.9);transform:scale(0.98)}
     .join-container{display:flex;gap:8px;margin-top:10px}
     .join-input{flex:1;padding:10px;font-size:16px;text-align:center;border-radius:10px;
@@ -182,9 +183,12 @@
     #btn-interact{right:30px;bottom:150px;background:#d97706}
     #btn-jump{right:30px;bottom:60px;background:#6b7280}
     #hud-message{position:fixed;top:16px;left:50%;transform:translateX(-50%);
-      background:rgba(15,23,42,0.88);backdrop-filter:blur(8px);border:1px solid rgba(217,119,6,0.6);
-      color:#fbbf24;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;
-      display:none;z-index:25;letter-spacing:0.5px;box-shadow:0 4px 16px rgba(0,0,0,0.6);text-align:center;max-width:85vw}
+      background:rgba(15,23,42,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+      border:1px solid rgba(217,119,6,0.6);color:#fbbf24;padding:8px 18px;border-radius:20px;
+      font-size:13px;font-weight:600;display:none;align-items:center;justify-content:center;gap:6px;
+      z-index:25;letter-spacing:0.5px;box-shadow:0 4px 16px rgba(0,0,0,0.6);text-align:center;max-width:88vw}
+    .svg-icon{display:inline-block;vertical-align:middle;flex-shrink:0}
+    .narrative-icon{display:inline-block;vertical-align:-3px;flex-shrink:0;margin:0 3px}
     #qr-canvas{border-radius:8px;margin:6px auto;background:#fff;padding:4px;display:block}
   </style>
 </head>

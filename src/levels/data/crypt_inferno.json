@@ -3,7 +3,7 @@
   "name": "Cripta del Fuego: Rocas Volcánicas",
   "description": "Supera el Vestíbulo de Cenizas, salta el río de lava en zig-zag y reclama el Altar Ígneo.",
   "difficulty": "Desafiante",
-  "icon": "🌋",
+  "icon": "volcano",
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,

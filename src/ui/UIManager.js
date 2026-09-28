@@ -1,5 +1,6 @@
 import QRCode from 'qrcode';
 import { PLAYER_HEROES } from '../config/constants.js';
+import { renderIcon, replaceEmojisWithSvg } from './Icons.js';
 
 export class UIManager {
   constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message', settingsBtnId = 'btn-settings' } = {}) {
@@ -49,7 +50,7 @@ export class UIManager {
 
     this.uiEl.innerHTML = `
       <div class="menu">
-        <h1>⚔️ VOXEL DUNGEON · CO-OP</h1>
+        <h1>${renderIcon('swords', { size: 20, color: '#94a3b8' })} VOXEL DUNGEON · CO-OP</h1>
         
         <div class="lobby-section">
           <label class="lobby-label">Tu Aventurero</label>
@@ -63,13 +64,13 @@ export class UIManager {
             ${heroesHtml}
           </div>
           <div id="hero-badge" class="hero-badge" style="color:${currentHero.color}">
-            🛡️ ${currentHero.name}
+            ${renderIcon('shield', { size: 14, color: currentHero.color })} <span>${currentHero.name}</span>
           </div>
         </div>
 
         <div class="divider"></div>
 
-        <button id="btn-host" class="btn-primary">🏰 Crear Mazmorra</button>
+        <button id="btn-host" class="btn-primary">${renderIcon('castle', { size: 18, color: '#fff' })} Crear Mazmorra</button>
         
         <div class="join-container">
           <input id="pin-input" class="join-input" placeholder="0000" maxlength="4" inputmode="numeric" />
@@ -92,7 +93,7 @@ export class UIManager {
         const hero = PLAYER_HEROES[idx];
         const badge = document.getElementById('hero-badge');
         if (badge) {
-          badge.textContent = `🛡️ ${hero.name}`;
+          badge.innerHTML = `${renderIcon('shield', { size: 14, color: hero.color })} <span>${hero.name}</span>`;
           badge.style.color = hero.color;
         }
       };
@@ -147,7 +148,7 @@ export class UIManager {
             ${levels.map(lvl => `
               <div class="level-card ${lvl.id === selectedLevelId ? 'selected' : ''}" data-level-id="${lvl.id}">
                 <div class="level-card-header">
-                  <span class="level-icon">${lvl.icon || '🏰'}</span>
+                  <span class="level-icon">${renderIcon(lvl.icon || 'castle', { size: 24, color: (lvl.icon === 'volcano' || lvl.icon === '🌋') ? '#f97316' : '#fbbf24' })}</span>
                   <span class="level-badge">${lvl.difficulty || 'Normal'}</span>
                 </div>
                 <div class="level-name">${lvl.name}</div>
@@ -160,23 +161,17 @@ export class UIManager {
 
     this.uiEl.innerHTML = `
       <div class="menu">
-        <h1 style="margin-bottom:2px">SALA DE EXPEDICIÓN</h1>
+        <h1 style="margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:6px;">${renderIcon('castle', { size: 20, color: '#fbbf24' })} SALA DE EXPEDICIÓN</h1>
         <div class="room-pin-display">${pin}</div>
         <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">PIN de 4 dígitos</div>
 
         <button id="btn-share-link" class="share-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
+          ${renderIcon('share', { size: 18, color: '#fff' })}
           <span>Compartir en Mensajería</span>
         </button>
 
         <button id="btn-copy-link" class="copy-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-          </svg>
+          ${renderIcon('copy', { size: 16, color: '#cbd5e1' })}
           <span id="copy-btn-text">Copiar Enlace</span>
         </button>
 
@@ -317,7 +312,7 @@ export class UIManager {
           ${state.levels.map(lvl => `
             <div class="level-card ${lvl.id === state.currentLevelId ? 'selected' : ''}" data-level-id="${lvl.id}">
               <div class="level-card-header">
-                <span class="level-icon">${lvl.icon || '🏰'}</span>
+                <span class="level-icon">${renderIcon(lvl.icon || 'castle', { size: 24, color: (lvl.icon === 'volcano' || lvl.icon === '🌋') ? '#f97316' : '#fbbf24' })}</span>
                 <span class="level-badge">${lvl.difficulty || 'Normal'}</span>
               </div>
               <div class="level-name">${lvl.name}</div>
@@ -331,8 +326,8 @@ export class UIManager {
     this.uiEl.innerHTML = `
       <div class="menu" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
         <div class="settings-header">
-          <h2>⚙️ CONFIGURACIÓN</h2>
-          <button id="btn-close-settings" class="close-x-btn" title="Cerrar">✕</button>
+          <h2 style="display:flex;align-items:center;gap:6px;">${renderIcon('settings', { size: 18, color: '#cbd5e1' })} CONFIGURACIÓN</h2>
+          <button id="btn-close-settings" class="close-x-btn" title="Cerrar">${renderIcon('x', { size: 18, color: 'currentColor' })}</button>
         </div>
 
         <!-- 1. Perfil de Aventurero -->
@@ -348,7 +343,7 @@ export class UIManager {
             ${heroesHtml}
           </div>
           <div id="settings-hero-badge" class="hero-badge" style="color:${currentHero.color}">
-            🛡️ ${currentHero.name}
+            ${renderIcon('shield', { size: 14, color: currentHero.color })} <span>${currentHero.name}</span>
           </div>
         </div>
 
@@ -383,23 +378,17 @@ export class UIManager {
         ${inGame && state.roomPin ? `
           <div class="divider" style="margin:12px 0"></div>
           <div class="settings-group" style="background:rgba(11,17,32,0.85);border-radius:14px;padding:14px;border:1px solid #1e293b;text-align:center;">
-            <div class="lobby-label" style="text-align:center;margin-bottom:2px">🏰 SALA DE EXPEDICIÓN</div>
+            <div class="lobby-label" style="text-align:center;margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:6px;">${renderIcon('castle', { size: 15, color: '#fbbf24' })} SALA DE EXPEDICIÓN</div>
             <div class="room-pin-display" style="font-size:32px;letter-spacing:6px;margin:2px 0;">${state.roomPin}</div>
             <div style="font-size:11px;color:#64748b;margin-bottom:12px">PIN de 4 dígitos para unirse</div>
 
             <button id="btn-settings-share" class="share-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-              </svg>
+              ${renderIcon('share', { size: 18, color: '#fff' })}
               <span>Compartir en Mensajería</span>
             </button>
 
             <button id="btn-settings-copy" class="copy-btn" style="margin-bottom:10px">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
+              ${renderIcon('copy', { size: 16, color: '#cbd5e1' })}
               <span id="copy-btn-text">Copiar Enlace</span>
             </button>
 
@@ -439,7 +428,7 @@ export class UIManager {
         const hero = PLAYER_HEROES[idx];
         const badge = document.getElementById('settings-hero-badge');
         if (badge) {
-          badge.textContent = `🛡️ ${hero.name}`;
+          badge.innerHTML = `${renderIcon('shield', { size: 14, color: hero.color })} <span>${hero.name}</span>`;
           badge.style.color = hero.color;
         }
       };
@@ -561,7 +550,7 @@ export class UIManager {
     }
 
     if (copyText) {
-      copyText.textContent = copied ? '✅ ¡Enlace Copiado!' : 'Error al copiar';
+      copyText.innerHTML = copied ? `${renderIcon('check', { size: 14, color: '#22c55e' })} ¡Enlace Copiado!` : 'Error al copiar';
       setTimeout(() => {
         if (copyText) copyText.textContent = 'Copiar Enlace';
       }, 3000);
@@ -620,8 +609,8 @@ export class UIManager {
 
   showNarrativeMessage(text, durationMs = 4000) {
     if (!this.hudMessage) return;
-    this.hudMessage.textContent = text;
-    this.hudMessage.style.display = 'block';
+    this.hudMessage.innerHTML = replaceEmojisWithSvg(text);
+    this.hudMessage.style.display = 'inline-flex';
     if (this.messageTimeout) clearTimeout(this.messageTimeout);
     if (durationMs > 0) {
       this.messageTimeout = setTimeout(() => {

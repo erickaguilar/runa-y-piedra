@@ -7,6 +7,47 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.9.0] - 2026-09-28
+
+### Added
+- **Repositorio Global de Iconos SVG Reutilizables ([`Icons.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js))**:
+  - Creación del archivo global [`src/ui/Icons.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js) con catálogo completo de iconos vectoriales SVG limpios y nítidos:
+    - `castle` (🏰 Fortaleza / Mazmorra)
+    - `volcano` (🌋 Cripta / Volcán)
+    - `swords` (⚔️ Espadas cruzadas de batalla)
+    - `shield` (🛡️ Escudo heráldico de aventurero)
+    - `settings` (⚙️ Rueda dentada de configuración)
+    - `x` (✕ Botón de cierre)
+    - `check` (✅ Confirmación de copiado)
+    - `warning` (⚠️ Triángulo de advertencia)
+    - `door` (🚪 Portón de mazmorra)
+    - `chest` (📦 Cofre del tesoro)
+    - `key` (🗝️ Llave rúnica)
+    - `gem` (💎 Gema preciosa)
+    - `trophy` (🏆 Reliquia dorada / Cáliz)
+    - `sparkles` (✨ Destellos mágicos / Pedestal)
+    - `flame` (🔥 Fuego / Brasas)
+    - `share` (📱 Compartir en mensajería)
+    - `copy` (📋 Copiar portapapeles)
+    - `user` (👤 Aventurero / Compañero)
+    - `action` (⚡ Acción / Rayo)
+    - `jump` (⬆️ Salto)
+  - Función reutilizable [`renderIcon(nameOrEmoji, options)`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js#L145-L165) para generar marcado SVG en línea con tamaño, color, clases CSS y estilos configurables.
+  - Función reactiva [`replaceEmojisWithSvg(text, options)`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js#L170-L195) que transforma automáticamente cualquier emoji presente en textos o mensajes en su correspondiente icono vectorial SVG con alineación vertical perfecta.
+
+### Changed
+- **Sustitución Integral de Emojis por Iconos SVG Vectoriales**:
+  - Reemplazo de todos los emojis en [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js):
+    - Título del menú principal con espadas vectoriales.
+    - Badges dinámicos de héroe y clase (`Aventurero`, `Paladín`, `Explorador`, `Hechicero`, `Guardián`) con escudo SVG coloreado según la clase seleccionada.
+    - Botón de creación de mazmorra y cabecera de sala con fortaleza SVG dorada.
+    - Cabecera y botón de cierre del modal de Configuración con engranaje y aspas vectoriales.
+    - Tarjetas interactivas de selección de mapa (*Mazmorra Ancestral*, *Cripta del Fuego*) en [`dungeon_classic.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/dungeon_classic.json) y [`crypt_inferno.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/crypt_inferno.json).
+  - Sistema de Notificaciones Narrativas del HUD ([`showNarrativeMessage`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js#L605-L620)): ahora procesa e inserta iconos SVG estilizados para advertencias de caída al vacío, apertura de cofres, llaves, gemas, apertura de puertas y consagración de pedestales.
+  - Estilos CSS añadidos en [`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html) para soporte flexible (`.svg-icon`, `.narrative-icon`, `#hud-message` flexbox).
+
+---
+
 ## [1.8.0] - 2026-09-28
 
 ### Changed
