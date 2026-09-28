@@ -1,10 +1,11 @@
-import { WORLD_CONFIG } from '../config/constants.js';
+import { WORLD_CONFIG, PLAYER_HEROES } from '../config/constants.js';
 
 export class Player {
   constructor(id, x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z, name = 'Aventurero', colorIndex = 0) {
     this.id = id;
     this.name = name;
     this.colorIndex = colorIndex;
+    this.hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
     this.pos = { x, y, z };
     this.vel = { x: 0, y: 0, z: 0 };
     this.yaw = 0;
@@ -13,6 +14,11 @@ export class Player {
     this.inputForward = 0;
     this.inputRight = 0;
     this.checkpoint = { x, y: 1.2, z, roomName: 'Sala 1 (Vestíbulo)' };
+  }
+
+  setColorIndex(colorIndex) {
+    this.colorIndex = colorIndex;
+    this.hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
   }
 
   setInput(forward, right, yaw = this.yaw) {

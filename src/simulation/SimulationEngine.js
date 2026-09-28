@@ -8,11 +8,13 @@ export class SimulationEngine {
   }
 
   integratePlayer(p, dt) {
-    // 1. Cálculo de velocidad según yaw e input
+    // 1. Cálculo de velocidad según yaw, input y características del héroe
+    const speedMult = p.hero?.speedMultiplier || 1.0;
+    const currentSpeed = PHYSICS_CONFIG.SPEED * speedMult;
     const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
     const rx =  Math.cos(p.yaw), rz = -Math.sin(p.yaw);
-    p.vel.x = (fx * p.inputForward + rx * p.inputRight) * PHYSICS_CONFIG.SPEED;
-    p.vel.z = (fz * p.inputForward + rz * p.inputRight) * PHYSICS_CONFIG.SPEED;
+    p.vel.x = (fx * p.inputForward + rx * p.inputRight) * currentSpeed;
+    p.vel.z = (fz * p.inputForward + rz * p.inputRight) * currentSpeed;
 
     p.vel.y += PHYSICS_CONFIG.GRAVITY * dt;
     if (p.vel.y < PHYSICS_CONFIG.TERMINAL_VELOCITY) {

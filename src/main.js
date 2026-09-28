@@ -181,7 +181,8 @@ class VoxelSandboxGame {
   handleJump() {
     const local = this.playerManager.localPlayer;
     if (local.onGround) {
-      local.vel.y = PHYSICS_CONFIG.JUMP_VELOCITY;
+      const jumpMult = local.hero?.jumpMultiplier || 1.0;
+      local.vel.y = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult;
       local.onGround = false;
     }
   }

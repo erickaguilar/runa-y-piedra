@@ -33,6 +33,27 @@ export class UIManager {
     }
   }
 
+  renderHeroTraitCard(hero) {
+    if (!hero) return '';
+    const speedPct = Math.round((hero.speedMultiplier || 1.0) * 100);
+    const jumpPct = Math.round((hero.jumpMultiplier || 1.0) * 100);
+    const defense = hero.stats?.defense || 3;
+    return `
+      <div class="hero-trait-box" style="border-left:3px solid ${hero.color}">
+        <div class="hero-role" style="color:${hero.color}">
+          ${renderIcon(hero.icon || 'shield', { size: 14, color: hero.color })}
+          <span>${hero.title || hero.name}</span>
+        </div>
+        <div class="hero-trait">${hero.trait || hero.description || ''}</div>
+        <div class="hero-stat-badges">
+          <span class="hero-stat">${renderIcon('action', { size: 11, color: '#f59e0b' })} Vel ${speedPct}%</span>
+          <span class="hero-stat">${renderIcon('jump', { size: 11, color: '#38bdf8' })} Salto ${jumpPct}%</span>
+          <span class="hero-stat">${renderIcon('shield', { size: 11, color: '#10b981' })} Def ${defense}/5</span>
+        </div>
+      </div>
+    `;
+  }
+
   showMenu({ onHost, onJoin }) {
     this.currentScreen = 'menu';
     this.lastMenuParams = { onHost, onJoin };
@@ -43,7 +64,7 @@ export class UIManager {
       <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
            data-index="${i}" 
            style="background:${h.color}; --hero-color:${h.color}" 
-           title="${h.name}"></div>
+           title="${h.name} (${h.title || ''})"></div>
     `).join('');
 
     const currentHero = PLAYER_HEROES[this.selectedColorIndex];
@@ -64,7 +85,10 @@ export class UIManager {
             ${heroesHtml}
           </div>
           <div id="hero-badge" class="hero-badge" style="color:${currentHero.color}">
-            ${renderIcon('shield', { size: 14, color: currentHero.color })} <span>${currentHero.name}</span>
+            ${renderIcon(currentHero.icon || 'shield', { size: 15, color: currentHero.color })} <span>${currentHero.name}</span>
+          </div>
+          <div id="hero-trait-container">
+            ${this.renderHeroTraitCard(currentHero)}
           </div>
         </div>
 
@@ -93,8 +117,12 @@ export class UIManager {
         const hero = PLAYER_HEROES[idx];
         const badge = document.getElementById('hero-badge');
         if (badge) {
-          badge.innerHTML = `${renderIcon('shield', { size: 14, color: hero.color })} <span>${hero.name}</span>`;
+          badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
           badge.style.color = hero.color;
+        }
+        const traitContainer = document.getElementById('hero-trait-container');
+        if (traitContainer) {
+          traitContainer.innerHTML = this.renderHeroTraitCard(hero);
         }
       };
     });
@@ -279,6 +307,7 @@ export class UIManager {
           <div class="party-item">
             <div class="party-member">
               <span class="party-dot" style="background:${hero.color}"></span>
+              ${renderIcon(hero.icon || 'shield', { size: 13, color: hero.color })}
               <span>${p.name || 'Aventurero'} (${hero.name})</span>
             </div>
             <span class="party-badge" style="${isHost ? '' : 'background:rgba(56,189,248,.2);color:#38bdf8'}">${isHost ? 'Host' : 'Listo'}</span>
@@ -296,6 +325,7 @@ export class UIManager {
         <div class="party-item">
           <div class="party-member">
             <span class="party-dot" style="background:${hero.color}"></span>
+            ${renderIcon(hero.icon || 'shield', { size: 13, color: hero.color })}
             <span>${this.playerName} (${hero.name})</span>
           </div>
           <span class="party-badge">${state.isHost ? 'Host' : 'Tú'}</span>
@@ -343,7 +373,10 @@ export class UIManager {
             ${heroesHtml}
           </div>
           <div id="settings-hero-badge" class="hero-badge" style="color:${currentHero.color}">
-            ${renderIcon('shield', { size: 14, color: currentHero.color })} <span>${currentHero.name}</span>
+            ${renderIcon(currentHero.icon || 'shield', { size: 15, color: currentHero.color })} <span>${currentHero.name}</span>
+          </div>
+          <div id="settings-hero-trait-container">
+            ${this.renderHeroTraitCard(currentHero)}
           </div>
         </div>
 
@@ -428,8 +461,12 @@ export class UIManager {
         const hero = PLAYER_HEROES[idx];
         const badge = document.getElementById('settings-hero-badge');
         if (badge) {
-          badge.innerHTML = `${renderIcon('shield', { size: 14, color: hero.color })} <span>${hero.name}</span>`;
+          badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
           badge.style.color = hero.color;
+        }
+        const traitContainer = document.getElementById('settings-hero-trait-container');
+        if (traitContainer) {
+          traitContainer.innerHTML = this.renderHeroTraitCard(hero);
         }
       };
     });
@@ -569,6 +606,7 @@ export class UIManager {
         <div class="party-item">
           <div class="party-member">
             <span class="party-dot" style="background:${hero.color}"></span>
+            ${renderIcon(hero.icon || 'shield', { size: 13, color: hero.color })}
             <span>${p.name || 'Aventurero'} (${hero.name})</span>
           </div>
           <span class="party-badge" style="${isHost ? '' : 'background:rgba(56,189,248,.2);color:#38bdf8'}">

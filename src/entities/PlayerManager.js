@@ -13,7 +13,7 @@ export class PlayerManager {
 
   setLocalProfile(name, colorIndex) {
     if (name) this.localPlayer.name = name;
-    if (colorIndex !== undefined) this.localPlayer.colorIndex = colorIndex;
+    if (colorIndex !== undefined) this.localPlayer.setColorIndex(colorIndex);
   }
 
   setLocalId(id) {
@@ -37,7 +37,7 @@ export class PlayerManager {
     const player = this.players.get(id);
     if (!player) return null;
     if (name) player.name = name;
-    if (colorIndex !== undefined) player.colorIndex = colorIndex;
+    if (colorIndex !== undefined) player.setColorIndex(colorIndex);
     return player;
   }
 

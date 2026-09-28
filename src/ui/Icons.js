@@ -205,6 +205,46 @@ export const ICONS = {
     defaultColor: '#94a3b8',
     body: `<polyline points="18 15 12 9 6 15" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="21" stroke-linecap="round"/>`,
   },
+
+  compass: {
+    name: 'compass',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  feather: {
+    name: 'feather',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#10b981',
+    body: `<path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5zM16 8L2 22M17.5 15H9" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  wand: {
+    name: 'wand',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#a855f7',
+    body: `<path d="M15 4V2M15 16v-2M8 9h2M20 9h-2M17.8 11.8L19 13M17.8 6.2L19 5M12.2 11.8L11 13M12.2 6.2L11 5M3 21l9-9" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  crown: {
+    name: 'crown',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#fbbf24',
+    body: `<path d="M3 18h18v-2l-3-10-4.5 5.5L12 4l-1.5 7.5L6 6l-3 10v2zM5 20h14" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
 };
 
 /**
@@ -227,6 +267,10 @@ export const EMOJI_TO_ICON_MAP = [
   { regex: /✅\uFE0F?/g, icon: 'check', defaultColor: '#22c55e' },
   { regex: /📱\uFE0F?/g, icon: 'share', defaultColor: '#38bdf8' },
   { regex: /📋\uFE0F?/g, icon: 'copy', defaultColor: '#cbd5e1' },
+  { regex: /🧭\uFE0F?/g, icon: 'compass', defaultColor: '#38bdf8' },
+  { regex: /🪶\uFE0F?/g, icon: 'feather', defaultColor: '#10b981' },
+  { regex: /🪄\uFE0F?/g, icon: 'wand', defaultColor: '#a855f7' },
+  { regex: /👑\uFE0F?/g, icon: 'crown', defaultColor: '#fbbf24' },
   { regex: /✕/g,        icon: 'x',     defaultColor: '#94a3b8' },
 ];
 

@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.10.0] - 2026-09-28
+
+### Added
+- **Biblioteca Declarativa en JSON de Personajes y Héroes ([`heroes.json`](file:///data/data/com.termux/files/home/develop/game/src/heroes/data/heroes.json))**:
+  - Creación de [`src/heroes/data/heroes.json`](file:///data/data/com.termux/files/home/develop/game/src/heroes/data/heroes.json) y el gestor [`HeroRegistry.js`](file:///data/data/com.termux/files/home/develop/game/src/heroes/HeroRegistry.js) que centraliza la definición de personajes del juego:
+    - **Aventurero** (`#38bdf8`): Explorador Versátil con icono de brújula (`compass`). Pasiva *Instinto Explorador* (100% vel, 100% salto).
+    - **Paladín** (`#f43f5e`): Caballero de la Luz con icono de escudo sagrado (`shield`). Pasiva *Aura de Firmeza* (96% vel, 98% salto, 5/5 defensa).
+    - **Explorador** (`#10b981`): Rastreador Veloz con icono de pluma ágil (`feather`). Pasiva *Paso del Viento* (+12% de velocidad de carrera, 104% salto).
+    - **Hechicero** (`#a855f7`): Mago Arcano con icono de báculo rúnico (`wand`). Pasiva *Salto de Levitación* (+14% de impulso de salto vertical).
+    - **Guardián** (`#fbbf24`): Baluarte Ancestral con icono de corona regia (`crown`). Pasiva *Presencia Áurea* (5/5 defensa y firmeza colosal).
+  - Los multiplicadores de física (`speedMultiplier` y `jumpMultiplier`) se aplican en tiempo real en [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js) y [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js).
+  - Tarjetas dinámicas de características de héroe en la interfaz con estadísticas y descripción visual en el menú y modal de configuración.
+
+### Fixed
+- **Desbordamiento del Botón "Unirse" en el Modal Inicial (`index.html`)**:
+  - Corregido el ancho y encaje del contenedor `.join-container` en pantallas móviles estrechas.
+  - Aplicado `box-sizing: border-box` universal y `min-width: 0` en el campo `.join-input` para permitir que el campo de PIN se ajuste fluidamente al espacio disponible sin empujar el botón `.btn-join` fuera del borde del modal.
+
+---
+
 ## [1.9.0] - 2026-09-28
 
 ### Added

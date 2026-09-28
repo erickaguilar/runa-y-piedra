@@ -1,0 +1,109 @@
+{
+  "heroes": [
+    {
+      "id": "adventurer",
+      "index": 0,
+      "name": "Aventurero",
+      "title": "Explorador Versátil",
+      "role": "Equilibrado",
+      "color": "#38bdf8",
+      "hex": 3718648,
+      "icon": "compass",
+      "passive": "Instinto Explorador",
+      "trait": "Equilibrio absoluto entre agilidad y destreza en laberintos.",
+      "description": "Veterano de incontables expediciones subterráneas. Se adapta con soltura a trampas y plataformas suspendidas.",
+      "stats": {
+        "speed": 1.0,
+        "jump": 1.0,
+        "defense": 3,
+        "difficulty": "Equilibrado"
+      },
+      "speedMultiplier": 1.0,
+      "jumpMultiplier": 1.0
+    },
+    {
+      "id": "paladin",
+      "index": 1,
+      "name": "Paladín",
+      "title": "Caballero de la Luz",
+      "role": "Defensa y Fuerza",
+      "color": "#f43f5e",
+      "hex": 16007006,
+      "icon": "shield",
+      "passive": "Aura de Firmeza",
+      "trait": "Pisada pesada e inamovible con máxima resiliencia en terreno rocoso.",
+      "description": "Guerrero devoto con armadura blindada. Lidera la vanguardia de la expedición garantizando la seguridad del grupo.",
+      "stats": {
+        "speed": 0.96,
+        "jump": 0.98,
+        "defense": 5,
+        "difficulty": "Resistente"
+      },
+      "speedMultiplier": 0.96,
+      "jumpMultiplier": 0.98
+    },
+    {
+      "id": "ranger",
+      "index": 2,
+      "name": "Explorador",
+      "title": "Rastreador Veloz",
+      "role": "Velocidad y Agilidad",
+      "color": "#10b981",
+      "hex": 1096065,
+      "icon": "feather",
+      "passive": "Paso del Viento",
+      "trait": "Velocidad de movimiento mejorada (+12%) en corredores y pasillos.",
+      "description": "Ágil como el viento. Cruza pasadizos estrechos a gran velocidad y esquiva precipicios con reflejos felinos.",
+      "stats": {
+        "speed": 1.12,
+        "jump": 1.04,
+        "defense": 2,
+        "difficulty": "Veloz"
+      },
+      "speedMultiplier": 1.12,
+      "jumpMultiplier": 1.04
+    },
+    {
+      "id": "wizard",
+      "index": 3,
+      "name": "Hechicero",
+      "title": "Mago Arcano",
+      "role": "Salto Gravitacional",
+      "color": "#a855f7",
+      "hex": 11032055,
+      "icon": "wand",
+      "passive": "Salto de Levitación",
+      "trait": "Impulso de salto elevado (+14%) mediante suspensión rúnica momentánea.",
+      "description": "Erudito de las artes arcanas capaz de doblegar la gravedad para salvar las fosas y abismos más amplios.",
+      "stats": {
+        "speed": 0.98,
+        "jump": 1.14,
+        "defense": 2,
+        "difficulty": "Técnico"
+      },
+      "speedMultiplier": 0.98,
+      "jumpMultiplier": 1.14
+    },
+    {
+      "id": "guardian",
+      "index": 4,
+      "name": "Guardián",
+      "title": "Baluarte Ancestral",
+      "role": "Coloso Rúnico",
+      "color": "#fbbf24",
+      "hex": 16498468,
+      "icon": "crown",
+      "passive": "Presencia Áurea",
+      "trait": "Estabilidad imperturbable y visión rúnica en la penumbra de la cripta.",
+      "description": "Centinela forjado en las profundidades de la roca. Su temple transmite serenidad y firmeza al equipo.",
+      "stats": {
+        "speed": 0.94,
+        "jump": 0.96,
+        "defense": 5,
+        "difficulty": "Estratégico"
+      },
+      "speedMultiplier": 0.94,
+      "jumpMultiplier": 0.96
+    }
+  ]
+}

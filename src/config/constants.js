@@ -45,18 +45,8 @@ export const BLOCK_COLORS = {
   7: 0x991b1b, // Fondo del Abismo / Lava
 };
 
-export const PLAYER_PALETTE = [
-  0x38bdf8, // azul aventurero
-  0xf43f5e, // rojo paladín
-  0x10b981, // verde explorador
-  0xa855f7, // púrpura hechicero
-  0xfbbf24, // dorado guardián
-];
+import heroesData from '../heroes/data/heroes.json';
 
-export const PLAYER_HEROES = [
-  { name: 'Aventurero', color: '#38bdf8', hex: 0x38bdf8 },
-  { name: 'Paladín',   color: '#f43f5e', hex: 0xf43f5e },
-  { name: 'Explorador', color: '#10b981', hex: 0x10b981 },
-  { name: 'Hechicero',  color: '#a855f7', hex: 0xa855f7 },
-  { name: 'Guardián',   color: '#fbbf24', hex: 0xfbbf24 },
-];
+export const PLAYER_HEROES = heroesData.heroes;
+export const PLAYER_PALETTE = heroesData.heroes.map(h => h.hex);
+
