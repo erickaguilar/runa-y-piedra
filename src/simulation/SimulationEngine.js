@@ -10,15 +10,11 @@ export class SimulationEngine {
 
   integratePlayer(p, dt, actions = 0) {
     // 0. Aplicar acciones edge-triggered deterministas (Salto autoritativo)
-    const combinedActions = actions | (p.pendingActions || 0);
-    if (combinedActions & ACTION_FLAGS.JUMP) {
+    if (actions & ACTION_FLAGS.JUMP) {
       if (p.onGround) {
         const jumpMult = p.hero?.jumpMultiplier || 1.0;
         p.vel.y = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult;
         p.onGround = false;
-      }
-      if (p.pendingActions) {
-        p.pendingActions &= ~ACTION_FLAGS.JUMP;
       }
     }
 

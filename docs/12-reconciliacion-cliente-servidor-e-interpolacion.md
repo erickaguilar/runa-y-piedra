@@ -82,24 +82,32 @@ Los navegadores móviles ejecutan temporizadores con fluctuaciones naturales ($\
 
 ## 4. Algoritmo de Reconciliación del Jugador Local (`ClientReconciler.js`)
 
-El proceso en [`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js) opera en tiempo de tick y render:
+El proceso en [`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js) opera desacoplando el **estado lógico/físico** del **estado visual de renderizado**:
 
-1. **Guarda Monotónica**: Descarte de snapshots que lleguen con timestamp desfasado o fuera de orden (`simTime <= lastProcessedSimTime`).
-2. **Registro Continuo de Inputs (`recordInput`)**:
-   En cada tick de física (`onTick` a 30 Hz), con $\Delta t$ fijo idéntico al del host ($1/30\text{ s}$) y flags de acción:
+1. **Separación de Estado Lógico (`pos`) y Visual (`visualPos`)**:
+   - `player.pos`: Autoridad física local y resultado exacto del replay de reconciliación. Todos los cálculos de colisiones (`tryMove`), predicción de saltos e inputs se realizan contra `player.pos`.
+   - `player.visualPos`: Estado suavizado utilizado exclusivamente por [`CameraController.js`](file:///data/data/com.termux/files/home/develop/game/src/camera/CameraController.js) para posicionar la cámara a 60 FPS sin saltos perceptibles.
+2. **Guarda Monotónica**: Descarte de snapshots que lleguen con timestamp desfasado o fuera de orden (`simTime <= lastProcessedSimTime`).
+3. **Registro Continuo de Inputs (`recordInput`)**:
+   En cada tick de física (`onTick` a 30 Hz), con $\Delta t$ fijo idéntico al del host (`FIXED_DT = 1/30 s`) y flags de acción unificados (sin estado interno duplicado `pendingActions`):
    $$\text{pendingInputs.push}(\{ \text{seq}, \Delta t_{\text{fijo}}, \text{forward}, \text{right}, \text{yaw}, \text{actions}, \text{time} \})$$
-3. **Descarte de Inputs Confirmados**:
+4. **Descarte de Inputs Confirmados**:
    $$\text{pendingInputs} = \text{pendingInputs.filter}(\text{inp} \to \text{inp.seq} > \text{lastInputSeq})$$
-4. **Simulación de Replay Determinista (Zero-GC)**:
+5. **Simulación de Replay Determinista (Zero-GC)**:
    Se utiliza un `ghostPlayer` pre-asignado que comienza en la coordenada autoritativa $(X_h, Y_h, Z_h)$, inicializa su velocidad vertical (`velY`) y estado `onGround`, y alinea su `yaw` con el último input pendiente en vuelo para no girar hacia atrás. Se itera sobre todos los inputs pendientes en vuelo ejecutando `simulationEngine.integratePlayer(ghost, inp.dt, inp.actions)`.
-5. **Corrección Tri-Banda de Error de Predicción**:
+6. **Corrección Tri-Banda de Error de Predicción**:
    $$\Delta_{\text{error}} = \sqrt{(X_{\text{ghost}} - X_{\text{local}})^2 + (Y_{\text{ghost}} - Y_{\text{local}})^2 + (Z_{\text{ghost}} - Z_{\text{local}})^2}$$
-   - **Zona de Tolerancia ($\Delta_{\text{error}} \le 0.09\text{ m}$)**: Tolerancia calibrada a medio tick de movimiento regular. Cero corrección, fluidez máxima.
-   - **Zona de Mezcla Suave ($0.09\text{ m} < \Delta_{\text{error}} \le 1.0\text{ m}$)**: Corrección geométrica suave interpolada en $\sim 3\text{ frames}$ ($t = 0.35$):
-     $$\vec{P}_{\text{local}} \gets \vec{P}_{\text{local}} + (\vec{P}_{\text{ghost}} - \vec{P}_{\text{local}}) \cdot 0.35$$
-     Elimina por completo cualquier "pop" o salto visual perceptible. Registra `Soft/s`.
-   - **Zona de Snap Directo ($1.0\text{ m} < \Delta_{\text{error}} \le 2.5\text{ m}$)**: Se adopta inmediatamente la posición del replay. Registra `Soft/s`.
+   - **Zona de Tolerancia ($\Delta_{\text{error}} \le 0.09\text{ m}$)**: Tolerancia calibrada a medio tick de movimiento regular. Cero intervención, fluidez máxima.
+   - **Zona de Mezcla Suave ($0.09\text{ m} < \Delta_{\text{error}} \le 1.0\text{ m}$)**:
+     - La posición **lógica** adopta el resultado exacto del replay: $\vec{P}_{\text{local}} \gets \vec{P}_{\text{ghost}}$. Cero *drift* en la física.
+     - La posición **visual** (`visualPos`) se aproxima exponencialmente en `onRender(dt)` (60 FPS):
+       $$\vec{P}_{\text{visual}} \gets \vec{P}_{\text{visual}} + (\vec{P}_{\text{local}} - \vec{P}_{\text{visual}}) \cdot (1 - 0.001^{\Delta t})$$
+       Elimina por completo cualquier "pop" o salto visual perceptible. Registra `Soft/s`.
+   - **Zona de Snap Directo ($1.0\text{ m} < \Delta_{\text{error}} \le 2.5\text{ m}$)**: Se adoptan inmediatamente la posición lógica y visual del replay para no interpolar a través de muros. Registra `Soft/s`.
    - **Zona de Teletransporte / Rescate ($\Delta_{\text{error}} > 2.5\text{ m}$)**: Caída al abismo, respawn o cambio de sala. Snap autoritativo instantáneo y vaciado de inputs pendientes. Registra `Tele/s`.
+
+> [!NOTE]
+> **Coordinación de DESTROY, PLACE e INTERACT**: Actualmente los eventos de edición de bloques (`MSG.BLOCK`) y cofres/puertas viajan en eventos paralelos; su sincronización dentro del paquete de inputs por `seq` queda agendada para v1.16. En co-op actual, las modificaciones de bloques son globales y se aplican inmediatamente sobre la malla compartida.
 
 ---
 

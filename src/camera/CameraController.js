@@ -9,7 +9,8 @@ export class CameraController {
 
   update(player, yaw, pitch) {
     const cam = this.camera;
-    cam.position.set(player.pos.x, player.pos.y + this.eyeHeight, player.pos.z);
+    const renderPos = player.visualPos || player.pos;
+    cam.position.set(renderPos.x, renderPos.y + this.eyeHeight, renderPos.z);
 
     const cosPitch = Math.cos(pitch);
     this.lookTarget.set(

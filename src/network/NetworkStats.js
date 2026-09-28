@@ -166,7 +166,12 @@ export class NetworkStats {
 
   renderDom() {
     if (!this.domElement || !this.enabled) return;
-    const rttColor = this.rttMs <= 25 ? '#22c55e' : (this.rttMs <= 65 ? '#f59e0b' : '#ef4444');
+    const hasNetworkProblem = this.softCorrectionsPerSec > 2 && this.predError > 0.3;
+    const isModerateJitter = this.predError > 0.09 || this.softCorrectionsPerSec > 0;
+    const predErrColor = hasNetworkProblem ? '#ef4444' : (isModerateJitter ? '#f59e0b' : '#38bdf8');
+    const softColor = this.softCorrectionsPerSec > 2 ? '#ef4444' : (this.softCorrectionsPerSec > 0 ? '#f59e0b' : '#94a3b8');
+    const teleColor = this.teleportsPerSec > 0 ? '#ef4444' : '#94a3b8';
+
     this.domElement.innerHTML = `
       <div style="font-weight:bold;color:#f8fafc;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:2px;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;">
         <span>NET DEBUG · P2P</span>
@@ -179,8 +184,8 @@ export class NetworkStats {
       <div>Drops / OOO: <strong style="color:${this.drops > 0 ? '#f59e0b' : '#94a3b8'}">${this.drops}</strong></div>
       ${this.mode === 'CLIENT' ? `
         <div style="margin-top:4px;border-top:1px dashed rgba(255,255,255,0.15);padding-top:3px;font-size:10px;">
-          <div>Pred Err: <strong style="color:${this.predError > 0.09 ? '#f59e0b' : '#38bdf8'}">${(this.predError || 0).toFixed(3)} m</strong></div>
-          <div>In Flight: <strong>${this.inputsInFlight || 0}</strong> | Soft: <strong>${this.softCorrectionsPerSec || 0}/s</strong> | Tele: <strong>${this.teleportsPerSec || 0}/s</strong></div>
+          <div>Pred Err: <strong style="color:${predErrColor}">${(this.predError || 0).toFixed(3)} m</strong></div>
+          <div>In Flight: <strong>${this.inputsInFlight || 0}</strong> | Soft: <strong style="color:${softColor}">${this.softCorrectionsPerSec || 0}/s</strong> | Tele: <strong style="color:${teleColor}">${this.teleportsPerSec || 0}/s</strong></div>
         </div>
       ` : ''}
     `;

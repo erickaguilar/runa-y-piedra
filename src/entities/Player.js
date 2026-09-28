@@ -6,7 +6,12 @@ export class Player {
     this.name = name;
     this.colorIndex = colorIndex;
     this.hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+
+    // Posición lógica/física autoritativa (utilizada por SimulationEngine y replay)
     this.pos = { x, y, z };
+    // Posición visual suavizada (utilizada por CameraController para render a 60 FPS)
+    this.visualPos = { x, y, z };
+
     this.vel = { x: 0, y: 0, z: 0 };
     this.yaw = 0;
     this.pitch = 0;
@@ -14,7 +19,6 @@ export class Player {
     this.inputForward = 0;
     this.inputRight = 0;
     this.lastInputSeq = 0;
-    this.pendingActions = 0;
     this.checkpoint = { x, y: 1.2, z, roomName: 'Sala 1 (Vestíbulo)' };
   }
 
@@ -23,13 +27,18 @@ export class Player {
     this.hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
   }
 
-  setInput(forward, right, yaw = this.yaw, actions = 0) {
+  setInput(forward, right, yaw = this.yaw) {
     this.inputForward = forward;
     this.inputRight = right;
     this.yaw = yaw;
-    if (actions) {
-      this.pendingActions |= actions;
-    }
+  }
+
+  updateVisualSmoothing(dt) {
+    // Suavizado visual exponencial (~0.5 por frame a 60 FPS)
+    const t = 1 - Math.pow(0.001, dt);
+    this.visualPos.x += (this.pos.x - this.visualPos.x) * t;
+    this.visualPos.y += (this.pos.y - this.visualPos.y) * t;
+    this.visualPos.z += (this.pos.z - this.visualPos.z) * t;
   }
 
   setCheckpoint(x, y, z, roomName = 'Punto de Control') {
@@ -46,11 +55,13 @@ export class Player {
     this.pos.x = cp.x;
     this.pos.y = cp.y;
     this.pos.z = cp.z;
+    this.visualPos.x = cp.x;
+    this.visualPos.y = cp.y;
+    this.visualPos.z = cp.z;
     this.vel.x = 0;
     this.vel.y = 0;
     this.vel.z = 0;
     this.onGround = false;
-    this.pendingActions = 0;
     return cp;
   }
 
@@ -58,11 +69,13 @@ export class Player {
     this.pos.x = x;
     this.pos.y = y;
     this.pos.z = z;
+    this.visualPos.x = x;
+    this.visualPos.y = y;
+    this.visualPos.z = z;
     this.vel.x = 0;
     this.vel.y = 0;
     this.vel.z = 0;
     this.onGround = false;
-    this.pendingActions = 0;
   }
 
   toSnapshot() {
@@ -78,4 +91,3 @@ export class Player {
     };
   }
 }
-

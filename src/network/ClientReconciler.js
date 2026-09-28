@@ -44,7 +44,6 @@ export class ClientReconciler {
       onGround: true,
       inputForward: 0,
       inputRight: 0,
-      pendingActions: 0,
       hero: null,
       setCheckpoint: () => {},
       respawn: () => {},
@@ -125,10 +124,15 @@ export class ClientReconciler {
       this.predictionError = Math.hypot(errHoriz, errVert);
 
       if (this.predictionError > this.teleportThreshold) {
-        // Desfase drástico (> 2.5 m): caída al abismo, respawn o cambio de nivel -> Snap forzado
+        // Desfase drástico (> 2.5 m): caída al abismo, respawn o cambio de nivel -> Snap forzado lógico y visual
         localPlayer.pos.x = localEntry.x;
         localPlayer.pos.y = localEntry.y;
         localPlayer.pos.z = localEntry.z;
+        if (localPlayer.visualPos) {
+          localPlayer.visualPos.x = localEntry.x;
+          localPlayer.visualPos.y = localEntry.y;
+          localPlayer.visualPos.z = localEntry.z;
+        }
         localPlayer.vel.x = 0;
         localPlayer.vel.y = localEntry.velY !== undefined ? localEntry.velY : 0;
         localPlayer.vel.z = 0;
@@ -136,21 +140,27 @@ export class ClientReconciler {
         this.pendingInputs.length = 0;
         this._recordTeleport();
       } else if (this.predictionError > this.blendUpperThreshold) {
-        // Desfase medio-alto (1.0 m a 2.5 m): snap directo a la posición del replay
+        // Desfase medio-alto (1.0 m a 2.5 m): snap directo a la posición del replay lógico y visual
+        localPlayer.pos.x = this.ghostPlayer.pos.x;
+        localPlayer.pos.y = this.ghostPlayer.pos.y;
+        localPlayer.pos.z = this.ghostPlayer.pos.z;
+        if (localPlayer.visualPos) {
+          localPlayer.visualPos.x = this.ghostPlayer.pos.x;
+          localPlayer.visualPos.y = this.ghostPlayer.pos.y;
+          localPlayer.visualPos.z = this.ghostPlayer.pos.z;
+        }
+        localPlayer.vel.y = this.ghostPlayer.vel.y;
+        localPlayer.onGround = this.ghostPlayer.onGround;
+        this._recordSoftCorrection();
+      } else if (this.predictionError > this.snapThreshold) {
+        // Desfase suave (0.09 m a 1.0 m):
+        // La posición LÓGICA adopta el resultado exacto del replay (cero drift en la simulación)
         localPlayer.pos.x = this.ghostPlayer.pos.x;
         localPlayer.pos.y = this.ghostPlayer.pos.y;
         localPlayer.pos.z = this.ghostPlayer.pos.z;
         localPlayer.vel.y = this.ghostPlayer.vel.y;
         localPlayer.onGround = this.ghostPlayer.onGround;
-        this._recordSoftCorrection();
-      } else if (this.predictionError > this.snapThreshold) {
-        // Desfase suave (0.09 m a 1.0 m): blend gradual en 2-3 frames (t = 0.35) para eliminar "pops"
-        const t = 0.35;
-        localPlayer.pos.x += (this.ghostPlayer.pos.x - localPlayer.pos.x) * t;
-        localPlayer.pos.y += (this.ghostPlayer.pos.y - localPlayer.pos.y) * t;
-        localPlayer.pos.z += (this.ghostPlayer.pos.z - localPlayer.pos.z) * t;
-        localPlayer.vel.y = this.ghostPlayer.vel.y;
-        localPlayer.onGround = this.ghostPlayer.onGround;
+        // La posición VISUAL NO se altera aquí: se suaviza en onRender(dt) hacia localPlayer.pos sin pops
         this._recordSoftCorrection();
       }
     }

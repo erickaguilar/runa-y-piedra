@@ -426,6 +426,7 @@ class VoxelSandboxGame {
     const loop = new GameLoop({
       tickHz: PHYSICS_CONFIG.TICK_HZ,
       onTick: (dt) => {
+        const FIXED_DT = 1 / PHYSICS_CONFIG.TICK_HZ;
         const local = this.playerManager.localPlayer;
         const move = this.input.getMovement();
         local.setInput(move.forward, move.right, this.input.yaw);
@@ -435,8 +436,8 @@ class VoxelSandboxGame {
         const jumpAction = this.input.consumeJump() ? Proto.ACTION_FLAGS.JUMP : 0;
 
         if (this.mode === 'host') {
-          // 1. Simular jugador local del Host aplicando su acción
-          this.simulation.integratePlayer(local, dt, jumpAction);
+          // 1. Simular jugador local del Host aplicando su acción con dt fijo
+          this.simulation.integratePlayer(local, FIXED_DT, jumpAction);
 
           // 2. Desacoplar jitter de red consumiendo exactamente 1 input sanitizado por tick (30 Hz)
           for (const [conn, pid] of this.playerManager.connToPlayerId.entries()) {
@@ -446,9 +447,9 @@ class VoxelSandboxGame {
             if (clientInput) {
               remotePlayer.setInput(clientInput.dz, clientInput.dx, clientInput.yaw);
               remotePlayer.lastInputSeq = clientInput.seq || 0;
-              this.simulation.integratePlayer(remotePlayer, dt, clientInput.actions || 0);
+              this.simulation.integratePlayer(remotePlayer, FIXED_DT, clientInput.actions || 0);
             } else {
-              this.simulation.integratePlayer(remotePlayer, dt, 0);
+              this.simulation.integratePlayer(remotePlayer, FIXED_DT, 0);
             }
           }
         } else if (this.mode === 'client') {
@@ -468,20 +469,21 @@ class VoxelSandboxGame {
           // 2. Registrar input en el buffer de predicción local con dt fijo y flags de acción
           this.reconciler.recordInput(
             this.inputSeq,
-            dt,
+            FIXED_DT,
             local.inputForward,
             local.inputRight,
             local.yaw,
             jumpAction
           );
 
-          // 3. Simular predicción local con la misma acción
-          this.simulation.integratePlayer(local, dt, jumpAction);
+          // 3. Simular predicción local con la misma acción y dt fijo
+          this.simulation.integratePlayer(local, FIXED_DT, jumpAction);
         }
       },
       onRender: (dt) => {
         if (this.mode) {
           const local = this.playerManager.localPlayer;
+          local.updateVisualSmoothing(dt);
           this.cameraController.update(local, local.yaw, local.pitch);
 
           if (this.mode === 'client') {
