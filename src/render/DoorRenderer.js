@@ -1,5 +1,6 @@
 // src/render/DoorRenderer.js
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Spring } from '../ui/Spring.js';
 
 const DOOR_TARGET_ANGLE = 1.48; // ~85° — deja margen de seguridad para el overshoot del 8% (~92° max)
@@ -29,9 +30,7 @@ export class DoorRenderer {
         color: 0xffffff,
         map: this._woodTexture,
       }),
-      woodDark: new THREE.MeshLambertMaterial({ color: 0x451a03 }),  // Relieves y juntas oscuras
-      iron: new THREE.MeshLambertMaterial({ color: 0x27272a }),      // Hierro forjado oscuro
-      gold: new THREE.MeshLambertMaterial({ color: 0xd97706 }),      // Cerrojos y herrajes dorados
+      iron: new THREE.MeshLambertMaterial({ color: 0x27272a }), // Hierro forjado oscuro
     };
   }
 
@@ -139,11 +138,40 @@ export class DoorRenderer {
   }
 
   _createGeometries() {
+    // 1. Geometría de panel de madera noble pre-desplazada (sign = +1 y sign = -1)
+    const leftWood = new THREE.BoxGeometry(LEAF_WIDTH, LEAF_HEIGHT, LEAF_THICKNESS);
+    leftWood.translate(LEAF_WIDTH / 2, 0, 0);
+
+    const rightWood = new THREE.BoxGeometry(LEAF_WIDTH, LEAF_HEIGHT, LEAF_THICKNESS);
+    rightWood.translate(-LEAF_WIDTH / 2, 0, 0);
+
+    // 2. Fusión de herrajes de forja (2 bandas + cerrojo + pomos en ambas caras) en 1 único BufferGeometry
+    const buildHardwareGeom = (sign) => {
+      const b1 = new THREE.BoxGeometry(LEAF_WIDTH, 0.09, LEAF_THICKNESS + 0.02)
+        .translate(sign * (LEAF_WIDTH / 2), 0.65, 0);
+      const b2 = new THREE.BoxGeometry(LEAF_WIDTH, 0.09, LEAF_THICKNESS + 0.02)
+        .translate(sign * (LEAF_WIDTH / 2), -0.65, 0);
+      const lk = new THREE.BoxGeometry(0.12, 0.22, LEAF_THICKNESS + 0.04)
+        .translate(sign * (LEAF_WIDTH - 0.08), 0, 0);
+      const kFront = new THREE.SphereGeometry(0.04, 8, 6)
+        .translate(sign * (LEAF_WIDTH - 0.08), -0.02, (LEAF_THICKNESS / 2) + 0.03);
+      const kBack = new THREE.SphereGeometry(0.04, 8, 6)
+        .translate(sign * (LEAF_WIDTH - 0.08), -0.02, -(LEAF_THICKNESS / 2) - 0.03);
+
+      const merged = mergeGeometries([b1, b2, lk, kFront, kBack]);
+      b1.dispose();
+      b2.dispose();
+      lk.dispose();
+      kFront.dispose();
+      kBack.dispose();
+      return merged;
+    };
+
     return {
-      panel: new THREE.BoxGeometry(LEAF_WIDTH, LEAF_HEIGHT, LEAF_THICKNESS),
-      band:  new THREE.BoxGeometry(LEAF_WIDTH, 0.09, LEAF_THICKNESS + 0.02),
-      lock:  new THREE.BoxGeometry(0.12, 0.22, LEAF_THICKNESS + 0.04),
-      knob:  new THREE.SphereGeometry(0.04, 8, 6),
+      leftWood,
+      rightWood,
+      leftIron: buildHardwareGeom(+1),
+      rightIron: buildHardwareGeom(-1),
     };
   }
 
@@ -211,31 +239,21 @@ export class DoorRenderer {
     });
   }
 
-  /** Construye una hoja con panel de roble, 2 bandas de hierro pasantes, cerradura y pomo. */
+  /**
+   * Construye una hoja de puerta optimizada en solo 2 draw calls:
+   * 1. Mesh de madera de roble noble con textura procedural SVG.
+   * 2. Mesh con todos los herrajes de hierro forjado pre-fusionados (bandas, cerrojo y pomos).
+   */
   _buildLeaf(sign) {
     const g = new THREE.Group();
 
-    // 1. Panel de madera desplazado desde el pivote hacia el centro del vano
-    const panel = new THREE.Mesh(this._geometries.panel, this._materials.wood);
-    panel.position.set(sign * (LEAF_WIDTH / 2), 0, 0);
+    const woodGeom = sign > 0 ? this._geometries.leftWood : this._geometries.rightWood;
+    const panel = new THREE.Mesh(woodGeom, this._materials.wood);
     g.add(panel);
 
-    // 2. Bandas de hierro reforzado (superior e inferior, sobresalen por ambos lados)
-    for (const dy of [+0.65, -0.65]) {
-      const band = new THREE.Mesh(this._geometries.band, this._materials.iron);
-      band.position.set(sign * (LEAF_WIDTH / 2), dy, 0);
-      g.add(band);
-    }
-
-    // 3. Cerrojo de forja central en el borde de cierre
-    const lock = new THREE.Mesh(this._geometries.lock, this._materials.iron);
-    lock.position.set(sign * (LEAF_WIDTH - 0.08), 0, 0);
-    g.add(lock);
-
-    // 4. Pomo dorado sobre el cerrojo
-    const knob = new THREE.Mesh(this._geometries.knob, this._materials.gold);
-    knob.position.set(sign * (LEAF_WIDTH - 0.08), -0.02, (LEAF_THICKNESS / 2) + 0.03);
-    g.add(knob);
+    const ironGeom = sign > 0 ? this._geometries.leftIron : this._geometries.rightIron;
+    const ironMesh = new THREE.Mesh(ironGeom, this._materials.iron);
+    g.add(ironMesh);
 
     return g;
   }

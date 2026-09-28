@@ -15,6 +15,7 @@ import * as Proto from './network/Protocol.js';
 import { ClientReconciler } from './network/ClientReconciler.js';
 import { InputQueue } from './network/InputQueue.js';
 import { UIManager } from './ui/UIManager.js';
+import { soundManager } from './audio/SoundManager.js';
 import { NET_CONFIG, BLOCK_TYPES, PHYSICS_CONFIG, PLAYER_HEROES } from './config/constants.js';
 
 class VoxelSandboxGame {
@@ -43,14 +44,20 @@ class VoxelSandboxGame {
     this.cameraController = new CameraController(this.sceneManager.camera);
     this.raycaster = new BlockRaycaster(this.sceneManager.camera, this.voxelMap, this.world);
 
-    // 2. Red y UI
+    // 2. Red, Audio y UI
     this.network = new NetworkManager();
     this.ui = new UIManager();
+    this.soundManager = soundManager;
+    this.network.stats.setRenderer(this.sceneManager.renderer);
 
     // 3. Controles
     this.input = new InputManager({
       canvas: this.canvas,
-      onJump: null,
+      onJump: () => {
+        if (this.playerManager.localPlayer?.onGround) {
+          this.soundManager.playJump();
+        }
+      },
       onInteract: () => this.handleInteract(),
     });
 
@@ -254,6 +261,13 @@ class VoxelSandboxGame {
     const chestData = this.world.chests?.find(c => c.id === chestId);
     if (chestData) chestData.isOpen = true;
 
+    const local = this.playerManager.localPlayer;
+    if (chestData && local) {
+      this.soundManager.playChestOpen({ x: chestData.x, y: chestData.y, z: chestData.z }, local.pos);
+    } else {
+      this.soundManager.playChestOpen();
+    }
+
     if (this.mode === 'host') {
       this.network.broadcast(Proto.serializeChestOpen(chestId));
     }
@@ -271,6 +285,14 @@ class VoxelSandboxGame {
     this.doorRenderer.openDoor(doorId);
 
     const door = this.world.doors?.find(d => d.id === doorId);
+    const doorZ = door?.z ?? (doorId === 1 ? 11 : 24);
+    const local = this.playerManager.localPlayer;
+    if (local) {
+      this.soundManager.playDoorOpen({ x: 12.0, y: 2.0, z: doorZ + 0.5 }, local.pos);
+    } else {
+      this.soundManager.playDoorOpen();
+    }
+
     const msg = door?.openMessage || (doorId === 1
       ? '🚪 ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!'
       : '🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.');
@@ -381,11 +403,46 @@ class VoxelSandboxGame {
 
     this.network.addEventListener('door-open', (e) => {
       const doorId = e.detail?.doorId || 1;
+      const conn = e.detail?.conn;
+
+      // Validación autoritativa en el Host: distancia euclidiana <= 3.5m (tolerancia de jitter)
+      if (this.mode === 'host' && conn) {
+        const player = this.playerManager.getPlayerByConnection(conn);
+        if (!player) return;
+
+        const door = this.world.doors?.find(d => d.id === doorId);
+        const doorZ = door?.z ?? (doorId === 1 ? 11 : 24);
+        const doorCenterX = 12.0;
+        const doorCenterZ = doorZ + 0.5;
+        const dist = Math.hypot(player.pos.x - doorCenterX, player.pos.z - doorCenterZ);
+        if (dist > 3.5) {
+          console.warn(`[AntiCheat] Apertura de puerta ${doorId} rechazada: jugador ${player.name} fuera de rango (${dist.toFixed(2)}m > 3.5m)`);
+          return;
+        }
+      }
+
       this.openDoor(doorId);
     });
 
     this.network.addEventListener('chest-open', (e) => {
       const chestId = e.detail?.chestId || 1;
+      const conn = e.detail?.conn;
+
+      // Validación autoritativa en el Host: distancia euclidiana al cofre <= 3.2m
+      if (this.mode === 'host' && conn) {
+        const player = this.playerManager.getPlayerByConnection(conn);
+        if (!player) return;
+
+        const chest = this.world.chests?.find(c => c.id === chestId);
+        if (chest) {
+          const dist = Math.hypot(player.pos.x - chest.x, player.pos.z - chest.z);
+          if (dist > 3.2) {
+            console.warn(`[AntiCheat] Apertura de cofre ${chestId} rechazada: jugador ${player.name} fuera de rango (${dist.toFixed(2)}m > 3.2m)`);
+            return;
+          }
+        }
+      }
+
       this.openChest(chestId);
     });
 

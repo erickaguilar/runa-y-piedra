@@ -41,10 +41,15 @@ export class NetworkStats {
     // Estado de visualización
     this.enabled = this._checkInitialEnabled();
     this.domElement = null;
+    this.renderer = null;
 
     if (this.enabled) {
       this.initDom();
     }
+  }
+
+  setRenderer(renderer) {
+    this.renderer = renderer;
   }
 
   _checkInitialEnabled() {
@@ -168,6 +173,7 @@ export class NetworkStats {
     if (!this.domElement || !this.enabled) return;
     const hasNetworkProblem = this.softCorrectionsPerSec > 2 && this.predError > 0.3;
     const isModerateJitter = this.predError > 0.09 || this.softCorrectionsPerSec > 0;
+    const rttColor = this.rttMs > 150 ? '#ef4444' : (this.rttMs > 80 ? '#f59e0b' : '#38bdf8');
     const predErrColor = hasNetworkProblem ? '#ef4444' : (isModerateJitter ? '#f59e0b' : '#38bdf8');
     const softColor = this.softCorrectionsPerSec > 2 ? '#ef4444' : (this.softCorrectionsPerSec > 0 ? '#f59e0b' : '#94a3b8');
     const teleColor = this.teleportsPerSec > 0 ? '#ef4444' : '#94a3b8';
@@ -182,6 +188,11 @@ export class NetworkStats {
       <div>In: <strong>${this.ppsIn}</strong> pps (${this.kbpsIn} KB/s)</div>
       <div>Out: <strong>${this.ppsOut}</strong> pps (${this.kbpsOut} KB/s)</div>
       <div>Drops / OOO: <strong style="color:${this.drops > 0 ? '#f59e0b' : '#94a3b8'}">${this.drops}</strong></div>
+      ${this.renderer ? `
+        <div style="margin-top:4px;border-top:1px solid rgba(255,255,255,0.1);padding-top:2px;font-size:10px;color:#a7f3d0;">
+          Draw Calls: <strong>${this.renderer.info.render.calls}</strong> | Tris: <strong>${this.renderer.info.render.triangles}</strong>
+        </div>
+      ` : ''}
       ${this.mode === 'CLIENT' ? `
         <div style="margin-top:4px;border-top:1px dashed rgba(255,255,255,0.15);padding-top:3px;font-size:10px;">
           <div>Pred Err: <strong style="color:${predErrColor}">${(this.predError || 0).toFixed(3)} m</strong></div>

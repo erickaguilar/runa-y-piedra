@@ -1,6 +1,7 @@
 import QRCode from 'qrcode';
 import { PLAYER_HEROES } from '../config/constants.js';
 import { renderIcon, replaceEmojisWithSvg } from './Icons.js';
+import { soundManager } from '../audio/SoundManager.js';
 
 export class UIManager {
   constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message', settingsBtnId = 'btn-settings' } = {}) {
@@ -29,7 +30,10 @@ export class UIManager {
   bindSettings(callbacks = {}) {
     this.settingsCallbacks = callbacks;
     if (this.settingsBtn) {
-      this.settingsBtn.onclick = () => this.toggleSettingsModal();
+      this.settingsBtn.onclick = () => {
+        soundManager.playClick();
+        this.toggleSettingsModal();
+      };
     }
   }
 
@@ -431,7 +435,24 @@ export class UIManager {
           </div>
         </div>
 
-        <!-- 5. SALA DE EXPEDICIÓN (si está en partida) -->
+        <!-- 5. Efectos de Sonido Procedurales -->
+        <div class="settings-group" style="margin-top:10px;">
+          <div class="setting-row">
+            <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
+              ${renderIcon('sparkles', { size: 14, color: '#fbbf24' })} Efectos de Sonido (Web Audio)
+            </span>
+          </div>
+          <div class="quality-selector">
+            <button class="quality-btn ${!soundManager.isMuted ? 'active' : ''}" id="btn-sound-on">
+              Activado 🔊
+            </button>
+            <button class="quality-btn ${soundManager.isMuted ? 'active' : ''}" id="btn-sound-off">
+              Silenciado 🔇
+            </button>
+          </div>
+        </div>
+
+        <!-- 6. SALA DE EXPEDICIÓN (si está en partida) -->
         ${inGame && state.roomPin ? `
           <div class="divider" style="margin:12px 0"></div>
           <div class="settings-group" style="background:rgba(11,17,32,0.85);border-radius:14px;padding:14px;border:1px solid #1e293b;text-align:center;">
@@ -470,12 +491,16 @@ export class UIManager {
       </div>`;
 
     // Interacciones del modal
-    document.getElementById('btn-close-settings').onclick = () => this.closeSettingsModal();
+    document.getElementById('btn-close-settings').onclick = () => {
+      soundManager.playClick();
+      this.closeSettingsModal();
+    };
 
     // Selector de clases en configuración
     const chips = this.uiEl.querySelectorAll('.hero-chip');
     chips.forEach(chip => {
       chip.onclick = () => {
+        soundManager.playClick();
         chips.forEach(c => c.classList.remove('selected'));
         chip.classList.add('selected');
         const idx = parseInt(chip.dataset.index, 10);
@@ -530,6 +555,23 @@ export class UIManager {
     if (btnNetDebugOff) btnNetDebugOff.onclick = () => setNetDebug(false);
     if (btnNetDebugOn) btnNetDebugOn.onclick = () => setNetDebug(true);
 
+    // Botones de Sonido (Web Audio API)
+    const btnSoundOn = document.getElementById('btn-sound-on');
+    const btnSoundOff = document.getElementById('btn-sound-off');
+    if (btnSoundOn && btnSoundOff) {
+      btnSoundOn.onclick = () => {
+        if (soundManager.isMuted) soundManager.toggleMute();
+        btnSoundOn.classList.add('active');
+        btnSoundOff.classList.remove('active');
+        soundManager.playClick();
+      };
+      btnSoundOff.onclick = () => {
+        if (!soundManager.isMuted) soundManager.toggleMute();
+        btnSoundOff.classList.add('active');
+        btnSoundOn.classList.remove('active');
+      };
+    }
+
     // QR Canvas en Configuración
     const qrCanvas = document.getElementById('settings-qr-canvas');
     if (qrCanvas && state.joinUrl) {
@@ -550,6 +592,7 @@ export class UIManager {
     const levelBtns = this.uiEl.querySelectorAll('#settings-level-buttons .level-select-btn');
     levelBtns.forEach(btn => {
       btn.onclick = () => {
+        soundManager.playClick();
         const id = btn.dataset.levelId;
         levelBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -559,6 +602,7 @@ export class UIManager {
 
     // Salir al menú
     document.getElementById('btn-leave-game')?.addEventListener('click', () => {
+      soundManager.playClick();
       if (confirm('¿Deseas salir al menú principal? Se abandonará la partida actual.')) {
         this.closeSettingsModal();
         this.settingsCallbacks?.onLeaveGame?.();
@@ -567,6 +611,7 @@ export class UIManager {
 
     // Guardar cambios
     document.getElementById('btn-save-settings').onclick = () => {
+      soundManager.playClick();
       const name = document.getElementById('settings-name-input').value.trim() || 'Aventurero';
       this.playerName = name;
       localStorage.setItem('dungeon_player_name', name);

@@ -5,6 +5,41 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.19.0] - 2026-09-28
+
+### Added
+- **Sintetizador Procedural de Efectos de Sonido con Web Audio API ([`SoundManager.js`](file:///data/data/com.termux/files/home/develop/game/src/audio/SoundManager.js))**:
+  - Motor de audio procedural integrado con **cero dependencias y cero descargas de audio externas** (0 kB en ficheros `.mp3`/`.wav`), sintetizado 100% en tiempo real mediante Web Audio API.
+  - **Apertura de Puerta de Mazmorra (`playDoorOpen`)**:
+    - Transitorio metálico de liberación del cerrojo/pestillo de forja (barrido rápido de oscilador triangular $320\text{ Hz} \rightarrow 110\text{ Hz}$ y chasquido de banda alta a $2200\text{ Hz}$).
+    - Fricción y crujido de roble noble con resonancia de bisagras mediante buffer estático de ruido marrón procesado por `BiquadFilterNode` con barrido dinámico ($210\text{ Hz} \rightarrow 480\text{ Hz} \rightarrow 170\text{ Hz}$, $Q=8.5$) y sub-oscilador sinusoidal a $74\text{ Hz}$ para emular la masa de las hojas de madera maciza.
+    - Tope mecánico amortiguado al alcanzar el ángulo de reposo contra el marco de sillar.
+  - **Apertura de Cofres del Tesoro (`playChestOpen`)**:
+    - Crujido de bisagra de tapa + arpegio polifónico brillante en acordes mayores (Do5, Mi5, Sol5, Do6) con decaimiento exponencial áureo.
+  - **Física de Salto e Interfaz Táctil (`playJump`, `playClick`)**:
+    - Impulso aerodinámico al despegar del suelo y chasquidos de alta frecuencia para retroalimentación táctil de botones y selectores.
+  - **Audio Espacial Dinámico y Paneo Estéreo Relativo**:
+    - Atenuación de volumen cuadrática según distancia Euclidiana entre la fuente sonora y el jugador local, junto a paneo estéreo ($L/R$) en tiempo real.
+  - **Conformidad con Políticas Móviles y Selector en Configuración**:
+    - Reanudación asíncrona del `AudioContext` en el primer evento de usuario (`pointerdown`, `touchstart`, `keydown`).
+    - Selector dedicado de activación/silenciado de efectos en el modal de ajustes con persistencia en `localStorage`.
+
+- **Métricas de Renderizado en Vivo en Panel de Diagnóstico ([`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js))**:
+  - Visualización en tiempo real de `Draw Calls` (`renderer.info.render.calls`) y triángulos renderizados (`renderer.info.render.triangles`) en el overlay de telemetría (`?debug=1`).
+  - Corrección de la variable de color `rttColor` para evitar excepciones en clientes conectados con diagnóstico activo.
+
+### Changed
+- **Fusión de Geometrías y Optimización de Draw Calls en Puertas 3D ([`DoorRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/DoorRenderer.js))**:
+  - Fusión de todas las piezas metálicas (banda de refuerzo superior, banda inferior, cerradura de forja y pomos esféricos delantero y trasero) en un único `BufferGeometry` estático pre-horneado vía `BufferGeometryUtils.mergeGeometries`.
+  - Reducción de 5 mallas a **solo 2 mallas por hoja** (1 para el panel de roble noble con textura procedural SVG y 1 para la forja completa).
+  - Reducción drástica del número total de draw calls para las puertas del nivel: de 20 llamadas a **solo 8 draw calls** (reducción del 60%), blindando holgadamente el presupuesto móvil objetivo ($< 25$ calls).
+  - Consumo Zero-GC durante la carga de niveles al reutilizar las geometrías instanciadas en `_createGeometries()`.
+
+### Security
+- **Validación Autoritativa de Proximidad en el Host ([`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**:
+  - El Host valida de forma autoritativa la distancia euclidiana del jugador solicitante antes de procesar aperturas de puertas ($\le 3.5\text{ m}$) y cofres ($\le 3.2\text{ m}$).
+  - Peticiones fuera de rango o paquetes maliciosos spoofed son descartados silenciosamente con trazabilidad de advertencia en logs.
+
 ---
 
 ## [1.18.0] - 2026-09-28
