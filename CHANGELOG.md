@@ -13,6 +13,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - **Renderizador de Puertas Medievales 3D con Doble Hoja Batiente ([`DoorRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/DoorRenderer.js))**:
   - Transformación del vano de $2 \times 2$ bloques en una puerta batiente tridimensional completa de 12 cm de grosor compuesta por dos hojas de roble macizo (`0x78350f`), bandas pasantes de hierro forjado (`0x27272a`), cerrojo central y pomo dorado (`0xd97706`).
   - Cada hoja cuenta con su propio pivote lateral en los extremos del marco ($X=11.0$ e $X=13.0$), encontrándose en el centro ($X=12.0$) para ocluir visualmente el 100% del vano cuando está cerrada.
+- **Textura Procedural SVG de Tablones de Roble ([`DoorRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/DoorRenderer.js))**:
+  - Generación en memoria de textura vectorial de alta definición ($256 \times 512$, relación de aspecto $1:2$ idéntica a la hoja 3D) mapeada sobre los paneles de madera.
+  - Representa 4 tablones verticales de roble noble con ranuras sombreadas, biseles de luz, vetas orgánicas longitudinales, nudos artesanales y clavos de hierro forjado, integrándose con bisagras y herrajes 3D.
 - **Dinámica Mecánica de Apertura con `Spring(240, 20)`**:
   - Amortiguación rápida y contundente (~0.38s de tiempo de asentamiento) con rebote elástico del $\sim 8\%$ ($1.48\text{ rad} \approx 85^\circ$ objetivo con pico en $\sim 92^\circ$) contra el sillar del muro.
   - Apertura hacia la sala de destino (`swingDir: +1`), invitando al jugador a cruzar hacia la siguiente sala (Abismo o Santuario) sin empujar la cámara hacia atrás.
