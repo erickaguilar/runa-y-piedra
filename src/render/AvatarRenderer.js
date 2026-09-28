@@ -1,6 +1,7 @@
 import * as THREE from 'three';
+import { PLAYER_PALETTE, PHYSICS_CONFIG } from '../config/constants.js';
 
-const AVATAR_H = 1.8;
+const AVATAR_H = PHYSICS_CONFIG.PLAYER_H;
 
 export class AvatarRenderer {
   constructor(scene) {
@@ -9,7 +10,11 @@ export class AvatarRenderer {
     this._geo = new THREE.BoxGeometry(0.6, AVATAR_H, 0.6);
   }
 
-  ensure(id, color = 0xff5252) {
+  static colorFor(id) {
+    return PLAYER_PALETTE[id % PLAYER_PALETTE.length];
+  }
+
+  ensure(id, color = AvatarRenderer.colorFor(id)) {
     let a = this.avatars.get(id);
     if (a) return a;
     const mat = new THREE.MeshLambertMaterial({ color });
@@ -33,7 +38,7 @@ export class AvatarRenderer {
     this.avatars.delete(id);
   }
 
-  setTarget(id, x, y, z, yaw, color) {
+  setTarget(id, x, y, z, yaw, color = AvatarRenderer.colorFor(id)) {
     const a = this.ensure(id, color);
     a.target.x = x;
     a.target.y = y;
@@ -41,7 +46,10 @@ export class AvatarRenderer {
     a.target.yaw = yaw;
     // Teletransporte si la diferencia es enorme (join inicial)
     if (Math.abs(a.current.x - x) > 8 || Math.abs(a.current.z - z) > 8) {
-      a.current.x = x; a.current.y = y; a.current.z = z; a.current.yaw = yaw;
+      a.current.x = x;
+      a.current.y = y;
+      a.current.z = z;
+      a.current.yaw = yaw;
     }
   }
 

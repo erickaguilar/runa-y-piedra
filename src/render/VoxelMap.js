@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { WORLD_X, WORLD_Y, WORLD_Z, BLOCK_AIR } from '../core/World.js';
+import { BLOCK_COLORS } from '../config/constants.js';
 
-const COLORS = {
-  1: new THREE.Color(0x4caf50), // grass
-  2: new THREE.Color(0x8d6e63), // dirt
-  3: new THREE.Color(0x9e9e9e), // stone
-  4: new THREE.Color(0x475569), // wall
+const THREE_COLORS = {
+  1: new THREE.Color(BLOCK_COLORS[1]),
+  2: new THREE.Color(BLOCK_COLORS[2]),
+  3: new THREE.Color(BLOCK_COLORS[3]),
+  4: new THREE.Color(BLOCK_COLORS[4]),
 };
 
 export class VoxelMap {
@@ -43,7 +44,10 @@ export class VoxelMap {
     if (this.freeSlots.length) inst = this.freeSlots.pop();
     else inst = this.usedCount++;
 
-    if (inst >= this.max) { console.warn('InstancedMesh full'); return; }
+    if (inst >= this.max) {
+      console.warn('InstancedMesh full');
+      return;
+    }
 
     this.blockToInst[bIdx] = inst;
     this.instToBlock[inst] = bIdx;
@@ -54,7 +58,7 @@ export class VoxelMap {
     this.dummy.updateMatrix();
     this.mesh.setMatrixAt(inst, this.dummy.matrix);
 
-    this.mesh.setColorAt(inst, COLORS[type] || COLORS[1]);
+    this.mesh.setColorAt(inst, THREE_COLORS[type] || THREE_COLORS[1]);
     this.mesh.count = Math.max(this.mesh.count, inst + 1);
     this.mesh.instanceMatrix.needsUpdate = true;
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
@@ -84,15 +88,17 @@ export class VoxelMap {
     this.usedCount = 0;
     this.mesh.count = 0;
 
-    for (let x = 0; x < WORLD_X; x++)
-      for (let y = 0; y < WORLD_Y; y++)
+    for (let x = 0; x < WORLD_X; x++) {
+      for (let y = 0; y < WORLD_Y; y++) {
         for (let z = 0; z < WORLD_Z; z++) {
           const t = this.world.get(x, y, z);
           if (t !== BLOCK_AIR) this.addBlock(x, y, z, t);
         }
+      }
+    }
   }
 
-  /** Convierte (x,y,z) del bloque en índice interno. */
+  /** Convierte índice interno en coordenadas {x, y, z}. */
   static blockIndexToXYZ(bIdx) {
     const x = bIdx % WORLD_X;
     const y = Math.floor(bIdx / WORLD_X) % WORLD_Y;
