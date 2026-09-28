@@ -1,4 +1,4 @@
-import { WORLD_Y } from './World.js';
+import { WORLD_X, WORLD_Z, WORLD_Y } from './World.js';
 
 export const PLAYER_W = 0.6;
 export const PLAYER_H = 1.8;
@@ -11,6 +11,11 @@ function overlaps(world, x, y, z) {
   const maxY = Math.floor(y + PLAYER_H - 1e-4);
   const minZ = Math.floor(z - HALF_W);
   const maxZ = Math.floor(z + HALF_W);
+
+  // Límite físico: impide salir de las dimensiones del mundo (barrera invisible impenetrable)
+  if (minX < 0 || maxX >= WORLD_X || minZ < 0 || maxZ >= WORLD_Z) {
+    return true;
+  }
 
   for (let bx = minX; bx <= maxX; bx++)
     for (let by = minY; by <= maxY; by++)

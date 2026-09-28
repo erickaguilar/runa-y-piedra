@@ -31,7 +31,7 @@ const network = new NetworkManager();
 // Jugador local (host = 0, cliente recibe su id en el INIT)
 const local = {
   id: 0,
-  pos: { x: WORLD_X / 2 + 0.5, y: 2, z: WORLD_Z / 2 + 0.5 },
+  pos: { x: WORLD_X / 2 + 0.5, y: 4.1, z: WORLD_Z / 2 + 0.5 },
   vel: { x: 0, y: 0, z: 0 },
   yaw: 0,
   pitch: 0,
@@ -140,6 +140,11 @@ function applyBlockEdit(action, x, y, z) {
 }
 
 function _applyBlockEditLocal(action, x, y, z) {
+  // Evitar romper los muros perimetrales que delimitan el escenario
+  if (action === 0 && world.isBorder(x, z) && y >= 4) {
+    return;
+  }
+
   if (action === 0) {
     if (world.get(x, y, z) !== 0) {
       world.set(x, y, z, 0);
@@ -160,7 +165,7 @@ network.addEventListener('peer-joined', (e) => {
   connToPlayerId.set(conn, pid);
   hostPlayers.set(pid, {
     id: pid,
-    pos: { x: WORLD_X / 2 + 0.5, y: 3, z: WORLD_Z / 2 + 3.5 },
+    pos: { x: WORLD_X / 2 + 0.5, y: 4.1, z: WORLD_Z / 2 + 3.5 },
     vel: { x: 0, y: 0, z: 0 },
     yaw: Math.PI,
     onGround: false,
@@ -168,7 +173,7 @@ network.addEventListener('peer-joined', (e) => {
   });
   // Enviamos INIT con el mundo + id asignado
   network.sendTo(conn, Proto.serializeInit(world.blocks, pid));
-  avatars.setTarget(pid, WORLD_X / 2 + 0.5, 3, WORLD_Z / 2 + 3.5, Math.PI, colorFor(pid));
+  avatars.setTarget(pid, WORLD_X / 2 + 0.5, 4.1, WORLD_Z / 2 + 3.5, Math.PI, colorFor(pid));
 });
 
 network.addEventListener('peer-left', (e) => {
@@ -230,6 +235,16 @@ function _integratePlayer(p, dt) {
     p.onGround = true;
     if (p.vel.y < 0) p.vel.y = 0;
   } else p.onGround = false;
+
+  // Rescate de seguridad: si cae al vacío por algún motivo, reaparece en la arena
+  if (p.pos.y < -5) {
+    p.pos.x = WORLD_X / 2 + 0.5;
+    p.pos.y = 4.1;
+    p.pos.z = WORLD_Z / 2 + 0.5;
+    p.vel.x = 0;
+    p.vel.y = 0;
+    p.vel.z = 0;
+  }
 }
 
 function hostSimulation(dt) {

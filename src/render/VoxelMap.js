@@ -5,6 +5,7 @@ const COLORS = {
   1: new THREE.Color(0x4caf50), // grass
   2: new THREE.Color(0x8d6e63), // dirt
   3: new THREE.Color(0x9e9e9e), // stone
+  4: new THREE.Color(0x475569), // wall
 };
 
 export class VoxelMap {
