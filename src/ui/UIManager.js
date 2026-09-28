@@ -337,19 +337,22 @@ export class UIManager {
     }
 
     const levelsHtml = (state.isHost && state.levels?.length > 0) ? `
-      <div class="level-box" style="margin-top:12px;text-align:left;">
-        <div class="level-title">Cambiar Mapa de la Mazmorra</div>
-        <div class="level-grid" id="settings-level-grid">
-          ${state.levels.map(lvl => `
-            <div class="level-card ${lvl.id === state.currentLevelId ? 'selected' : ''}" data-level-id="${lvl.id}">
-              <div class="level-card-header">
-                <span class="level-icon">${renderIcon(lvl.icon || 'castle', { size: 24, color: (lvl.icon === 'volcano' || lvl.icon === '🌋') ? '#f97316' : '#fbbf24' })}</span>
-                <span class="level-badge">${lvl.difficulty || 'Normal'}</span>
-              </div>
-              <div class="level-name">${lvl.name}</div>
-              <div class="level-desc">${lvl.description || ''}</div>
-            </div>
-          `).join('')}
+      <div style="margin-top:12px;text-align:left;">
+        <div style="font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Cambiar Mapa de la Mazmorra</div>
+        <div class="level-btn-group" id="settings-level-buttons">
+          ${state.levels.map(lvl => {
+            const isSelected = lvl.id === state.currentLevelId;
+            const iconName = lvl.icon || (lvl.id.includes('inferno') ? 'volcano' : 'castle');
+            const iconColor = (iconName === 'volcano' || iconName === '🌋') ? '#f97316' : '#fbbf24';
+            return `
+              <button class="level-select-btn ${isSelected ? 'active' : ''}" data-level-id="${lvl.id}" type="button">
+                <span class="level-btn-icon" style="color:${iconColor};display:inline-flex;align-items:center;">
+                  ${renderIcon(iconName, { size: 16, color: 'currentColor' })}
+                </span>
+                <span>${lvl.name}</span>
+              </button>
+            `;
+          }).join('')}
         </div>
       </div>
     ` : '';
@@ -543,13 +546,13 @@ export class UIManager {
       copyBtn.onclick = () => this.copyLink(state.joinUrl);
     }
 
-    // Selector de nivel en configuración
-    const levelCards = this.uiEl.querySelectorAll('#settings-level-grid .level-card');
-    levelCards.forEach(card => {
-      card.onclick = () => {
-        const id = card.dataset.levelId;
-        levelCards.forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
+    // Selector de nivel en configuración (botones compactos)
+    const levelBtns = this.uiEl.querySelectorAll('#settings-level-buttons .level-select-btn');
+    levelBtns.forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.levelId;
+        levelBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
         this.settingsCallbacks?.onSelectLevel?.(id);
       };
     });

@@ -27,6 +27,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - `@keyframes springBounce`: Rebote con 2-3 oscilaciones elásticas a 620 ms para items de recompensa (gemas, llaves, monedas).
   - Selectores duales `.svg-icon` y `.narrative-icon` acelerados 100% por hardware en el hilo compositor de la GPU, con limpieza automática de `will-change`.
   - Función de utilidad [`replaySpringAnimation(el, variant)`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js) para disparar o reiniciar animaciones de resorte mediante reflow forzado sin clonar nodos del DOM.
+- **Selector de Mapas Compacto en Configuración ([`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js) e [`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html))**:
+  - Sustitución de las tarjetas verticales voluminosas con descripciones largas por una botonera horizontal compacta (`.level-btn-group` / `.level-select-btn`).
+  - Muestra el icono temático SVG de cada nivel (castillo/volcán), nombre de la mazmorra y estado activo con resplandor dorado, reduciendo drásticamente la altura del modal de ajustes en pantallas móviles.
 
 ---
 
