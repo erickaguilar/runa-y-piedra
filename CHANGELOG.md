@@ -5,6 +5,27 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.22.0] - 2026-09-28
+
+### Added
+- **Set Cohesivo de Suelo en SVG de Adoquines Medievales ([`TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js))**:
+  - Sustitución de los patrones de piso por una suite uniforme basada en cuadrícula métrica idéntica ($32 \times 32\text{ px}$ por adoquín en celdas de $128 \times 128\text{ px}$), misma iluminación cenital (bisel superior e izquierdo en `#8a929c` y bisel de sombra inferior y derecho en `#0a0c10`), y misma base cromática `#6a7078`:
+    - **`floorTiles` (Casilla 5)**: Adoquín limpio con variación sutil de tono por baldosa para evitar monotonía visual.
+    - **`floorTilesWorn` (Casilla 6)**: Adoquín desgastado con grietas de trazo oscuro `#0a0c10` (ancho $1.4\text{ px}$) y bisel de luz paralelo (`#8a929c`), además de lascas y desconchones angulares.
+    - **`floorTilesMossy` (Casilla 7)**: Adoquín húmedo con acumulación de musgo en las juntas (`#3d5a2a`), matas oscuras de base (`#4a6e30`) y brillos volumétricos (`#5d8a3d`).
+    - **`floorTilesMossyWorn` (Casilla 8)**: Combinación de grietas intermedias con brotes de vegetación en llagas.
+    - **`floorTilesSanctuary` (Casilla 9)**: Pavimento con rombo ceremonial integrado en la trama de adoquines para zonas sacras.
+  - Tinte base neutro en blanco (`#ffffff`) en `THREE_COLORS` para preservar fielmente los matices y el verde natural del musgo sin oscurecimiento indeseado.
+
+- **Nuevos Tipos de Bloque y Función de Dispersión `floorVariant` ([`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js), [`World.js`](file:///data/data/com.termux/files/home/develop/game/src/core/World.js), [`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js))**:
+  - Incorporación de `BLOCK_FLOOR_STONE = 8`, `BLOCK_FLOOR_WORN = 9`, `BLOCK_FLOOR_MOSS = 10`.
+  - Implementación de `floorVariant(x, z)` mediante hash determinista de 32 bits:
+    - Distribución precisa y balanceada: $\approx 70\%$ limpio (`BLOCK_FLOOR_STONE`), $\approx 20\%$ desgastado (`BLOCK_FLOOR_WORN`), y $\approx 10\%$ con musgo (`BLOCK_FLOOR_MOSS`).
+    - Cero sobrecarga de red: cálculo determinista al vuelo idéntico en host y clientes WebRTC.
+    - Integración en generador de niveles para regiones `fill` de suelo y umbrales `divider`.
+
+---
+
 ## [1.21.0] - 2026-09-28
 
 ### Added

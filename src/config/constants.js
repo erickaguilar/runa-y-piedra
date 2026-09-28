@@ -33,16 +33,26 @@ export const BLOCK_TYPES = {
   PEDESTAL: 5,
   JUMP_PAD: 6,
   LAVA: 7,
+  FLOOR_STONE: 8,
+  FLOOR_WORN: 9,
+  FLOOR_MOSS: 10,
 };
 
+export const BLOCK_FLOOR_STONE = 8;
+export const BLOCK_FLOOR_WORN  = 9;
+export const BLOCK_FLOOR_MOSS  = 10;
+
 export const BLOCK_COLORS = {
-  1: 0x475569, // Suelo de losas de piedra (slate-600 más claro y visible)
+  1: 0xffffff, // Suelo de adoquín (blanco neutro para respetar los tonos y el musgo verde del SVG)
   2: 0x334155, // Muro de mazmorra de piedra labrada (slate-700)
   3: 0xd97706, // Puerta de madera y hierro reforzado
   4: 0x64748b, // Columnas y pilares de sillar (slate-500)
   5: 0xfbbf24, // Pedestal/Luz rúnica dorada
   6: 0x0ea5e9, // Plataforma de Salto (celeste rúnico)
   7: 0x991b1b, // Fondo del Abismo / Lava
+  8: 0xffffff, // Adoquín limpio
+  9: 0xffffff, // Adoquín con grietas
+  10: 0xffffff, // Adoquín con musgo
 };
 
 import heroesData from '../heroes/data/heroes.json';

@@ -1,5 +1,14 @@
 import { BLOCK_TYPES, WORLD_CONFIG } from '../config/constants.js';
 
+export function floorVariant(x, z) {
+  // Hash determinista de 32 bits, idéntico y reproducible en host y clientes sin tráfico de red
+  const h = ((x * 374761393) ^ (z * 668265263)) >>> 0;
+  const r = h % 100;
+  if (r < 70) return BLOCK_TYPES.FLOOR_STONE; // 8: adoquín limpio (~70%)
+  if (r < 90) return BLOCK_TYPES.FLOOR_WORN;  // 9: con grietas (~20%)
+  return BLOCK_TYPES.FLOOR_MOSS;              // 10: con musgo (~10%)
+}
+
 export class LevelLoader {
   /**
    * Carga y construye un nivel en una instancia de World.
@@ -65,6 +74,7 @@ export class LevelLoader {
       case 'fill': {
         const [x1, y1, z1] = region.from;
         const [x2, y2, z2] = region.to;
+        const isFloorBlock = region.block === 'STONE_FLOOR';
         const blockType = BLOCK_TYPES[region.block] ?? BLOCK_TYPES.STONE_FLOOR;
         const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
         const minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
@@ -73,7 +83,11 @@ export class LevelLoader {
         for (let x = minX; x <= maxX; x++) {
           for (let y = minY; y <= maxY; y++) {
             for (let z = minZ; z <= maxZ; z++) {
-              world.set(x, y, z, blockType);
+              let finalBlock = blockType;
+              if (isFloorBlock && y === 0) {
+                finalBlock = floorVariant(x, z);
+              }
+              world.set(x, y, z, finalBlock);
             }
           }
         }
@@ -88,7 +102,7 @@ export class LevelLoader {
 
         for (let x = 1; x < sizeX - 1; x++) {
           // Suelo sólido firme bajo el muro divisor y bajo el umbral de la puerta
-          world.set(x, 0, z, BLOCK_TYPES.STONE_FLOOR);
+          world.set(x, 0, z, floorVariant(x, z));
 
           for (let y = 1; y <= height; y++) {
             if (doorOpening.includes(x)) {

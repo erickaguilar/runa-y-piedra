@@ -1,9 +1,11 @@
-import { WORLD_CONFIG, BLOCK_TYPES } from '../config/constants.js';
+import { WORLD_CONFIG, BLOCK_TYPES, BLOCK_FLOOR_STONE, BLOCK_FLOOR_WORN, BLOCK_FLOOR_MOSS } from '../config/constants.js';
 import { LevelLoader, LevelRegistry } from '../levels/index.js';
 
 export const WORLD_X = WORLD_CONFIG.SIZE_X;
 export const WORLD_Y = WORLD_CONFIG.SIZE_Y;
 export const WORLD_Z = WORLD_CONFIG.SIZE_Z;
+
+export { BLOCK_FLOOR_STONE, BLOCK_FLOOR_WORN, BLOCK_FLOOR_MOSS };
 
 export class World {
   constructor(levelData = null) {

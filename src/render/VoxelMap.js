@@ -4,13 +4,16 @@ import { BLOCK_COLORS, BLOCK_TYPES } from '../config/constants.js';
 import { TextureGenerator } from './TextureGenerator.js';
 
 const THREE_COLORS = {
-  1: new THREE.Color(BLOCK_COLORS[1]),
+  1: new THREE.Color(BLOCK_COLORS[1] || 0xffffff),
   2: new THREE.Color(BLOCK_COLORS[2]),
   3: new THREE.Color(BLOCK_COLORS[3]),
   4: new THREE.Color(BLOCK_COLORS[4]),
   5: new THREE.Color(BLOCK_COLORS[5]),
   6: new THREE.Color(BLOCK_COLORS[6]),
   7: new THREE.Color(BLOCK_COLORS[7]),
+  8: new THREE.Color(BLOCK_COLORS[8] || 0xffffff),
+  9: new THREE.Color(BLOCK_COLORS[9] || 0xffffff),
+  10: new THREE.Color(BLOCK_COLORS[10] || 0xffffff),
 };
 
 export class VoxelMap {
@@ -217,10 +220,20 @@ varying vec2 vAtlasOffset;`
         const wallPalette = [0, 0, 0, 0, 1, 1, 2, 2, 3, 4];
         return wallPalette[h % wallPalette.length];
       }
-      case BLOCK_TYPES.STONE_FLOOR: {
-        // Ponderado: losas biseladas regulares, impactos de grieta, adoquinado medieval, musgo de junturas, rombos ceremoniales
-        const floorPalette = [5, 5, 5, 5, 6, 6, 7, 7, 8, 9];
-        return floorPalette[h % floorPalette.length];
+      case BLOCK_TYPES.STONE_FLOOR:
+      case BLOCK_TYPES.FLOOR_STONE:
+      case BLOCK_TYPES.FLOOR_WORN:
+      case BLOCK_TYPES.FLOOR_MOSS: {
+        if (type === BLOCK_TYPES.FLOOR_STONE) return 5; // floorTiles (adoquín limpio)
+        if (type === BLOCK_TYPES.FLOOR_WORN) return 6;  // floorTilesWorn (con grietas)
+        if (type === BLOCK_TYPES.FLOOR_MOSS) return 7;  // floorTilesMossy (con musgo)
+
+        // Si es STONE_FLOOR genérico (tipo 1): distribución determinista estable (70% limpio, 20% con grietas, 10% con musgo)
+        const hFloor = ((x * 374761393) ^ (z * 668265263)) >>> 0;
+        const r = hFloor % 100;
+        if (r < 70) return 5; // floorTiles
+        if (r < 90) return 6; // floorTilesWorn
+        return 7;             // floorTilesMossy
       }
       case BLOCK_TYPES.PILLAR: {
         // 5 estilos arquitectónicos para columnas y pilares de sillar
