@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.2.0] - 2026-09-28
+
+### Added
+- **Lobby de Configuración de Aventurero**:
+  - Personalización de nombre o apodo con persistencia local automática (`localStorage`).
+  - Selector de clases y colores (`PLAYER_HEROES`: Aventurero, Paladín, Explorador, Hechicero, Guardián) con distintivos visuales interactivos.
+- **Compartir por Mensajería (WhatsApp, Telegram, etc.)**:
+  - Botón **"Compartir en Mensajería"** con integración nativa de la Web Share API (`navigator.share`), permitiendo enviar invitaciones directas con 1 toque.
+  - Botón **"Copiar Enlace"** con notificación de portapapeles y respuesta visual animada.
+  - Soporte de unirse con enlace directo (`?join=XXXX`) que auto-rellena y destaca la sala invitada.
+- **Etiquetas 3D Flotantes (Nametags) sobre Avatares**:
+  - Renderizado de Sprite 3D billboard (`THREE.Sprite`) sobre la cabeza de cada jugador con su nombre personalizado y emblema del color de su clase.
+  - Sincronización continua con interpolación Lerp sin impacto de rendimiento.
+- **Protocolo de Metadatos de Red (`MSG.PLAYER_META = 0x06`)**:
+  - Intercambio binario de metadatos (ID, índice de color, longitud y nombre codificado en UTF-8 con `TextEncoder` / `TextDecoder`).
+  - Avisos en el HUD al unirse o desconectarse compañeros: *"🛡️ ¡[Nombre] se unió a la expedición!"*.
+  - Lista en tiempo real de aventureros conectados en la sala de espera del Host.
+
+---
+
 ## [1.1.0] - 2026-09-28
 
 ### Added

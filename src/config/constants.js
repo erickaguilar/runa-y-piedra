@@ -48,3 +48,11 @@ export const PLAYER_PALETTE = [
   0xa855f7, // púrpura hechicero
   0xfbbf24, // dorado guardián
 ];
+
+export const PLAYER_HEROES = [
+  { name: 'Aventurero', color: '#38bdf8', hex: 0x38bdf8 },
+  { name: 'Paladín',   color: '#f43f5e', hex: 0xf43f5e },
+  { name: 'Explorador', color: '#10b981', hex: 0x10b981 },
+  { name: 'Hechicero',  color: '#a855f7', hex: 0xa855f7 },
+  { name: 'Guardián',   color: '#fbbf24', hex: 0xfbbf24 },
+];

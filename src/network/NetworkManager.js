@@ -88,6 +88,12 @@ export class NetworkManager extends EventTarget {
         this.dispatchEvent(new CustomEvent('door-open', { detail: { conn } }));
         break;
       }
+      case Proto.MSG.PLAYER_META: {
+        const m = Proto.deserializePlayerMeta(buf);
+        m.conn = conn;
+        this.dispatchEvent(new CustomEvent('player-meta', { detail: m }));
+        break;
+      }
     }
   }
 

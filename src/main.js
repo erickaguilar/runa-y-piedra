@@ -11,7 +11,7 @@ import { BlockRaycaster } from './interaction/BlockRaycaster.js';
 import { NetworkManager } from './network/NetworkManager.js';
 import * as Proto from './network/Protocol.js';
 import { UIManager } from './ui/UIManager.js';
-import { NET_CONFIG, BLOCK_TYPES, PHYSICS_CONFIG } from './config/constants.js';
+import { NET_CONFIG, BLOCK_TYPES, PHYSICS_CONFIG, PLAYER_HEROES } from './config/constants.js';
 
 class VoxelSandboxGame {
   constructor() {
@@ -47,41 +47,57 @@ class VoxelSandboxGame {
 
   initUI() {
     this.ui.showMenu({
-      onHost: () => this.startHost(),
-      onJoin: (pin) => this.joinRoom(pin),
+      onHost: (profile) => this.startHost(profile),
+      onJoin: (pin, profile) => this.joinRoom(pin, profile),
     });
   }
 
-  async startHost() {
+  async startHost(profile = {}) {
+    const name = profile.name || 'Host';
+    const colorIndex = profile.colorIndex ?? 0;
+    this.playerManager.setLocalProfile(name, colorIndex);
+
     this.ui.setStatus('Creando mazmorra...');
     try {
       const pin = await this.network.host();
       this.mode = 'host';
 
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const hostAddr = isLocal ? '192.168.100.28:5173' : window.location.host;
+      const hostAddr = isLocal ? (localStorage.getItem('dungeon_lan_ip') || '192.168.100.28:5173') : window.location.host;
       const joinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
 
-      this.ui.showHostRoom(pin, joinUrl, () => {
-        this.ui.showNarrativeMessage('Sala 1: Vestíbulo de la Mazmorra. Buscad la salida.', 5000);
+      const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+      this.ui.showHostRoom(pin, joinUrl, {
+        hostName: name,
+        hostColorHex: hero.color,
+        onPlay: () => {
+          this.ui.showNarrativeMessage(`Sala 1: Vestíbulo de la Mazmorra. Adelante, ${name}.`, 5000);
+        },
       });
     } catch (e) {
       this.ui.setStatus('Error al crear sala: ' + (e?.message || e));
     }
   }
 
-  async joinRoom(pin) {
+  async joinRoom(pin, profile = {}) {
     if (!/^\d{4}$/.test(pin)) {
       this.ui.setStatus('PIN inválido (debe contener 4 dígitos)');
       return;
     }
+    const name = profile.name || 'Aventurero';
+    const colorIndex = profile.colorIndex ?? 0;
+    this.playerManager.setLocalProfile(name, colorIndex);
+
     this.ui.setStatus('Conectando a la mazmorra...');
     try {
       await this.network.join(pin);
       this.mode = 'client';
       this.ui.setCrosshairVisible(true);
       this.ui.hideMenu();
-      this.ui.showNarrativeMessage('Conectado a la Mazmorra. Explorad juntos.', 5000);
+      this.ui.showNarrativeMessage(`Conectado como ${name}. Explorad juntos.`, 5000);
+
+      // Enviar metadatos locales (nombre y color de clase) al Host
+      this.network.sendToHost(Proto.serializePlayerMeta(0, colorIndex, name));
     } catch (e) {
       this.ui.setStatus('Error de conexión: ' + (e?.message || e));
     }
@@ -132,7 +148,21 @@ class VoxelSandboxGame {
     this.network.addEventListener('peer-joined', (e) => {
       const conn = e.detail.conn;
       const remotePlayer = this.playerManager.addRemotePlayer(conn);
+
+      // 1. Enviar INIT con el mapa y el ID asignado
       this.network.sendTo(conn, Proto.serializeInit(this.world.blocks, remotePlayer.id));
+
+      // 2. Enviar metadatos del Host al nuevo jugador
+      const local = this.playerManager.localPlayer;
+      this.network.sendTo(conn, Proto.serializePlayerMeta(local.id, local.colorIndex, local.name));
+
+      // 3. Enviar metadatos de otros compañeros si los hubiera
+      for (const p of this.playerManager.getAllPlayers()) {
+        if (p.id !== local.id && p.id !== remotePlayer.id) {
+          this.network.sendTo(conn, Proto.serializePlayerMeta(p.id, p.colorIndex, p.name));
+        }
+      }
+
       this.avatars.setTarget(
         remotePlayer.id,
         remotePlayer.pos.x,
@@ -140,12 +170,43 @@ class VoxelSandboxGame {
         remotePlayer.pos.z,
         remotePlayer.yaw
       );
+
+      this.ui.updatePartyList(this.playerManager.getAllPlayers());
     });
 
     this.network.addEventListener('peer-left', (e) => {
       const removedPlayer = this.playerManager.removeByConnection(e.detail.conn);
       if (removedPlayer) {
         this.avatars.remove(removedPlayer.id);
+        this.ui.showNarrativeMessage(`⚠️ ${removedPlayer.name} ha abandonado la partida.`, 4000);
+        this.ui.updatePartyList(this.playerManager.getAllPlayers());
+      }
+    });
+
+    this.network.addEventListener('player-meta', (e) => {
+      const { playerId, colorIndex, name, conn } = e.detail;
+      const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+
+      if (this.mode === 'host') {
+        const player = this.playerManager.getPlayerByConnection(conn);
+        if (player) {
+          player.name = name;
+          player.colorIndex = colorIndex;
+          this.avatars.setMetadata(player.id, name, hero.hex);
+          this.ui.showNarrativeMessage(`🛡️ ¡${name} (${hero.name}) se unió a la partida!`, 4500);
+
+          // Transmitir metadatos oficiales del jugador a todos los clientes
+          this.network.broadcast(Proto.serializePlayerMeta(player.id, colorIndex, name));
+          this.ui.updatePartyList(this.playerManager.getAllPlayers());
+        }
+      } else if (this.mode === 'client') {
+        this.playerManager.updatePlayerMeta(playerId, name, colorIndex);
+        this.avatars.setMetadata(playerId, name, hero.hex);
+        if (playerId === 0) {
+          this.ui.showNarrativeMessage(`🏰 Mazmorra de ${name} (${hero.name})`, 4000);
+        } else if (playerId !== this.playerManager.localPlayer.id) {
+          this.ui.showNarrativeMessage(`🛡️ ¡${name} (${hero.name}) se unió!`, 4000);
+        }
       }
     });
 

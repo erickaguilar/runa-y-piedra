@@ -1,9 +1,10 @@
 export const MSG = {
-  INPUT:    0x01,
-  SNAPSHOT: 0x02,
-  BLOCK:    0x03,
-  INIT:     0x04,
-  DOOR:     0x05,
+  INPUT:       0x01,
+  SNAPSHOT:    0x02,
+  BLOCK:       0x03,
+  INIT:        0x04,
+  DOOR:        0x05,
+  PLAYER_META: 0x06,
 };
 
 // INPUT: [type][f32 dx][f32 dz][f32 yaw]  -> 13 bytes
@@ -92,4 +93,32 @@ export function serializeDoorOpen() {
   new DataView(buf).setUint8(0, MSG.DOOR);
   return buf;
 }
+
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+
+// PLAYER_META: [type 0x06][u8 playerId][u8 colorIndex][u8 nameLen][name bytes] -> 4 + N bytes
+export function serializePlayerMeta(playerId, colorIndex, name) {
+  const nameBytes = textEncoder.encode(name || 'Aventurero');
+  const clampedLen = Math.min(nameBytes.length, 24);
+  const buf = new ArrayBuffer(4 + clampedLen);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.PLAYER_META);
+  v.setUint8(1, playerId);
+  v.setUint8(2, colorIndex);
+  v.setUint8(3, clampedLen);
+  new Uint8Array(buf, 4).set(nameBytes.subarray(0, clampedLen));
+  return buf;
+}
+
+export function deserializePlayerMeta(buf) {
+  const v = new DataView(buf);
+  const playerId = v.getUint8(1);
+  const colorIndex = v.getUint8(2);
+  const len = v.getUint8(3);
+  const nameBytes = new Uint8Array(buf, 4, len);
+  const name = textDecoder.decode(nameBytes);
+  return { playerId, colorIndex, name };
+}
+
 

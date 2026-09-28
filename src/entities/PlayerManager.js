@@ -11,20 +11,33 @@ export class PlayerManager {
     this.nextPlayerId = 1;
   }
 
+  setLocalProfile(name, colorIndex) {
+    if (name) this.localPlayer.name = name;
+    if (colorIndex !== undefined) this.localPlayer.colorIndex = colorIndex;
+  }
+
   setLocalId(id) {
     this.players.delete(this.localPlayer.id);
     this.localPlayer.id = id;
     this.players.set(id, this.localPlayer);
   }
 
-  addRemotePlayer(conn) {
+  addRemotePlayer(conn, name = 'Aventurero', colorIndex = 1) {
     const pid = this.nextPlayerId++;
     const spawnZ = WORLD_CONFIG.SPAWN_Z + 3.0;
-    const player = new Player(pid, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, spawnZ);
+    const player = new Player(pid, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, spawnZ, name, colorIndex);
     player.yaw = Math.PI;
 
     this.connToPlayerId.set(conn, pid);
     this.players.set(pid, player);
+    return player;
+  }
+
+  updatePlayerMeta(id, name, colorIndex) {
+    const player = this.players.get(id);
+    if (!player) return null;
+    if (name) player.name = name;
+    if (colorIndex !== undefined) player.colorIndex = colorIndex;
     return player;
   }
 

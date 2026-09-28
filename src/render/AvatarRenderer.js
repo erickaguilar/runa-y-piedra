@@ -14,6 +14,50 @@ export class AvatarRenderer {
     return PLAYER_PALETTE[id % PLAYER_PALETTE.length];
   }
 
+  static createNameSprite(name, color = '#38bdf8') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+
+    // Fondo oscuro redondeado
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    if (ctx.roundRect) {
+      ctx.roundRect(8, 6, 240, 52, 14);
+    } else {
+      ctx.rect(8, 6, 240, 52);
+    }
+    ctx.fill();
+
+    // Borde temático del héroe
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+
+    // Emblema circular del color del aventurero
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(30, 32, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Texto con el apodo del jugador
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const displayName = (name && name.trim()) ? name.trim().slice(0, 12) : 'Aventurero';
+    ctx.fillText(displayName, 46, 32);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    const spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+    const sprite = new THREE.Sprite(spriteMat);
+    sprite.scale.set(1.5, 0.38, 1);
+    sprite.position.set(0, (AVATAR_H / 2) + 0.35, 0);
+    sprite.renderOrder = 999;
+    return sprite;
+  }
+
   ensure(id, color = AvatarRenderer.colorFor(id)) {
     let a = this.avatars.get(id);
     if (a) return a;
@@ -23,6 +67,8 @@ export class AvatarRenderer {
     this.scene.add(mesh);
     a = {
       mesh,
+      sprite: null,
+      name: 'Aventurero',
       target:  { x: 0, y: 1, z: 0, yaw: 0 },
       current: { x: 0, y: 1, z: 0, yaw: 0 },
     };
@@ -30,9 +76,34 @@ export class AvatarRenderer {
     return a;
   }
 
+  setMetadata(id, name, color) {
+    const a = this.ensure(id, color);
+    if (color !== undefined) {
+      a.mesh.material.color.set(color);
+    }
+    if (name) {
+      a.name = name;
+      if (a.sprite) {
+        a.mesh.remove(a.sprite);
+        a.sprite.material.map.dispose();
+        a.sprite.material.dispose();
+      }
+      const hexColor = typeof color === 'string'
+        ? color
+        : (color !== undefined ? '#' + Number(color).toString(16).padStart(6, '0') : '#38bdf8');
+      a.sprite = AvatarRenderer.createNameSprite(name, hexColor);
+      a.mesh.add(a.sprite);
+    }
+  }
+
   remove(id) {
     const a = this.avatars.get(id);
     if (!a) return;
+    if (a.sprite) {
+      a.mesh.remove(a.sprite);
+      a.sprite.material.map.dispose();
+      a.sprite.material.dispose();
+    }
     this.scene.remove(a.mesh);
     a.mesh.material.dispose();
     this.avatars.delete(id);

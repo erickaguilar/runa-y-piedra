@@ -3,22 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
-  <title>Voxel Sandbox P2P</title>
+  <title>Voxel Dungeon Co-op P2P</title>
   <style>
-    html,body{margin:0;padding:0;overflow:hidden;background:#000;touch-action:none;user-select:none;-webkit-user-select:none;font-family:system-ui,-apple-system,sans-serif}
+    html,body{margin:0;padding:0;overflow:hidden;background:#05070d;touch-action:none;user-select:none;-webkit-user-select:none;font-family:system-ui,-apple-system,sans-serif}
     #canvas{display:block;width:100vw;height:100vh}
     #ui{position:fixed;inset:0;pointer-events:none;z-index:20}
     #ui > *{pointer-events:auto}
     .menu{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-      background:rgba(10,12,20,.9);color:#fff;padding:24px 28px;border-radius:14px;
-      text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:240px;max-width:320px}
-    .menu h1{margin:0 0 16px;font-size:18px;letter-spacing:.5px}
-    .menu button{padding:12px 20px;margin:4px;font-size:15px;border:0;border-radius:10px;
-      background:#4caf50;color:#fff;cursor:pointer;font-weight:600}
-    .menu button:hover{filter:brightness(1.1)}
-    .menu input{padding:11px;font-size:16px;width:88px;text-align:center;border-radius:10px;
-      border:1px solid #333;background:#181a24;color:#fff;letter-spacing:4px}
-    .status{margin-top:12px;font-size:12px;color:#999;min-height:16px}
+      background:rgba(15,23,42,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,0.12);color:#fff;padding:22px 24px;border-radius:18px;
+      text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.75);width:88vw;max-width:340px;box-sizing:border-box}
+    .menu h1{margin:0 0 14px;font-size:17px;font-weight:700;letter-spacing:.8px;color:#f8fafc}
+    .lobby-section{margin-bottom:14px;text-align:left}
+    .lobby-label{font-size:10px;font-weight:700;letter-spacing:1px;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;display:block}
+    .name-input{width:100%;box-sizing:border-box;padding:10px 14px;font-size:15px;border-radius:10px;
+      border:1px solid #334155;background:#0b1120;color:#fff;text-align:center;font-weight:600;outline:none;transition:border-color .2s}
+    .name-input:focus{border-color:#38bdf8;box-shadow:0 0 0 2px rgba(56,189,248,.25)}
+    .heroes-row{display:flex;justify-content:center;gap:10px;margin:8px 0 6px}
+    .hero-chip{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;
+      transition:transform .15s,border-color .15s;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+    .hero-chip.selected{border-color:#fff;transform:scale(1.2);box-shadow:0 0 12px var(--hero-color)}
+    .hero-chip:active{transform:scale(0.95)}
+    .hero-badge{text-align:center;font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:2px}
+    .divider{height:1px;background:rgba(255,255,255,0.1);margin:14px 0}
+    .btn-primary{width:100%;padding:12px 18px;font-size:15px;border:0;border-radius:11px;
+      background:linear-gradient(135deg,#059669,#10b981);color:#fff;cursor:pointer;font-weight:700;
+      box-shadow:0 4px 14px rgba(16,185,129,.35);transition:filter .15s}
+    .btn-primary:active{filter:brightness(0.9);transform:scale(0.98)}
+    .join-container{display:flex;gap:8px;margin-top:10px}
+    .join-input{flex:1;padding:10px;font-size:16px;text-align:center;border-radius:10px;
+      border:1px solid #334155;background:#0b1120;color:#fff;letter-spacing:4px;font-weight:700;outline:none}
+    .join-input:focus{border-color:#3b82f6}
+    .btn-join{padding:10px 18px;font-size:14px;border:0;border-radius:10px;background:#2563eb;
+      color:#fff;cursor:pointer;font-weight:700}
+    .btn-join:active{filter:brightness(0.9);transform:scale(0.98)}
+    .status{margin-top:10px;font-size:12px;color:#94a3b8;min-height:16px}
+    
+    /* Sala de Host */
+    .room-pin-display{font-size:36px;letter-spacing:8px;font-weight:800;color:#fbbf24;margin:4px 0;text-shadow:0 0 16px rgba(251,191,36,.4)}
+    .share-btn{width:100%;padding:11px 16px;font-size:13px;border:0;border-radius:10px;
+      background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;cursor:pointer;font-weight:700;
+      display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;
+      box-shadow:0 4px 12px rgba(37,211,102,.3);transition:filter .15s}
+    .share-btn:active{filter:brightness(0.9);transform:scale(0.98)}
+    .copy-btn{width:100%;padding:9px 14px;font-size:12px;border:1px solid #334155;border-radius:10px;
+      background:#1e293b;color:#cbd5e1;cursor:pointer;font-weight:600;display:flex;
+      align-items:center;justify-content:center;gap:6px;transition:background .15s}
+    .copy-btn:hover{background:#334155}
+    .party-box{margin:10px 0 12px;background:rgba(11,17,32,.7);border-radius:10px;padding:8px 12px;border:1px solid #1e293b;text-align:left}
+    .party-title{font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+    .party-item{display:flex;align-items:center;justify-content:space-between;font-size:12px;margin:4px 0}
+    .party-member{display:flex;align-items:center;gap:6px}
+    .party-dot{width:8px;height:8px;border-radius:50%}
+    .party-badge{font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(16,185,129,.2);color:#34d399;font-weight:700}
+    .btn-play{width:100%;padding:12px;font-size:14px;font-weight:700;border:0;border-radius:10px;
+      background:linear-gradient(135deg,#d97706,#b45309);color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(217,119,6,.35)}
+    .btn-play:active{filter:brightness(0.9);transform:scale(0.98)}
     .crosshair{position:fixed;top:50%;left:50%;width:8px;height:8px;margin:-4px 0 0 -4px;
       border-radius:50%;background:rgba(255,255,255,.7);box-shadow:0 0 4px #000;pointer-events:none;z-index:15;display:none}
     .action-btn{position:fixed;width:72px;height:72px;border-radius:50%;border:0;
@@ -30,8 +70,8 @@
     #hud-message{position:fixed;top:16px;left:50%;transform:translateX(-50%);
       background:rgba(15,23,42,0.88);backdrop-filter:blur(8px);border:1px solid rgba(217,119,6,0.6);
       color:#fbbf24;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;
-      display:none;z-index:25;letter-spacing:0.5px;box-shadow:0 4px 16px rgba(0,0,0,0.6);text-align:center}
-    #qr-canvas{border-radius:8px;margin:8px 0;background:#fff;padding:4px}
+      display:none;z-index:25;letter-spacing:0.5px;box-shadow:0 4px 16px rgba(0,0,0,0.6);text-align:center;max-width:85vw}
+    #qr-canvas{border-radius:8px;margin:6px auto;background:#fff;padding:4px;display:block}
   </style>
 </head>
 <body>

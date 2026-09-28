@@ -1,8 +1,10 @@
 import { WORLD_CONFIG } from '../config/constants.js';
 
 export class Player {
-  constructor(id, x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z) {
+  constructor(id, x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z, name = 'Aventurero', colorIndex = 0) {
     this.id = id;
+    this.name = name;
+    this.colorIndex = colorIndex;
     this.pos = { x, y, z };
     this.vel = { x: 0, y: 0, z: 0 };
     this.yaw = 0;
