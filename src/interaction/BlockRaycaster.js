@@ -37,6 +37,7 @@ export class BlockRaycaster {
     }
 
     // 2. Chequeo por proximidad a objetivos/pedestales del nivel
+    // (sin fallback: los niveles sin altar —como los dos primeros— no tienen interacción)
     if (Array.isArray(this.world.objectives) && this.world.objectives.length > 0) {
       for (let i = 0; i < this.world.objectives.length; i++) {
         const obj = this.world.objectives[i];
@@ -44,11 +45,6 @@ export class BlockRaycaster {
         if (dist < (obj.triggerRadius || 3.2)) {
           return { type: obj.type || 'pedestal', objIndex: i, message: obj.completeMessage || obj.name };
         }
-      }
-    } else {
-      const distToPedestal = Math.hypot(playerPos.x - 12.0, playerPos.z - 30);
-      if (distToPedestal < 3.2) {
-        return { type: 'pedestal', message: 'Pedestal Ancestral del Santuario' };
       }
     }
 

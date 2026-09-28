@@ -75,17 +75,8 @@
       "respawn": { "x": 11.5, "y": 1.2, "z": 25.0 }
     }
   ],
-  "objectives": [
-    {
-      "type": "pedestal",
-      "name": "Altar del Fuego Ancestral",
-      "x": 12,
-      "y": 1,
-      "z": 30,
-      "triggerRadius": 3.2,
-      "completeMessage": "🔥 ¡Altar Ígneo Consagrado! Habéis conquistado la Cripta del Fuego con éxito."
-    }
-  ],
+  "objectives": [],
+  "stairs": { "x1": 11, "x2": 12, "z1": 31, "z2": 33, "openFromStart": true },
   "chests": [
     {
       "id": 1,
@@ -131,7 +122,6 @@
     { "type": "pillar", "x": 6, "z": 27, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 17, "z": 27, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 6, "z": 32, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 32, "height": 5, "block": "PILLAR" },
-    { "type": "block", "block": "PEDESTAL", "pos": [12, 1, 30] }
+    { "type": "pillar", "x": 17, "z": 32, "height": 5, "block": "PILLAR" }
   ]
 }

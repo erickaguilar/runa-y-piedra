@@ -37,7 +37,7 @@ class VoxelSandboxGame {
     this.pedestalRenderer = new PedestalRenderer(this.sceneManager.scene);
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
     this.stairsRenderer = new StairsRenderer(this.sceneManager.scene);
-    this.stairsRenderer.loadStairs(this.world.stairwells[0] || null);
+    this.ensureStairsState();
     this.avatars = new AvatarRenderer(this.sceneManager.scene);
     this.playerManager = new PlayerManager();
     this.simulation = new SimulationEngine(this.world, {
@@ -197,7 +197,7 @@ class VoxelSandboxGame {
     this.chestRenderer.loadChests(this.world.chests);
     this.doorRenderer.loadDoors(this.world.doors);
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
-    this.stairsRenderer.loadStairs(this.world.stairwells[0] || null);
+    this.ensureStairsState();
     // Reset del descenso sincronizado al cambiar de mapa
     if (this.descentTimer) { clearTimeout(this.descentTimer); this.descentTimer = null; }
     this.descentActive = false;
@@ -234,23 +234,29 @@ class VoxelSandboxGame {
     }
   }
 
-  /** Clientes que se unen tarde: si la fosa ya está abierta en los bloques, reflejarlo. */
-  syncStairsFromWorld() {
+  /** Estado inicial de la escalinata: abierta desde el inicio o ya abierta en bloques recibidos. */
+  ensureStairsState() {
     const rect = this.stairPitRect();
+    this.stairsRenderer.loadStairs(rect);
     if (!rect) return;
-    // La fosa abierta = suelo y=0 retirado en todo el rectángulo
-    let pitOpen = true;
-    for (let x = rect.x1; x <= rect.x2 && pitOpen; x++) {
-      for (let z = rect.z1; z <= rect.z2 && pitOpen; z++) {
-        if (this.world.get(x, 0, z) !== BLOCK_TYPES.AIR) pitOpen = false;
-      }
-    }
-    if (pitOpen) {
+    const shouldOpen = !!rect.open || this.isPitOpenInBlocks(rect);
+    if (shouldOpen && !this.world.stairsOpen) {
+      if (!this.isPitOpenInBlocks(rect)) this.applyStairPit(rect);
+      this.tintStairPit(rect);
       this.world.stairsOpen = true;
       for (const w of this.world.stairwells) w.open = true;
-      this.tintStairPit(rect);
       this.stairsRenderer.setOpenInstant();
     }
+  }
+
+  /** La fosa está abierta si el suelo y=0 fue retirado en todo el rectángulo. */
+  isPitOpenInBlocks(rect) {
+    for (let x = rect.x1; x <= rect.x2; x++) {
+      for (let z = rect.z1; z <= rect.z2; z++) {
+        if (this.world.get(x, 0, z) !== BLOCK_TYPES.AIR) return false;
+      }
+    }
+    return true;
   }
 
   /** Tema visual del altar según la mazmorra activa (dorado / brasa / amatista). */
@@ -864,8 +870,7 @@ class VoxelSandboxGame {
       this.chestRenderer.loadChests(this.world.chests);
       this.doorRenderer.loadDoors(this.world.doors);
       this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
-      this.stairsRenderer.loadStairs(this.world.stairwells[0] || null);
-      this.syncStairsFromWorld();
+      this.ensureStairsState();
       if (this.world.isDoor1Open) {
         this.doorRenderer.setOpenInstant(1);
       }

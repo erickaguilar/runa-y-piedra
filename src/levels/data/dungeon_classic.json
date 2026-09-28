@@ -75,17 +75,8 @@
       "respawn": { "x": 11.5, "y": 1.2, "z": 25.0 }
     }
   ],
-  "objectives": [
-    {
-      "type": "pedestal",
-      "name": "Pedestal Ancestral del Santuario",
-      "x": 12,
-      "y": 1,
-      "z": 30,
-      "triggerRadius": 3.2,
-      "completeMessage": "✨ ¡Pedestal Ancestral Activado! Habéis completado la Mazmorra Cooperativa con éxito."
-    }
-  ],
+  "objectives": [],
+  "stairs": { "x1": 11, "x2": 12, "z1": 31, "z2": 33, "openFromStart": true },
   "chests": [
     {
       "id": 1,
@@ -128,7 +119,6 @@
     { "type": "fill", "block": "JUMP_PAD", "from": [11, 1, 21], "to": [12, 1, 21] },
     { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 23], "to": [13, 0, 24] },
     { "type": "pillar", "x": 6, "z": 29, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 29, "height": 5, "block": "PILLAR" },
-    { "type": "block", "block": "PEDESTAL", "pos": [12, 1, 30] }
+    { "type": "pillar", "x": 17, "z": 29, "height": 5, "block": "PILLAR" }
   ]
 }

@@ -34,15 +34,25 @@ export class LevelLoader {
     world.objectives = levelData.objectives || [];
     world.torches = levelData.torches || [];
     world.chests = (levelData.chests || []).map(c => ({ ...c, isOpen: false }));
-    // La escalinata se abre tras el altar: fosa 2x3 delante del pedestal (cerrada)
-    world.stairwells = (levelData.objectives || [])
-      .filter(o => (o.type || 'pedestal') === 'pedestal')
-      .map(o => {
-        const ox = Math.floor(o.x ?? 12);
-        const oz = Math.floor(o.z ?? 30);
-        return { x1: ox - 1, x2: ox, z1: oz + 1, z2: oz + 3, triggerY: 0.75, open: false };
-      });
-    world.stairsOpen = false;
+    // Escalinata de descenso:
+    // - Si el nivel define "stairs" explícito se usa (openFromStart para fosa abierta).
+    // - "stairs": null la desactiva aunque haya altar (nivel final).
+    // - Sin campo "stairs", se deriva del altar para compatibilidad.
+    if ('stairs' in levelData) {
+      const s = levelData.stairs;
+      world.stairwells = s
+        ? [{ x1: s.x1, x2: s.x2, z1: s.z1, z2: s.z2, triggerY: 0.75, open: !!s.openFromStart }]
+        : [];
+    } else {
+      world.stairwells = (levelData.objectives || [])
+        .filter(o => (o.type || 'pedestal') === 'pedestal')
+        .map(o => {
+          const ox = Math.floor(o.x ?? 12);
+          const oz = Math.floor(o.z ?? 30);
+          return { x1: ox - 1, x2: ox, z1: oz + 1, z2: oz + 3, triggerY: 0.75, open: false };
+        });
+    }
+    world.stairsOpen = world.stairwells.some(w => w.open);
     world.spawnPoint = levelData.spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
 
     // 3. Procesar regiones declarativas
