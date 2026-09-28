@@ -73,9 +73,11 @@ export class World {
     // 1. Suelos base (y = 0)
     for (let x = 0; x < WORLD_X; x++) {
       for (let z = 0; z < WORLD_Z; z++) {
-        if (z >= 12 && z <= 23) {
-          // Sala 2: Fondo del abismo (lava/foso)
-          this.set(x, 0, z, BLOCK_TYPES.LAVA);
+        if (this.isBorder(x, z)) {
+          this.set(x, 0, z, BLOCK_TYPES.WALL);
+        } else if (z >= 12 && z <= 23) {
+          // Sala 2: Abismo sin suelo
+          this.set(x, 0, z, BLOCK_TYPES.AIR);
         } else {
           // Salas 1 y 3: Losas de piedra
           this.set(x, 0, z, BLOCK_TYPES.STONE_FLOOR);
@@ -129,41 +131,36 @@ export class World {
     this._buildPillar(17, 5);
 
     // 6. Sala 2: ¡ZONA DE SALTO OBLIGATORIO (PARKOUR SOBRE EL ABISMO)!
-    // Plataforma de salida tras la Puerta 1
+    // Plataforma de salida tras la Puerta 1 (z = 12, a nivel de suelo y = 0 para paso plano)
     for (let x = 10; x <= 13; x++) {
-      this.set(x, 1, 12, BLOCK_TYPES.STONE_FLOOR);
+      this.set(x, 0, 12, BLOCK_TYPES.STONE_FLOOR);
     }
 
-    // Plataforma de Salto 1 (z = 14, tras hueco z = 13)
-    this.set(11, 1, 14, BLOCK_TYPES.JUMP_PAD);
-    this.set(12, 1, 14, BLOCK_TYPES.JUMP_PAD);
+    // Plataforma de Salto 1 (z = 14, tras hueco z = 13 - ¡Requiere SALTAR!)
+    this.set(11, 0, 14, BLOCK_TYPES.JUMP_PAD);
+    this.set(12, 0, 14, BLOCK_TYPES.JUMP_PAD);
 
-    // Plataforma de Salto 2 (z = 17, tras hueco doble z = 15, 16)
+    // Plataforma de Salto 2 (z = 17, tras hueco doble z = 15, 16 - Salto en carrera)
     for (let x = 10; x <= 13; x++) {
-      this.set(x, 1, 17, BLOCK_TYPES.JUMP_PAD);
+      this.set(x, 0, 17, BLOCK_TYPES.JUMP_PAD);
     }
 
-    // Plataforma de Salto 3 ELEVADA a y = 2 (z = 19, tras hueco z = 18 - ¡Requiere SALTAR hacia arriba!)
-    this.set(11, 1, 19, BLOCK_TYPES.PILLAR); // Pilar de soporte
-    this.set(12, 1, 19, BLOCK_TYPES.PILLAR);
-    this.set(11, 2, 19, BLOCK_TYPES.JUMP_PAD); // Plataforma superior
-    this.set(12, 2, 19, BLOCK_TYPES.JUMP_PAD);
+    // Plataforma de Salto 3 ELEVADA a y = 1 (z = 19, tras hueco z = 18 - ¡Requiere SALTAR hacia arriba!)
+    this.set(11, 0, 19, BLOCK_TYPES.PILLAR); // Pilar de soporte
+    this.set(12, 0, 19, BLOCK_TYPES.PILLAR);
+    this.set(11, 1, 19, BLOCK_TYPES.JUMP_PAD); // Plataforma superior
+    this.set(12, 1, 19, BLOCK_TYPES.JUMP_PAD);
 
-    // Plataforma de Salto 4 ELEVADA a y = 2 (z = 21, tras hueco z = 20)
-    this.set(11, 1, 21, BLOCK_TYPES.PILLAR); // Pilar de soporte
-    this.set(12, 1, 21, BLOCK_TYPES.PILLAR);
-    this.set(11, 2, 21, BLOCK_TYPES.JUMP_PAD); // Plataforma superior
-    this.set(12, 2, 21, BLOCK_TYPES.JUMP_PAD);
+    // Plataforma de Salto 4 ELEVADA a y = 1 (z = 21, tras hueco z = 20)
+    this.set(11, 0, 21, BLOCK_TYPES.PILLAR); // Pilar de soporte
+    this.set(12, 0, 21, BLOCK_TYPES.PILLAR);
+    this.set(11, 1, 21, BLOCK_TYPES.JUMP_PAD); // Plataforma superior
+    this.set(12, 1, 21, BLOCK_TYPES.JUMP_PAD);
 
-    // Plataforma de llegada ante la Puerta 2 (z = 23, tras hueco z = 22)
+    // Plataforma de llegada ante la Puerta 2 (z = 23, tras hueco z = 22, a nivel de suelo y = 0)
     for (let x = 10; x <= 13; x++) {
-      this.set(x, 1, 23, BLOCK_TYPES.STONE_FLOOR);
+      this.set(x, 0, 23, BLOCK_TYPES.STONE_FLOOR);
     }
-
-    // Escalera lateral de retorno / rescate si caen al fondo del abismo
-    this.set(21, 1, 13, BLOCK_TYPES.STONE_FLOOR);
-    this.set(21, 1, 12, BLOCK_TYPES.STONE_FLOOR);
-    this.set(20, 1, 12, BLOCK_TYPES.STONE_FLOOR);
 
     // 7. Sala 3 (Santuario Interior): Columnas y Pedestal Ancestral
     this._buildPillar(6, 29);

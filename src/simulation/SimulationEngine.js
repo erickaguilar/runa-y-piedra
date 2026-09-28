@@ -26,9 +26,14 @@ export class SimulationEngine {
       p.onGround = false;
     }
 
-    // Rescate al vacío
+    // Rescate al vacío / abismo
     if (p.pos.y < WORLD_CONFIG.VOID_RESCUE_Y) {
-      p.reset(WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, WORLD_CONFIG.SPAWN_Z);
+      if (p.pos.z >= 11) {
+        // Checkpoint en Sala 2 (plataforma de inicio tras cruzar la Puerta 1)
+        p.reset(11.5, 1.5, 12.0);
+      } else {
+        p.reset(WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, WORLD_CONFIG.SPAWN_Z);
+      }
     }
   }
 
