@@ -4,11 +4,12 @@ import { renderIcon, replaceEmojisWithSvg } from './Icons.js';
 import { soundManager } from '../audio/SoundManager.js';
 
 export class UIManager {
-  constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message', settingsBtnId = 'btn-settings', livesHudId = 'hud-lives' } = {}) {
+  constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message', settingsBtnId = 'btn-settings', livesHudId = 'hud-lives', transitionId = 'level-transition' } = {}) {
     this.uiEl = document.getElementById(uiContainerId);
     this.crosshair = document.getElementById(crosshairId);
     this.hudMessage = document.getElementById(hudMessageId);
     this.livesHud = document.getElementById(livesHudId);
+    this.transitionEl = document.getElementById(transitionId);
     this.settingsBtn = document.getElementById(settingsBtnId);
     this.messageTimeout = null;
     this._lastLives = -1;
@@ -776,6 +777,73 @@ export class UIManager {
       '💀 ¡GAME OVER! Te quedaste sin vidas. Reapareces en el inicio con corazones llenos.',
       5000
     );
+  }
+
+  /** Velo de transición entre mazmorras (fade negro estilo Dark Souls con nombre del destino). */
+  showLevelTransition(title = '', subtitle = '', { victory = false, autoHideMs = 0 } = {}) {
+    if (!this.transitionEl) return;
+    if (this._transitionTimer) { clearTimeout(this._transitionTimer); this._transitionTimer = null; }
+    this.transitionEl.className = victory ? 'visible victory' : 'visible';
+    this.transitionEl.style.display = 'flex';
+    // Forzar reflow para que la transición de opacidad se reproduzca
+    void this.transitionEl.offsetWidth;
+    this.transitionEl.innerHTML = `
+      <div class="portal-title">${title}</div>
+      ${subtitle ? `<div class="portal-sub">${subtitle}</div>` : ''}`;
+    if (autoHideMs > 0) {
+      this._transitionTimer = setTimeout(() => this.hideLevelTransition(), autoHideMs);
+    }
+  }
+
+  hideLevelTransition() {
+    if (!this.transitionEl) return;
+    if (this._transitionTimer) { clearTimeout(this._transitionTimer); this._transitionTimer = null; }
+    this.transitionEl.classList.remove('visible', 'victory');
+    this.transitionEl.style.display = 'none';
+    this.transitionEl.innerHTML = '';
+  }
+
+  /**
+   * Tarjeta de descenso sincronizado: cuenta atrás de 8s + botón BAJAR YA.
+   * endsAtMs: timestamp (reloj del Host) del descenso automático.
+   */
+  showDescentCountdown({ byName = 'Un compañero', endsAtMs = 0, onNow = null } = {}) {
+    this.hideDescent();
+    const card = document.createElement('div');
+    card.id = 'descent-card';
+    card.innerHTML = `
+      <div class="descent-title">🌀 ¡${byName} desciende!</div>
+      <div class="descent-timer">8</div>
+      <div class="descent-sub">Baja a la escalinata para ir ya</div>
+      <button id="btn-descend-now" type="button">BAJAR YA</button>`;
+    document.body.appendChild(card);
+    this.descentCard = card;
+    this.descentOnNow = onNow;
+
+    const btn = card.querySelector('#btn-descend-now');
+    if (btn) {
+      btn.onclick = () => {
+        if (this.descentOnNow) this.descentOnNow();
+      };
+    }
+
+    const tick = () => {
+      if (!this.descentCard) return;
+      const remain = Math.max(0, Math.ceil((endsAtMs - Date.now()) / 1000));
+      const el = this.descentCard.querySelector('.descent-timer');
+      if (el) el.textContent = remain > 0 ? remain : '¡Ya!';
+    };
+    tick();
+    this._descentInterval = setInterval(tick, 250);
+  }
+
+  hideDescent() {
+    if (this._descentInterval) { clearInterval(this._descentInterval); this._descentInterval = null; }
+    if (this.descentCard) {
+      this.descentCard.remove();
+      this.descentCard = null;
+    }
+    this.descentOnNow = null;
   }
 
   parseMessageToList(content) {

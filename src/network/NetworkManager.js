@@ -199,6 +199,28 @@ export class NetworkManager extends EventTarget {
         break;
       }
 
+      case Proto.MSG.DESCENT: {
+        const d = Proto.deserializeDescent(buf);
+        // NOW solo lo procesa el Host; START/GO solo los clientes
+        // (el Host ejecuta su propio descenso en local).
+        if (d.kind === Proto.DESCENT_KIND.NOW && !this.isHost) break;
+        if (d.kind !== Proto.DESCENT_KIND.NOW && this.isHost) break;
+        d.conn = conn;
+        this.dispatchEvent(new CustomEvent('descent', { detail: d }));
+        break;
+      }
+
+      case Proto.MSG.PEDESTAL: {
+        const p = Proto.deserializePedestal(buf);
+        // Peticiones solo las procesa el Host; ceremonias solo los clientes
+        // (el Host ejecuta su propia ceremonia en local sin pasar por la red).
+        if (p.isRequest && !this.isHost) break;
+        if (!p.isRequest && this.isHost) break;
+        p.conn = conn;
+        this.dispatchEvent(new CustomEvent('pedestal', { detail: p }));
+        break;
+      }
+
       case Proto.MSG.KEY: {
         // Solo el Host otorga llaves: los clientes ignoran KEY entrantes no solicitados
         // y el Host ignora KEY de clientes (anti-trampas: nadie se auto-otorga llaves).

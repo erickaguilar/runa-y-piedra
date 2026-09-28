@@ -6,9 +6,10 @@ const HALF_W = (PHYSICS_CONFIG.PLAYER_W || 0.6) / 2;
 const PLAYER_H = PHYSICS_CONFIG.PLAYER_H || 1.8;
 
 export class SimulationEngine {
-  constructor(world, { onPlayerRespawn } = {}) {
+  constructor(world, { onPlayerRespawn, onStairTouch } = {}) {
     this.world = world;
     this.onPlayerRespawn = onPlayerRespawn || null;
+    this.onStairTouch = onStairTouch || null;
   }
 
   isTouchingLava(p) {
@@ -137,7 +138,21 @@ export class SimulationEngine {
       return;
     }
 
-    // 5. Seguridad Anti-Barda y Techo: Si escapa por encima de las bardas perimetrales o el techo
+    // 5. Sensor de escalinata de descenso (fosa abierta tras el altar): no mata,
+    // solo notifica para el descenso sincronizado a la siguiente mazmorra.
+    if (this.onStairTouch && Array.isArray(this.world.stairwells)) {
+      for (const w of this.world.stairwells) {
+        if (!w.open) continue;
+        if (p.pos.x >= w.x1 && p.pos.x <= w.x2 + 1 &&
+            p.pos.z >= w.z1 && p.pos.z <= w.z2 + 1 &&
+            p.pos.y < (w.triggerY ?? 0.75)) {
+          this.onStairTouch(p, w);
+          break;
+        }
+      }
+    }
+
+    // 6. Seguridad Anti-Barda y Techo: Si escapa por encima de las bardas perimetrales o el techo
     // No quita vida (es anti-trampas), solo reposiciona sin castigo.
     if (p.pos.y >= 6.0 || (p.pos.y >= 5.0 && (p.pos.x <= 1.0 || p.pos.x >= WORLD_CONFIG.SIZE_X - 2.0 || p.pos.z <= 1.0 || p.pos.z >= WORLD_CONFIG.SIZE_Z - 2.0))) {
       const cp = p.respawn();

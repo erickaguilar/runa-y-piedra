@@ -38,10 +38,11 @@ export class BlockRaycaster {
 
     // 2. Chequeo por proximidad a objetivos/pedestales del nivel
     if (Array.isArray(this.world.objectives) && this.world.objectives.length > 0) {
-      for (const obj of this.world.objectives) {
+      for (let i = 0; i < this.world.objectives.length; i++) {
+        const obj = this.world.objectives[i];
         const dist = Math.hypot(playerPos.x - obj.x, playerPos.z - obj.z);
         if (dist < (obj.triggerRadius || 3.2)) {
-          return { type: obj.type || 'pedestal', message: obj.completeMessage || obj.name };
+          return { type: obj.type || 'pedestal', objIndex: i, message: obj.completeMessage || obj.name };
         }
       }
     } else {

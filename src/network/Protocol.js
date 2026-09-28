@@ -22,6 +22,8 @@ export const MSG = {
   HOST_CLOSING: 0x0A, // Graceful host disconnect (2 bytes)
   LEVEL_CHANGE: 0x0B, // Dynamic map change in hot state
   KEY:          0x0C, // Key grant sync (host -> clients, rare event)
+  PEDESTAL:     0x0D, // Portal altar: request (client->host) & ceremony (host->all)
+  DESCENT:      0x0E, // Synced descent: NOW (client->host), START/GO (host->all)
 };
 
 export const ACTION_FLAGS = {
@@ -359,4 +361,107 @@ export function deserializeKeyUpdate(buf) {
   const len = v.getUint8(2);
   const idBytes = new Uint8Array(buf, 3, len);
   return { playerId, keyId: textDecoder.decode(idBytes) };
+}
+
+// ==========================================
+// 11. DESCENSO SINCRONIZADO (escalinata a siguiente mazmorra)
+// kind 1 NOW:   [type:1][kind:1] (cliente -> host, "bajar ya")
+// kind 2 START: [type:1][kind:1][u8 initiatorId:1][u32 deadline:4][u8 len:1][name] (host -> all)
+// kind 3 GO:    [type:1][kind:1][u8 len:1][nextId][u8 len2:1][nextName] (host -> all)
+// ==========================================
+export const DESCENT_KIND = { NOW: 1, START: 2, GO: 3 };
+
+export function serializeDescentNow() {
+  const buf = new ArrayBuffer(2);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.DESCENT);
+  v.setUint8(1, DESCENT_KIND.NOW);
+  return buf;
+}
+
+export function serializeDescentStart(initiatorId = 0, byName = '', deadlineMs = 0) {
+  const bytes = textEncoder.encode(byName);
+  const buf = new ArrayBuffer(8 + bytes.length);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.DESCENT);
+  v.setUint8(1, DESCENT_KIND.START);
+  v.setUint8(2, initiatorId);
+  v.setUint32(3, (deadlineMs | 0) >>> 0, true);
+  v.setUint8(7, bytes.length);
+  new Uint8Array(buf, 8).set(bytes);
+  return buf;
+}
+
+export function serializeDescentGo(nextLevelId = '', nextName = '') {
+  const idBytes = textEncoder.encode(nextLevelId);
+  const nameBytes = textEncoder.encode(nextName);
+  const buf = new ArrayBuffer(4 + idBytes.length + nameBytes.length);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.DESCENT);
+  v.setUint8(1, DESCENT_KIND.GO);
+  v.setUint8(2, idBytes.length);
+  new Uint8Array(buf, 3).set(idBytes);
+  v.setUint8(3 + idBytes.length, nameBytes.length);
+  new Uint8Array(buf, 4 + idBytes.length).set(nameBytes);
+  return buf;
+}
+
+export function deserializeDescent(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  const kind = v.byteLength > 1 ? v.getUint8(1) : 0;
+  if (kind === DESCENT_KIND.START) {
+    const initiatorId = v.getUint8(2);
+    const deadline = v.getUint32(3, true);
+    const len = v.getUint8(7);
+    const byName = textDecoder.decode(new Uint8Array(buf, 8, len));
+    return { kind, initiatorId, deadline, byName };
+  }
+  if (kind === DESCENT_KIND.GO) {
+    const idLen = v.getUint8(2);
+    const nextLevelId = textDecoder.decode(new Uint8Array(buf, 3, idLen));
+    const nameLen = v.getUint8(3 + idLen);
+    const nextName = textDecoder.decode(new Uint8Array(buf, 4 + idLen, nameLen));
+    return { kind, nextLevelId, nextName };
+  }
+  return { kind };
+}
+
+// ==========================================
+// 10. PEDESTAL PORTAL (altar a siguiente mazmorra)
+// Petición (2 bytes): [type:1][u8 objectiveIndex:1] (cliente -> host)
+// Ceremonia (variable): [type:1][u8 index:1][u8 isLast:1][u8 len:1][nextLevelId][u8 len2:1][nextName]
+// ==========================================
+export function serializePedestalRequest(index = 0) {
+  const buf = new ArrayBuffer(2);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.PEDESTAL);
+  v.setUint8(1, index & 0xFF);
+  return buf;
+}
+
+export function serializePedestalEvent(index = 0, nextLevelId = '', nextName = '', isLast = false) {
+  const idBytes = textEncoder.encode(nextLevelId);
+  const nameBytes = textEncoder.encode(nextName);
+  const buf = new ArrayBuffer(5 + idBytes.length + nameBytes.length);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.PEDESTAL);
+  v.setUint8(1, index & 0xFF);
+  v.setUint8(2, isLast ? 1 : 0);
+  v.setUint8(3, idBytes.length);
+  new Uint8Array(buf, 4).set(idBytes);
+  v.setUint8(4 + idBytes.length, nameBytes.length);
+  new Uint8Array(buf, 5 + idBytes.length).set(nameBytes);
+  return buf;
+}
+
+export function deserializePedestal(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  const index = v.byteLength > 1 ? v.getUint8(1) : 0;
+  if (v.byteLength <= 2) return { index, isRequest: true };
+  const isLast = v.getUint8(2) === 1;
+  const idLen = v.getUint8(3);
+  const nextLevelId = textDecoder.decode(new Uint8Array(buf, 4, idLen));
+  const nameLen = v.getUint8(4 + idLen);
+  const nextName = textDecoder.decode(new Uint8Array(buf, 5 + idLen, nameLen));
+  return { index, isRequest: false, isLast, nextLevelId, nextName };
 }

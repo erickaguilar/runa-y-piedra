@@ -22,6 +22,9 @@ export class World {
     this.objectives = [];
     this.torches = [];
     this.chests = [];
+    // Escalinata de descenso: [{x1,x2,z1,z2,triggerY,open}] derivada del altar (LevelLoader)
+    this.stairwells = [];
+    this.stairsOpen = false;
     this.spawnPoint = { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
     this.levelRegistry = new LevelRegistry();
 

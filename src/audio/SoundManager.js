@@ -545,6 +545,91 @@ export class SoundManager {
       osc.stop(t + idx * 0.18 + 0.4);
     });
   }
+
+  /**
+   * Losa deslizante: roce piedra-piedra (ruido marrón filtrado) + tope grave.
+   */
+  playSlabGrind() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    const t = this.ctx.currentTime;
+    if (this._brownNoiseBuffer) {
+      const src = this.ctx.createBufferSource();
+      const filt = this.ctx.createBiquadFilter();
+      const g = this.ctx.createGain();
+      src.buffer = this._brownNoiseBuffer;
+      src.loop = true;
+      filt.type = 'lowpass';
+      filt.frequency.setValueAtTime(320, t);
+      filt.frequency.exponentialRampToValueAtTime(90, t + 1.3);
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.linearRampToValueAtTime(0.5, t + 0.25);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+      src.connect(filt);
+      filt.connect(g);
+      g.connect(this.masterGain);
+      src.start(t);
+      src.stop(t + 1.55);
+    }
+    // Tope de la losa contra el sillar
+    const thud = this.ctx.createOscillator();
+    const thudG = this.ctx.createGain();
+    thud.type = 'sine';
+    thud.frequency.setValueAtTime(70, t + 1.3);
+    thud.frequency.exponentialRampToValueAtTime(34, t + 1.45);
+    thudG.gain.setValueAtTime(0.4, t + 1.3);
+    thudG.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+    thud.connect(thudG);
+    thudG.connect(this.masterGain);
+    thud.start(t + 1.3);
+    thud.stop(t + 1.52);
+  }
+
+  /**
+   * Eco de descenso: barrido grave con reverberación de cueva procedural (ConvolverNode).
+   */
+  playDescentEcho() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    const t = this.ctx.currentTime;
+    // Impulso de cueva: ruido blanco con decaimiento exponencial (1.4s, estéreo)
+    const dur = 1.4;
+    const rate = this.ctx.sampleRate;
+    const len = Math.floor(rate * dur);
+    const impulse = this.ctx.createBuffer(2, len, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const data = impulse.getChannelData(ch);
+      for (let i = 0; i < len; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+      }
+    }
+    const conv = this.ctx.createConvolver();
+    conv.buffer = impulse;
+    const wet = this.ctx.createGain();
+    wet.gain.setValueAtTime(0.5, t);
+    conv.connect(wet);
+    wet.connect(this.masterGain);
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(280, t);
+    osc.frequency.exponentialRampToValueAtTime(65, t + 1.3);
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.32, t + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    gain.connect(conv);
+    osc.start(t);
+    osc.stop(t + 1.45);
+  }
 }
 
 // Instancia singleton para fácil reutilización

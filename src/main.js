@@ -4,6 +4,8 @@ import { AvatarRenderer } from './render/AvatarRenderer.js';
 import { ChestRenderer } from './render/ChestRenderer.js';
 import { DoorRenderer } from './render/DoorRenderer.js';
 import { PedestalRenderer } from './render/PedestalRenderer.js';
+import { StairsRenderer } from './render/StairsRenderer.js';
+import { floorVariant } from './levels/LevelLoader.js';
 import { World } from './core/World.js';
 import { GameLoop } from './core/GameLoop.js';
 import { PlayerManager } from './entities/PlayerManager.js';
@@ -34,11 +36,13 @@ class VoxelSandboxGame {
     this.doorRenderer.loadDoors(this.world.doors);
     this.pedestalRenderer = new PedestalRenderer(this.sceneManager.scene);
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
+    this.stairsRenderer = new StairsRenderer(this.sceneManager.scene);
+    this.stairsRenderer.loadStairs(this.world.stairwells[0] || null);
     this.avatars = new AvatarRenderer(this.sceneManager.scene);
     this.playerManager = new PlayerManager();
     this.simulation = new SimulationEngine(this.world, {
-      onPlayerRespawn: (p, cp, info = {}) => {
-        if (p !== this.playerManager.localPlayer) return;
+      onStairTouch: (p) => this._onStairTouch(p),
+      onPlayerRespawn: (p, cp, info = {}) => {        if (p !== this.playerManager.localPlayer) return;
         const { cause = 'void', lives = 3, maxLives = 3, gameOver = false, noPenalty = false } = info;
         if (noPenalty) {
           this.ui.showNarrativeMessage('⚠️ ¡Zona restringida! Vuelves al checkpoint.', 2500);
@@ -86,6 +90,11 @@ class VoxelSandboxGame {
     this.snapshotSeq = 0;
     this.inputQueue = new InputQueue();
     this.reconciler = new ClientReconciler();
+    this.transitioning = false; // Ceremonia de portal en curso (bloquea re-activaciones)
+    // Descenso sincronizado por la escalinata
+    this.descentActive = false;
+    this.descentInitiator = null;
+    this.descentTimer = null;
 
     // Aplicar calidad gráfica guardada
     const savedDpr = parseFloat(localStorage.getItem('dungeon_dpr') || '1.5');
@@ -188,6 +197,12 @@ class VoxelSandboxGame {
     this.chestRenderer.loadChests(this.world.chests);
     this.doorRenderer.loadDoors(this.world.doors);
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
+    this.stairsRenderer.loadStairs(this.world.stairwells[0] || null);
+    // Reset del descenso sincronizado al cambiar de mapa
+    if (this.descentTimer) { clearTimeout(this.descentTimer); this.descentTimer = null; }
+    this.descentActive = false;
+    this.descentInitiator = null;
+    this.ui.hideDescent();
 
     const spawn = levelData.spawn || { x: 12.0, y: 1.2, z: 4.5 };
     const local = this.playerManager.localPlayer;
@@ -204,6 +219,9 @@ class VoxelSandboxGame {
       pl.clearKeys?.();
     }
     this.ui.setHasKey(false);
+    // Fin de la transición del portal (el velo se retira sobre el nuevo mapa)
+    this.transitioning = false;
+    this.ui.hideLevelTransition();
 
     // Limpiar buffers de reconciliación y cola de inputs para evitar replay cruzado de niveles
     this.reconciler.reset();
@@ -216,10 +234,164 @@ class VoxelSandboxGame {
     }
   }
 
+  /** Clientes que se unen tarde: si la fosa ya está abierta en los bloques, reflejarlo. */
+  syncStairsFromWorld() {
+    const rect = this.stairPitRect();
+    if (!rect) return;
+    // La fosa abierta = suelo y=0 retirado en todo el rectángulo
+    let pitOpen = true;
+    for (let x = rect.x1; x <= rect.x2 && pitOpen; x++) {
+      for (let z = rect.z1; z <= rect.z2 && pitOpen; z++) {
+        if (this.world.get(x, 0, z) !== BLOCK_TYPES.AIR) pitOpen = false;
+      }
+    }
+    if (pitOpen) {
+      this.world.stairsOpen = true;
+      for (const w of this.world.stairwells) w.open = true;
+      this.stairsRenderer.setOpenInstant();
+    }
+  }
+
   /** Tema visual del altar según la mazmorra activa (clásico dorado / inferno brasa). */
   pedestalTheme() {
     const id = this.world.levelRegistry.getCurrentLevel()?.id || '';
     return id.includes('inferno') ? 'inferno' : 'classic';
+  }
+
+  /**
+   * Petición de portal (solo Host): valida distancia al altar y arranca la ceremonia
+   * para todos. Si hay siguiente mazmorra, viajan tras la ceremonia; si no, victoria.
+   */
+  requestPedestal(objIndex = 0, player = null) {
+    if (this.mode !== 'host' || this.transitioning) return false;
+    const obj = this.world.objectives?.[objIndex];
+    if (!obj) return false;
+    if (player) {
+      const dist = Math.hypot(player.pos.x - obj.x, player.pos.z - obj.z);
+      if (dist > (obj.triggerRadius || 3.2) + 0.5) {
+        console.warn(`[AntiCheat] Activación de altar rechazada: ${player.name} fuera de rango (${dist.toFixed(2)}m)`);
+        return false;
+      }
+    }
+
+    const levels = this.world.levelRegistry.getAllLevels();
+    const curIdx = levels.findIndex(l => l.id === this.world.levelRegistry.getCurrentLevel()?.id);
+    const next = levels[curIdx + 1] || null;
+    if (this.world.stairsOpen) {
+      this.ui.showNarrativeMessage('La escalinata ya desciende. ¡Bajad!', 3000);
+      return true;
+    }
+    const evt = {
+      index: objIndex,
+      isLast: !next,
+      nextLevelId: next?.id || '',
+      nextName: next?.name || '',
+    };
+    this.network.broadcast(Proto.serializePedestalEvent(evt.index, evt.nextLevelId, evt.nextName, evt.isLast));
+    this.startPortalCeremony(evt);
+    return true;
+  }
+
+  /** Rectángulo de fosa de la escalinata del nivel actual (o null). */
+  stairPitRect() {
+    return this.world.stairwells?.[0] || null;
+  }
+
+  /**
+   * Abre la fosa real en el mundo: retira 6 bloques de suelo, pone fondo en y=-1
+   * y actualiza el render. Determinista: host y clientes aplican lo mismo.
+   */
+  applyStairPit(rect) {
+    if (!rect) return;
+    for (let x = rect.x1; x <= rect.x2; x++) {
+      for (let z = rect.z1; z <= rect.z2; z++) {
+        this.world.set(x, 0, z, BLOCK_TYPES.AIR);
+        this.voxelMap.removeBlock(x, 0, z);
+        const t = floorVariant(x, z);
+        this.world.set(x, -1, z, t);
+        this.voxelMap.addBlock(x, -1, z, t);
+      }
+    }
+  }
+
+  /** Ceremonia local del portal: altar, losa deslizante, fosa y mensaje (sin cambio de nivel). */
+  startPortalCeremony({ isLast = false, nextLevelId = '', nextName = '' } = {}) {
+    if (this.transitioning) return;
+    this.transitioning = true;
+    this.pedestalRenderer.activate();
+    this.soundManager.playPedestal();
+
+    if (isLast) {
+      this.ui.showLevelTransition(
+        '🏆 ¡Mazmorras Conquistadas!',
+        'Habéis bendecido todos los altares. ¡Leyendas de la mazmorra cooperativa!',
+        { victory: true, autoHideMs: 6000 }
+      );
+      setTimeout(() => { this.transitioning = false; }, 6000);
+      return;
+    }
+
+    const rect = this.stairPitRect();
+    if (rect) {
+      this.applyStairPit(rect);
+      this.world.stairsOpen = true;
+      for (const w of this.world.stairwells) w.open = true;
+    }
+    this.stairsRenderer.open();
+    this.soundManager.playSlabGrind();
+    this.ui.showNarrativeMessage('✨ ¡El altar despierta! La losa se desliza y una escalinata desciende a la oscuridad. ¡Bajad!', 6000);
+    setTimeout(() => { this.transitioning = false; }, 2600);
+  }
+
+  // ================= DESCENSO SINCRONIZADO (8s, estilo Deep Rock) =================
+
+  _onStairTouch(p) {
+    if (this.mode !== 'host') return;
+    if (!this.world.stairsOpen || this.transitioning) return;
+    if (!this.descentActive) {
+      this.startDescentCountdown(p);
+    } else if (p !== this.descentInitiator) {
+      this.goNow();
+    }
+  }
+
+  startDescentCountdown(initiator) {
+    if (this.descentActive) return;
+    this.descentActive = true;
+    this.descentInitiator = initiator;
+    const deadline = Date.now() + 8000;
+    this.network.broadcast(Proto.serializeDescentStart(initiator.id, initiator.name, deadline));
+    this.ui.showDescentCountdown({
+      byName: initiator.name, endsAtMs: deadline, onNow: () => this.goNow(),
+    });
+    this.ui.showNarrativeMessage(`🌀 ¡${initiator.name} desciende! 8s para bajar juntos...`, 4000);
+    this.descentTimer = setTimeout(() => this.goNow(), 8000);
+  }
+
+  /** Transición inmediata de toda la party: fade negro + siguiente nivel. */
+  goNow() {
+    if (!this.descentActive) return;
+    if (this.descentTimer) { clearTimeout(this.descentTimer); this.descentTimer = null; }
+    this.descentActive = false;
+    this.descentInitiator = null;
+
+    const levels = this.world.levelRegistry.getAllLevels();
+    const curIdx = levels.findIndex(l => l.id === this.world.levelRegistry.getCurrentLevel()?.id);
+    const next = levels[curIdx + 1] || null;
+    if (!next) return;
+    this.network.broadcast(Proto.serializeDescentGo(next.id, next.name));
+    this.beginDescentFade(next.name);
+    if (this.mode === 'host') {
+      setTimeout(() => {
+        if (this.mode === 'host') this.switchLevel(next.id, true);
+      }, 1600);
+    }
+  }
+
+  beginDescentFade(nextName = '') {
+    this.ui.hideDescent();
+    this.ui.showLevelTransition(nextName || 'Descendiendo...', 'Descendiendo a las profundidades…');
+    this.soundManager.playDescentEcho();
   }
 
   async joinRoom(pin, profile = {}) {
@@ -300,10 +472,14 @@ class VoxelSandboxGame {
         this.ui.showNarrativeMessage('Abriendo cofre...', 1500);
       }
     } else if (interaction.type === 'pedestal') {
-      const msg = interaction.message || '✨ ¡Pedestal Ancestral Activado! Habéis completado la Mazmorra Cooperativa con éxito.';
-      this.pedestalRenderer.activate();
-      this.soundManager.playPedestal();
-      this.ui.showNarrativeMessage(msg, 6000);
+      if (this.transitioning) return;
+      const objIndex = interaction.objIndex ?? 0;
+      if (this.mode === 'host') {
+        this.requestPedestal(objIndex, local);
+      } else {
+        this.network.sendToHost(Proto.serializePedestalRequest(objIndex));
+        this.ui.showNarrativeMessage('Activando el altar...', 1500);
+      }
     }
   }
 
@@ -562,8 +738,47 @@ class VoxelSandboxGame {
       this.openChest(chestId, opener);
     });
 
-    this.network.addEventListener('key-update', (e) => {
+    this.network.addEventListener('pedestal', (e) => {
+      const detail = e.detail || {};
+      if (this.mode === 'host') {
+        // Petición de un cliente: validar solicitante y arrancar ceremonia global
+        if (!detail.isRequest) return;
+        if (this.transitioning) return;
+        const player = this.playerManager.getPlayerByConnection(detail.conn);
+        if (!player) return;
+        this.requestPedestal(detail.index ?? 0, player);
+      } else if (this.mode === 'client') {
+        // Ceremonia retransmitida por el Host: vivirla en local
+        if (detail.isRequest) return;
+        this.startPortalCeremony(detail);
+      }
+    });
+
+    this.network.addEventListener('descent', (e) => {
+      const detail = e.detail || {};
+      if (this.mode === 'host') {
+        // "Bajar ya" de un cliente: transición inmediata si hay cuenta atrás
+        if (detail.kind === Proto.DESCENT_KIND.NOW && this.descentActive) {
+          this.goNow();
+        }
+        return;
+      }
       if (this.mode !== 'client') return;
+      if (detail.kind === Proto.DESCENT_KIND.START) {
+        this.descentActive = true;
+        this.ui.showDescentCountdown({
+          byName: detail.byName || 'Un compañero',
+          endsAtMs: detail.deadline || (Date.now() + 8000),
+          onNow: () => this.network.sendToHost(Proto.serializeDescentNow()),
+        });
+        this.ui.showNarrativeMessage(`🌀 ¡${detail.byName || 'Un compañero'} desciende! 8s para bajar juntos...`, 4000);
+      } else if (detail.kind === Proto.DESCENT_KIND.GO) {
+        this.descentActive = false;
+        this.beginDescentFade(detail.nextName || '');
+      }
+    });
+
+    this.network.addEventListener('key-update', (e) => {      if (this.mode !== 'client') return;
       const { playerId, keyId } = e.detail || {};
       if (!keyId) return;
       const player = this.playerManager.getPlayerById(playerId);
@@ -599,6 +814,8 @@ class VoxelSandboxGame {
       this.chestRenderer.loadChests(this.world.chests);
       this.doorRenderer.loadDoors(this.world.doors);
       this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
+      this.stairsRenderer.loadStairs(this.world.stairwells[0] || null);
+      this.syncStairsFromWorld();
       if (this.world.isDoor1Open) {
         this.doorRenderer.setOpenInstant(1);
       }
@@ -727,6 +944,7 @@ class VoxelSandboxGame {
         this.chestRenderer.update(dt);
         this.doorRenderer.update(dt);
         this.pedestalRenderer.update(dt);
+        this.stairsRenderer.update(dt);
         this.sceneManager.render();
       },
     });
