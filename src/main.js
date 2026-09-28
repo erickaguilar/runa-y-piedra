@@ -2,6 +2,7 @@ import { SceneManager } from './render/SceneManager.js';
 import { VoxelMap } from './render/VoxelMap.js';
 import { AvatarRenderer } from './render/AvatarRenderer.js';
 import { ChestRenderer } from './render/ChestRenderer.js';
+import { DoorRenderer } from './render/DoorRenderer.js';
 import { World } from './core/World.js';
 import { GameLoop } from './core/GameLoop.js';
 import { PlayerManager } from './entities/PlayerManager.js';
@@ -27,6 +28,8 @@ class VoxelSandboxGame {
     this.voxelMap = new VoxelMap(this.sceneManager.scene, this.world);
     this.chestRenderer = new ChestRenderer(this.sceneManager.scene);
     this.chestRenderer.loadChests(this.world.chests);
+    this.doorRenderer = new DoorRenderer(this.sceneManager.scene);
+    this.doorRenderer.loadDoors(this.world.doors);
     this.avatars = new AvatarRenderer(this.sceneManager.scene);
     this.playerManager = new PlayerManager();
     this.simulation = new SimulationEngine(this.world, {
@@ -151,6 +154,7 @@ class VoxelSandboxGame {
     this.world.loadLevel(levelData);
     this.voxelMap.rebuildFromWorld();
     this.chestRenderer.loadChests(this.world.chests);
+    this.doorRenderer.loadDoors(this.world.doors);
 
     const spawn = levelData.spawn || { x: 12.0, y: 1.2, z: 4.5 };
     const local = this.playerManager.localPlayer;
@@ -264,6 +268,7 @@ class VoxelSandboxGame {
 
     this.world.openDoor(doorId);
     this.voxelMap.openDoor(doorId);
+    this.doorRenderer.openDoor(doorId);
 
     const door = this.world.doors?.find(d => d.id === doorId);
     const msg = door?.openMessage || (doorId === 1
@@ -396,6 +401,13 @@ class VoxelSandboxGame {
       this.world.setFromArray(e.detail.blocks);
       this.voxelMap.rebuildFromWorld();
       this.chestRenderer.loadChests(this.world.chests);
+      this.doorRenderer.loadDoors(this.world.doors);
+      if (this.world.isDoor1Open) {
+        this.doorRenderer.setOpenInstant(1);
+      }
+      if (this.world.isDoor2Open) {
+        this.doorRenderer.setOpenInstant(2);
+      }
       this.playerManager.setLocalId(e.detail.playerId);
       if (this.world.isDoor2Open) {
         this.ui.showNarrativeMessage('Las dos puertas ya están abiertas. El Santuario os espera.', 4000);
@@ -503,6 +515,7 @@ class VoxelSandboxGame {
           this.avatars.update(dt);
         }
         this.chestRenderer.update(dt);
+        this.doorRenderer.update(dt);
         this.sceneManager.render();
       },
     });

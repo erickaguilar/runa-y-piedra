@@ -45,6 +45,7 @@ export class VoxelMap {
   }
 
   addBlock(x, y, z, type) {
+    if (type === BLOCK_TYPES.DOOR) return; // Las puertas las renderiza DoorRenderer con hojas 3D batientes
     const bIdx = this.world.idx(x, y, z);
     if (this.blockToInst[bIdx] !== -1) return;
 
@@ -125,7 +126,9 @@ export class VoxelMap {
       for (let y = 0; y < WORLD_Y; y++) {
         for (let z = 0; z < WORLD_Z; z++) {
           const t = this.world.get(x, y, z);
-          if (t !== BLOCK_TYPES.AIR) this.addBlock(x, y, z, t);
+          if (t !== BLOCK_TYPES.AIR && t !== BLOCK_TYPES.DOOR) {
+            this.addBlock(x, y, z, t);
+          }
         }
       }
     }

@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.18.0] - 2026-09-28
+
+### Added
+- **Renderizador de Puertas Medievales 3D con Doble Hoja Batiente ([`DoorRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/DoorRenderer.js))**:
+  - Transformación del vano de $2 \times 2$ bloques en una puerta batiente tridimensional completa de 12 cm de grosor compuesta por dos hojas de roble macizo (`0x78350f`), bandas pasantes de hierro forjado (`0x27272a`), cerrojo central y pomo dorado (`0xd97706`).
+  - Cada hoja cuenta con su propio pivote lateral en los extremos del marco ($X=11.0$ e $X=13.0$), encontrándose en el centro ($X=12.0$) para ocluir visualmente el 100% del vano cuando está cerrada.
+- **Dinámica Mecánica de Apertura con `Spring(240, 20)`**:
+  - Amortiguación rápida y contundente (~0.38s de tiempo de asentamiento) con rebote elástico del $\sim 8\%$ ($1.48\text{ rad} \approx 85^\circ$ objetivo con pico en $\sim 92^\circ$) contra el sillar del muro.
+  - Apertura hacia la sala de destino (`swingDir: +1`), invitando al jugador a cruzar hacia la siguiente sala (Abismo o Santuario) sin empujar la cámara hacia atrás.
+- **Paso Físico Instantáneo y Sincronización Autoritativa ([`World.js`](file:///data/data/com.termux/files/home/develop/game/src/core/World.js) y [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**:
+  - Al pulsar `ACTION`, los bloques del vano pasan inmediatamente a `BLOCK_TYPES.AIR` en la simulación física autoritativa, permitiendo cruzar el umbral sin esperar al fin de la animación cosmética.
+  - Omisión de los bloques planos de puerta en el `InstancedMesh` de [`VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js) para evitar solapamiento visual con las hojas 3D.
+  - Sincronización transparente en uniones tardías (`INIT`): si las puertas ya estaban abiertas en el host, [`DoorRenderer.setOpenInstant()`](file:///data/data/com.termux/files/home/develop/game/src/render/DoorRenderer.js) las posiciona abiertas sin disparar animación diferida.
+
+---
+
 ## [1.17.0] - 2026-09-28
 
 ### Changed
