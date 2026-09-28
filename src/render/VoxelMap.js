@@ -20,11 +20,53 @@ export class VoxelMap {
     this.max = WORLD_X * WORLD_Y * WORLD_Z;
 
     const geo = new THREE.BoxGeometry(1, 1, 1);
-    const texture = TextureGenerator.createVoxelTexture(64);
+
+    // Buffer instanciado para atlasOffset: vec2 (u, v) por cada bloque del mundo
+    this.atlasOffsets = new Float32Array(this.max * 2);
+    this.atlasAttr = new THREE.InstancedBufferAttribute(this.atlasOffsets, 2);
+    this.atlasAttr.setUsage(THREE.DynamicDrawUsage);
+    geo.setAttribute('atlasOffset', this.atlasAttr);
+
+    const texture = TextureGenerator.createVoxelAtlasTexture(512);
     const mat = new THREE.MeshLambertMaterial({
       color: 0xffffff,
       map: texture,
     });
+
+    mat.onBeforeCompile = (shader) => {
+      // Inyección en Vertex Shader: pasar atlasOffset como varying
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <uv_pars_vertex>',
+        `#include <uv_pars_vertex>
+attribute vec2 atlasOffset;
+varying vec2 vAtlasOffset;`
+      );
+
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <uv_vertex>',
+        `#include <uv_vertex>
+vAtlasOffset = atlasOffset;`
+      );
+
+      // Inyección en Fragment Shader: calcular UV en el subcuadrante del atlas
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <map_pars_fragment>',
+        `#include <map_pars_fragment>
+varying vec2 vAtlasOffset;`
+      );
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <map_fragment>',
+        `#ifdef USE_MAP
+  vec2 tileUv = clamp(fract(vMapUv), 0.002, 0.998) * vec2(0.25, 0.25) + vAtlasOffset;
+  vec4 sampledDiffuseColor = texture2D( map, tileUv );
+  #ifdef DECODE_VIDEO_TEXTURE
+    sampledDiffuseColor = vec4( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3( lessThanEqual( sampledDiffuseColor.rgb, vec3( 0.04045 ) ) ) ), sampledDiffuseColor.w );
+  #endif
+  diffuseColor *= sampledDiffuseColor;
+#endif`
+      );
+    };
 
     this.mesh = new THREE.InstancedMesh(geo, mat, this.max);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -66,6 +108,13 @@ export class VoxelMap {
     this.dummy.scale.set(1, 1, 1);
     this.dummy.updateMatrix();
     this.mesh.setMatrixAt(inst, this.dummy.matrix);
+
+    // Variación procedural por bloque (5 variantes de muro, 5 de piso, 5 de pilares)
+    const tileIdx = VoxelMap.selectTile(x, y, z, type);
+    const { u, v } = VoxelMap.getTileUVOffset(tileIdx);
+    this.atlasOffsets[inst * 2] = u;
+    this.atlasOffsets[inst * 2 + 1] = v;
+    this.atlasAttr.needsUpdate = true;
 
     this.mesh.setColorAt(inst, THREE_COLORS[type] || THREE_COLORS[1]);
     this.mesh.count = Math.max(this.mesh.count, inst + 1);
@@ -140,5 +189,62 @@ export class VoxelMap {
     const y = Math.floor(bIdx / WORLD_X) % WORLD_Y;
     const z = Math.floor(bIdx / (WORLD_X * WORLD_Y));
     return { x, y, z };
+  }
+
+  /**
+   * Hash pseudoaleatorio determinista de 32-bit para coordenadas (x, y, z).
+   * O(1), libre de colisiones locales, reproducible idénticamente en cliente y host.
+   */
+  static hashCoord(x, y, z) {
+    let h = (x * 73856093) ^ (y * 19349663) ^ (z * 83492791);
+    h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+    h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+    return (h ^ (h >>> 16)) >>> 0;
+  }
+
+  /**
+   * Selecciona deterministamente una de las 5 variantes por grupo de bloque:
+   * - Muros (Tiles 0 a 4): Sillar regular, sillar agrietado, mampostería, musgo, glifo rúnico.
+   * - Suelo (Tiles 5 a 9): Grandes losas 2x2, losa fracturada, adoquines, losa musgosa, rombo ceremonial.
+   * - Pilares (Tiles 10 a 14): Columna estriada, forja con remaches, almohadillado rústico, salomónica, capitel/base moldurada.
+   */
+  static selectTile(x, y, z, type) {
+    const h = VoxelMap.hashCoord(x, y, z);
+
+    switch (type) {
+      case BLOCK_TYPES.WALL: {
+        // Ponderado arquitectónico: sillar regular dominante, grietas, mampostería y musgo orgánicos, glifos ancestrales
+        const wallPalette = [0, 0, 0, 0, 1, 1, 2, 2, 3, 4];
+        return wallPalette[h % wallPalette.length];
+      }
+      case BLOCK_TYPES.STONE_FLOOR: {
+        // Ponderado: losas biseladas regulares, impactos de grieta, adoquinado medieval, musgo de junturas, rombos ceremoniales
+        const floorPalette = [5, 5, 5, 5, 6, 6, 7, 7, 8, 9];
+        return floorPalette[h % floorPalette.length];
+      }
+      case BLOCK_TYPES.PILLAR: {
+        // 5 estilos arquitectónicos para columnas y pilares de sillar
+        const pillarPalette = [10, 11, 12, 13, 14];
+        return pillarPalette[h % pillarPalette.length];
+      }
+      case BLOCK_TYPES.PEDESTAL:
+      case BLOCK_TYPES.JUMP_PAD:
+        return 15; // Círculo rúnico arcano con estrella de 8 puntas
+      case BLOCK_TYPES.LAVA:
+        return 6; // Losa quebrada volcánica
+      default:
+        return 0;
+    }
+  }
+
+  /**
+   * Convierte el índice de casilla en el atlas de 4x4 (0 a 15) en coordenadas UV normalizadas [0, 1].
+   */
+  static getTileUVOffset(tileIndex) {
+    const col = tileIndex % 4;
+    const row = Math.floor(tileIndex / 4);
+    const u = col * 0.25;
+    const v = (3 - row) * 0.25;
+    return { u, v };
   }
 }

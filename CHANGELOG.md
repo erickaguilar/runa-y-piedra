@@ -5,6 +5,46 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.21.0] - 2026-09-28
+
+### Added
+- **Atlas de Texturas Procedural Vectorial SVG 4x4 (16 Casillas) ([`TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js))**:
+  - Implementación de un generador procedural de alta definición ($512 \times 512\text{ px}$, 16 tiles de $128 \times 128\text{ px}$) con tres grupos temáticos de 5 variaciones cada uno más un glifo arcano especial:
+    - **Grupo de Muros (5 variantes)**:
+      1. *Sillar regular*: Muro de sillares clásicos con hiladas alternadas y juntas profundas de mortero.
+      2. *Sillar agrietado*: Fracturas diagonales en zigzag con biseles de luz y desprendimientos.
+      3. *Mampostería irregular*: Aparejo rústico de piedras de diferentes dimensiones y juntas anchas.
+      4. *Sillar con musgo*: Manchas de humedad y colonias vegetales en esquinas y llagas.
+      5. *Sillar rúnico*: Medallón circular central con glifo ancestral tallado en bajo relieve.
+    - **Grupo de Suelo (5 variantes)**:
+      1. *Grandes losas $2 \times 2$*: Pavimento señorial con biseles en cruz y juntas finas.
+      2. *Losa fracturada*: Fractura radial por impacto central de estrella y lascas de piedra.
+      3. *Adoquines medievales*: Patrón empedrado orgánico de cantos rodados redondeados.
+      4. *Losa con musgo*: Juntas tomadas por vegetación y líquenes de calabozo húmedo.
+      5. *Rombo ceremonial*: Losa heráldica con rombo concéntrico y molduras de templo.
+    - **Grupo de Pilares (5 variantes)**:
+      1. *Columna estriada*: Acanaladuras verticales jónicas con relieve de sombra y aristas vivas.
+      2. *Pilar con anillo de forja*: Faja metálica horizontal de hierro reforzado con remaches.
+      3. *Sillar almohadillado*: Bloque rústico toscano con chaflanes perimetrales pronunciados.
+      4. *Columna salomónica*: Fuste helicoidal torsionado con relieve en diagonal a $45^\circ$.
+      5. *Capitel / Basa moldurada*: Molduras escalonadas clásicas con toro y plinto.
+    - **Glifo Rúnico Celestial (Casilla 15)**: Octagrama solar ceremonial para pedestales y plataformas mágicas.
+  - Generación 100% vectorial en memoria (SVG a Canvas) sin requerir ninguna descarga ni asset externo en disco.
+
+- **Inyección de Shader Instanciado (`onBeforeCompile`) y 1 Solo Draw Call ([`VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js))**:
+  - Incorporación del atributo de instancia `atlasOffset` (`THREE.InstancedBufferAttribute`) en el `THREE.BoxGeometry` del mapa voxel.
+  - Modificación de los shaders Lambert mediante `material.onBeforeCompile`:
+    - En vertex shader: transmisión de `vAtlasOffset` mediante `varying vec2`.
+    - En fragment shader: cálculo de coordenadas `tileUv = clamp(fract(vMapUv), 0.002, 0.998) * vec2(0.25, 0.25) + vAtlasOffset` con margen anti-bleeding, garantizando muestreo libre de artefactos en los bordes de casilla.
+  - Se mantiene el presupuesto móvil inquebrantable de **1 único Draw Call** para todo el terreno del mundo.
+  - Multiplicación automática con los colores de bloque (`mesh.setColorAt`), preservando la iluminación y paleta de la mazmorra.
+
+- **Selección Pseudoaleatoria Determinista $O(1)$ por Coordenada ([`VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js))**:
+  - Función hash entera libre de colisiones (`hashCoord(x, y, z)`), reproduciendo la misma asignación de variantes en todos los clientes y el host sin consumir ancho de banda de red ni emitir paquetes de sincronización.
+  - Ponderación arquitectónica natural: sillar regular dominante con presencia orgánica de grietas, musgo y mampostería.
+
+---
+
 ## [1.20.1] - 2026-09-28
 
 ### Fixed
