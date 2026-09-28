@@ -59,13 +59,13 @@ export function deserializeInput(buf) {
 }
 
 // ==========================================
-// 2. SNAPSHOT (Hot Path - Host a Clientes con Ack de Input)
-// [type:1][seq:2][u32 time:4][count:1][ {u8 id, u16 lastInputSeq, f32 x, f32 y, f32 z, f32 yaw} * N ]
+// 2. SNAPSHOT (Hot Path - Host a Clientes con Ack de Input y Física Vertical)
+// [type:1][seq:2][u32 time:4][count:1][ {u8 id, u16 lastInputSeq, f32 x, f32 y, f32 z, f32 yaw, f32 velY, u8 onGround} * N ]
 // ==========================================
 export function serializeSnapshot(seq = 0, players = []) {
   const n = players.length;
-  // Cada jugador: id(1) + lastInputSeq(2) + x(4) + y(4) + z(4) + yaw(4) = 19 bytes
-  const buf = new ArrayBuffer(8 + n * 19);
+  // Cada jugador: id(1) + lastInputSeq(2) + x(4) + y(4) + z(4) + yaw(4) + velY(4) + onGround(1) = 24 bytes
+  const buf = new ArrayBuffer(8 + n * 24);
   const v = new DataView(buf);
   v.setUint8(0, MSG.SNAPSHOT);
   v.setUint16(1, seq & 0xFFFF, true);
@@ -80,6 +80,8 @@ export function serializeSnapshot(seq = 0, players = []) {
     v.setFloat32(o, p.y, true);                       o += 4;
     v.setFloat32(o, p.z, true);                       o += 4;
     v.setFloat32(o, p.yaw, true);                     o += 4;
+    v.setFloat32(o, p.velY || 0, true);               o += 4;
+    v.setUint8(o, p.onGround ? 1 : 0);                o += 1;
   }
   return buf;
 }
@@ -91,13 +93,14 @@ export function deserializeSnapshot(buf) {
   const time = isV2 ? v.getUint32(3, true) : 0;
   const n = isV2 ? v.getUint8(7) : v.getUint8(1);
 
-  // Soporta formato v2.1 (19 bytes con lastInputSeq) y formato previo de 17 bytes
+  // Soporta formato v2.2 (24 bytes con velY y onGround), v2.1 (19 bytes con lastInputSeq) y v2.0 (17 bytes)
+  const is24Bytes = (v.byteLength - 8) >= n * 24;
   const is19Bytes = (v.byteLength - 8) >= n * 19;
   let o = 8;
 
   const players = [];
   for (let i = 0; i < n; i++) {
-    if (is19Bytes) {
+    if (is24Bytes) {
       players.push({
         id:           v.getUint8(o),
         lastInputSeq: v.getUint16(o + 1, true),
@@ -105,6 +108,20 @@ export function deserializeSnapshot(buf) {
         y:            v.getFloat32(o + 7, true),
         z:            v.getFloat32(o + 11, true),
         yaw:          v.getFloat32(o + 15, true),
+        velY:         v.getFloat32(o + 19, true),
+        onGround:     v.getUint8(o + 23) === 1,
+      });
+      o += 24;
+    } else if (is19Bytes) {
+      players.push({
+        id:           v.getUint8(o),
+        lastInputSeq: v.getUint16(o + 1, true),
+        x:            v.getFloat32(o + 3, true),
+        y:            v.getFloat32(o + 7, true),
+        z:            v.getFloat32(o + 11, true),
+        yaw:          v.getFloat32(o + 15, true),
+        velY:         0,
+        onGround:     true,
       });
       o += 19;
     } else {
@@ -115,6 +132,8 @@ export function deserializeSnapshot(buf) {
         y:            v.getFloat32(o + 5, true),
         z:            v.getFloat32(o + 9, true),
         yaw:          v.getFloat32(o + 13, true),
+        velY:         0,
+        onGround:     true,
       });
       o += 17;
     }

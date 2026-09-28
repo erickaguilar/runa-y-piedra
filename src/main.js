@@ -12,6 +12,7 @@ import { BlockRaycaster } from './interaction/BlockRaycaster.js';
 import { NetworkManager } from './network/NetworkManager.js';
 import * as Proto from './network/Protocol.js';
 import { ClientReconciler } from './network/ClientReconciler.js';
+import { InputQueue } from './network/InputQueue.js';
 import { UIManager } from './ui/UIManager.js';
 import { NET_CONFIG, BLOCK_TYPES, PHYSICS_CONFIG, PLAYER_HEROES } from './config/constants.js';
 
@@ -53,6 +54,7 @@ class VoxelSandboxGame {
     this.currentJoinUrl = null;
     this.inputSeq = 0;
     this.snapshotSeq = 0;
+    this.inputQueue = new InputQueue();
     this.reconciler = new ClientReconciler();
 
     // Aplicar calidad gráfica guardada
@@ -158,8 +160,9 @@ class VoxelSandboxGame {
     local.vel.y = 0;
     local.vel.z = 0;
 
-    // Limpiar buffers de reconciliación para evitar replay cruzado de niveles
+    // Limpiar buffers de reconciliación y cola de inputs para evitar replay cruzado de niveles
     this.reconciler.reset();
+    this.inputQueue.clear();
 
     this.ui.showNarrativeMessage(`Mapa cargado: ${levelData.name}`, 3500);
 
@@ -310,6 +313,7 @@ class VoxelSandboxGame {
     });
 
     this.network.addEventListener('peer-left', (e) => {
+      this.inputQueue.remove(e.detail.conn);
       const removedPlayer = this.playerManager.removeByConnection(e.detail.conn);
       if (removedPlayer) {
         this.avatars.remove(removedPlayer.id);
@@ -367,11 +371,7 @@ class VoxelSandboxGame {
 
     this.network.addEventListener('input', (e) => {
       if (this.mode !== 'host') return;
-      const player = this.playerManager.getPlayerByConnection(e.detail.conn);
-      if (player) {
-        player.setInput(e.detail.dz, e.detail.dx, e.detail.yaw);
-        player.lastInputSeq = e.detail.seq || 0;
-      }
+      this.inputQueue.enqueue(e.detail.conn, e.detail);
     });
 
     this.network.addEventListener('door-open', (e) => {
@@ -444,9 +444,19 @@ class VoxelSandboxGame {
         }
 
         if (this.mode === 'host') {
+          // Desacoplar jitter de red consumiendo exactamente 1 input sanitizado por tick (30 Hz)
+          for (const [conn, pid] of this.playerManager.connToPlayerId.entries()) {
+            const remotePlayer = this.playerManager.players.get(pid);
+            if (!remotePlayer) continue;
+            const clientInput = this.inputQueue.dequeue(conn);
+            if (clientInput) {
+              remotePlayer.setInput(clientInput.dz, clientInput.dx, clientInput.yaw);
+              remotePlayer.lastInputSeq = clientInput.seq || 0;
+            }
+          }
           this.simulation.stepHost(this.playerManager, dt);
         } else if (this.mode === 'client') {
-          // Registrar input en el buffer de predicción local
+          // Registrar input en el buffer de predicción local con dt fijo
           this.reconciler.recordInput(this.inputSeq, dt, local.inputForward, local.inputRight, local.yaw);
           this.simulation.stepClient(this.playerManager, dt);
         }

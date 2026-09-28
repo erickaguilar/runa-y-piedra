@@ -8,9 +8,11 @@
  * 4. Diagnostics telemetry (prediction error, inputs in flight, corrections/sec).
  */
 
+import { PHYSICS_CONFIG } from '../config/constants.js';
+
 export class ClientReconciler {
   constructor({
-    snapThreshold = 0.04,     // 4 cm de tolerancia antes de corregir
+    snapThreshold = 0.09,     // 9 cm (medio tick a ~5m/s) de tolerancia para absorber jitter
     teleportThreshold = 2.5,  // 2.5 m para teleport/reaparición forzada
     interpolationDelayMs = 100, // 100 ms de buffer temporal para entidades remotas
     maxPendingInputs = 120,
@@ -52,9 +54,11 @@ export class ClientReconciler {
     if (this.pendingInputs.length >= this.maxPendingInputs) {
       this.pendingInputs.shift();
     }
+    // Replay determinista forzando dt fijo a 1/TICK_HZ (1/30s)
+    const fixedDt = 1 / PHYSICS_CONFIG.TICK_HZ;
     this.pendingInputs.push({
       seq,
-      dt,
+      dt: fixedDt,
       forward,
       right,
       yaw,
@@ -73,15 +77,15 @@ export class ClientReconciler {
       // Descartar inputs confirmados por el host
       this.pendingInputs = this.pendingInputs.filter(inp => inp.seq > ackedSeq);
 
-      // Replay desde el estado autoritativo del host
+      // Replay desde el estado autoritativo del host inicializando física vertical
       this.ghostPlayer.pos.x = localEntry.x;
       this.ghostPlayer.pos.y = localEntry.y;
       this.ghostPlayer.pos.z = localEntry.z;
       this.ghostPlayer.vel.x = 0;
-      this.ghostPlayer.vel.y = localPlayer.vel.y;
+      this.ghostPlayer.vel.y = localEntry.velY !== undefined ? localEntry.velY : localPlayer.vel.y;
       this.ghostPlayer.vel.z = 0;
       this.ghostPlayer.hero = localPlayer.hero;
-      this.ghostPlayer.onGround = localPlayer.onGround;
+      this.ghostPlayer.onGround = localEntry.onGround !== undefined ? localEntry.onGround : localPlayer.onGround;
 
       for (let i = 0; i < this.pendingInputs.length; i++) {
         const inp = this.pendingInputs[i];
@@ -102,8 +106,9 @@ export class ClientReconciler {
         localPlayer.pos.y = localEntry.y;
         localPlayer.pos.z = localEntry.z;
         localPlayer.vel.x = 0;
-        localPlayer.vel.y = 0;
+        localPlayer.vel.y = localEntry.velY !== undefined ? localEntry.velY : 0;
         localPlayer.vel.z = 0;
+        localPlayer.onGround = localEntry.onGround !== undefined ? localEntry.onGround : false;
         this.pendingInputs.length = 0;
         this._recordCorrection();
       } else if (this.predictionError > this.snapThreshold) {
@@ -111,6 +116,8 @@ export class ClientReconciler {
         localPlayer.pos.x = this.ghostPlayer.pos.x;
         localPlayer.pos.y = this.ghostPlayer.pos.y;
         localPlayer.pos.z = this.ghostPlayer.pos.z;
+        localPlayer.vel.y = this.ghostPlayer.vel.y;
+        localPlayer.onGround = this.ghostPlayer.onGround;
         this._recordCorrection();
       }
     }
@@ -177,9 +184,30 @@ export class ClientReconciler {
         const first = snapshots[0];
         avatarRenderer.setTarget(id, first.x, first.y, first.z, first.yaw);
       } else if (!s1) {
-        // renderTime es posterior al snapshot más nuevo (extrapolación leve o clamped)
+        // renderTime es posterior al snapshot más nuevo (hambre de paquetes / jitter de red)
         const last = snapshots[snapshots.length - 1];
-        avatarRenderer.setTarget(id, last.x, last.y, last.z, last.yaw);
+        if (snapshots.length >= 2) {
+          const prev = snapshots[snapshots.length - 2];
+          const dtSnap = (last.time - prev.time) / 1000;
+          if (dtSnap > 0.001) {
+            // Extrapolación lineal con límite estricto de seguridad de 150 ms
+            const overTime = Math.min((renderTime - last.time) / 1000, 0.150);
+            const vx = (last.x - prev.x) / dtSnap;
+            const vy = (last.y - prev.y) / dtSnap;
+            const vz = (last.z - prev.z) / dtSnap;
+            avatarRenderer.setTarget(
+              id,
+              last.x + vx * overTime,
+              last.y + vy * overTime,
+              last.z + vz * overTime,
+              last.yaw
+            );
+          } else {
+            avatarRenderer.setTarget(id, last.x, last.y, last.z, last.yaw);
+          }
+        } else {
+          avatarRenderer.setTarget(id, last.x, last.y, last.z, last.yaw);
+        }
       } else {
         // Interpolación temporal exacta entre s0 y s1
         const dt = s1.time - s0.time;

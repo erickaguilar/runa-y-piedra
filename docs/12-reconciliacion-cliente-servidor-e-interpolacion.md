@@ -30,67 +30,75 @@ En arquitecturas P2P o servidor autoritativo, existen dos alternativas extremas:
 
 ---
 
-## 2. Estructura de Paquetes en Protocolo v2.1
+## 2. Estructura de Paquetes en Protocolo v2.2
 
-Para posibilitar el ack explícito sin canales de mensajes dedicados, se ampliaron 2 bytes por entidad en el paquete `SNAPSHOT` en [`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js):
+Para sincronizar la física vertical autoritativa (saltos y caídas al abismo) y evitar divergencias en cadena, se ampliaron 5 bytes por entidad en el paquete `SNAPSHOT` en [`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js), alcanzando 24 bytes por entidad (con compatibilidad retroactiva con 19 y 17 bytes):
 
-### Paquete `SNAPSHOT` (19 bytes por entidad)
+### Paquete `SNAPSHOT` (24 bytes por entidad)
 - `Offset 0` (`Uint8`): `0x02` (`MSG.SNAPSHOT`)
 - `Offset 1-2` (`Uint16`): Número de secuencia cíclico `seq` del snapshot
 - `Offset 3-6` (`Uint32`): Timestamp de simulación (`simTime` en ms)
 - `Offset 7` (`Uint8`): Número de jugadores ($N$)
-- **Bloque por Jugador (19 bytes)**:
+- **Bloque por Jugador (24 bytes)**:
   - `Offset +0` (`Uint8`): `playerId`
   - `Offset +1` (`Uint16`): `lastInputSeq` (último paquete de input del cliente confirmado e integrado por el host)
   - `Offset +3` (`Float32`): Posición X autoritativa
   - `Offset +7` (`Float32`): Posición Y autoritativa
   - `Offset +11` (`Float32`): Posición Z autoritativa
   - `Offset +15` (`Float32`): Rotación Yaw autoritativa
+  - `Offset +19` (`Float32`): Velocidad vertical autoritativa (`velY`)
+  - `Offset +23` (`Uint8`): Estado en suelo (`onGround`, 1 = true, 0 = false)
 
 ---
 
-## 3. Algoritmo de Reconciliación del Jugador Local
+## 3. Buffer de Jitter y Sanitización de Inputs en el Host (`InputQueue.js`)
+
+Los navegadores móviles ejecutan temporizadores con fluctuaciones naturales ($\pm 5\text{ a }15\text{ ms}$). Sin un buffer de jitter, el host recibiría 0 inputs en un tick y 2 en el siguiente, provocando micro-tirones visuales.
+
+[`InputQueue.js`](file:///data/data/com.termux/files/home/develop/game/src/network/InputQueue.js) resuelve esto mediante:
+1. **Desacoplamiento Temporal**: Encola los inputs recibidos por conexión WebRTC y entrega exactamente **un input por tick de simulación (30 Hz)** en el host.
+2. **Sanitización y Anti-Speedhack**:
+   - Clamping del vector de movimiento: si $\sqrt{dx^2 + dz^2} > 1.0$, se normaliza a magnitud $1.0$.
+   - Normalización angular de Yaw al rango canónico $[-\pi, \pi]$.
+3. **Amortiguación Suave ante Pérdidas**: Si un tick no cuenta con input nuevo por jitter extremo, decae el último input conocido al $85\%$ hasta detenerse suavemente ($0\text{ m/s}$), evitando que el avatar continúe corriendo indefinidamente contra paredes.
+
+---
+
+## 4. Algoritmo de Reconciliación del Jugador Local (`ClientReconciler.js`)
 
 El proceso en [`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js) opera en tiempo de tick y render:
 
 1. **Registro Continuo de Inputs (`recordInput`)**:
-   En cada tick de física (`onTick` a 30 Hz):
-   $$\text{pendingInputs.push}(\{ \text{seq}, \Delta t, \text{forward}, \text{right}, \text{yaw}, \text{time} \})$$
+   En cada tick de física (`onTick` a 30 Hz), con $\Delta t$ fijo idéntico al del host ($1/30\text{ s}$):
+   $$\text{pendingInputs.push}(\{ \text{seq}, \Delta t_{\text{fijo}}, \text{forward}, \text{right}, \text{yaw}, \text{time} \})$$
 2. **Descarte de Inputs Confirmados**:
    $$\text{pendingInputs} = \text{pendingInputs.filter}(\text{inp} \to \text{inp.seq} > \text{lastInputSeq})$$
 3. **Simulación de Replay Determinista (Zero-GC)**:
-   Se utiliza un `ghostPlayer` estático pre-asignado que comienza exactamente en la coordenada autoritativa confirmada $(X_h, Y_h, Z_h)$. Se itera sobre todos los inputs pendientes en vuelo y se re-ejecuta `simulationEngine.integratePlayer(ghost, inp.dt)`.
+   Se utiliza un `ghostPlayer` pre-asignado que comienza en la coordenada autoritativa $(X_h, Y_h, Z_h)$ e **inicializa su velocidad vertical (`velY`) y estado `onGround` autoritativos**. Se itera sobre todos los inputs pendientes en vuelo ejecutando `simulationEngine.integratePlayer(ghost, inp.dt)`.
 4. **Cálculo y Resolución de Error de Predicción**:
    $$\Delta_{\text{error}} = \sqrt{(X_{\text{ghost}} - X_{\text{local}})^2 + (Y_{\text{ghost}} - Y_{\text{local}})^2 + (Z_{\text{ghost}} - Z_{\text{local}})^2}$$
-   - **Zona de Tolerancia ($\Delta_{\text{error}} \le 0.04\text{ m}$)**: Predicción válida, no se aplica corrección visual, preservando la máxima fluidez.
-   - **Zona de Corrección Suave ($0.04\text{ m} < \Delta_{\text{error}} \le 2.5\text{ m}$)**: Se adopta la posición recalculada por el replay ($X_{\text{ghost}}, Y_{\text{ghost}}, Z_{\text{ghost}}$) y se incrementa el contador de correcciones.
-   - **Zona de Teletransporte / Reaparición ($\Delta_{\text{error}} > 2.5\text{ m}$)**: El jugador cayó al abismo, reapareció en un checkpoint o cambió de nivel. Se fuerza la posición autoritativa instantánea y se limpia el buffer de inputs pendientes.
+   - **Zona de Tolerancia ($\Delta_{\text{error}} \le 0.09\text{ m}$)**: Tolerancia calibrada a medio tick de movimiento regular ($\sim 0.16\text{ m}$ por tick a $4.8\text{ m/s}$). Absorbe jitter de red sin disparar micro-ajustes innecesarios.
+   - **Zona de Corrección Suave ($0.09\text{ m} < \Delta_{\text{error}} \le 2.5\text{ m}$)**: Se sincronizan las posiciones ($X, Y, Z$) y la física vertical (`vel.y` y `onGround`) recalculadas por el replay, registrando la corrección en la telemetría.
+   - **Zona de Teletransporte / Reaparición ($\Delta_{\text{error}} > 2.5\text{ m}$)**: Desfase crítico por caída al abismo o respawn. Se fuerza la posición autoritativa instantánea y se limpia el buffer de inputs pendientes.
 
 ---
 
-## 4. Interpolación Temporal de Entidades Remotas (Snapshot Buffering)
+## 5. Interpolación Temporal y Extrapolación de Seguridad en Entidades Remotas
 
-Para los compañeros de equipo en la mazmorra, la réplica no debe predecirse por inputs ajenos, sino interpolarse temporalmente entre dos instantes del pasado para absorber el jitter de la red:
-
+Para compañeros de equipo en la mazmorra:
 1. **Tiempo Objetivo de Renderizado**:
    $$t_{\text{render}} = t_{\text{actual}} - 100\text{ ms}$$
-2. **Localización de Snapshots Envolventes**:
-   Se buscan en el buffer circular de 10 snapshots los dos estados $S_0$ y $S_1$ tales que:
-   $$S_0.\text{time} \le t_{\text{render}} \le S_1.\text{time}$$
-3. **Interpolación Lineal y Angular**:
-   $$\alpha = \frac{t_{\text{render}} - S_0.\text{time}}{S_1.\text{time} - S_0.\text{time}} \in [0, 1]$$
-   $$\vec{P}(t) = \vec{S_0}.pos + (\vec{S_1}.pos - \vec{S_0}.pos) \cdot \alpha$$
-   $$\Delta \text{yaw} = ((\text{yaw}_1 - \text{yaw}_0 + 3\pi) \pmod{2\pi}) - \pi$$
-   $$\text{yaw}(t) = \text{yaw}_0 + \Delta \text{yaw} \cdot \alpha$$
-
-Este mecanismo elimina por completo los saltos, congelamientos o micro-tirones cuando se pierden paquetes en Wi-Fi.
+2. **Interpolación Lineal y Angular**:
+   Si $t_{\text{render}}$ se encuentra entre dos snapshots $S_0$ y $S_1$, se interpola con corrección circular del ángulo yaw más corto.
+3. **Extrapolación Lineal de Seguridad ante Inanición**:
+   Si una ráfaga de retraso en la red hace que $t_{\text{render}} > S_{\text{último}}.\text{time}$, en lugar de congelar bruscamente al avatar, el reconciliador extrapola su posición usando la velocidad del último intervalo hasta un máximo estricto de **$150\text{ ms}$**, preservando la fluidez sin proyectar entidades a través de muros.
 
 ---
 
-## 5. Telemetría Diagnóstica en el HUD (`?debug=1`)
+## 6. Telemetría Diagnóstica en el HUD (`?debug=1`)
 
-El monitor [`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js) ahora reporta en tiempo real:
+El monitor [`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js) reporta en tiempo real:
 
-* **`Pred Err`**: Desfase métrico instantáneo entre predicción del cliente y confirmación del host. Se colorea en azul celeste ($\le 0.08\text{ m}$) o ámbar ($> 0.08\text{ m}$).
+* **`Pred Err`**: Desfase métrico instantáneo (ej. `0.015 m`). Coloreado en azul celeste ($\le 0.09\text{ m}$) o ámbar ($> 0.09\text{ m}$).
 * **`In Flight`**: Número de paquetes de input enviados pendientes de ack (típicamente 1 a 3 a 30 Hz).
-* **`Corr/s`**: Frecuencia de correcciones físicas por segundo (0/s en movimiento libre; incrementa brevemente en colisiones complejas).
+* **`Corr/s`**: Frecuencia de correcciones físicas por segundo (0/s en movimiento libre; incrementa de forma transparente en colisiones imprevistas).

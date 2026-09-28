@@ -67,6 +67,9 @@ export class Player {
       y: this.pos.y,
       z: this.pos.z,
       yaw: this.yaw,
+      velY: this.vel.y,
+      onGround: this.onGround,
     };
   }
 }
+

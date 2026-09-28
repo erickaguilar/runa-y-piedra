@@ -7,6 +7,32 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.14.0] - 2026-09-28
+
+### Added
+- **Buffer de Jitter y Sanitización de Inputs en el Host ([`InputQueue.js`](file:///data/data/com.termux/files/home/develop/game/src/network/InputQueue.js))**:
+  - Cola FIFO por conexión de cliente (`InputQueue`), aislando por completo la fluctuación temporal de los temporizadores de red del bucle de física fija del host ($30\text{ Hz}$).
+  - Consumo regular de exactamente 1 input por tick por cada compañero remoto conectado.
+  - Sanitización estricta de vector de movimiento: supresión de *speedhacks* mediante *clamping* euclidiano ($\sqrt{dx^2 + dz^2} \le 1.0$).
+  - Normalización canónica de ángulo Yaw al intervalo $[-\pi, \pi]$.
+  - Amortiguación suave y decaimiento exponencial ante pérdidas de paquetes por jitter extremo (reducción al $85\%$ hasta anularse a $0\text{ m/s}$), eliminando carreras fantasmas contra muros.
+- **Sincronización Autoritativa de Física Vertical en Snapshots ([`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js))**:
+  - Ampliación del bloque de jugador en `SNAPSHOT` a 24 bytes ($+5\text{ bytes}$ por entidad: `velY: Float32` y `onGround: Uint8`).
+  - Sincronización fidedigna de saltos, plataformas de impulso e inicio de caídas al abismo, eliminando correcciones suaves en cadena durante saltos o caídas.
+  - Decodificación retrocompatible tolerante a formatos previos de 19 y 17 bytes.
+- **Extrapolación Lineal de Seguridad ante Inanición de Snapshots ([`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js))**:
+  - Proyección cinemática de entidades remotas de hasta $150\text{ ms}$ basada en la velocidad del último intervalo cuando `renderTime` supera el snapshot más reciente por jitter en Wi-Fi móvil.
+- **Replay Determinista con Paso Fijo ([`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js))**:
+  - Replay de predicción forzando $\Delta t = 1 / 30\text{ s}$ constante en los inputs pendientes, asegurando coincidencia bit a bit con el simulador del host.
+
+### Changed
+- **Calibración del Umbral de Tolerancia de Reconciliación ([`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js))**:
+  - Elevación de `snapThreshold` de $0.04\text{ m}$ a $0.09\text{ m}$ ($\sim\text{medio tick}$ de carrera a $4.8\text{ m/s}$), absorbiendo fluctuaciones normales de paquetes sin disparar micro-ajustes visuales.
+- **Telemetría Diagnóstica Refinada ([`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js))**:
+  - Precisión milimétrica (3 decimales) en `Pred Err (m)` y alerta visual sincronizada con el nuevo umbral de $0.09\text{ m}$.
+
+---
+
 ## [1.13.0] - 2026-09-28
 
 ### Added

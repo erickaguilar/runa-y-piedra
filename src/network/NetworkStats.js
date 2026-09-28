@@ -177,7 +177,7 @@ export class NetworkStats {
       <div>Drops / OOO: <strong style="color:${this.drops > 0 ? '#f59e0b' : '#94a3b8'}">${this.drops}</strong></div>
       ${this.mode === 'CLIENT' ? `
         <div style="margin-top:4px;border-top:1px dashed rgba(255,255,255,0.15);padding-top:3px;font-size:10px;">
-          <div>Pred Err: <strong style="color:${this.predError > 0.08 ? '#f59e0b' : '#38bdf8'}">${(this.predError || 0).toFixed(2)} m</strong></div>
+          <div>Pred Err: <strong style="color:${this.predError > 0.09 ? '#f59e0b' : '#38bdf8'}">${(this.predError || 0).toFixed(3)} m</strong></div>
           <div>In Flight: <strong>${this.inputsInFlight || 0}</strong> | Corr: <strong>${this.correctionsPerSec || 0}/s</strong></div>
         </div>
       ` : ''}
