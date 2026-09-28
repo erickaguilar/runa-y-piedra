@@ -12,6 +12,8 @@ export class UIManager {
     this.settingsBtn = document.getElementById(settingsBtnId);
     this.messageTimeout = null;
     this._lastLives = -1;
+    this._lastMaxLives = 3;
+    this._hasKey = false;
 
     // Estado de pantallas
     this.currentScreen = 'menu'; // 'menu' | 'host_room' | 'in_game'
@@ -746,14 +748,26 @@ export class UIManager {
     if (!this.livesHud) return;
     const lost = this._lastLives !== -1 && lives < this._lastLives;
     this._lastLives = lives;
+    this._lastMaxLives = maxLives;
     let html = '';
     for (let i = 0; i < maxLives; i++) {
       const alive = i < lives;
       const cls = alive ? 'heart' : 'heart lost';
       html += `<span class="${cls}${lost && !alive ? ' hurt' : ''}">${alive ? '❤️' : '🖤'}</span>`;
     }
+    if (this._hasKey) {
+      html += `<span class="key-badge" title="Llave del Santuario">🗝️</span>`;
+    }
     this.livesHud.innerHTML = html;
     this.livesHud.classList.toggle('invuln', !!invulnerable);
+  }
+
+  /** Muestra/oculta la insignia de llave en el HUD (sin tocar los corazones). */
+  setHasKey(hasKey) {
+    this._hasKey = !!hasKey;
+    if (this._lastLives >= 0) {
+      this.updateLives(this._lastLives, this._lastMaxLives);
+    }
   }
 
   showGameOver(lives, maxLives) {

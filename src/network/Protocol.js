@@ -21,6 +21,7 @@ export const MSG = {
   PONG:         0x09, // Latency reply (5 bytes)
   HOST_CLOSING: 0x0A, // Graceful host disconnect (2 bytes)
   LEVEL_CHANGE: 0x0B, // Dynamic map change in hot state
+  KEY:          0x0C, // Key grant sync (host -> clients, rare event)
 };
 
 export const ACTION_FLAGS = {
@@ -335,4 +336,27 @@ export function deserializeLevelChange(buf) {
   const len = v.getUint8(1);
   const idBytes = new Uint8Array(buf, 2, len);
   return { levelId: textDecoder.decode(idBytes) };
+}
+
+// ==========================================
+// 9. LLAVES (otorgamiento autoritativo del Host)
+// [type:1][u8 playerId:1][u8 len:1][keyId bytes...]
+// ==========================================
+export function serializeKeyUpdate(playerId = 0, keyId = '') {
+  const bytes = textEncoder.encode(keyId);
+  const buf = new ArrayBuffer(3 + bytes.length);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.KEY);
+  v.setUint8(1, playerId);
+  v.setUint8(2, bytes.length);
+  new Uint8Array(buf, 3).set(bytes);
+  return buf;
+}
+
+export function deserializeKeyUpdate(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  const playerId = v.getUint8(1);
+  const len = v.getUint8(2);
+  const idBytes = new Uint8Array(buf, 3, len);
+  return { playerId, keyId: textDecoder.decode(idBytes) };
 }

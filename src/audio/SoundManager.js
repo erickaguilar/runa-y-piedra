@@ -420,6 +420,69 @@ export class SoundManager {
   }
 
   /**
+   * Llave conseguida: tintineo brillante de dos notas agudas.
+   */
+  playKeyPickup() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    const t = this.ctx.currentTime;
+    [1318.5, 1568.0].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t + idx * 0.09);
+      gain.gain.setValueAtTime(0.001, t + idx * 0.09);
+      gain.gain.linearRampToValueAtTime(0.24, t + idx * 0.09 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.09 + 0.4);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t + idx * 0.09);
+      osc.stop(t + idx * 0.09 + 0.45);
+    });
+  }
+
+  /**
+   * Puerta bloqueada: golpe metálico sordo de cerradura.
+   */
+  playLocked() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(150, t);
+    osc.frequency.exponentialRampToValueAtTime(85, t + 0.12);
+    gain.gain.setValueAtTime(0.18, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.18);
+    if (this._noiseBuffer) {
+      const src = this.ctx.createBufferSource();
+      const filt = this.ctx.createBiquadFilter();
+      const g = this.ctx.createGain();
+      src.buffer = this._noiseBuffer;
+      filt.type = 'lowpass';
+      filt.frequency.setValueAtTime(900, t);
+      g.gain.setValueAtTime(0.25, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      src.connect(filt);
+      filt.connect(g);
+      g.connect(this.masterGain);
+      src.start(t);
+      src.stop(t + 0.12);
+    }
+  }
+
+  /**
    * Daño por lava/caída: golpe descendente + chisporroteo de ruido.
    */
   playHurt() {

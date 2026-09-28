@@ -25,6 +25,9 @@ export class Player {
     this.maxLives = 3;
     this.lives = 3;
     this.invulnTicks = 0; // Protección anti-muerte-en-bucle tras reaparecer (~2s)
+
+    // Inventario de llaves (ids de llave, p. ej. "llave_santuario"). Persiste ante muertes.
+    this.keys = [];
   }
 
   setColorIndex(colorIndex) {
@@ -100,6 +103,7 @@ export class Player {
 
   /**
    * Game Over: vuelve al spawn inicial del nivel, restaura checkpoint y vidas.
+   * Las llaves se conservan para no bloquear la partida (el cofre ya se abrió).
    */
   fullResetToSpawn(spawn) {
     const s = spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
@@ -134,5 +138,20 @@ export class Player {
       onGround: this.onGround,
       lives: this.lives,
     };
+  }
+
+  /** Otorga una llave; retorna true si es nueva. */
+  addKey(keyId) {
+    if (!keyId || this.keys.includes(keyId)) return false;
+    this.keys.push(keyId);
+    return true;
+  }
+
+  hasKey(keyId) {
+    return !!keyId && this.keys.includes(keyId);
+  }
+
+  clearKeys() {
+    this.keys.length = 0;
   }
 }

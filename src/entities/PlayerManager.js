@@ -57,6 +57,10 @@ export class PlayerManager {
     return this.players.get(pid) || null;
   }
 
+  getPlayerById(id) {
+    return this.players.get(id) || null;
+  }
+
   getAllPlayers() {
     return Array.from(this.players.values());
   }

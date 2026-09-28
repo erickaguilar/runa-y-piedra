@@ -198,6 +198,15 @@ export class NetworkManager extends EventTarget {
         this.dispatchEvent(new CustomEvent('chest-open', { detail: { chestId: c.chestId, conn } }));
         break;
       }
+
+      case Proto.MSG.KEY: {
+        // Solo el Host otorga llaves: los clientes ignoran KEY entrantes no solicitados
+        // y el Host ignora KEY de clientes (anti-trampas: nadie se auto-otorga llaves).
+        if (this.isHost) break;
+        const k = Proto.deserializeKeyUpdate(buf);
+        this.dispatchEvent(new CustomEvent('key-update', { detail: k }));
+        break;
+      }
     }
   }
 

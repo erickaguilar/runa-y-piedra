@@ -170,6 +170,7 @@ class VoxelSandboxGame {
       const localInit = this.playerManager.localPlayer;
       localInit.resetLives();
       this.ui.updateLives(localInit.lives, localInit.maxLives);
+      this.ui.setHasKey(false);
 
       const lvl = this.world.levelRegistry.getCurrentLevel();
       this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}). Toca ⚙️ para invitar amigos o cambiar mapa.`, 5500);
@@ -198,6 +199,11 @@ class VoxelSandboxGame {
     local.vel.z = 0;
     this.ui.setLivesVisible(true);
     this.ui.updateLives(local.lives, local.maxLives);
+    // Nueva mazmorra, nuevas llaves: los cofres reaparecen cerrados
+    for (const pl of this.playerManager.getAllPlayers()) {
+      pl.clearKeys?.();
+    }
+    this.ui.setHasKey(false);
 
     // Limpiar buffers de reconciliación y cola de inputs para evitar replay cruzado de niveles
     this.reconciler.reset();
@@ -238,6 +244,7 @@ class VoxelSandboxGame {
       const localCli = this.playerManager.localPlayer;
       localCli.resetLives();
       this.ui.updateLives(localCli.lives, localCli.maxLives);
+      this.ui.setHasKey(false);
       this.ui.showNarrativeMessage(`Conectado como ${name}. Explorad juntos.`, 5000);
 
       // Enviar metadatos locales (nombre y color de clase) al Host
@@ -271,8 +278,14 @@ class VoxelSandboxGame {
       if (isOpen) return;
 
       if (this.mode === 'host') {
-        this.openDoor(doorId);
+        this.requestOpenDoor(doorId, local);
       } else {
+        // Pre-chequeo local de llave para feedback inmediato sin tráfico de red
+        const door = this.world.doors?.find(d => d.id === doorId);
+        if (door?.requiresKey && !local.hasKey?.(door.requiresKey)) {
+          this.doorLockedFeedback(door);
+          return;
+        }
         this.network.sendToHost(Proto.serializeDoorOpen(doorId));
         this.ui.showNarrativeMessage(`Abriendo Puerta ${doorId}...`, 2500);
       }
@@ -281,7 +294,7 @@ class VoxelSandboxGame {
       if (this.chestRenderer.isChestOpen(chestId)) return;
 
       if (this.mode === 'host') {
-        this.openChest(chestId);
+        this.openChest(chestId, local);
       } else {
         this.network.sendToHost(Proto.serializeChestOpen(chestId));
         this.ui.showNarrativeMessage('Abriendo cofre...', 1500);
@@ -294,7 +307,7 @@ class VoxelSandboxGame {
     }
   }
 
-  openChest(chestId = 1) {
+  openChest(chestId = 1, opener = null) {
     const opened = this.chestRenderer.openChest(chestId);
     if (!opened) return;
 
@@ -310,10 +323,58 @@ class VoxelSandboxGame {
 
     if (this.mode === 'host') {
       this.network.broadcast(Proto.serializeChestOpen(chestId));
+      // Otorgamiento autoritativo de llave al jugador que abrió el cofre
+      if (chestData?.givesKey && opener?.addKey) {
+        if (opener.addKey(chestData.givesKey)) {
+          this.network.broadcast(Proto.serializeKeyUpdate(opener.id, chestData.givesKey));
+          if (opener === local) {
+            this.onLocalKeyReceived(chestData);
+          }
+        }
+      }
     }
 
     const msg = chestData?.message || `📦 ¡Has abierto el ${chestData?.name || 'Cofre'}! Recompensa: ${chestData?.reward || 'Tesoros de la Mazmorra'}`;
     this.ui.showNarrativeMessage(msg, 5000);
+  }
+
+  /** Feedback local al recibir una llave: insignia del HUD + sonido. */
+  onLocalKeyReceived(chestData = {}) {
+    const local = this.playerManager.localPlayer;
+    this.ui.setHasKey(true);
+    this.soundManager.playKeyPickup();
+    const keyName = chestData.keyName || 'Llave del Santuario';
+    this.ui.showNarrativeMessage(`🗝️ ¡${keyName} conseguida! Ahora puedes abrir la Puerta 2.`, 4500);
+    void local;
+  }
+
+  /** Puerta bloqueada por falta de llave: mensaje + sonido metálico (solo jugador local). */
+  doorLockedFeedback(door) {
+    const msg = door?.lockedMessage || '🔒 ¡Puerta sellada! Necesitas una llave.';
+    this.soundManager.playLocked();
+    this.ui.showNarrativeMessage(msg, 4000);
+  }
+
+  /**
+   * Apertura validada: verifica llave requerida antes de abrir.
+   * Retorna true si se abrió, false si está bloqueada o ya abierta.
+   */
+  requestOpenDoor(doorId = 1, player = null) {
+    const isOpen = doorId === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
+    if (isOpen) return false;
+
+    const door = this.world.doors?.find(d => d.id === doorId);
+    const keyId = door?.requiresKey;
+    if (keyId && !(player?.hasKey?.(keyId))) {
+      // Solo el jugador local recibe el aviso; los remotos ya fueron filtrados en su cliente
+      if (player === this.playerManager.localPlayer) {
+        this.doorLockedFeedback(door);
+      }
+      return false;
+    }
+
+    this.openDoor(doorId);
+    return true;
   }
 
   openDoor(doorId = 1) {
@@ -365,6 +426,15 @@ class VoxelSandboxGame {
       for (const p of this.playerManager.getAllPlayers()) {
         if (p.id !== local.id && p.id !== remotePlayer.id) {
           this.network.sendTo(conn, Proto.serializePlayerMeta(p.id, p.colorIndex, p.name));
+        }
+      }
+
+      // 4. Sincronizar llaves ya otorgadas (p. ej. si el cofre 1 se abrió antes de unirse)
+      for (const p of this.playerManager.getAllPlayers()) {
+        if (Array.isArray(p.keys)) {
+          for (const keyId of p.keys) {
+            this.network.sendTo(conn, Proto.serializeKeyUpdate(p.id, keyId));
+          }
         }
       }
 
@@ -446,19 +516,24 @@ class VoxelSandboxGame {
       const conn = e.detail?.conn;
 
       // Validación autoritativa en el Host: distancia euclidiana <= 3.5m (tolerancia de jitter)
+      let requester = null;
       if (this.mode === 'host' && conn) {
-        const player = this.playerManager.getPlayerByConnection(conn);
-        if (!player) return;
+        requester = this.playerManager.getPlayerByConnection(conn);
+        if (!requester) return;
 
         const door = this.world.doors?.find(d => d.id === doorId);
         const doorZ = door?.z ?? (doorId === 1 ? 11 : 24);
         const doorCenterX = 12.0;
         const doorCenterZ = doorZ + 0.5;
-        const dist = Math.hypot(player.pos.x - doorCenterX, player.pos.z - doorCenterZ);
+        const dist = Math.hypot(requester.pos.x - doorCenterX, requester.pos.z - doorCenterZ);
         if (dist > 3.5) {
-          console.warn(`[AntiCheat] Apertura de puerta ${doorId} rechazada: jugador ${player.name} fuera de rango (${dist.toFixed(2)}m > 3.5m)`);
+          console.warn(`[AntiCheat] Apertura de puerta ${doorId} rechazada: jugador ${requester.name} fuera de rango (${dist.toFixed(2)}m > 3.5m)`);
           return;
         }
+
+        // Validación de llave en el Host (el cliente ya pre-chequeó, esto es anti-trampas)
+        this.requestOpenDoor(doorId, requester);
+        return;
       }
 
       this.openDoor(doorId);
@@ -469,21 +544,34 @@ class VoxelSandboxGame {
       const conn = e.detail?.conn;
 
       // Validación autoritativa en el Host: distancia euclidiana al cofre <= 3.2m
+      let opener = null;
       if (this.mode === 'host' && conn) {
-        const player = this.playerManager.getPlayerByConnection(conn);
-        if (!player) return;
+        opener = this.playerManager.getPlayerByConnection(conn);
+        if (!opener) return;
 
         const chest = this.world.chests?.find(c => c.id === chestId);
         if (chest) {
-          const dist = Math.hypot(player.pos.x - chest.x, player.pos.z - chest.z);
+          const dist = Math.hypot(opener.pos.x - chest.x, opener.pos.z - chest.z);
           if (dist > 3.2) {
-            console.warn(`[AntiCheat] Apertura de cofre ${chestId} rechazada: jugador ${player.name} fuera de rango (${dist.toFixed(2)}m > 3.2m)`);
+            console.warn(`[AntiCheat] Apertura de cofre ${chestId} rechazada: jugador ${opener.name} fuera de rango (${dist.toFixed(2)}m > 3.2m)`);
             return;
           }
         }
       }
 
-      this.openChest(chestId);
+      this.openChest(chestId, opener);
+    });
+
+    this.network.addEventListener('key-update', (e) => {
+      if (this.mode !== 'client') return;
+      const { playerId, keyId } = e.detail || {};
+      if (!keyId) return;
+      const player = this.playerManager.getPlayerById(playerId);
+      if (!player) return;
+      if (player.addKey(keyId) && player === this.playerManager.localPlayer) {
+        const chestData = this.world.chests?.find(c => c.givesKey === keyId);
+        this.onLocalKeyReceived(chestData || {});
+      }
     });
 
     this.network.addEventListener('snapshot', (e) => {
