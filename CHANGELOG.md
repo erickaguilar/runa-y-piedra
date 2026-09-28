@@ -7,6 +7,31 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.13.0] - 2026-09-28
+
+### Added
+- **Reconciliación Cliente-Servidor Real y Buffer de Snapshots ([`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js))**:
+  - Implementación del sistema de predicción local con buffer de inputs pendientes (`pendingInputs`).
+  - Reconciliación determinista al recibir snapshots del host: descarte de inputs confirmados (`seq <= lastInputSeq`), repetición (*replay*) contra la simulación física ([`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js)), y corrección suave si la discrepancia excede el umbral de tolerancia ($0.04\text{ m}$).
+  - Manejo de reaparición forzada y teletransporte instantáneo si la diferencia supera los $2.5\text{ m}$.
+  - **Interpolación Temporal de Entidades Remotas**: Buffer circular de snapshots con interpolación temporal lineal a $100\text{ ms}$ en el pasado (`renderTime = now - 100ms`), eliminando el jitter de red y garantizando movimiento suave a 60 FPS de compañeros de equipo.
+- **Confirmación Explícita de Secuencia de Input en Snapshots ([`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js))**:
+  - Ampliación de 2 bytes por entidad en el paquete `SNAPSHOT` (`lastInputSeq`), permitiendo al cliente conocer con precisión qué paquete de movimiento fue el último integrado por la física autoritativa del host.
+  - Compatibilidad retroactiva transparente para decodificar tanto paquetes de 19 bytes como de 17 bytes.
+- **Telemetría de Reconciliación en Tiempo Real ([`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js))**:
+  - Integración en el panel `#net-debug-panel` (`?debug=1`) de tres métricas diagnósticas esenciales:
+    - `Pred Err (m)`: Desfase métrico instantáneo entre predicción local y estado autoritativo.
+    - `In Flight`: Cantidad de paquetes de input pendientes de confirmación en la red.
+    - `Corr/s`: Tasa de correcciones físicas por segundo.
+
+### Fixed
+- **Resiliencia de Cierre de Sala en iOS Safari y Navegadores Móviles ([`NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js))**:
+  - Emisión de `HOST_CLOSING` extendida a `beforeunload`, `pagehide` y `visibilitychange` con temporizador de seguridad de 2.5s para evitar que cambios rápidos de app expulsen prematuramente a los clientes.
+- **Reseteo Limpio de Velocidad y Estado en [`switchLevel`](file:///data/data/com.termux/files/home/develop/game/src/main.js)**:
+  - Anulación forzada de inercia (`vel = {0,0,0}`) y vaciado de los buffers de reconciliación al cambiar de nivel, previniendo caídas dentro de la geometría y repeticiones cruzadas de inputs.
+
+---
+
 ## [1.12.0] - 2026-09-28
 
 ### Added

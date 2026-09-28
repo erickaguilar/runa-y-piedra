@@ -11,6 +11,7 @@ import { CameraController } from './camera/CameraController.js';
 import { BlockRaycaster } from './interaction/BlockRaycaster.js';
 import { NetworkManager } from './network/NetworkManager.js';
 import * as Proto from './network/Protocol.js';
+import { ClientReconciler } from './network/ClientReconciler.js';
 import { UIManager } from './ui/UIManager.js';
 import { NET_CONFIG, BLOCK_TYPES, PHYSICS_CONFIG, PLAYER_HEROES } from './config/constants.js';
 
@@ -52,6 +53,7 @@ class VoxelSandboxGame {
     this.currentJoinUrl = null;
     this.inputSeq = 0;
     this.snapshotSeq = 0;
+    this.reconciler = new ClientReconciler();
 
     // Aplicar calidad gráfica guardada
     const savedDpr = parseFloat(localStorage.getItem('dungeon_dpr') || '1.5');
@@ -152,6 +154,12 @@ class VoxelSandboxGame {
     const local = this.playerManager.localPlayer;
     local.setCheckpoint(spawn.x, spawn.y, spawn.z, levelData.name);
     local.respawn();
+    local.vel.x = 0;
+    local.vel.y = 0;
+    local.vel.z = 0;
+
+    // Limpiar buffers de reconciliación para evitar replay cruzado de niveles
+    this.reconciler.reset();
 
     this.ui.showNarrativeMessage(`Mapa cargado: ${levelData.name}`, 3500);
 
@@ -362,6 +370,7 @@ class VoxelSandboxGame {
       const player = this.playerManager.getPlayerByConnection(e.detail.conn);
       if (player) {
         player.setInput(e.detail.dz, e.detail.dx, e.detail.yaw);
+        player.lastInputSeq = e.detail.seq || 0;
       }
     });
 
@@ -377,11 +386,10 @@ class VoxelSandboxGame {
 
     this.network.addEventListener('snapshot', (e) => {
       if (this.mode !== 'client') return;
-      for (const p of e.detail) {
-        if (p.id !== this.playerManager.localPlayer.id) {
-          this.avatars.setTarget(p.id, p.x, p.y, p.z, p.yaw);
-        }
-      }
+      const players = Array.isArray(e.detail) ? e.detail : (e.detail?.players || []);
+      const simTime = e.detail?.time || performance.now();
+      const local = this.playerManager.localPlayer;
+      this.reconciler.onSnapshot(simTime, players, local, this.simulation);
     });
 
     this.network.addEventListener('init', (e) => {
@@ -438,6 +446,8 @@ class VoxelSandboxGame {
         if (this.mode === 'host') {
           this.simulation.stepHost(this.playerManager, dt);
         } else if (this.mode === 'client') {
+          // Registrar input en el buffer de predicción local
+          this.reconciler.recordInput(this.inputSeq, dt, local.inputForward, local.inputRight, local.yaw);
           this.simulation.stepClient(this.playerManager, dt);
         }
       },
@@ -445,6 +455,20 @@ class VoxelSandboxGame {
         if (this.mode) {
           const local = this.playerManager.localPlayer;
           this.cameraController.update(local, local.yaw, local.pitch);
+
+          if (this.mode === 'client') {
+            // Interpolación temporal de entidades remotas (~100ms)
+            this.reconciler.updateRemoteAvatars(this.avatars);
+
+            // Transmitir telemetría de reconciliación al panel de diagnóstico
+            const rStats = this.reconciler.getStats();
+            this.network.stats.setReconciliationStats(
+              rStats.predictionError,
+              rStats.inputsInFlight,
+              rStats.correctionsPerSec
+            );
+          }
+
           this.avatars.update(dt);
         }
         this.chestRenderer.update(dt);

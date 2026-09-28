@@ -74,4 +74,11 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Cierre ordenado de sala (`HOST_CLOSING`) en `beforeunload` y sincronización de `LEVEL_CHANGE`.
     - Monitor HUD de telemetría en tiempo real (`NetworkStats.js`) con toggle `?debug=1`.
 
+12. [**12. Reconciliación Cliente-Servidor Real e Interpolación Temporal de Snapshots**](./12-reconciliacion-cliente-servidor-e-interpolacion.md)
+    - Netcode determinista con predicción local en cliente a 60 FPS y buffer de inputs pendientes.
+    - Reconciliación autoritativa por ack explícito (`lastInputSeq` en SNAPSHOT a 19 bytes/entidad).
+    - Repetición (*replay*) física Zero-GC con umbrales de tolerancia ($0.04\text{ m}$) y teletransporte ($2.5\text{ m}$).
+    - Interpolación temporal de entidades remotas a $100\text{ ms}$ en el pasado para absorber jitter de Wi-Fi.
+    - Nuevas métricas en el HUD: `Pred Err (m)`, `In Flight` y `Corrections/s`.
+
 

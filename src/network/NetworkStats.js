@@ -14,6 +14,11 @@ export class NetworkStats {
     this.drops = 0;
     this.lastSnapshotSeq = null;
 
+    // Métricas de Reconciliación (Cliente)
+    this.predError = 0;
+    this.inputsInFlight = 0;
+    this.correctionsPerSec = 0;
+
     // Conteo continuo
     this.totalPacketsIn = 0;
     this.totalPacketsOut = 0;
@@ -96,6 +101,15 @@ export class NetworkStats {
     this.lastSnapshotSeq = seq;
   }
 
+  setReconciliationStats(predError = 0, inFlight = 0, correctionsPerSec = 0) {
+    this.predError = predError;
+    this.inputsInFlight = inFlight;
+    this.correctionsPerSec = correctionsPerSec;
+    if (this.enabled && this.domElement) {
+      this.renderDom();
+    }
+  }
+
   _maybeUpdateWindow() {
     const now = performance.now();
     const dt = (now - this._lastWindowTime) / 1000;
@@ -161,6 +175,12 @@ export class NetworkStats {
       <div>In: <strong>${this.ppsIn}</strong> pps (${this.kbpsIn} KB/s)</div>
       <div>Out: <strong>${this.ppsOut}</strong> pps (${this.kbpsOut} KB/s)</div>
       <div>Drops / OOO: <strong style="color:${this.drops > 0 ? '#f59e0b' : '#94a3b8'}">${this.drops}</strong></div>
+      ${this.mode === 'CLIENT' ? `
+        <div style="margin-top:4px;border-top:1px dashed rgba(255,255,255,0.15);padding-top:3px;font-size:10px;">
+          <div>Pred Err: <strong style="color:${this.predError > 0.08 ? '#f59e0b' : '#38bdf8'}">${(this.predError || 0).toFixed(2)} m</strong></div>
+          <div>In Flight: <strong>${this.inputsInFlight || 0}</strong> | Corr: <strong>${this.correctionsPerSec || 0}/s</strong></div>
+        </div>
+      ` : ''}
     `;
   }
 }

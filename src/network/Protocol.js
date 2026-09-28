@@ -59,12 +59,13 @@ export function deserializeInput(buf) {
 }
 
 // ==========================================
-// 2. SNAPSHOT (Hot Path - Host a Clientes)
-// [type:1][seq:2][u32 time:4][count:1][ {u8 id, f32 x, f32 y, f32 z, f32 yaw} * N ]
+// 2. SNAPSHOT (Hot Path - Host a Clientes con Ack de Input)
+// [type:1][seq:2][u32 time:4][count:1][ {u8 id, u16 lastInputSeq, f32 x, f32 y, f32 z, f32 yaw} * N ]
 // ==========================================
 export function serializeSnapshot(seq = 0, players = []) {
   const n = players.length;
-  const buf = new ArrayBuffer(8 + n * 17);
+  // Cada jugador: id(1) + lastInputSeq(2) + x(4) + y(4) + z(4) + yaw(4) = 19 bytes
+  const buf = new ArrayBuffer(8 + n * 19);
   const v = new DataView(buf);
   v.setUint8(0, MSG.SNAPSHOT);
   v.setUint16(1, seq & 0xFFFF, true);
@@ -73,33 +74,50 @@ export function serializeSnapshot(seq = 0, players = []) {
 
   let o = 8;
   for (const p of players) {
-    v.setUint8(o, p.id);          o += 1;
-    v.setFloat32(o, p.x, true);   o += 4;
-    v.setFloat32(o, p.y, true);   o += 4;
-    v.setFloat32(o, p.z, true);   o += 4;
-    v.setFloat32(o, p.yaw, true); o += 4;
+    v.setUint8(o, p.id);                              o += 1;
+    v.setUint16(o, (p.lastInputSeq || 0) & 0xFFFF, true); o += 2;
+    v.setFloat32(o, p.x, true);                       o += 4;
+    v.setFloat32(o, p.y, true);                       o += 4;
+    v.setFloat32(o, p.z, true);                       o += 4;
+    v.setFloat32(o, p.yaw, true);                     o += 4;
   }
   return buf;
 }
 
 export function deserializeSnapshot(buf) {
   const v = buf instanceof DataView ? buf : new DataView(buf);
-  const isV2 = v.byteLength >= 8 && ((v.byteLength - 8) % 17 === 0);
+  const isV2 = v.byteLength >= 8;
   const seq = isV2 ? v.getUint16(1, true) : 0;
   const time = isV2 ? v.getUint32(3, true) : 0;
   const n = isV2 ? v.getUint8(7) : v.getUint8(1);
-  let o = isV2 ? 8 : 2;
+
+  // Soporta formato v2.1 (19 bytes con lastInputSeq) y formato previo de 17 bytes
+  const is19Bytes = (v.byteLength - 8) >= n * 19;
+  let o = 8;
 
   const players = [];
   for (let i = 0; i < n; i++) {
-    players.push({
-      id:  v.getUint8(o),
-      x:   v.getFloat32(o + 1, true),
-      y:   v.getFloat32(o + 5, true),
-      z:   v.getFloat32(o + 9, true),
-      yaw: v.getFloat32(o + 13, true),
-    });
-    o += 17;
+    if (is19Bytes) {
+      players.push({
+        id:           v.getUint8(o),
+        lastInputSeq: v.getUint16(o + 1, true),
+        x:            v.getFloat32(o + 3, true),
+        y:            v.getFloat32(o + 7, true),
+        z:            v.getFloat32(o + 11, true),
+        yaw:          v.getFloat32(o + 15, true),
+      });
+      o += 19;
+    } else {
+      players.push({
+        id:           v.getUint8(o),
+        lastInputSeq: 0,
+        x:            v.getFloat32(o + 1, true),
+        y:            v.getFloat32(o + 5, true),
+        z:            v.getFloat32(o + 9, true),
+        yaw:          v.getFloat32(o + 13, true),
+      });
+      o += 17;
+    }
   }
   return { seq, time, players };
 }

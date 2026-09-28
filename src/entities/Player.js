@@ -13,6 +13,7 @@ export class Player {
     this.onGround = false;
     this.inputForward = 0;
     this.inputRight = 0;
+    this.lastInputSeq = 0;
     this.checkpoint = { x, y: 1.2, z, roomName: 'Sala 1 (Vestíbulo)' };
   }
 
@@ -61,6 +62,7 @@ export class Player {
   toSnapshot() {
     return {
       id: this.id,
+      lastInputSeq: this.lastInputSeq || 0,
       x: this.pos.x,
       y: this.pos.y,
       z: this.pos.z,

@@ -15,10 +15,23 @@ export class NetworkManager extends EventTarget {
     this.stats = new NetworkStats({ protocolVersion: Proto.PROTOCOL_VERSION });
     this._pingInterval = null;
 
-    // Notificar cierre ordenado a peers cuando el anfitrión cierra la ventana
-    window.addEventListener('beforeunload', () => {
-      if (this.isHost && this.connections.length > 0) {
+    // Notificar cierre ordenado a peers cuando el anfitrión cierra la ventana o sale de la app
+    let closingSent = false;
+    const sendHostClosing = () => {
+      if (this.isHost && this.connections.length > 0 && !closingSent) {
+        closingSent = true;
         this.broadcast(Proto.serializeHostClosing(0));
+      }
+    };
+    window.addEventListener('beforeunload', sendHostClosing);
+    window.addEventListener('pagehide', sendHostClosing);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden' && this.isHost) {
+        setTimeout(() => {
+          if (document.visibilityState === 'hidden') {
+            sendHostClosing();
+          }
+        }, 2500);
       }
     });
   }
@@ -105,7 +118,13 @@ export class NetworkManager extends EventTarget {
       case Proto.MSG.SNAPSHOT: {
         const s = Proto.deserializeSnapshot(buf);
         this.stats.recordSnapshotSeq(s.seq);
-        this.dispatchEvent(new CustomEvent('snapshot', { detail: s.players, seq: s.seq, time: s.time }));
+        this.dispatchEvent(new CustomEvent('snapshot', {
+          detail: {
+            players: s.players,
+            seq: s.seq,
+            time: s.time,
+          }
+        }));
         break;
       }
 
