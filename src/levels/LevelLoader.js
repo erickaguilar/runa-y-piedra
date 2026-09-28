@@ -85,6 +85,9 @@ export class LevelLoader {
         const doorOpening = region.doorOpening || [11, 12];
 
         for (let x = 1; x < sizeX - 1; x++) {
+          // Suelo sólido firme bajo el muro divisor y bajo el umbral de la puerta
+          world.set(x, 0, z, BLOCK_TYPES.STONE_FLOOR);
+
           for (let y = 1; y <= height; y++) {
             if (doorOpening.includes(x)) {
               if (y === 1 || y === 2) {
