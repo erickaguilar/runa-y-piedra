@@ -7,10 +7,11 @@ const BLESSED_LIGHT = 2.6;
 const FLASH_LIGHT = 7.0;
 const PARTICLE_COUNT = 36;
 
-// Temas por mazmorra: dorado ancestral vs brasa volcánica
+// Temas por mazmorra: dorado ancestral, brasa volcánica y amatista abisal
 const THEMES = {
   classic: { light: 0xfbbf24, rune: 0xfde68a, crystal: 0xf59e0b, ember: 0xfcd34d },
   inferno: { light: 0xfb9235, rune: 0xfdba74, crystal: 0xea580c, ember: 0xf97316 },
+  abyss: { light: 0xa78bfa, rune: 0xddd6fe, crystal: 0x7c3aed, ember: 0x8b5cf6 },
 };
 
 export class PedestalRenderer {

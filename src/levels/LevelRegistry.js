@@ -1,11 +1,13 @@
 import dungeonClassic from './data/dungeon_classic.json';
 import cryptInferno from './data/crypt_inferno.json';
+import abyssThrone from './data/abyss_throne.json';
 
 export class LevelRegistry {
   constructor() {
     this.levels = new Map();
     this.registerLevel(dungeonClassic);
     this.registerLevel(cryptInferno);
+    this.registerLevel(abyssThrone);
     this.currentLevelId = dungeonClassic.id;
   }
 

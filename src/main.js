@@ -253,10 +253,12 @@ class VoxelSandboxGame {
     }
   }
 
-  /** Tema visual del altar según la mazmorra activa (clásico dorado / inferno brasa). */
+  /** Tema visual del altar según la mazmorra activa (dorado / brasa / amatista). */
   pedestalTheme() {
     const id = this.world.levelRegistry.getCurrentLevel()?.id || '';
-    return id.includes('inferno') ? 'inferno' : 'classic';
+    if (id.includes('inferno')) return 'inferno';
+    if (id.includes('abyss')) return 'abyss';
+    return 'classic';
   }
 
   /**
