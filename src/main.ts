@@ -1,24 +1,31 @@
-import { Engine } from './core/Engine';
-import { WorldRenderer } from './graphics/WorldRenderer';
-import { PlayerMesh } from './graphics/PlayerMesh';
-import { PhysicsWorld, PlayerPhysicsState } from './physics/PhysicsWorld';
-import { InputManager } from './input/InputManager';
-import { BinaryProtocol, PacketType, FullPlayerState, BlockChange, PlayerTransform } from './net/BinaryProtocol';
-import { PeerNetwork } from './net/PeerNetwork';
-import QRCode from 'qrcode';
+import * as THREE from 'three';
+import { SceneManager } from './render/SceneManager';
+import { VoxelMap } from './render/VoxelMap';
+import { AvatarRenderer } from './render/AvatarRenderer';
+import { World } from './core/World';
+import { PhysicsAABB, EntityState } from './core/PhysicsAABB';
+import { GameLoop } from './core/GameLoop';
+import { TouchControls } from './ui/TouchControls';
+import { UIManager } from './ui/UIManager';
+import { NetworkManager } from './network/NetworkManager';
+import { Protocol, MessageType, ClientInputData, BlockModData, HostSnapshotData } from './network/Protocol';
 
-class GameApp {
-  private engine: Engine;
-  private world: WorldRenderer;
-  private physics: PhysicsWorld;
-  private input: InputManager;
-  private remotePlayer: PlayerMesh;
-  private network: PeerNetwork;
+class VoxelSandboxApp {
+  private sceneManager: SceneManager;
+  private world: World;
+  private voxelMap: VoxelMap;
+  private physics: PhysicsAABB;
+  private gameLoop: GameLoop;
+  private controls: TouchControls;
+  private ui: UIManager;
+  private network: NetworkManager;
+  private remoteAvatar: AvatarRenderer;
 
-  private localPlayer: PlayerPhysicsState = {
-    x: 16,
+  // Estados de entidades
+  private localPlayer: EntityState = {
+    x: 12,
     y: 2,
-    z: 16,
+    z: 12,
     vx: 0,
     vy: 0,
     vz: 0,
@@ -26,267 +33,294 @@ class GameApp {
     onGround: false
   };
 
-  private netSendTimer = 0;
-  private actionCooldown = 0;
+  private clientLatestInput: ClientInputData = { deltaX: 0, deltaZ: 0, yaw: 0 };
+  private clientEntityState: EntityState = {
+    x: 12,
+    y: 2,
+    z: 12,
+    vx: 0,
+    vy: 0,
+    vz: 0,
+    yaw: 0,
+    onGround: false
+  };
 
-  // Reusable unpacking objects (Zero-GC)
-  private tempTransform: PlayerTransform = { x: 0, z: 0, yaw: 0 };
-  private tempFullState: FullPlayerState = { x: 0, y: 0, z: 0, yaw: 0 };
-  private tempBlockChange: BlockChange = { x: 0, y: 0, z: 0, blockType: 0 };
+  private netBroadcastTimer = 0;
+  private raycaster = new THREE.Raycaster();
+  private screenCenter = new THREE.Vector2(0, 0);
+
+  // Objetos temporales reutilizables para desempaque binario (Zero-GC)
+  private tempInput: ClientInputData = { deltaX: 0, deltaZ: 0, yaw: 0 };
+  private tempBlockMod: BlockModData = { action: 0, x: 0, y: 0, z: 0 };
+  private tempSnapshot: HostSnapshotData = {
+    hostX: 0, hostY: 0, hostZ: 0, hostYaw: 0,
+    clientX: 0, clientY: 0, clientZ: 0, clientYaw: 0
+  };
+  private tempCoord = { x: 0, y: 0, z: 0 };
 
   constructor() {
     const container = document.getElementById('canvas-container')!;
-    this.engine = new Engine(container);
-    this.world = new WorldRenderer(this.engine.scene);
-    this.physics = new PhysicsWorld(this.world);
-    this.input = new InputManager();
-    this.remotePlayer = new PlayerMesh(this.engine.scene);
-    this.remotePlayer.setVisible(false);
+    this.sceneManager = new SceneManager(container);
+    this.world = new World();
+    this.voxelMap = new VoxelMap(this.sceneManager.scene, this.world);
+    this.physics = new PhysicsAABB(this.world);
+    this.controls = new TouchControls();
+    this.gameLoop = new GameLoop();
 
-    this.network = new PeerNetwork({
-      onConnected: (peerId) => this.handlePeerConnected(peerId),
-      onDisconnected: () => this.handlePeerDisconnected(),
-      onData: (buf) => this.handleNetworkData(buf),
-      onError: (err) => this.handleNetworkError(err)
+    this.remoteAvatar = new AvatarRenderer(this.sceneManager.scene);
+    this.remoteAvatar.setVisible(false);
+
+    this.network = new NetworkManager({
+      onConnected: (_id) => this.handleConnected(),
+      onDisconnected: () => this.handleDisconnected(),
+      onData: (buf) => this.handleNetworkPacket(buf),
+      onError: (err) => console.warn('[Network Error]:', err)
     });
 
-    this.setupUI();
-    this.checkAutoJoin();
-    this.engine.registerRenderCallback(this.onUpdate.bind(this));
+    this.ui = new UIManager({
+      onCreateRoom: () => this.network.createHost(),
+      onJoinRoom: (pin) => this.network.join(pin),
+      onEnterGame: () => this.handleEnterGame()
+    });
+
+    this.initInteractionEvents();
+    this.gameLoop.onUpdate(this.update.bind(this));
+    this.gameLoop.start();
   }
 
-  private setupUI(): void {
-    const btnCreate = document.getElementById('btn-create-room')!;
-    const btnJoin = document.getElementById('btn-join-room')!;
-    const inputCode = document.getElementById('input-room-code') as HTMLInputElement;
-    const roomStatus = document.getElementById('room-status')!;
-    const lobbyPanel = document.getElementById('lobby-panel')!;
-    const touchControls = document.getElementById('touch-controls')!;
-    const reticle = document.getElementById('reticle')!;
-    const qrModal = document.getElementById('qr-modal')!;
-    const qrCanvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
-    const qrPinText = document.getElementById('qr-pin-text')!;
-    const qrLinkText = document.getElementById('qr-link-text')!;
-    const btnCloseQr = document.getElementById('btn-close-qr')!;
-
-    btnCreate.addEventListener('click', async () => {
-      btnCreate.setAttribute('disabled', 'true');
-      roomStatus.classList.remove('hidden');
-      roomStatus.textContent = 'Creando sala P2P...';
-
-      try {
-        const pin = await this.network.startHost();
-        lobbyPanel.classList.add('hidden');
-
-        // Determinar host para el enlace QR
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        // Si es localhost, sugerir la IP Wi-Fi local para que otro dispositivo pueda acceder
-        const hostAddress = isLocal ? '192.168.100.28:3000' : window.location.host;
-        const joinUrl = `${window.location.protocol}//${hostAddress}/?join=${pin}`;
-
-        // Renderizar Código QR
-        await QRCode.toCanvas(qrCanvas, joinUrl, {
-          width: 200,
-          margin: 1,
-          color: {
-            dark: '#0f172a',
-            light: '#ffffff'
-          }
-        });
-
-        qrPinText.textContent = `PIN DE SALA: ${pin}`;
-        qrLinkText.textContent = joinUrl;
-        qrModal.classList.remove('hidden');
-      } catch (err) {
-        roomStatus.textContent = `Error al crear sala: ${err}`;
-        btnCreate.removeAttribute('disabled');
-      }
-    });
-
-    btnCloseQr.addEventListener('click', () => {
-      qrModal.classList.add('hidden');
-      touchControls.classList.remove('hidden');
-      reticle.classList.remove('hidden');
-    });
-
-    btnJoin.addEventListener('click', async () => {
-      const code = inputCode.value.trim().toUpperCase();
-      if (code.length < 4) {
-        alert('Ingresa un PIN de sala válido (4 dígitos).');
-        return;
-      }
-
-      btnJoin.setAttribute('disabled', 'true');
-      roomStatus.classList.remove('hidden');
-      roomStatus.textContent = `Conectando a sala ${code}...`;
-
-      try {
-        await this.network.joinRoom(code);
-        roomStatus.textContent = `¡Conectado a sala ${code}!`;
-        this.startGameSession(lobbyPanel, touchControls, reticle);
-      } catch (err) {
-        roomStatus.textContent = `Fallo de conexión: ${err}`;
-        btnJoin.removeAttribute('disabled');
-      }
-    });
-
-    // Clic en canvas para activar Pointer Lock en ordenador
-    this.engine.renderer.domElement.addEventListener('click', () => {
-      if (lobbyPanel.classList.contains('hidden') && qrModal.classList.contains('hidden')) {
-        this.engine.renderer.domElement.requestPointerLock?.();
-      }
+  private handleEnterGame(): void {
+    // Al entrar al juego, si se está en PC, permitir PointerLock al hacer clic en canvas
+    this.sceneManager.renderer.domElement.addEventListener('click', () => {
+      this.sceneManager.renderer.domElement.requestPointerLock?.();
     });
   }
 
-  private checkAutoJoin(): void {
-    const urlParams = new URLSearchParams(window.location.search);
-    const joinCode = urlParams.get('join');
-    if (joinCode) {
-      const inputCode = document.getElementById('input-room-code') as HTMLInputElement;
-      const btnJoin = document.getElementById('btn-join-room')!;
-      if (inputCode && btnJoin) {
-        inputCode.value = joinCode.toUpperCase();
-        setTimeout(() => {
-          btnJoin.click();
-        }, 300);
-      }
-    }
+  private handleConnected(): void {
+    this.ui.updateP2PStatus(true, this.network.isHost);
+    this.remoteAvatar.setVisible(true);
   }
 
-  private startGameSession(lobby: HTMLElement, touch: HTMLElement, reticle: HTMLElement): void {
-    lobby.classList.add('hidden');
-    touch.classList.remove('hidden');
-    reticle.classList.remove('hidden');
+  private handleDisconnected(): void {
+    this.ui.updateP2PStatus(false, this.network.isHost);
+    this.remoteAvatar.setVisible(false);
   }
 
-  private handlePeerConnected(_peerId: string): void {
-    const pingHud = document.getElementById('ping-hud')!;
-    pingHud.textContent = `P2P: Conectado (${this.network.isHost ? 'Host' : 'Cliente'})`;
-    pingHud.style.color = '#4ade80';
-    this.remotePlayer.setVisible(true);
-  }
-
-  private handlePeerDisconnected(): void {
-    const pingHud = document.getElementById('ping-hud')!;
-    pingHud.textContent = 'P2P: Desconectado';
-    pingHud.style.color = '#f87171';
-    this.remotePlayer.setVisible(false);
-  }
-
-  private handleNetworkError(err: Error): void {
-    console.warn('[PeerNetwork Error]:', err);
-  }
-
-  private handleNetworkData(buffer: ArrayBuffer): void {
+  // Desempaque y procesamiento de paquetes binarios
+  private handleNetworkPacket(buffer: ArrayBuffer): void {
     const view = new DataView(buffer);
     if (view.byteLength === 0) return;
 
-    const packetType = view.getUint8(0);
+    const type = view.getUint8(0);
 
-    switch (packetType) {
-      case PacketType.MOVE_13_BYTE:
-        BinaryProtocol.unpackMove13(view, this.tempTransform);
-        this.remotePlayer.targetX = this.tempTransform.x;
-        this.remotePlayer.targetZ = this.tempTransform.z;
-        this.remotePlayer.targetYaw = this.tempTransform.yaw;
-        break;
-
-      case PacketType.STATE_FULL_17_BYTE:
-        BinaryProtocol.unpackFullState17(view, this.tempFullState);
-        this.remotePlayer.targetX = this.tempFullState.x;
-        this.remotePlayer.targetY = this.tempFullState.y;
-        this.remotePlayer.targetZ = this.tempFullState.z;
-        this.remotePlayer.targetYaw = this.tempFullState.yaw;
-        break;
-
-      case PacketType.BLOCK_CHANGE_5_BYTE:
-        BinaryProtocol.unpackBlockChange5(view, this.tempBlockChange);
-        if (this.tempBlockChange.blockType > 0) {
-          this.world.placeBlock(
-            this.tempBlockChange.x,
-            this.tempBlockChange.y,
-            this.tempBlockChange.z,
-            0xf43f5e // Bloque colocado por el compañero en color distintivo
-          );
+    if (this.network.isHost) {
+      // HOST RECIBE:
+      if (type === MessageType.CLIENT_INPUT) {
+        Protocol.unpackInput(view, this.tempInput);
+        this.clientLatestInput.deltaX = this.tempInput.deltaX;
+        this.clientLatestInput.deltaZ = this.tempInput.deltaZ;
+        this.clientLatestInput.yaw = this.tempInput.yaw;
+      } else if (type === MessageType.BLOCK_MOD) {
+        Protocol.unpackBlockMod(view, this.tempBlockMod);
+        // El Host valida autoritativamente la distancia antes de aplicar
+        this.handleAuthoritativeBlockMod(this.tempBlockMod.action, this.tempBlockMod.x, this.tempBlockMod.y, this.tempBlockMod.z);
+      }
+    } else {
+      // CLIENTE RECIBE:
+      if (type === MessageType.HOST_SNAPSHOT) {
+        Protocol.unpackSnapshot(view, this.tempSnapshot);
+        // Actualizar posición autoritativa del Host en el avatar remoto
+        this.remoteAvatar.setTarget(
+          this.tempSnapshot.hostX,
+          this.tempSnapshot.hostY,
+          this.tempSnapshot.hostZ,
+          this.tempSnapshot.hostYaw
+        );
+        // Conciliación del jugador local (si la desviación del cliente es excesiva)
+        const dx = Math.abs(this.localPlayer.x - this.tempSnapshot.clientX);
+        const dz = Math.abs(this.localPlayer.z - this.tempSnapshot.clientZ);
+        if (dx > 2.0 || dz > 2.0) {
+          this.localPlayer.x = this.tempSnapshot.clientX;
+          this.localPlayer.y = this.tempSnapshot.clientY;
+          this.localPlayer.z = this.tempSnapshot.clientZ;
         }
-        break;
+      } else if (type === MessageType.BLOCK_MOD) {
+        Protocol.unpackBlockMod(view, this.tempBlockMod);
+        if (this.tempBlockMod.action === 0) {
+          this.voxelMap.destroyBlock(this.tempBlockMod.x, this.tempBlockMod.y, this.tempBlockMod.z);
+        } else {
+          this.voxelMap.placeBlock(this.tempBlockMod.x, this.tempBlockMod.y, this.tempBlockMod.z, 0xf43f5e);
+        }
+      }
     }
   }
 
-  private onUpdate(deltaTime: number): void {
-    // 1. Sincronizar rotación con input
-    this.localPlayer.yaw = this.input.yaw;
+  // Validación y ejecución autoritativa de bloques por parte del Host
+  private handleAuthoritativeBlockMod(action: number, x: number, y: number, z: number): void {
+    if (!this.network.isHost) return;
 
-    // 2. Físicas desacopladas a 30 Hz con colisiones AABB
-    this.physics.update(
-      deltaTime,
-      this.localPlayer,
-      this.input.moveX,
-      this.input.moveZ,
-      this.input.jump
-    );
+    if (action === 0) {
+      if (this.voxelMap.destroyBlock(x, y, z)) {
+        // Broadcast a clientes
+        this.network.send(Protocol.packBlockMod(0, x, y, z));
+      }
+    } else {
+      if (this.voxelMap.placeBlock(x, y, z, 0xf43f5e)) {
+        // Broadcast a clientes
+        this.network.send(Protocol.packBlockMod(1, x, y, z));
+      }
+    }
+  }
 
-    // 3. Posicionar cámara en primera/tercera persona
+  // Interacción de bloques mediante Raycaster
+  private initInteractionEvents(): void {
+    // La detección de romper/colocar se evalúa en el loop de actualización
+  }
+
+  private performRaycast(isBreak: boolean): void {
+    this.raycaster.setFromCamera(this.screenCenter, this.sceneManager.camera);
+    const intersects = this.raycaster.intersectObject(this.voxelMap.instancedMesh, false);
+
+    if (intersects.length > 0) {
+      const hit = intersects[0];
+      if (hit.instanceId === undefined || hit.distance > 7.0) return;
+
+      if (this.voxelMap.getCoordinatesFromInstance(hit.instanceId, this.tempCoord)) {
+        if (isBreak) {
+          // Destruir bloque interceptado
+          if (this.network.isHost) {
+            this.handleAuthoritativeBlockMod(0, this.tempCoord.x, this.tempCoord.y, this.tempCoord.z);
+          } else {
+            // Solicitar al Host
+            this.network.send(Protocol.packBlockMod(0, this.tempCoord.x, this.tempCoord.y, this.tempCoord.z));
+          }
+        } else if (hit.face) {
+          // Colocar en la celda adyacente según la normal de la cara
+          const nx = Math.round(hit.face.normal.x);
+          const ny = Math.round(hit.face.normal.y);
+          const nz = Math.round(hit.face.normal.z);
+          const placeX = this.tempCoord.x + nx;
+          const placeY = this.tempCoord.y + ny;
+          const placeZ = this.tempCoord.z + nz;
+
+          if (this.network.isHost) {
+            this.handleAuthoritativeBlockMod(1, placeX, placeY, placeZ);
+          } else {
+            this.network.send(Protocol.packBlockMod(1, placeX, placeY, placeZ));
+          }
+        }
+      }
+    }
+  }
+
+  private update(deltaTime: number): void {
+    this.sceneManager.stats.begin();
+
+    // 1. Sincronizar rotación local
+    this.localPlayer.yaw = this.controls.yaw;
+
+    // 2. Físicas autoritativas (30 Hz desacopladas)
+    if (this.network.isHost) {
+      // Simular física del Host (jugador local)
+      this.physics.update(
+        deltaTime,
+        this.localPlayer,
+        this.controls.deltaX,
+        this.controls.deltaZ,
+        this.controls.jump
+      );
+
+      // Simular física del Cliente remoto usando sus inputs recibidos
+      this.clientEntityState.yaw = this.clientLatestInput.yaw;
+      this.physics.update(
+        deltaTime,
+        this.clientEntityState,
+        this.clientLatestInput.deltaX,
+        this.clientLatestInput.deltaZ,
+        false
+      );
+
+      // El avatar remoto en el Host representa la posición calculada del cliente
+      this.remoteAvatar.setTarget(
+        this.clientEntityState.x,
+        this.clientEntityState.y,
+        this.clientEntityState.z,
+        this.clientEntityState.yaw
+      );
+    } else {
+      // Lado Cliente: Predicción local suave
+      this.physics.update(
+        deltaTime,
+        this.localPlayer,
+        this.controls.deltaX,
+        this.controls.deltaZ,
+        this.controls.jump
+      );
+    }
+
+    // 3. Posicionamiento de cámara en primera persona
     const eyeHeight = 1.6;
     const camX = this.localPlayer.x;
     const camY = this.localPlayer.y + eyeHeight;
     const camZ = this.localPlayer.z;
 
-    this.engine.camera.position.set(camX, camY, camZ);
+    this.sceneManager.camera.position.set(camX, camY, camZ);
 
-    // Dirección de la mirada según yaw y pitch
-    const lookDirX = -Math.sin(this.input.yaw) * Math.cos(this.input.pitch);
-    const lookDirY = Math.sin(this.input.pitch);
-    const lookDirZ = -Math.cos(this.input.yaw) * Math.cos(this.input.pitch);
+    const lookDirX = -Math.sin(this.controls.yaw) * Math.cos(this.controls.pitch);
+    const lookDirY = Math.sin(this.controls.pitch);
+    const lookDirZ = -Math.cos(this.controls.yaw) * Math.cos(this.controls.pitch);
 
-    this.engine.camera.lookAt(
+    this.sceneManager.camera.lookAt(
       camX + lookDirX * 10,
       camY + lookDirY * 10,
       camZ + lookDirZ * 10
     );
 
-    // 4. Acción de colocar bloque frente a la mirada
-    if (this.actionCooldown > 0) {
-      this.actionCooldown -= deltaTime;
-    } else if (this.input.action) {
-      this.actionCooldown = 0.3; // Cooldown de 300 ms para evitar spam
-      const targetBlockX = Math.floor(camX + lookDirX * 2.5);
-      const targetBlockY = Math.max(1, Math.floor(camY + lookDirY * 2.5));
-      const targetBlockZ = Math.floor(camZ + lookDirZ * 2.5);
+    // 4. Procesar acciones de bloques
+    if (this.controls.breakAction) {
+      this.performRaycast(true);
+      this.controls.breakAction = false;
+    }
+    if (this.controls.placeAction) {
+      this.performRaycast(false);
+      this.controls.placeAction = false;
+    }
 
-      if (this.world.placeBlock(targetBlockX, targetBlockY, targetBlockZ, 0x38bdf8)) {
-        // Enviar evento de bloque a través del DataChannel
-        const blockPkt = BinaryProtocol.packBlockChange5(targetBlockX, targetBlockY, targetBlockZ, 1);
-        this.network.send(blockPkt);
+    // 5. Suavizado del avatar remoto a 60 FPS
+    this.remoteAvatar.update(deltaTime);
+
+    // 6. Transmisión de red
+    this.netBroadcastTimer += deltaTime;
+    if (this.netBroadcastTimer >= 1 / 30) {
+      this.netBroadcastTimer = 0;
+
+      if (this.network.isHost) {
+        // Host transmite el Snapshot autoritativo a 30 Hz
+        const snapshotPkt = Protocol.packSnapshot(
+          this.localPlayer.x, this.localPlayer.y, this.localPlayer.z, this.localPlayer.yaw,
+          this.clientEntityState.x, this.clientEntityState.y, this.clientEntityState.z, this.clientEntityState.yaw
+        );
+        this.network.send(snapshotPkt);
+      } else {
+        // Cliente envía su paquete de movimiento de 13 bytes a 30 Hz
+        const inputPkt = Protocol.packInput(
+          this.controls.deltaX,
+          this.controls.deltaZ,
+          this.controls.yaw
+        );
+        this.network.send(inputPkt);
       }
     }
 
-    // 5. Suavizado (Lerp) del jugador remoto a 60 FPS
-    this.remotePlayer.update(deltaTime);
+    // 7. Renderizado Three.js
+    this.sceneManager.render();
 
-    // 6. Transmisión de red a 30 Hz (Cero GC con Float32Array / DataView)
-    this.netSendTimer += deltaTime;
-    if (this.netSendTimer >= 1 / 30) {
-      this.netSendTimer = 0;
-      // Usar paquete completo de 17 bytes para posición 3D real
-      const packet = BinaryProtocol.packFullState17(
-        this.localPlayer.x,
-        this.localPlayer.y,
-        this.localPlayer.z,
-        this.localPlayer.yaw
-      );
-      this.network.send(packet);
-    }
+    // 8. Actualización de métricas
+    this.ui.updateMetrics(this.sceneManager.getDrawCalls(), this.sceneManager.getTriangles());
 
-    // 7. Actualización del HUD de rendimiento
-    const drawCallsEl = document.getElementById('draw-calls');
-    const triCountEl = document.getElementById('tri-count');
-    if (drawCallsEl) drawCallsEl.textContent = `Calls: ${this.engine.getDrawCalls()}`;
-    if (triCountEl) triCountEl.textContent = `Tris: ${this.engine.getTriangles().toLocaleString()}`;
+    this.sceneManager.stats.end();
   }
 }
 
-// Inicializar al cargar el DOM
 window.addEventListener('DOMContentLoaded', () => {
-  new GameApp();
+  new VoxelSandboxApp();
 });

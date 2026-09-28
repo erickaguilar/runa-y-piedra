@@ -6,6 +6,9 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
 
 ## Índice de Documentos
 
+0. [**00. Especificación Maestra de Arquitectura e Implementación**](./00-especificacion-maestra.md)
+   - Requerimientos completos del proyecto, mapa 24x24, paquetes exactos de 13 y 14 bytes, Raycaster autoritativo, roles y prompt de acción.
+
 1. [**01. Requerimientos de Hardware y Presupuesto de Rendimiento**](./01-hardware-y-presupuesto-rendimiento.md)
    - Perfil de hardware móvil objetivo (gama de entrada/media: 3-4 GB RAM, WebGL 2.0).
    - Presupuesto estricto: Draw Calls (20-40), Triángulos (15k-40k), memoria Heap (<120 MB) y DPR limit ($\le 1.25$).

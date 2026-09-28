@@ -1,43 +1,39 @@
 import Peer, { DataConnection } from 'peerjs';
 
-export interface NetworkCallbacks {
+export interface NetworkEvents {
   onConnected: (peerId: string) => void;
   onDisconnected: () => void;
   onData: (buffer: ArrayBuffer) => void;
-  onError: (err: Error) => void;
+  onError: (error: Error) => void;
 }
 
-export class PeerNetwork {
+export class NetworkManager {
   public peer: Peer | null = null;
   public connection: DataConnection | null = null;
   public isHost = false;
-  public roomId = '';
+  public roomPin = '';
 
-  private callbacks: NetworkCallbacks;
+  private events: NetworkEvents;
 
-  constructor(callbacks: NetworkCallbacks) {
-    this.callbacks = callbacks;
+  constructor(events: NetworkEvents) {
+    this.events = events;
   }
 
-  // Genera un código PIN de 4 dígitos para fácil tipeo en celular
-  public static generateRoomPin(): string {
+  public static generatePin(): string {
     return Math.floor(1000 + Math.random() * 9000).toString();
   }
 
-  // 1. Iniciar como Host
-  public startHost(pin?: string): Promise<string> {
+  // 1. Iniciar como Host autoritativo
+  public createHost(pin?: string): Promise<string> {
     this.isHost = true;
-    const roomCode = pin || PeerNetwork.generateRoomPin();
-    const peerId = `vox-${roomCode}`;
-    this.roomId = roomCode;
+    this.roomPin = pin || NetworkManager.generatePin();
+    const peerId = `SALA-${this.roomPin}`;
 
     return new Promise((resolve, reject) => {
-      this.peer = new Peer(peerId, {
-        debug: 1
-      });
+      this.peer = new Peer(peerId, { debug: 1 });
 
       this.peer.on('open', () => {
-        resolve(roomCode);
+        resolve(this.roomPin);
       });
 
       this.peer.on('connection', (conn) => {
@@ -45,39 +41,39 @@ export class PeerNetwork {
       });
 
       this.peer.on('error', (err) => {
-        this.callbacks.onError(err);
+        this.events.onError(err);
         reject(err);
       });
     });
   }
 
-  // 2. Unirse como Cliente
-  public joinRoom(roomCode: string): Promise<void> {
+  // 2. Conectar como Cliente
+  public join(pin: string): Promise<void> {
     this.isHost = false;
-    this.roomId = roomCode;
-    const hostPeerId = `vox-${roomCode}`;
+    this.roomPin = pin;
+    const targetId = `SALA-${pin}`;
 
     return new Promise((resolve, reject) => {
-      this.peer = new Peer({
-        debug: 1
-      });
+      this.peer = new Peer({ debug: 1 });
 
       this.peer.on('open', () => {
         if (!this.peer) return;
-        // Configurar conexión WebRTC de alto rendimiento (UDP-like, binario en crudo)
-        const conn = this.peer.connect(hostPeerId, {
-          reliable: false, // Modo UDP no confiable/rápido
-          serialization: 'none' // Permite transferir ArrayBuffer directamente sin JSON
+
+        // Canal WebRTC optimizado: UDP-like, sin retransmisión y binario en crudo
+        const conn = this.peer.connect(targetId, {
+          reliable: false,
+          serialization: 'none'
         });
 
         this.setupConnection(conn);
+
         conn.on('open', () => {
           resolve();
         });
       });
 
       this.peer.on('error', (err) => {
-        this.callbacks.onError(err);
+        this.events.onError(err);
         reject(err);
       });
     });
@@ -87,23 +83,23 @@ export class PeerNetwork {
     this.connection = conn;
 
     conn.on('open', () => {
-      this.callbacks.onConnected(conn.peer);
+      this.events.onConnected(conn.peer);
     });
 
     conn.on('data', (data) => {
       if (data instanceof ArrayBuffer) {
-        this.callbacks.onData(data);
+        this.events.onData(data);
       } else if (ArrayBuffer.isView(data)) {
-        this.callbacks.onData((data as Uint8Array).buffer as ArrayBuffer);
+        this.events.onData((data as Uint8Array).buffer as ArrayBuffer);
       }
     });
 
     conn.on('close', () => {
-      this.callbacks.onDisconnected();
+      this.events.onDisconnected();
     });
 
     conn.on('error', (err) => {
-      this.callbacks.onError(err);
+      this.events.onError(err);
     });
   }
 
@@ -113,7 +109,7 @@ export class PeerNetwork {
     }
   }
 
-  public close(): void {
+  public disconnect(): void {
     if (this.connection) {
       this.connection.close();
       this.connection = null;
