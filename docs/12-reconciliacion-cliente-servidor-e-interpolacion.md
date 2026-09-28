@@ -32,9 +32,19 @@ En arquitecturas P2P o servidor autoritativo, existen dos alternativas extremas:
 
 ## 2. Estructura de Paquetes en Protocolo v2.2
 
-Para sincronizar la física vertical autoritativa (saltos y caídas al abismo) y evitar divergencias en cadena, se ampliaron 5 bytes por entidad en el paquete `SNAPSHOT` en [`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js), alcanzando 24 bytes por entidad (con compatibilidad retroactiva con 19 y 17 bytes):
+### Paquete `INPUT` (16 bytes - Cliente a Host @ 30 Hz)
+- `Offset 0` (`Uint8`): `0x01` (`MSG.INPUT`)
+- `Offset 1-2` (`Uint16`): Número de secuencia cíclico `seq` del input
+- `Offset 3-6` (`Float32`): Movimiento lateral `dx` (strafe derecho/izquierdo)
+- `Offset 7-10` (`Float32`): Movimiento longitudinal `dz` (avance/retroceso)
+- `Offset 11-14` (`Float32`): Rotación `yaw` de la cámara en radianes
+- `Offset 15` (`Uint8`): Bitmask de acciones edge-triggered (`ACTION_FLAGS`):
+  - `0x01`: `JUMP` (impulso vertical)
+  - `0x02`: `DESTROY` (destrucción de vóxel)
+  - `0x04`: `PLACE` (colocación de vóxel)
+  - `0x08`: `INTERACT` (cofres, puertas, palancas)
 
-### Paquete `SNAPSHOT` (24 bytes por entidad)
+### Paquete `SNAPSHOT` (24 bytes por entidad - Host a Clientes @ 20 Hz)
 - `Offset 0` (`Uint8`): `0x02` (`MSG.SNAPSHOT`)
 - `Offset 1-2` (`Uint16`): Número de secuencia cíclico `seq` del snapshot
 - `Offset 3-6` (`Uint32`): Timestamp de simulación (`simTime` en ms)
@@ -51,16 +61,22 @@ Para sincronizar la física vertical autoritativa (saltos y caídas al abismo) y
 
 ---
 
-## 3. Buffer de Jitter y Sanitización de Inputs en el Host (`InputQueue.js`)
+## 3. Buffer de Jitter, Rate Limiting y Sanitización en el Host (`InputQueue.js`)
 
 Los navegadores móviles ejecutan temporizadores con fluctuaciones naturales ($\pm 5\text{ a }15\text{ ms}$). Sin un buffer de jitter, el host recibiría 0 inputs en un tick y 2 en el siguiente, provocando micro-tirones visuales.
 
 [`InputQueue.js`](file:///data/data/com.termux/files/home/develop/game/src/network/InputQueue.js) resuelve esto mediante:
 1. **Desacoplamiento Temporal**: Encola los inputs recibidos por conexión WebRTC y entrega exactamente **un input por tick de simulación (30 Hz)** en el host.
-2. **Sanitización y Anti-Speedhack**:
+2. **Profundidad Máxima de Cola**: Limitada estrictamente a 5 inputs ($\sim 166\text{ ms}$). Si un cliente laggy acumula exceso de paquetes, se descartan los más viejos para evitar retraso acumulativo en cámara lenta.
+3. **Rate Limiting por Conexión**: Límite de 45 inputs/segundo por peer para prevenir saturación de ancho de banda o spam malicioso.
+4. **Sanitización y Anti-Speedhack**:
    - Clamping del vector de movimiento: si $\sqrt{dx^2 + dz^2} > 1.0$, se normaliza a magnitud $1.0$.
    - Normalización angular de Yaw al rango canónico $[-\pi, \pi]$.
-3. **Amortiguación Suave ante Pérdidas**: Si un tick no cuenta con input nuevo por jitter extremo, decae el último input conocido al $85\%$ hasta detenerse suavemente ($0\text{ m/s}$), evitando que el avatar continúe corriendo indefinidamente contra paredes.
+5. **Retención de Velocidad y Decaimiento Suave**:
+   - Mantiene la velocidad completa durante los primeros **3 ticks** de pérdida ($\sim 100-130\text{ ms}$) para absorber micro-jitter de Wi-Fi sin frenazos bruscos.
+   - Aplica decaimiento del $15\%$ por tick a partir del 4º tick.
+   - Detiene por completo al avatar tras 30 ticks ($\sim 1\text{ s}$) sin paquetes.
+   - Las acciones (`actions`) son estrictamente forzadas a `0` en ticks repetidos, asegurando que un salto nunca se dispare por duplicado.
 
 ---
 
@@ -68,22 +84,26 @@ Los navegadores móviles ejecutan temporizadores con fluctuaciones naturales ($\
 
 El proceso en [`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js) opera en tiempo de tick y render:
 
-1. **Registro Continuo de Inputs (`recordInput`)**:
-   En cada tick de física (`onTick` a 30 Hz), con $\Delta t$ fijo idéntico al del host ($1/30\text{ s}$):
-   $$\text{pendingInputs.push}(\{ \text{seq}, \Delta t_{\text{fijo}}, \text{forward}, \text{right}, \text{yaw}, \text{time} \})$$
-2. **Descarte de Inputs Confirmados**:
+1. **Guarda Monotónica**: Descarte de snapshots que lleguen con timestamp desfasado o fuera de orden (`simTime <= lastProcessedSimTime`).
+2. **Registro Continuo de Inputs (`recordInput`)**:
+   En cada tick de física (`onTick` a 30 Hz), con $\Delta t$ fijo idéntico al del host ($1/30\text{ s}$) y flags de acción:
+   $$\text{pendingInputs.push}(\{ \text{seq}, \Delta t_{\text{fijo}}, \text{forward}, \text{right}, \text{yaw}, \text{actions}, \text{time} \})$$
+3. **Descarte de Inputs Confirmados**:
    $$\text{pendingInputs} = \text{pendingInputs.filter}(\text{inp} \to \text{inp.seq} > \text{lastInputSeq})$$
-3. **Simulación de Replay Determinista (Zero-GC)**:
-   Se utiliza un `ghostPlayer` pre-asignado que comienza en la coordenada autoritativa $(X_h, Y_h, Z_h)$ e **inicializa su velocidad vertical (`velY`) y estado `onGround` autoritativos**. Se itera sobre todos los inputs pendientes en vuelo ejecutando `simulationEngine.integratePlayer(ghost, inp.dt)`.
-4. **Cálculo y Resolución de Error de Predicción**:
+4. **Simulación de Replay Determinista (Zero-GC)**:
+   Se utiliza un `ghostPlayer` pre-asignado que comienza en la coordenada autoritativa $(X_h, Y_h, Z_h)$, inicializa su velocidad vertical (`velY`) y estado `onGround`, y alinea su `yaw` con el último input pendiente en vuelo para no girar hacia atrás. Se itera sobre todos los inputs pendientes en vuelo ejecutando `simulationEngine.integratePlayer(ghost, inp.dt, inp.actions)`.
+5. **Corrección Tri-Banda de Error de Predicción**:
    $$\Delta_{\text{error}} = \sqrt{(X_{\text{ghost}} - X_{\text{local}})^2 + (Y_{\text{ghost}} - Y_{\text{local}})^2 + (Z_{\text{ghost}} - Z_{\text{local}})^2}$$
-   - **Zona de Tolerancia ($\Delta_{\text{error}} \le 0.09\text{ m}$)**: Tolerancia calibrada a medio tick de movimiento regular ($\sim 0.16\text{ m}$ por tick a $4.8\text{ m/s}$). Absorbe jitter de red sin disparar micro-ajustes innecesarios.
-   - **Zona de Corrección Suave ($0.09\text{ m} < \Delta_{\text{error}} \le 2.5\text{ m}$)**: Se sincronizan las posiciones ($X, Y, Z$) y la física vertical (`vel.y` y `onGround`) recalculadas por el replay, registrando la corrección en la telemetría.
-   - **Zona de Teletransporte / Reaparición ($\Delta_{\text{error}} > 2.5\text{ m}$)**: Desfase crítico por caída al abismo o respawn. Se fuerza la posición autoritativa instantánea y se limpia el buffer de inputs pendientes.
+   - **Zona de Tolerancia ($\Delta_{\text{error}} \le 0.09\text{ m}$)**: Tolerancia calibrada a medio tick de movimiento regular. Cero corrección, fluidez máxima.
+   - **Zona de Mezcla Suave ($0.09\text{ m} < \Delta_{\text{error}} \le 1.0\text{ m}$)**: Corrección geométrica suave interpolada en $\sim 3\text{ frames}$ ($t = 0.35$):
+     $$\vec{P}_{\text{local}} \gets \vec{P}_{\text{local}} + (\vec{P}_{\text{ghost}} - \vec{P}_{\text{local}}) \cdot 0.35$$
+     Elimina por completo cualquier "pop" o salto visual perceptible. Registra `Soft/s`.
+   - **Zona de Snap Directo ($1.0\text{ m} < \Delta_{\text{error}} \le 2.5\text{ m}$)**: Se adopta inmediatamente la posición del replay. Registra `Soft/s`.
+   - **Zona de Teletransporte / Rescate ($\Delta_{\text{error}} > 2.5\text{ m}$)**: Caída al abismo, respawn o cambio de sala. Snap autoritativo instantáneo y vaciado de inputs pendientes. Registra `Tele/s`.
 
 ---
 
-## 5. Interpolación Temporal y Extrapolación de Seguridad en Entidades Remotas
+## 5. Interpolación Temporal, Extrapolación y Estado Visual de Inanición
 
 Para compañeros de equipo en la mazmorra:
 1. **Tiempo Objetivo de Renderizado**:
@@ -91,7 +111,9 @@ Para compañeros de equipo en la mazmorra:
 2. **Interpolación Lineal y Angular**:
    Si $t_{\text{render}}$ se encuentra entre dos snapshots $S_0$ y $S_1$, se interpola con corrección circular del ángulo yaw más corto.
 3. **Extrapolación Lineal de Seguridad ante Inanición**:
-   Si una ráfaga de retraso en la red hace que $t_{\text{render}} > S_{\text{último}}.\text{time}$, en lugar de congelar bruscamente al avatar, el reconciliador extrapola su posición usando la velocidad del último intervalo hasta un máximo estricto de **$150\text{ ms}$**, preservando la fluidez sin proyectar entidades a través de muros.
+   Si una ráfaga de retraso en la red hace que $t_{\text{render}} > S_{\text{último}}.\text{time}$, el reconciliador extrapola cinemáticamente hasta un máximo estricto de **$150\text{ ms}$**.
+4. **Indicador Visual de Congelamiento**:
+   Si la inanición supera los $500\text{ ms}$, [`AvatarRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/AvatarRenderer.js) atenúa el avatar al $55\%$ de opacidad (`setFrozen(id, true)`), señalando visualmente el estado de lag sin romper la inmersión.
 
 ---
 
@@ -99,6 +121,7 @@ Para compañeros de equipo en la mazmorra:
 
 El monitor [`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js) reporta en tiempo real:
 
-* **`Pred Err`**: Desfase métrico instantáneo (ej. `0.015 m`). Coloreado en azul celeste ($\le 0.09\text{ m}$) o ámbar ($> 0.09\text{ m}$).
-* **`In Flight`**: Número de paquetes de input enviados pendientes de ack (típicamente 1 a 3 a 30 Hz).
-* **`Corr/s`**: Frecuencia de correcciones físicas por segundo (0/s en movimiento libre; incrementa de forma transparente en colisiones imprevistas).
+* **`Pred Err`**: Desfase métrico instantáneo a 3 decimales (ej. `0.012 m`).
+* **`In Flight`**: Número de paquetes de input enviados pendientes de ack (típicamente 1 a 3).
+* **`Soft`**: Tasa de correcciones suaves por segundo ($< 2.5\text{ m}$).
+* **`Tele`**: Tasa de teletransportes o reapariciones por segundo ($> 2.5\text{ m}$).

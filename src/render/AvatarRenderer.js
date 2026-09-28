@@ -124,6 +124,16 @@ export class AvatarRenderer {
     }
   }
 
+  setFrozen(id, isFrozen = false) {
+    const a = this.avatars.get(id);
+    if (!a) return;
+    if (a.isFrozen !== isFrozen) {
+      a.isFrozen = isFrozen;
+      a.mesh.material.opacity = isFrozen ? 0.55 : 1.0;
+      a.mesh.material.transparent = isFrozen;
+    }
+  }
+
   /** dt en segundos; usa un factor independiente del framerate. */
   update(dt) {
     const t = 1 - Math.pow(0.0001, dt); // lerp rápido y estable

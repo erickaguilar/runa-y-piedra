@@ -23,30 +23,48 @@ export const MSG = {
   LEVEL_CHANGE: 0x0B, // Dynamic map change in hot state
 };
 
+export const ACTION_FLAGS = {
+  JUMP:     0x01,
+  DESTROY:  0x02,
+  PLACE:    0x04,
+  INTERACT: 0x08,
+};
+
 // ==========================================
-// 1. INPUT (Hot Path - Zero-GC Buffer Reutilizable)
-// [type:1][seq:2][f32 dx:4][f32 dz:4][f32 yaw:4] -> 15 bytes
+// 1. INPUT (Hot Path - Zero-GC Buffer Reutilizable v2.2)
+// [type:1][seq:2][f32 dx:4][f32 dz:4][f32 yaw:4][u8 actions:1] -> 16 bytes
 // ==========================================
-const inputBuffer = new ArrayBuffer(15);
+const inputBuffer = new ArrayBuffer(16);
 const inputView = new DataView(inputBuffer);
 
-export function serializeInput(seq = 0, dx = 0, dz = 0, yaw = 0) {
+export function serializeInput(seq = 0, dx = 0, dz = 0, yaw = 0, actions = 0) {
   inputView.setUint8(0, MSG.INPUT);
   inputView.setUint16(1, seq & 0xFFFF, true);
   inputView.setFloat32(3, dx, true);
   inputView.setFloat32(7, dz, true);
   inputView.setFloat32(11, yaw, true);
+  inputView.setUint8(15, actions & 0xFF);
   return inputBuffer;
 }
 
 export function deserializeInput(buf) {
   const v = buf instanceof DataView ? buf : new DataView(buf);
+  if (v.byteLength >= 16) {
+    return {
+      seq: v.getUint16(1, true),
+      dx: v.getFloat32(3, true),
+      dz: v.getFloat32(7, true),
+      yaw: v.getFloat32(11, true),
+      actions: v.getUint8(15),
+    };
+  }
   if (v.byteLength >= 15) {
     return {
       seq: v.getUint16(1, true),
       dx: v.getFloat32(3, true),
       dz: v.getFloat32(7, true),
       yaw: v.getFloat32(11, true),
+      actions: 0,
     };
   }
   // Compatibilidad con paquetes antiguos de 13 bytes sin seq
@@ -55,6 +73,7 @@ export function deserializeInput(buf) {
     dx: v.getFloat32(1, true),
     dz: v.getFloat32(5, true),
     yaw: v.getFloat32(9, true),
+    actions: 0,
   };
 }
 

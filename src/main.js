@@ -47,7 +47,7 @@ class VoxelSandboxGame {
     // 3. Controles
     this.input = new InputManager({
       canvas: this.canvas,
-      onJump: () => this.handleJump(),
+      onJump: null,
       onInteract: () => this.handleInteract(),
     });
 
@@ -406,15 +406,7 @@ class VoxelSandboxGame {
   }
 
   initNetworkTimers() {
-    // 1. Envío de inputs (Cliente -> Host @ 30 Hz con sequence number)
-    setInterval(() => {
-      if (this.mode !== 'client') return;
-      const local = this.playerManager.localPlayer;
-      this.inputSeq = (this.inputSeq + 1) & 0xFFFF;
-      this.network.sendToHost(Proto.serializeInput(this.inputSeq, local.inputRight, local.inputForward, local.yaw));
-    }, 1000 / NET_CONFIG.INPUT_HZ);
-
-    // 2. Broadcast de snapshots (Host -> Clientes @ 20 Hz con sequence number)
+    // Broadcast de snapshots (Host -> Clientes @ 20 Hz con sequence number)
     setInterval(() => {
       if (this.mode !== 'host') return;
       this.snapshotSeq = (this.snapshotSeq + 1) & 0xFFFF;
@@ -439,12 +431,14 @@ class VoxelSandboxGame {
         local.setInput(move.forward, move.right, this.input.yaw);
         local.pitch = this.input.pitch;
 
-        if (this.input.consumeJump()) {
-          this.handleJump();
-        }
+        // Muestreo determinista edge-triggered de acciones en el inicio del tick
+        const jumpAction = this.input.consumeJump() ? Proto.ACTION_FLAGS.JUMP : 0;
 
         if (this.mode === 'host') {
-          // Desacoplar jitter de red consumiendo exactamente 1 input sanitizado por tick (30 Hz)
+          // 1. Simular jugador local del Host aplicando su acción
+          this.simulation.integratePlayer(local, dt, jumpAction);
+
+          // 2. Desacoplar jitter de red consumiendo exactamente 1 input sanitizado por tick (30 Hz)
           for (const [conn, pid] of this.playerManager.connToPlayerId.entries()) {
             const remotePlayer = this.playerManager.players.get(pid);
             if (!remotePlayer) continue;
@@ -452,13 +446,37 @@ class VoxelSandboxGame {
             if (clientInput) {
               remotePlayer.setInput(clientInput.dz, clientInput.dx, clientInput.yaw);
               remotePlayer.lastInputSeq = clientInput.seq || 0;
+              this.simulation.integratePlayer(remotePlayer, dt, clientInput.actions || 0);
+            } else {
+              this.simulation.integratePlayer(remotePlayer, dt, 0);
             }
           }
-          this.simulation.stepHost(this.playerManager, dt);
         } else if (this.mode === 'client') {
-          // Registrar input en el buffer de predicción local con dt fijo
-          this.reconciler.recordInput(this.inputSeq, dt, local.inputForward, local.inputRight, local.yaw);
-          this.simulation.stepClient(this.playerManager, dt);
+          this.inputSeq = (this.inputSeq + 1) & 0xFFFF;
+
+          // 1. Enviar input autoritativo con flags de acción al Host en lockstep con el tick de física
+          this.network.sendToHost(
+            Proto.serializeInput(
+              this.inputSeq,
+              local.inputRight,
+              local.inputForward,
+              local.yaw,
+              jumpAction
+            )
+          );
+
+          // 2. Registrar input en el buffer de predicción local con dt fijo y flags de acción
+          this.reconciler.recordInput(
+            this.inputSeq,
+            dt,
+            local.inputForward,
+            local.inputRight,
+            local.yaw,
+            jumpAction
+          );
+
+          // 3. Simular predicción local con la misma acción
+          this.simulation.integratePlayer(local, dt, jumpAction);
         }
       },
       onRender: (dt) => {
@@ -475,7 +493,8 @@ class VoxelSandboxGame {
             this.network.stats.setReconciliationStats(
               rStats.predictionError,
               rStats.inputsInFlight,
-              rStats.correctionsPerSec
+              rStats.softCorrectionsPerSec,
+              rStats.teleportsPerSec
             );
           }
 

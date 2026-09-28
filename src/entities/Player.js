@@ -14,6 +14,7 @@ export class Player {
     this.inputForward = 0;
     this.inputRight = 0;
     this.lastInputSeq = 0;
+    this.pendingActions = 0;
     this.checkpoint = { x, y: 1.2, z, roomName: 'Sala 1 (Vestíbulo)' };
   }
 
@@ -22,10 +23,13 @@ export class Player {
     this.hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
   }
 
-  setInput(forward, right, yaw = this.yaw) {
+  setInput(forward, right, yaw = this.yaw, actions = 0) {
     this.inputForward = forward;
     this.inputRight = right;
     this.yaw = yaw;
+    if (actions) {
+      this.pendingActions |= actions;
+    }
   }
 
   setCheckpoint(x, y, z, roomName = 'Punto de Control') {
@@ -46,6 +50,7 @@ export class Player {
     this.vel.y = 0;
     this.vel.z = 0;
     this.onGround = false;
+    this.pendingActions = 0;
     return cp;
   }
 
@@ -57,6 +62,7 @@ export class Player {
     this.vel.y = 0;
     this.vel.z = 0;
     this.onGround = false;
+    this.pendingActions = 0;
   }
 
   toSnapshot() {

@@ -17,7 +17,8 @@ export class NetworkStats {
     // Métricas de Reconciliación (Cliente)
     this.predError = 0;
     this.inputsInFlight = 0;
-    this.correctionsPerSec = 0;
+    this.softCorrectionsPerSec = 0;
+    this.teleportsPerSec = 0;
 
     // Conteo continuo
     this.totalPacketsIn = 0;
@@ -101,10 +102,11 @@ export class NetworkStats {
     this.lastSnapshotSeq = seq;
   }
 
-  setReconciliationStats(predError = 0, inFlight = 0, correctionsPerSec = 0) {
+  setReconciliationStats(predError = 0, inFlight = 0, softCorrectionsPerSec = 0, teleportsPerSec = 0) {
     this.predError = predError;
     this.inputsInFlight = inFlight;
-    this.correctionsPerSec = correctionsPerSec;
+    this.softCorrectionsPerSec = softCorrectionsPerSec;
+    this.teleportsPerSec = teleportsPerSec;
     if (this.enabled && this.domElement) {
       this.renderDom();
     }
@@ -178,7 +180,7 @@ export class NetworkStats {
       ${this.mode === 'CLIENT' ? `
         <div style="margin-top:4px;border-top:1px dashed rgba(255,255,255,0.15);padding-top:3px;font-size:10px;">
           <div>Pred Err: <strong style="color:${this.predError > 0.09 ? '#f59e0b' : '#38bdf8'}">${(this.predError || 0).toFixed(3)} m</strong></div>
-          <div>In Flight: <strong>${this.inputsInFlight || 0}</strong> | Corr: <strong>${this.correctionsPerSec || 0}/s</strong></div>
+          <div>In Flight: <strong>${this.inputsInFlight || 0}</strong> | Soft: <strong>${this.softCorrectionsPerSec || 0}/s</strong> | Tele: <strong>${this.teleportsPerSec || 0}/s</strong></div>
         </div>
       ` : ''}
     `;

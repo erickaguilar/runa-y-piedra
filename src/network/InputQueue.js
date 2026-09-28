@@ -1,5 +1,5 @@
 /**
- * InputQueue.js - Host-side Jitter Buffer and Input Sanitizer
+ * InputQueue.js - Host-side Jitter Buffer, Rate Limiter and Input Sanitizer
  * 
  * Deserializes and buffers incoming client input packets, isolating network jitter
  * from the simulation loop. Consumes exactly one input per tick at fixed rate,
@@ -7,16 +7,30 @@
  */
 
 export class InputQueue {
-  constructor({ maxQueueSize = 12 } = {}) {
+  constructor({ maxQueueSize = 5 } = {}) {
     this.maxQueueSize = maxQueueSize;
-    // Map(conn -> Array<{ seq, dx, dz, yaw, timestamp }>)
+    // Map(conn -> Array<{ seq, dx, dz, yaw, actions, time }>)
     this.queues = new Map();
-    // Map(conn -> lastDequeuedInput)
+    // Map(conn -> { seq, dx, dz, yaw, missingTicks })
     this.lastInputs = new Map();
+    // Map(conn -> { count, windowStart })
+    this.rateLimits = new Map();
   }
 
   enqueue(conn, rawInput) {
     if (!conn) return;
+
+    // 1. Rate Limiting por conexión (máximo 45 inputs/seg para prevenir inundación)
+    const now = performance.now();
+    let rl = this.rateLimits.get(conn);
+    if (!rl || (now - rl.windowStart) >= 1000) {
+      rl = { count: 0, windowStart: now };
+      this.rateLimits.set(conn, rl);
+    }
+    rl.count++;
+    if (rl.count > 45) {
+      return; // Descartar exceso
+    }
 
     let q = this.queues.get(conn);
     if (!q) {
@@ -24,7 +38,7 @@ export class InputQueue {
       this.queues.set(conn, q);
     }
 
-    // 1. Sanitización de vector de movimiento (Anti-Speedhack y Clamping)
+    // 2. Sanitización de vector de movimiento (Anti-Speedhack y Clamping)
     let dx = Number(rawInput.dx) || 0;
     let dz = Number(rawInput.dz) || 0;
     const mag = Math.hypot(dx, dz);
@@ -33,22 +47,25 @@ export class InputQueue {
       dz /= mag;
     }
 
-    // 2. Normalización angular de Yaw a [-PI, PI]
+    // 3. Normalización angular de Yaw a [-PI, PI]
     let yaw = Number(rawInput.yaw) || 0;
     while (yaw > Math.PI) yaw -= Math.PI * 2;
     while (yaw < -Math.PI) yaw += Math.PI * 2;
+
+    const actions = (Number(rawInput.actions) || 0) & 0xFF;
 
     const sanitized = {
       seq: (rawInput.seq || 0) & 0xFFFF,
       dx,
       dz,
       yaw,
-      time: performance.now(),
+      actions,
+      time: now,
     };
 
-    // Prevenir desbordamiento de cola si el cliente satura el canal
+    // Prevenir desbordamiento de cola limitando la profundidad máxima (~166 ms buffer)
     if (q.length >= this.maxQueueSize) {
-      q.shift();
+      q.splice(0, q.length - this.maxQueueSize + 1);
     }
 
     q.push(sanitized);
@@ -60,24 +77,45 @@ export class InputQueue {
     const q = this.queues.get(conn);
     if (q && q.length > 0) {
       const input = q.shift();
-      this.lastInputs.set(conn, input);
+      this.lastInputs.set(conn, {
+        seq: input.seq,
+        dx: input.dx,
+        dz: input.dz,
+        yaw: input.yaw,
+        missingTicks: 0,
+      });
       return { ...input, isRepeated: false };
     }
 
-    // Si la cola está vacía por jitter de red, reutilizamos el último input conocido con amortiguación
+    // Si la cola está vacía por jitter de red, reutilizamos el último input
     const last = this.lastInputs.get(conn);
     if (last) {
-      last.dx *= 0.85;
-      last.dz *= 0.85;
-      if (Math.hypot(last.dx, last.dz) < 0.001) {
+      last.missingTicks = (last.missingTicks || 0) + 1;
+
+      // Tras 30 ticks (~1 seg sin inputs), detener completamente al cliente
+      if (last.missingTicks > 30) {
         last.dx = 0;
         last.dz = 0;
+        return null;
       }
+
+      // Mantener fuerza completa los primeros 3 ticks (~100-130ms) para absorber micro-jitter
+      // A partir del tick 4, aplicar decay de 15% por tick
+      if (last.missingTicks > 3) {
+        last.dx *= 0.85;
+        last.dz *= 0.85;
+        if (Math.hypot(last.dx, last.dz) < 0.001) {
+          last.dx = 0;
+          last.dz = 0;
+        }
+      }
+
       return {
         seq: last.seq,
         dx: last.dx,
         dz: last.dz,
         yaw: last.yaw,
+        actions: 0, // ¡CRÍTICO! Las acciones NUNCA se repiten en ticks duplicados
         isRepeated: true,
       };
     }
@@ -88,10 +126,12 @@ export class InputQueue {
   remove(conn) {
     this.queues.delete(conn);
     this.lastInputs.delete(conn);
+    this.rateLimits.delete(conn);
   }
 
   clear() {
     this.queues.clear();
     this.lastInputs.clear();
+    this.rateLimits.clear();
   }
 }

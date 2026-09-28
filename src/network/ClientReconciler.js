@@ -3,9 +3,10 @@
  * 
  * Implements:
  * 1. Client prediction with pending input buffer for 0-latency responsiveness.
- * 2. Server reconciliation on authoritative snapshots (replaying unacknowledged inputs).
- * 3. Snapshot buffer interpolation (~100ms) for silky-smooth remote entity rendering.
- * 4. Diagnostics telemetry (prediction error, inputs in flight, corrections/sec).
+ * 2. Server reconciliation on authoritative snapshots (replaying unacknowledged inputs with action flags).
+ * 3. Tri-band correction: tolerance (<0.09m), smooth blend (0.09-1.0m), snap/teleport (>1.0m / >2.5m).
+ * 4. Snapshot buffer interpolation (~100ms) with safe linear extrapolation (<=150ms) and visual frozen indicator.
+ * 5. Diagnostics telemetry (prediction error, inputs in flight, soft corrections/sec, teleports/sec).
  */
 
 import { PHYSICS_CONFIG } from '../config/constants.js';
@@ -13,21 +14,26 @@ import { PHYSICS_CONFIG } from '../config/constants.js';
 export class ClientReconciler {
   constructor({
     snapThreshold = 0.09,     // 9 cm (medio tick a ~5m/s) de tolerancia para absorber jitter
+    blendUpperThreshold = 1.0, // 1.0 m: límite para blend suave vs snap instantáneo
     teleportThreshold = 2.5,  // 2.5 m para teleport/reaparición forzada
     interpolationDelayMs = 100, // 100 ms de buffer temporal para entidades remotas
     maxPendingInputs = 120,
   } = {}) {
     this.snapThreshold = snapThreshold;
+    this.blendUpperThreshold = blendUpperThreshold;
     this.teleportThreshold = teleportThreshold;
     this.interpolationDelayMs = interpolationDelayMs;
     this.maxPendingInputs = maxPendingInputs;
 
     // Buffer de inputs locales pendientes de confirmación por el host
-    // [{ seq, dt, forward, right, yaw, time }]
+    // [{ seq, dt, forward, right, yaw, actions, time }]
     this.pendingInputs = [];
 
     // Buffer de snapshots para entidades remotas: Map(playerId -> Array<{ time, x, y, z, yaw }>)
     this.remoteSnapshots = new Map();
+
+    // Guarda monotónica de tiempo de simulación para descartar snapshots desordenados
+    this.lastProcessedSimTime = 0;
 
     // Objeto temporal reutilizable para simulación de repetición (Zero-GC)
     this.ghostPlayer = {
@@ -38,6 +44,7 @@ export class ClientReconciler {
       onGround: true,
       inputForward: 0,
       inputRight: 0,
+      pendingActions: 0,
       hero: null,
       setCheckpoint: () => {},
       respawn: () => {},
@@ -45,12 +52,14 @@ export class ClientReconciler {
 
     // Métricas de diagnóstico
     this.predictionError = 0;
-    this.correctionsPerSec = 0;
-    this._correctionsWindow = 0;
+    this.softCorrectionsPerSec = 0;
+    this.teleportsPerSec = 0;
+    this._softWindow = 0;
+    this._teleWindow = 0;
     this._lastCorrectionResetTime = performance.now();
   }
 
-  recordInput(seq, dt, forward, right, yaw) {
+  recordInput(seq, dt, forward, right, yaw, actions = 0) {
     if (this.pendingInputs.length >= this.maxPendingInputs) {
       this.pendingInputs.shift();
     }
@@ -62,12 +71,21 @@ export class ClientReconciler {
       forward,
       right,
       yaw,
+      actions: actions || 0,
       time: performance.now(),
     });
   }
 
   onSnapshot(simTime, players, localPlayer, simulationEngine) {
     if (!localPlayer || !Array.isArray(players)) return;
+
+    // 0. Guarda Monotónica: descartar snapshots antiguos si llegan desordenados
+    if (simTime && simTime <= this.lastProcessedSimTime) {
+      return;
+    }
+    if (simTime) {
+      this.lastProcessedSimTime = simTime;
+    }
 
     // 1. RECONCILIACIÓN DEL JUGADOR LOCAL
     const localEntry = players.find(p => p.id === localPlayer.id);
@@ -87,12 +105,18 @@ export class ClientReconciler {
       this.ghostPlayer.hero = localPlayer.hero;
       this.ghostPlayer.onGround = localEntry.onGround !== undefined ? localEntry.onGround : localPlayer.onGround;
 
+      // Yaw inicial del ghost: usar el último input pendiente para evitar giros hacia atrás
+      this.ghostPlayer.yaw = this.pendingInputs.length > 0
+        ? this.pendingInputs[this.pendingInputs.length - 1].yaw
+        : localEntry.yaw;
+
       for (let i = 0; i < this.pendingInputs.length; i++) {
         const inp = this.pendingInputs[i];
         this.ghostPlayer.inputForward = inp.forward;
         this.ghostPlayer.inputRight = inp.right;
         this.ghostPlayer.yaw = inp.yaw;
-        simulationEngine.integratePlayer(this.ghostPlayer, inp.dt);
+        // Pasa inp.actions para que el ghost ejecute el salto en el tick exacto
+        simulationEngine.integratePlayer(this.ghostPlayer, inp.dt, inp.actions || 0);
       }
 
       // Medir error de predicción entre la repetición y la predicción actual
@@ -101,7 +125,7 @@ export class ClientReconciler {
       this.predictionError = Math.hypot(errHoriz, errVert);
 
       if (this.predictionError > this.teleportThreshold) {
-        // Desfase drástico (caída al abismo, respawn o cambio de nivel)
+        // Desfase drástico (> 2.5 m): caída al abismo, respawn o cambio de nivel -> Snap forzado
         localPlayer.pos.x = localEntry.x;
         localPlayer.pos.y = localEntry.y;
         localPlayer.pos.z = localEntry.z;
@@ -110,15 +134,24 @@ export class ClientReconciler {
         localPlayer.vel.z = 0;
         localPlayer.onGround = localEntry.onGround !== undefined ? localEntry.onGround : false;
         this.pendingInputs.length = 0;
-        this._recordCorrection();
-      } else if (this.predictionError > this.snapThreshold) {
-        // Corrección suave de predicción acumulada
+        this._recordTeleport();
+      } else if (this.predictionError > this.blendUpperThreshold) {
+        // Desfase medio-alto (1.0 m a 2.5 m): snap directo a la posición del replay
         localPlayer.pos.x = this.ghostPlayer.pos.x;
         localPlayer.pos.y = this.ghostPlayer.pos.y;
         localPlayer.pos.z = this.ghostPlayer.pos.z;
         localPlayer.vel.y = this.ghostPlayer.vel.y;
         localPlayer.onGround = this.ghostPlayer.onGround;
-        this._recordCorrection();
+        this._recordSoftCorrection();
+      } else if (this.predictionError > this.snapThreshold) {
+        // Desfase suave (0.09 m a 1.0 m): blend gradual en 2-3 frames (t = 0.35) para eliminar "pops"
+        const t = 0.35;
+        localPlayer.pos.x += (this.ghostPlayer.pos.x - localPlayer.pos.x) * t;
+        localPlayer.pos.y += (this.ghostPlayer.pos.y - localPlayer.pos.y) * t;
+        localPlayer.pos.z += (this.ghostPlayer.pos.z - localPlayer.pos.z) * t;
+        localPlayer.vel.y = this.ghostPlayer.vel.y;
+        localPlayer.onGround = this.ghostPlayer.onGround;
+        this._recordSoftCorrection();
       }
     }
 
@@ -164,6 +197,7 @@ export class ClientReconciler {
       if (snapshots.length === 1) {
         const s = snapshots[0];
         avatarRenderer.setTarget(id, s.x, s.y, s.z, s.yaw);
+        avatarRenderer.setFrozen(id, false);
         continue;
       }
 
@@ -180,12 +214,16 @@ export class ClientReconciler {
       }
 
       if (!s0) {
-        // Todos los snapshots son más recientes que renderTime (caso arranque o lag spike)
+        // Todos los snapshots son más recientes que renderTime (caso arranque o buffer rellenándose)
         const first = snapshots[0];
         avatarRenderer.setTarget(id, first.x, first.y, first.z, first.yaw);
+        avatarRenderer.setFrozen(id, false);
       } else if (!s1) {
         // renderTime es posterior al snapshot más nuevo (hambre de paquetes / jitter de red)
         const last = snapshots[snapshots.length - 1];
+        const isStarved = (renderTime - last.time) > 500;
+        avatarRenderer.setFrozen(id, isStarved);
+
         if (snapshots.length >= 2) {
           const prev = snapshots[snapshots.length - 2];
           const dtSnap = (last.time - prev.time) / 1000;
@@ -210,6 +248,7 @@ export class ClientReconciler {
         }
       } else {
         // Interpolación temporal exacta entre s0 y s1
+        avatarRenderer.setFrozen(id, false);
         const dt = s1.time - s0.time;
         const alpha = dt > 0 ? Math.max(0, Math.min(1, (renderTime - s0.time) / dt)) : 1.0;
 
@@ -228,16 +267,22 @@ export class ClientReconciler {
     }
   }
 
-  _recordCorrection() {
-    this._correctionsWindow++;
+  _recordSoftCorrection() {
+    this._softWindow++;
+  }
+
+  _recordTeleport() {
+    this._teleWindow++;
   }
 
   _updateCorrectionRate() {
     const now = performance.now();
     const dt = (now - this._lastCorrectionResetTime) / 1000;
     if (dt >= 1.0) {
-      this.correctionsPerSec = Math.round(this._correctionsWindow / dt);
-      this._correctionsWindow = 0;
+      this.softCorrectionsPerSec = Math.round(this._softWindow / dt);
+      this.teleportsPerSec = Math.round(this._teleWindow / dt);
+      this._softWindow = 0;
+      this._teleWindow = 0;
       this._lastCorrectionResetTime = now;
     }
   }
@@ -245,15 +290,21 @@ export class ClientReconciler {
   reset() {
     this.pendingInputs.length = 0;
     this.remoteSnapshots.clear();
+    this.lastProcessedSimTime = 0;
     this.predictionError = 0;
-    this.correctionsPerSec = 0;
+    this.softCorrectionsPerSec = 0;
+    this.teleportsPerSec = 0;
+    this._softWindow = 0;
+    this._teleWindow = 0;
   }
 
   getStats() {
     return {
       predictionError: this.predictionError,
       inputsInFlight: this.pendingInputs.length,
-      correctionsPerSec: this.correctionsPerSec,
+      softCorrectionsPerSec: this.softCorrectionsPerSec,
+      teleportsPerSec: this.teleportsPerSec,
+      correctionsPerSec: this.softCorrectionsPerSec + this.teleportsPerSec,
     };
   }
 }

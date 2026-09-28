@@ -1,5 +1,6 @@
 import { tryMove } from '../core/PhysicsAABB.js';
 import { PHYSICS_CONFIG, WORLD_CONFIG } from '../config/constants.js';
+import { ACTION_FLAGS } from '../network/Protocol.js';
 
 export class SimulationEngine {
   constructor(world, { onPlayerRespawn } = {}) {
@@ -7,7 +8,20 @@ export class SimulationEngine {
     this.onPlayerRespawn = onPlayerRespawn || null;
   }
 
-  integratePlayer(p, dt) {
+  integratePlayer(p, dt, actions = 0) {
+    // 0. Aplicar acciones edge-triggered deterministas (Salto autoritativo)
+    const combinedActions = actions | (p.pendingActions || 0);
+    if (combinedActions & ACTION_FLAGS.JUMP) {
+      if (p.onGround) {
+        const jumpMult = p.hero?.jumpMultiplier || 1.0;
+        p.vel.y = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult;
+        p.onGround = false;
+      }
+      if (p.pendingActions) {
+        p.pendingActions &= ~ACTION_FLAGS.JUMP;
+      }
+    }
+
     // 1. Cálculo de velocidad según yaw, input y características del héroe
     const speedMult = p.hero?.speedMultiplier || 1.0;
     const currentSpeed = PHYSICS_CONFIG.SPEED * speedMult;
@@ -84,7 +98,7 @@ export class SimulationEngine {
     }
   }
 
-  stepClient(playerManager, dt) {
-    this.integratePlayer(playerManager.localPlayer, dt);
+  stepClient(playerManager, dt, actions = 0) {
+    this.integratePlayer(playerManager.localPlayer, dt, actions);
   }
 }

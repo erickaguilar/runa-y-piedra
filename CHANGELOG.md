@@ -7,6 +7,40 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.15.0] - 2026-09-28
+
+### Added
+- **Byte de Acciones Edge-Triggered en el Paquete de INPUT ([`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js))**:
+  - Ampliación del paquete `INPUT` a 16 bytes: `[type:1][seq:2][f32 dx:4][f32 dz:4][f32 yaw:4][u8 actions:1]`.
+  - Definición de bitmask canónico de acciones: `ACTION_FLAGS = { JUMP: 0x01, DESTROY: 0x02, PLACE: 0x04, INTERACT: 0x08 }`.
+  - Muestreo y consumo estrictamente edge-triggered (se envía únicamente en el tick exacto donde ocurre la pulsación).
+  - Compatibilidad retroactiva para deserializar paquetes previos de 15 y 13 bytes (`actions = 0`).
+- **Simulación Determinista de Salto en Replay y Host ([`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js))**:
+  - Integración unificada de `ACTION_FLAGS.JUMP` en `integratePlayer(player, dt, actions)`.
+  - Tanto la predicción del cliente, la repetición de inputs en el `ghostPlayer` durante la reconciliación y la simulación autoritativa en el host ejecutan el impulso de salto exactamente en el mismo `seq`, erradicando discrepancias verticales y caídas falsas durante el vuelo.
+- **Buffer de Jitter Avanzado con Retención y Profundidad Máxima ([`InputQueue.js`](file:///data/data/com.termux/files/home/develop/game/src/network/InputQueue.js))**:
+  - Límite de profundidad estricto a 5 inputs (`maxQueueSize = 5`, $\sim 166\text{ ms}$ de buffer): descarta paquetes obsoletos ante ráfagas de lag para evitar cámara lenta acumulada.
+  - Rate limiting por conexión limitado a 45 inputs/s para prevenir inundaciones de canal.
+  - Retención de velocidad al 100% durante los primeros 3 ticks de pérdida ($\sim 100-130\text{ ms}$) para absorber micro-jitter sin frenazos visuales bruscos, seguido de decaimiento suave del 15% por tick a partir del 4º tick y parada completa a los 30 ticks ($\sim 1\text{ s}$).
+  - Garantía de `actions: 0` en ticks repetidos/amortiguados para impedir saltos fantasma ante pérdidas de paquetes.
+- **Corrección Tri-Banda con Mezcla Suave (Blend) ([`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js))**:
+  - **$\le 0.09\text{ m}$**: Zona de tolerancia (cero corrección, fluidez máxima).
+  - **$0.09\text{ m} \text{ a } 1.0\text{ m}$**: Mezcla geométrica suave en $\sim 3\text{ frames}$ ($t = 0.35$), eliminando los "pops" o saltos visuales en pequeñas discrepancias.
+  - **$> 1.0\text{ m} \text{ a } 2.5\text{ m}$**: Snap directo al replay del ghost.
+  - **$> 2.5\text{ m}$**: Teletransporte forzado instantáneo (respawns, cambios de sala o caídas).
+- **Guarda Monotónica de Snapshots ([`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js))**:
+  - Descarte inmediato de snapshots antiguos si llegan desordenados (`simTime <= lastProcessedSimTime`).
+- **Yaw de Replay Alineado con el Presente ([`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js))**:
+  - Inicialización de `ghostPlayer.yaw` a partir del último input pendiente en vuelo (`pendingInputs[last].yaw`), previniendo giros hacia atrás en la cámara al reconciliar.
+- **Indicador Visual de Entidad Congelada/Inanición ([`AvatarRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/AvatarRenderer.js))**:
+  - Método `setFrozen(id, true)` que aplica transparencia reactiva ($55\%$ de opacidad) si una entidad remota permanece en inanición de red $> 500\text{ ms}$.
+- **Telemetría Diagnóstica Desacoplada ([`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js))**:
+  - Separación de `Corr/s` en dos métricas independientes: `Soft: X/s` (ajustes de trayectoria $< 2.5\text{ m}$) y `Tele: Y/s` (teletransportes o caídas $> 2.5\text{ m}$).
+- **Envío de Inputs en Lockstep con el Tick de Física ([`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**:
+  - Eliminación del temporizador desacoplado `setInterval` para inputs de cliente; ahora se envían de forma determinista y síncrona dentro de `onTick(dt)`.
+
+---
+
 ## [1.14.0] - 2026-09-28
 
 ### Added
