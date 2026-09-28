@@ -47,3 +47,23 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
 7. [**07. Arquitectura Atómica y Modular del Código**](./07-arquitectura-atomica-modular.md)
    - Desglose de responsabilidades únicas (SRP) por módulo y carpeta.
    - Eliminación del antipatrón God-file y desacoplamiento de simulación, input y render.
+
+8. [**08. Sistema de Mazmorras, Niveles y Progresión Cooperativa**](./08-sistema-mazmorras-niveles-y-progresion.md)
+   - Definición de escenarios desacoplada en JSON (`dungeon_classic.json`, `crypt_inferno.json`).
+   - `LevelLoader` y `LevelRegistry` para conmutación de mapas en caliente.
+   - Techos abovedados, umbral continuo bajo puertas, parkour en el abismo/lava y sensación de caída libre ($5.5\text{ m}$).
+   - Puntos de control automáticos (Checkpoints por sala) y cofres interactivos con animación 3D de tapa ($77^\circ$).
+
+9. [**09. Biblioteca de Héroes, Clases Únicas y Modificadores Físicos**](./09-biblioteca-heroes-clases-y-fisica.md)
+   - Base de datos declarativa en JSON (`heroes.json`) y gestor `HeroRegistry`.
+   - Las 5 clases oficiales: Aventurero, Paladín, Explorador, Hechicero y Guardián.
+   - Modificadores físicos de velocidad y salto en tiempo real (`speedMultiplier`, `jumpMultiplier`).
+   - Tarjetas dinámicas de características en el menú y avatares 3D con distintivos y nameplates flotantes.
+
+10. [**10. Sistema de Iconografía SVG Vectorial y Experiencia de Usuario (UI/UX)**](./10-sistema-iconografia-svg-y-ui-ux.md)
+    - Repositorio global de iconos vectoriales SVG (`Icons.js`) y reemplazo del 100% de emojis.
+    - Utilidad reactiva `replaceEmojisWithSvg` para textos y mensajes narrativos del HUD.
+    - Integración completa de la Sala de Expedición en el modal de ⚙️ Configuración (sin segundo modal).
+    - Maquetación elástica anti-desbordamiento del botón "Unirse" en resoluciones móviles estrechas.
+    - Visibilidad contextual inteligente de botones de acción táctiles.
+
