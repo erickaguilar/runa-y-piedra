@@ -752,7 +752,7 @@ class VoxelSandboxGame {
 
     this.network.addEventListener('version-mismatch', (e) => {
       const { hostVersion, clientVersion } = e.detail;
-      alert(`⚠️ Versión de protocolo incompatible.\nHost v${hostVersion} vs Cliente v${clientVersion}.\nPor favor, actualiza tu versión del juego.`);
+      alert(`Versión de protocolo incompatible.\nHost v${hostVersion} vs Cliente v${clientVersion}.\nPor favor, actualiza tu versión del juego.`);
       window.location.href = window.location.origin + window.location.pathname;
     });
 

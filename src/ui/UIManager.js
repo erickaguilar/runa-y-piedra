@@ -187,7 +187,7 @@ export class UIManager {
             ${levels.map(lvl => `
               <div class="level-card ${lvl.id === selectedLevelId ? 'selected' : ''}" data-level-id="${lvl.id}">
                 <div class="level-card-header">
-                  <span class="level-icon">${renderIcon(lvl.icon || 'castle', { size: 24, color: (lvl.icon === 'volcano' || lvl.icon === '🌋') ? '#f97316' : '#fbbf24' })}</span>
+                  <span class="level-icon">${renderIcon(lvl.icon || 'castle', { size: 24, color: lvl.icon === 'volcano' ? '#f97316' : '#fbbf24' })}</span>
                   <span class="level-badge">${lvl.difficulty || 'Normal'}</span>
                 </div>
                 <div class="level-name">${lvl.name}</div>
@@ -354,7 +354,7 @@ export class UIManager {
           ${state.levels.map(lvl => {
             const isSelected = lvl.id === state.currentLevelId;
             const iconName = lvl.icon || (lvl.id.includes('inferno') ? 'volcano' : 'castle');
-            const iconColor = (iconName === 'volcano' || iconName === '🌋') ? '#f97316' : '#fbbf24';
+            const iconColor = iconName === 'volcano' ? '#f97316' : '#fbbf24';
             return `
               <button class="level-select-btn ${isSelected ? 'active' : ''}" data-level-id="${lvl.id}" type="button">
                 <span class="level-btn-icon" style="color:${iconColor};display:inline-flex;align-items:center;">
@@ -451,10 +451,10 @@ export class UIManager {
           </div>
           <div class="quality-selector">
             <button class="quality-btn ${!soundManager.isMuted ? 'active' : ''}" id="btn-sound-on">
-              Activado 🔊
+              ${renderIcon('soundOn', { size: 14 })} Activado
             </button>
             <button class="quality-btn ${soundManager.isMuted ? 'active' : ''}" id="btn-sound-off">
-              Silenciado 🔇
+              ${renderIcon('soundOff', { size: 14 })} Silenciado
             </button>
           </div>
         </div>
@@ -751,18 +751,18 @@ export class UIManager {
     const iconEl = document.getElementById('interact-icon');
     const labelEl = document.getElementById('interact-label');
     const MAP = {
-      door: ['🚪', 'ABRIR'],
-      chest: ['📦', 'ABRIR'],
-      stairs: ['🪨', 'EMPUJAR'],
-      pedestal: ['✨', 'ACTIVAR'],
+      door: ['door', 'ABRIR'],
+      chest: ['chest', 'ABRIR'],
+      stairs: ['stone', 'EMPUJAR'],
+      pedestal: ['sparkles', 'ACTIVAR'],
     };
     if (MAP[key]) {
-      if (iconEl) iconEl.textContent = MAP[key][0];
+      if (iconEl) iconEl.innerHTML = renderIcon(MAP[key][0], { size: 26 });
       if (labelEl) labelEl.textContent = MAP[key][1];
       btn.classList.remove('dim');
       btn.classList.add('ready');
     } else {
-      if (iconEl) iconEl.textContent = '✦';
+      if (iconEl) iconEl.innerHTML = renderIcon('star', { size: 24 });
       if (labelEl) labelEl.textContent = 'USAR';
       btn.classList.add('dim');
       btn.classList.remove('ready');
@@ -788,10 +788,11 @@ export class UIManager {
     for (let i = 0; i < maxLives; i++) {
       const alive = i < lives;
       const cls = alive ? 'heart' : 'heart lost';
-      html += `<span class="${cls}${lost && !alive ? ' hurt' : ''}">${alive ? '❤️' : '🖤'}</span>`;
+      const color = alive ? '#ef4444' : '#475569';
+      html += `<span class="${cls}${lost && !alive ? ' hurt' : ''}">${renderIcon('heart', { size: 18, color })}</span>`;
     }
     if (this._hasKey) {
-      html += `<span class="key-badge" title="Llave del Santuario">🗝️</span>`;
+      html += `<span class="key-badge" title="Llave del Santuario">${renderIcon('key', { size: 18, color: '#fbbf24' })}</span>`;
     }
     this.livesHud.innerHTML = html;
     this.livesHud.classList.toggle('invuln', !!invulnerable);
@@ -822,8 +823,8 @@ export class UIManager {
     // Forzar reflow para que la transición de opacidad se reproduzca
     void this.transitionEl.offsetWidth;
     this.transitionEl.innerHTML = `
-      <div class="portal-title">${title}</div>
-      ${subtitle ? `<div class="portal-sub">${subtitle}</div>` : ''}`;
+      <div class="portal-title">${replaceEmojisWithSvg(title, { className: 'narrative-icon pop-in' })}</div>
+      ${subtitle ? `<div class="portal-sub">${replaceEmojisWithSvg(subtitle, { className: 'narrative-icon' })}</div>` : ''}`;
     if (autoHideMs > 0) {
       this._transitionTimer = setTimeout(() => this.hideLevelTransition(), autoHideMs);
     }
@@ -846,7 +847,7 @@ export class UIManager {
     const card = document.createElement('div');
     card.id = 'descent-card';
     card.innerHTML = `
-      <div class="descent-title">🌀 ¡${byName} desciende!</div>
+      <div class="descent-title">${renderIcon('vortex', { size: 18, color: '#38bdf8' })} ¡${byName} desciende!</div>
       <div class="descent-timer">8</div>
       <div class="descent-sub">Baja a la escalinata para ir ya</div>
       <button id="btn-descend-now" type="button">BAJAR YA</button>`;

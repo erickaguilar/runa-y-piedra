@@ -245,6 +245,94 @@ export const ICONS = {
     defaultColor: '#fbbf24',
     body: `<path d="M3 18h18v-2l-3-10-4.5 5.5L12 4l-1.5 7.5L6 6l-3 10v2zM5 20h14" stroke-linecap="round" stroke-linejoin="round"/>`,
   },
+
+  lock: {
+    name: 'lock',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#f59e0b',
+    body: `<rect x="4" y="11" width="16" height="10" rx="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="16" r="1.4" fill="currentColor"/>`,
+  },
+
+  vortex: {
+    name: 'vortex',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<path d="M19 12a7 7 0 1 1-2-4.9M16.5 12a4.5 4.5 0 1 1-1.3-3.2M14 12a2 2 0 1 1-.6-1.4" stroke-linecap="round"/><circle cx="12" cy="12" r="1" fill="currentColor"/>`,
+  },
+
+  stone: {
+    name: 'stone',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#a8a29e',
+    body: `<path d="M4 14l3-6 6-3 6 4 1 6-4 5H8l-4-6z" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 8l4 3 5-2M11 11l-1 9" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  skull: {
+    name: 'skull',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#e2e8f0',
+    body: `<path d="M12 2a8 8 0 0 0-8 8c0 3 1.6 5.2 3.5 6.4V20a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-3.6C18.4 15.2 20 13 20 10a8 8 0 0 0-8-8z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="11" r="1.6" fill="currentColor"/><circle cx="15" cy="11" r="1.6" fill="currentColor"/><line x1="12" y1="15" x2="12" y2="18" stroke-linecap="round"/>`,
+  },
+
+  soundOn: {
+    name: 'soundOn',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#fbbf24',
+    body: `<path d="M11 5L6 9H2v6h4l5 4V5z" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" stroke-linecap="round"/>`,
+  },
+
+  soundOff: {
+    name: 'soundOff',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#94a3b8',
+    body: `<path d="M11 5L6 9H2v6h4l5 4V5z" stroke-linecap="round" stroke-linejoin="round"/><line x1="23" y1="9" x2="17" y2="15" stroke-linecap="round"/><line x1="17" y1="9" x2="23" y2="15" stroke-linecap="round"/>`,
+  },
+
+  heart: {
+    name: 'heart',
+    viewBox: '0 0 24 24',
+    fill: 'currentColor',
+    stroke: 'none',
+    defaultColor: '#ef4444',
+    body: `<path d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2.3 5 5.7 5c2 0 3.4 1.1 4.3 2.4h4c.9-1.3 2.3-2.4 4.3-2.4 3.4 0 5.3 3.6 3.7 6.7C19.5 16.1 12 21 12 21z"/>`,
+  },
+
+  arrowUp: {
+    name: 'arrowUp',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2.4,
+    defaultColor: '#fff',
+    body: `<polyline points="18 15 12 9 6 15" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="21" stroke-linecap="round"/>`,
+  },
+
+  star: {
+    name: 'star',
+    viewBox: '0 0 24 24',
+    fill: 'currentColor',
+    stroke: 'none',
+    defaultColor: '#fde68a',
+    body: `<path d="M12 2l2.6 6.2 6.7.5-5.1 4.4 1.6 6.6L12 16l-5.8 3.7 1.6-6.6L2.7 8.7l6.7-.5L12 2z"/>`,
+  },
 };
 
 /**
@@ -271,6 +359,16 @@ export const EMOJI_TO_ICON_MAP = [
   { regex: /🪶\uFE0F?/g, icon: 'feather', defaultColor: '#10b981' },
   { regex: /🪄\uFE0F?/g, icon: 'wand', defaultColor: '#a855f7' },
   { regex: /👑\uFE0F?/g, icon: 'crown', defaultColor: '#fbbf24' },
+  { regex: /🔒\uFE0F?/g, icon: 'lock', defaultColor: '#f59e0b' },
+  { regex: /🌀\uFE0F?/g, icon: 'vortex', defaultColor: '#38bdf8' },
+  { regex: /🪨\uFE0F?/g, icon: 'stone', defaultColor: '#a8a29e' },
+  { regex: /💀\uFE0F?/g, icon: 'skull', defaultColor: '#e2e8f0' },
+  { regex: /🔊\uFE0F?/g, icon: 'soundOn', defaultColor: '#fbbf24' },
+  { regex: /🔇\uFE0F?/g, icon: 'soundOff', defaultColor: '#94a3b8' },
+  { regex: /❤\uFE0F?/g, icon: 'heart', defaultColor: '#ef4444' },
+  { regex: /🖤\uFE0F?/g, icon: 'heart', defaultColor: '#475569' },
+  { regex: /⬆\uFE0F?/g, icon: 'arrowUp', defaultColor: '#fff' },
+  { regex: /✦/g,         icon: 'star', defaultColor: '#fde68a' },
   { regex: /✕/g,        icon: 'x',     defaultColor: '#94a3b8' },
 ];
 
