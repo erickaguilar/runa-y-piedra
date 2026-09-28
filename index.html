@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>3D Mobile Voxel Sandbox P2P</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay -->
+    <div id="ui-overlay">
+      <!-- Performance Stats & Info -->
+      <div id="perf-hud">
+        <span id="fps-counter">60 FPS</span> | 
+        <span id="draw-calls">Calls: 1</span> | 
+        <span id="tri-count">Tris: 0</span> | 
+        <span id="ping-hud">P2P: Offline</span>
+      </div>
+
+      <!-- Lobby / Room Connection Panel -->
+      <div id="lobby-panel" class="panel">
+        <h1 class="title">Voxel Arena 3D</h1>
+        <p class="subtitle">Sandbox P2P WebGL 2.0 (60 FPS)</p>
+        
+        <div class="actions">
+          <button id="btn-create-room" class="btn btn-primary">Crear Sala (Host)</button>
+          
+          <div class="join-box">
+            <input type="text" id="input-room-code" placeholder="PIN de Sala (ej. 4321)" maxlength="6" />
+            <button id="btn-join-room" class="btn btn-secondary">Unirse</button>
+          </div>
+        </div>
+
+        <div id="room-status" class="room-status hidden"></div>
+      </div>
+
+      <!-- In-Game Mobile Touch Controls -->
+      <div id="touch-controls" class="hidden">
+        <!-- Left half: Nipple.js Joystick Zone -->
+        <div id="joystick-zone"></div>
+
+        <!-- Right half: Camera Look Zone -->
+        <div id="camera-zone"></div>
+
+        <!-- Floating Action Buttons -->
+        <div id="action-buttons">
+          <button id="btn-jump" class="touch-btn">SALTO</button>
+          <button id="btn-action" class="touch-btn">BLOQUE</button>
+        </div>
+      </div>
+
+      <!-- Crosshair / Reticle for Block Interaction -->
+      <div id="reticle" class="hidden">+</div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

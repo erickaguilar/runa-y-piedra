@@ -1,0 +1,23 @@
+{
+  "name": "mobile-voxel-sandbox-p2p",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node node_modules/vite/bin/vite.js --host 0.0.0.0",
+    "build": "node node_modules/typescript/bin/tsc && node node_modules/vite/bin/vite.js build",
+    "preview": "node node_modules/vite/bin/vite.js preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "three": "^0.160.0",
+    "peerjs": "^1.5.4",
+    "nipplejs": "^0.10.1",
+    "stats.js": "^0.17.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.160.0",
+    "@types/stats.js": "^0.17.3",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.0"
+  }
+}
