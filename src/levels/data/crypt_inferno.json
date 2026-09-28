@@ -74,6 +74,20 @@
       "completeMessage": "🔥 ¡Altar Ígneo Consagrado! Habéis conquistado la Cripta del Fuego con éxito."
     }
   ],
+  "torches": [
+    { "id": "brazier_s1_w", "x": 5.0, "y": 2.6, "z": 4.0, "color": "0xff5722", "intensity": 2.2, "distance": 14, "hasLight": true },
+    { "id": "brazier_s1_e", "x": 18.0, "y": 2.6, "z": 4.0, "color": "0xff5722", "intensity": 2.2, "distance": 14, "hasLight": true },
+    { "id": "torch_door1_in", "x": 11.5, "y": 2.8, "z": 10.4, "color": "0xff7043", "intensity": 2.0, "distance": 13, "hasLight": true },
+    { "id": "torch_door1_left", "x": 9.8, "y": 2.4, "z": 10.4, "color": "0xff7043", "hasLight": false },
+    { "id": "torch_door1_right", "x": 13.2, "y": 2.4, "z": 10.4, "color": "0xff7043", "hasLight": false },
+    { "id": "brazier_lava_arch", "x": 11.5, "y": 3.4, "z": 17.0, "color": "0xff3d00", "intensity": 2.6, "distance": 16, "hasLight": true },
+    { "id": "torch_door2_in", "x": 11.5, "y": 2.8, "z": 23.4, "color": "0xff7043", "intensity": 2.0, "distance": 13, "hasLight": true },
+    { "id": "torch_door2_left", "x": 9.8, "y": 2.4, "z": 23.4, "color": "0xff7043", "hasLight": false },
+    { "id": "torch_door2_right", "x": 13.2, "y": 2.4, "z": 23.4, "color": "0xff7043", "hasLight": false },
+    { "id": "brazier_s3_w", "x": 5.0, "y": 2.6, "z": 30.0, "color": "0xff5722", "intensity": 2.2, "distance": 14, "hasLight": true },
+    { "id": "brazier_s3_e", "x": 18.0, "y": 2.6, "z": 30.0, "color": "0xff5722", "intensity": 2.2, "distance": 14, "hasLight": true },
+    { "id": "altar_infernal", "x": 12.0, "y": 2.3, "z": 30.0, "color": "0xffab00", "intensity": 2.8, "distance": 16, "hasLight": true }
+  ],
   "regions": [
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 24], "to": [22, 0, 34] },

@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.6.0] - 2026-09-28
+
+### Added
+- **Sistema de Antorchas Fijas y Candiles en la Mazmorra (`TorchRenderer`)**:
+  - Implementación de [`TorchRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TorchRenderer.js) con modelos 3D de apliques de hierro forjado, copas metálicas y llamas vivas de doble núcleo (`MeshBasicMaterial`).
+  - Animación procedimental de parpadeo realista de fuego (flickering natural) sin asignaciones de memoria (Zero-GC) en el bucle de renderizado.
+  - Distribución estratégica de puntos de luz cálidos ([`PointLight`](file:///data/data/com.termux/files/home/develop/game/src/render/TorchRenderer.js)) en las columnas de soporte, dinteles y laterales de las puertas, el arco sobre el abismo y el Pedestal / Altar Ancestral.
+  - Soporte declarativo en archivos de niveles ([`dungeon_classic.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/dungeon_classic.json) y [`crypt_inferno.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/crypt_inferno.json)) a través de [`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js) y recarga automática al cambiar de nivel o sincronizar por red.
+
+### Changed
+- **Overhaul de Visibilidad y Claridad de la Mazmorra**:
+  - Aumento de la iluminación ambiental [`AmbientLight`](file:///data/data/com.termux/files/home/develop/game/src/render/SceneManager.js) a `0.78` y luz de relleno direccional a `0.85` en [`SceneManager.js`](file:///data/data/com.termux/files/home/develop/game/src/render/SceneManager.js), eliminando sombras negras impenetrables sin perder la estética subterránea.
+  - Ajuste de niebla (`Fog`): inicio ampliado a $26\text{ m}$ y final a $62\text{ m}$ con color de cripta nocturna `0x0f172a`, otorgando visión clara de las salas completas y vislumbrando a lo lejos el resplandor de las siguientes cámaras.
+  - Paleta de colores de bloques mejorada en [`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js): losas de suelo de piedra más claras (`0x475569`), muros de sillar labrado (`0x334155`) y columnas contrastadas (`0x64748b`), haciendo nítidos los detalles de bisel y relieve del shader procedural.
+
+---
+
 ## [1.5.1] - 2026-09-28
 
 ### Changed

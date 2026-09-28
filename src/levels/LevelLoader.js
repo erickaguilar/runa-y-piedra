@@ -23,6 +23,7 @@ export class LevelLoader {
     world.doors = levelData.doors || [];
     world.checkpoints = levelData.checkpoints || [];
     world.objectives = levelData.objectives || [];
+    world.torches = levelData.torches || [];
     world.spawnPoint = levelData.spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
 
     // 3. Procesar regiones declarativas

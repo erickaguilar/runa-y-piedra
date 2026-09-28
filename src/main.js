@@ -1,6 +1,7 @@
 import { SceneManager } from './render/SceneManager.js';
 import { VoxelMap } from './render/VoxelMap.js';
 import { AvatarRenderer } from './render/AvatarRenderer.js';
+import { TorchRenderer } from './render/TorchRenderer.js';
 import { World } from './core/World.js';
 import { GameLoop } from './core/GameLoop.js';
 import { PlayerManager } from './entities/PlayerManager.js';
@@ -22,6 +23,8 @@ class VoxelSandboxGame {
     this.sceneManager = new SceneManager(this.canvas);
     this.world = new World();
     this.voxelMap = new VoxelMap(this.sceneManager.scene, this.world);
+    this.torchRenderer = new TorchRenderer(this.sceneManager.scene);
+    this.torchRenderer.loadTorches(this.world.torches);
     this.avatars = new AvatarRenderer(this.sceneManager.scene);
     this.playerManager = new PlayerManager();
     this.simulation = new SimulationEngine(this.world, {
@@ -140,6 +143,7 @@ class VoxelSandboxGame {
     this.world.levelRegistry.setCurrentLevel(levelId);
     this.world.loadLevel(levelData);
     this.voxelMap.rebuildFromWorld();
+    this.torchRenderer.loadTorches(this.world.torches);
 
     const spawn = levelData.spawn || { x: 12.0, y: 1.2, z: 4.5 };
     const local = this.playerManager.localPlayer;
@@ -318,6 +322,7 @@ class VoxelSandboxGame {
     this.network.addEventListener('init', (e) => {
       this.world.setFromArray(e.detail.blocks);
       this.voxelMap.rebuildFromWorld();
+      this.torchRenderer.loadTorches(this.world.torches);
       this.playerManager.setLocalId(e.detail.playerId);
       if (this.world.isDoor2Open) {
         this.ui.showNarrativeMessage('Las dos puertas ya están abiertas. El Santuario os espera.', 4000);
@@ -375,6 +380,7 @@ class VoxelSandboxGame {
           this.cameraController.update(local, local.yaw, local.pitch);
           this.avatars.update(dt);
         }
+        this.torchRenderer.update();
         this.sceneManager.render();
       },
     });

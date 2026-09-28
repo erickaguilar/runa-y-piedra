@@ -36,13 +36,13 @@ export const BLOCK_TYPES = {
 };
 
 export const BLOCK_COLORS = {
-  1: 0x334155, // Suelo de losas de piedra
-  2: 0x1e293b, // Muro de mazmorra oscuro
-  3: 0xd97706, // Puerta de madera/hierro
-  4: 0x475569, // Columnas/Pilares
-  5: 0xf59e0b, // Pedestal/Luz
+  1: 0x475569, // Suelo de losas de piedra (slate-600 más claro y visible)
+  2: 0x334155, // Muro de mazmorra de piedra labrada (slate-700)
+  3: 0xd97706, // Puerta de madera y hierro reforzado
+  4: 0x64748b, // Columnas y pilares de sillar (slate-500)
+  5: 0xfbbf24, // Pedestal/Luz rúnica dorada
   6: 0x0ea5e9, // Plataforma de Salto (celeste rúnico)
-  7: 0x7f1d1d, // Fondo del Abismo
+  7: 0x991b1b, // Fondo del Abismo / Lava
 };
 
 export const PLAYER_PALETTE = [
