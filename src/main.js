@@ -465,6 +465,13 @@ class VoxelSandboxGame {
       if (this.world.isDoor2Open) {
         this.doorRenderer.setOpenInstant(2);
       }
+      if (Array.isArray(this.world.chests)) {
+        for (const c of this.world.chests) {
+          if (c.isOpen) {
+            this.chestRenderer.setOpenInstant(c.id);
+          }
+        }
+      }
       this.playerManager.setLocalId(e.detail.playerId);
       if (this.world.isDoor2Open) {
         this.ui.showNarrativeMessage('Las dos puertas ya están abiertas. El Santuario os espera.', 4000);

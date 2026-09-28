@@ -5,6 +5,20 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.20.1] - 2026-09-28
+
+### Fixed
+- **Corrección de Z-Fighting y Parpadeo en los Laterales de la Tapa ([`ChestRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js))**:
+  - Se configuró `openEnded: true` en todas las bandas semicilíndricas de forja (`bandArc1`, `bandArc2`, `endRim1`, `endRim2`), eliminando las tapas semicirculares planas de hierro que coincidían en el mismo plano geométrico ($X = \pm 0.45\text{ m}$) que los laterales de madera noble de la bóveda.
+- **Corrección del Parpadeo del Interior al Abrir el Cofre ([`ChestRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js))**:
+  - **Modelado de cavidad interior hueca**: La base del cofre y los marcos de remate superior ahora poseen una cavidad interior abierta de $18\text{ cm}$ de profundidad, suprimiendo la antigua losa sólida de madera y metal que cortaba el montículo de oro y las gemas provocando Z-fighting severo.
+  - **Elevación de la fuente de luz `lootLight`**: Se desplazó la luz puntual dorada a $Y = 0.60\text{ m}$ ($20\text{ cm}$ por encima de las gemas), erradicando la división por distancia cero y artefactos NaN que hacían titilar los polígonos durante la rampa de intensidad del resorte.
+  - **Renderizado de doble cara (`THREE.DoubleSide`)**: El material de madera de roble ahora renderiza tanto el exterior como el intradós de la bóveda abovedada sin transparencia ni culling inverso.
+  - **Fijación limpia de reposo en Spring**: Al asentarse el resorte de la bisagra, el ángulo y la intensidad de la luz se fijan de forma estricta y determinista.
+  - **Sincronización `setOpenInstant` en uniones tardías ([`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**: Los clientes que se unen a una partida con cofres abiertos reciben el estado inmediato sin animación retrasada.
+
+---
+
 ## [1.20.0] - 2026-09-28
 
 ### Added

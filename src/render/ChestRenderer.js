@@ -6,13 +6,15 @@ import { Spring } from '../ui/Spring.js';
 const LID_OPEN_ANGLE = 1.48; // ~85 grados de apertura completa
 const LID_SPRING_K = 200;    // Rigidez sub-amortiguada con 1 overshoot visible
 const LID_SPRING_C = 14;     // Amortiguación con rebote físico tangible
-const LIGHT_MAX_INTENSITY = 3.2;
+const LIGHT_MAX_INTENSITY = 3.0;
 
 // Dimensiones de cofre rectangular medieval
 const CHEST_W = 0.90; // Ancho (eje X)
-const CHEST_H = 0.44; // Altura de la base (eje Y)
+const CHEST_H = 0.44; // Altura total de la base (eje Y)
 const CHEST_D = 0.60; // Profundidad (eje Z)
 const LID_RADIUS = CHEST_D / 2; // Radio del arco abovedado (0.30m)
+const WALL_T = 0.05;  // Grosor de las paredes de madera del cofre
+const CAVITY_DEPTH = 0.18; // Profundidad de la cavidad interior del cofre (18 cm)
 
 export class ChestRenderer {
   constructor(scene) {
@@ -30,6 +32,7 @@ export class ChestRenderer {
     this.woodMat = new THREE.MeshLambertMaterial({
       map: this._woodTexture,
       color: 0xffffff,
+      side: THREE.DoubleSide, // Evita culling en la cavidad interior del arco al abrirse
     });
     this.ironMat = new THREE.MeshLambertMaterial({ color: 0x27272a });      // Hierro forjado oscuro
     this.goldMat = new THREE.MeshLambertMaterial({
@@ -144,22 +147,44 @@ export class ChestRenderer {
   }
 
   _createGeometries() {
-    // 1. Cuerpo de madera de la base
-    this.baseWoodGeo = new THREE.BoxGeometry(CHEST_W, CHEST_H, CHEST_D);
-    this.baseWoodGeo.translate(0, CHEST_H / 2, 0);
+    // 1. Cuerpo de madera de la base con cavidad interior hueca (sin tapa sólida superior que cause Z-fighting)
+    const baseFloorH = CHEST_H - CAVITY_DEPTH; // 0.26m
+    const bFloor = new THREE.BoxGeometry(CHEST_W, baseFloorH, CHEST_D)
+      .translate(0, baseFloorH / 2, 0);
 
-    // 2. Herrajes de hierro forjado de la base (fusionados en 1 BufferGeometry)
+    const wFront = new THREE.BoxGeometry(CHEST_W, CAVITY_DEPTH, WALL_T)
+      .translate(0, CHEST_H - CAVITY_DEPTH / 2, CHEST_D / 2 - WALL_T / 2);
+    const wBack = new THREE.BoxGeometry(CHEST_W, CAVITY_DEPTH, WALL_T)
+      .translate(0, CHEST_H - CAVITY_DEPTH / 2, -CHEST_D / 2 + WALL_T / 2);
+    const wLeft = new THREE.BoxGeometry(WALL_T, CAVITY_DEPTH, CHEST_D - WALL_T * 2)
+      .translate(-CHEST_W / 2 + WALL_T / 2, CHEST_H - CAVITY_DEPTH / 2, 0);
+    const wRight = new THREE.BoxGeometry(WALL_T, CAVITY_DEPTH, CHEST_D - WALL_T * 2)
+      .translate(CHEST_W / 2 - WALL_T / 2, CHEST_H - CAVITY_DEPTH / 2, 0);
+
+    this.baseWoodGeo = mergeGeometries([bFloor, wFront, wBack, wLeft, wRight]);
+    bFloor.dispose(); wFront.dispose(); wBack.dispose(); wLeft.dispose(); wRight.dispose();
+
+    // 2. Herrajes de hierro forjado de la base (fusionados en 1 BufferGeometry con marco perimetral abierto)
     // Marco inferior (plinto)
     const bRim = new THREE.BoxGeometry(CHEST_W + 0.02, 0.06, CHEST_D + 0.02)
       .translate(0, 0.03, 0);
-    // Marco superior de cierre
-    const tRim = new THREE.BoxGeometry(CHEST_W + 0.02, 0.03, CHEST_D + 0.02)
-      .translate(0, CHEST_H - 0.015, 0);
+
+    // Marco perimetral superior (hueco en el centro para dejar libre la cavidad del tesoro)
+    const tRimF = new THREE.BoxGeometry(CHEST_W + 0.02, 0.03, 0.04)
+      .translate(0, CHEST_H - 0.015, CHEST_D / 2 - 0.01);
+    const tRimB = new THREE.BoxGeometry(CHEST_W + 0.02, 0.03, 0.04)
+      .translate(0, CHEST_H - 0.015, -CHEST_D / 2 + 0.01);
+    const tRimL = new THREE.BoxGeometry(0.04, 0.03, CHEST_D - 0.06)
+      .translate(-CHEST_W / 2 + 0.01, CHEST_H - 0.015, 0);
+    const tRimR = new THREE.BoxGeometry(0.04, 0.03, CHEST_D - 0.06)
+      .translate(CHEST_W / 2 - 0.01, CHEST_H - 0.015, 0);
+
     // 2 Bandas verticales paralelas
     const b1 = new THREE.BoxGeometry(0.07, CHEST_H + 0.01, CHEST_D + 0.02)
       .translate(-0.25, CHEST_H / 2, 0);
     const b2 = new THREE.BoxGeometry(0.07, CHEST_H + 0.01, CHEST_D + 0.02)
       .translate(0.25, CHEST_H / 2, 0);
+
     // 4 Esquineros en ángulo
     const c1 = new THREE.BoxGeometry(0.06, CHEST_H, 0.06)
       .translate(-CHEST_W / 2 + 0.01, CHEST_H / 2, -CHEST_D / 2 + 0.01);
@@ -169,9 +194,11 @@ export class ChestRenderer {
       .translate(-CHEST_W / 2 + 0.01, CHEST_H / 2, CHEST_D / 2 - 0.01);
     const c4 = new THREE.BoxGeometry(0.06, CHEST_H, 0.06)
       .translate(CHEST_W / 2 - 0.01, CHEST_H / 2, CHEST_D / 2 - 0.01);
+
     // Placa frontal de cerradura
     const lockPlate = new THREE.BoxGeometry(0.14, 0.16, 0.03)
       .translate(0, CHEST_H - 0.09, CHEST_D / 2 + 0.015);
+
     // Asas laterales de transporte (anillas forjadas)
     const hL = new THREE.TorusGeometry(0.05, 0.012, 6, 12)
       .rotateY(Math.PI / 2)
@@ -184,9 +211,11 @@ export class ChestRenderer {
     const hMountR = new THREE.BoxGeometry(0.02, 0.08, 0.08)
       .translate(CHEST_W / 2 + 0.005, CHEST_H * 0.55, 0);
 
-    this.baseIronGeo = mergeGeometries([bRim, tRim, b1, b2, c1, c2, c3, c4, lockPlate, hL, hR, hMountL, hMountR]);
-    bRim.dispose(); tRim.dispose(); b1.dispose(); b2.dispose();
-    c1.dispose(); c2.dispose(); c3.dispose(); c4.dispose();
+    this.baseIronGeo = mergeGeometries([
+      bRim, tRimF, tRimB, tRimL, tRimR, b1, b2, c1, c2, c3, c4, lockPlate, hL, hR, hMountL, hMountR
+    ]);
+    bRim.dispose(); tRimF.dispose(); tRimB.dispose(); tRimL.dispose(); tRimR.dispose();
+    b1.dispose(); b2.dispose(); c1.dispose(); c2.dispose(); c3.dispose(); c4.dispose();
     lockPlate.dispose(); hL.dispose(); hR.dispose(); hMountL.dispose(); hMountR.dispose();
 
     // 3. Inserto dorado de cerradura
@@ -194,20 +223,27 @@ export class ChestRenderer {
     this.keyholeGeo.rotateX(Math.PI / 2);
     this.keyholeGeo.translate(0, CHEST_H - 0.08, CHEST_D / 2 + 0.031);
 
-    // 4. Tapa abovedada semicilíndrica de madera
+    // 4. Tapa abovedada semicilíndrica de madera (las tapas laterales son de madera noble limpia)
     this.lidWoodGeo = new THREE.CylinderGeometry(LID_RADIUS, LID_RADIUS, CHEST_W, 16, 1, false, -Math.PI / 2, Math.PI);
     this.lidWoodGeo.rotateZ(Math.PI / 2);
     this.lidWoodGeo.rotateX(-Math.PI / 2);
     this.lidWoodGeo.scale(1, 0.75, 1);
     this.lidWoodGeo.translate(0, 0, CHEST_D / 2);
 
-    // 5. Herrajes de la tapa abovedada (fusionados en 1 BufferGeometry)
-    // Marco inferior de la tapa
-    const lidRim = new THREE.BoxGeometry(CHEST_W + 0.02, 0.03, CHEST_D + 0.02)
-      .translate(0, 0.015, CHEST_D / 2);
+    // 5. Herrajes de la tapa abovedada (CRÍTICO: openEnded=true para evitar caras planas en los laterales)
+    const lRimF = new THREE.BoxGeometry(CHEST_W + 0.02, 0.025, 0.04)
+      .translate(0, 0.0125, CHEST_D - 0.01);
+    const lRimB = new THREE.BoxGeometry(CHEST_W + 0.02, 0.025, 0.04)
+      .translate(0, 0.0125, 0.01);
+    const lRimL = new THREE.BoxGeometry(0.04, 0.025, CHEST_D - 0.06)
+      .translate(-CHEST_W / 2 + 0.01, 0.0125, CHEST_D / 2);
+    const lRimR = new THREE.BoxGeometry(0.04, 0.025, CHEST_D - 0.06)
+      .translate(CHEST_W / 2 - 0.01, 0.0125, CHEST_D / 2);
 
     const makeArchBand = (x, w, extraR) => {
-      const g = new THREE.CylinderGeometry(LID_RADIUS + extraR, LID_RADIUS + extraR, w, 16, 1, false, -Math.PI / 2, Math.PI);
+      // openEnded = true garantiza que los herrajes sean únicamente la tira arqueada
+      // sin tapas semicirculares que provoquen Z-fighting en los laterales del cofre.
+      const g = new THREE.CylinderGeometry(LID_RADIUS + extraR, LID_RADIUS + extraR, w, 16, 1, true, -Math.PI / 2, Math.PI);
       g.rotateZ(Math.PI / 2);
       g.rotateX(-Math.PI / 2);
       g.scale(1, 0.75, 1);
@@ -218,32 +254,32 @@ export class ChestRenderer {
     // 2 Bandas arqueadas paralelas que recorren la bóveda
     const bandArc1 = makeArchBand(-0.25, 0.07, 0.012);
     const bandArc2 = makeArchBand(0.25, 0.07, 0.012);
-    // Ribetes arqueados en los extremos laterales
+    // Ribetes arqueados en los bordes extremos (sin solapar los laterales)
     const endRim1 = makeArchBand(-CHEST_W / 2 + 0.015, 0.03, 0.008);
     const endRim2 = makeArchBand(CHEST_W / 2 - 0.015, 0.03, 0.008);
     // Cerrojo frontal colgante (hasp)
     const hasp = new THREE.BoxGeometry(0.08, 0.12, 0.03)
       .translate(0, -0.04, CHEST_D + 0.015);
 
-    this.lidIronGeo = mergeGeometries([lidRim, bandArc1, bandArc2, endRim1, endRim2, hasp]);
-    lidRim.dispose(); bandArc1.dispose(); bandArc2.dispose();
-    endRim1.dispose(); endRim2.dispose(); hasp.dispose();
+    this.lidIronGeo = mergeGeometries([lRimF, lRimB, lRimL, lRimR, bandArc1, bandArc2, endRim1, endRim2, hasp]);
+    lRimF.dispose(); lRimB.dispose(); lRimL.dispose(); lRimR.dispose();
+    bandArc1.dispose(); bandArc2.dispose(); endRim1.dispose(); endRim2.dispose(); hasp.dispose();
 
-    // 6. Tesoros interiores
-    // Montículo de oro
-    this.goldMoundGeo = new THREE.DodecahedronGeometry(0.20, 1);
-    this.goldMoundGeo.scale(1.8, 0.65, 1.2);
-    this.goldMoundGeo.translate(0, CHEST_H + 0.02, 0);
+    // 6. Tesoros interiores (asentados dentro de la cavidad hueca del cofre)
+    // Montículo de oro dentro de la cavidad
+    this.goldMoundGeo = new THREE.DodecahedronGeometry(0.18, 1);
+    this.goldMoundGeo.scale(1.7, 0.7, 1.1);
+    this.goldMoundGeo.translate(0, 0.32, 0);
 
     // Gemas preciosas talladas
     this.gemSapphireGeo = new THREE.DodecahedronGeometry(0.08, 0);
-    this.gemSapphireGeo.translate(0.16, CHEST_H + 0.09, 0.08);
+    this.gemSapphireGeo.translate(0.15, 0.38, 0.08);
 
     this.gemRubyGeo = new THREE.DodecahedronGeometry(0.07, 0);
-    this.gemRubyGeo.translate(-0.14, CHEST_H + 0.08, -0.06);
+    this.gemRubyGeo.translate(-0.14, 0.37, -0.06);
 
     this.gemEmeraldGeo = new THREE.DodecahedronGeometry(0.06, 0);
-    this.gemEmeraldGeo.translate(0.02, CHEST_H + 0.11, 0.06);
+    this.gemEmeraldGeo.translate(0.02, 0.40, 0.06);
   }
 
   loadChests(chestConfigs = []) {
@@ -265,7 +301,7 @@ export class ChestRenderer {
         chestGroup.rotation.y = cfg.yaw;
       }
 
-      // 1. BASE DE MADERA Y FORJA (fusión a 2 draw calls)
+      // 1. BASE DE MADERA Y FORJA (2 draw calls, cavidad interior abierta)
       const baseWoodMesh = new THREE.Mesh(this.baseWoodGeo, this.woodMat);
       chestGroup.add(baseWoodMesh);
 
@@ -288,9 +324,9 @@ export class ChestRenderer {
       const emeraldMesh = new THREE.Mesh(this.gemEmeraldGeo, this.emeraldMat);
       chestGroup.add(emeraldMesh);
 
-      // Luz dorada interior que se irradia al abrir el cofre
+      // Luz dorada interior elevada holgadamente por encima del tesoro para evitar división por cero
       const lootLight = new THREE.PointLight(0xfbbf24, 0, 8, 2.0);
-      lootLight.position.set(0, CHEST_H + 0.15, 0);
+      lootLight.position.set(0, 0.60, 0.05);
       chestGroup.add(lootLight);
 
       // 3. TAPA ABOVEDADA PIVOTADA (bisagra en borde trasero superior)
@@ -340,15 +376,34 @@ export class ChestRenderer {
     return chest ? chest.isOpen : false;
   }
 
+  /** Apertura instantánea sin animación (sincronización de clientes que se unen tarde en INIT). */
+  setOpenInstant(chestId = 1) {
+    const chest = this.chests.get(chestId);
+    if (!chest) return;
+
+    chest.isOpen = true;
+    chest.lidSpring.snap(LID_OPEN_ANGLE);
+    chest.lidPivot.rotation.x = -LID_OPEN_ANGLE;
+    if (chest.lootLight) {
+      chest.lootLight.intensity = LIGHT_MAX_INTENSITY;
+    }
+  }
+
   update(dt = 0.016) {
     for (const chest of this.chests.values()) {
-      if (chest.isOpen && (!chest.lidSpring.isSettled || chest.lidPivot.rotation.x === 0)) {
+      if (chest.isOpen && !chest.lidSpring.isSettled) {
         const angle = chest.lidSpring.update(dt);
         chest.lidPivot.rotation.x = -angle;
         if (chest.lootLight) {
-          // Luz normalizada acotada para evitar parpadeos con el overshoot elástico
           const t = Math.min(1.0, Math.max(0.0, angle / LID_OPEN_ANGLE));
           chest.lootLight.intensity = t * LIGHT_MAX_INTENSITY;
+        }
+
+        if (chest.lidSpring.isSettled) {
+          chest.lidPivot.rotation.x = -LID_OPEN_ANGLE;
+          if (chest.lootLight) {
+            chest.lootLight.intensity = LIGHT_MAX_INTENSITY;
+          }
         }
       }
     }
