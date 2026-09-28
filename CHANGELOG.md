@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.3.2] - 2026-09-28
+
+### Fixed
+- **Corrección de Teletransporte Ascendente a las Bardas (Muros Perimetrales)**:
+  - Eliminado el bucle de elevación en `tryMove` (`while (overlaps) pos.y += 1`) de [`PhysicsAABB.js`](file:///data/data/com.termux/files/home/develop/game/src/core/PhysicsAABB.js) que transportaba al jugador a la cima de las bardas ($y = 4.0$) al rozar un muro o caer al vacío.
+  - Implementada resolución geométrica de suelo: un jugador solo aterriza sobre una superficie si se encontraba previamente sobre ella (`oldY >= floorTop`). Si cae junto a un muro lateral, sufre caída limpia sin ser elevado a la cornisa.
+
+### Added
+- **Sistema Integral de Puntos de Reaparición (Checkpoints por Estancia)**:
+  - Los jugadores registran dinámicamente su punto de control conforme avanzan y pisan suelo firme:
+    - **Sala 1 (Vestíbulo)**: Spawn inicial en `(12.0, 1.2, 4.5)`.
+    - **Sala 2 (El Abismo)**: Umbral seguro tras la Puerta 1 en `(11.5, 1.2, 12.0)`.
+    - **Sala 3 (Santuario)**: Umbral interior tras la Puerta 2 en `(11.5, 1.2, 25.0)`.
+  - Rescate inmediato ante caídas al vacío ($pos.y < -0.5$) y seguridad anti-barda con aviso en el HUD: *"⚠️ ¡Caíste al abismo! Reapareciendo en [Sala]..."*.
+
+---
+
 ## [1.3.1] - 2026-09-28
 
 ### Fixed

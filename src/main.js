@@ -24,7 +24,14 @@ class VoxelSandboxGame {
     this.voxelMap = new VoxelMap(this.sceneManager.scene, this.world);
     this.avatars = new AvatarRenderer(this.sceneManager.scene);
     this.playerManager = new PlayerManager();
-    this.simulation = new SimulationEngine(this.world);
+    this.simulation = new SimulationEngine(this.world, {
+      onPlayerRespawn: (p, cp) => {
+        if (p === this.playerManager.localPlayer) {
+          const roomMsg = cp?.roomName ? ` en ${cp.roomName}` : '';
+          this.ui.showNarrativeMessage(`⚠️ ¡Caíste al abismo! Reapareciendo${roomMsg}...`, 2800);
+        }
+      },
+    });
     this.cameraController = new CameraController(this.sceneManager.camera);
     this.raycaster = new BlockRaycaster(this.sceneManager.camera, this.voxelMap, this.world);
 

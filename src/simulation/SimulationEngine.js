@@ -2,12 +2,13 @@ import { tryMove } from '../core/PhysicsAABB.js';
 import { PHYSICS_CONFIG, WORLD_CONFIG } from '../config/constants.js';
 
 export class SimulationEngine {
-  constructor(world) {
+  constructor(world, { onPlayerRespawn } = {}) {
     this.world = world;
+    this.onPlayerRespawn = onPlayerRespawn || null;
   }
 
   integratePlayer(p, dt) {
-    // Cálculo de velocidad según yaw e input
+    // 1. Cálculo de velocidad según yaw e input
     const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
     const rx =  Math.cos(p.yaw), rz = -Math.sin(p.yaw);
     p.vel.x = (fx * p.inputForward + rx * p.inputRight) * PHYSICS_CONFIG.SPEED;
@@ -26,13 +27,37 @@ export class SimulationEngine {
       p.onGround = false;
     }
 
-    // Rescate al vacío / abismo
-    if (p.pos.y < WORLD_CONFIG.VOID_RESCUE_Y) {
-      if (p.pos.z >= 11) {
-        // Checkpoint en Sala 2 (plataforma de inicio tras cruzar la Puerta 1)
-        p.reset(11.5, 1.5, 12.0);
-      } else {
-        p.reset(WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, WORLD_CONFIG.SPAWN_Z);
+    // 2. Registro dinámico de Puntos de Reaparición (Checkpoints por sala)
+    // Se registran únicamente cuando el jugador pisa suelo firme (pos.y >= 0.95)
+    if (p.onGround && p.pos.y >= 0.95) {
+      if (p.pos.z >= 24.5) {
+        if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 3 (Santuario Ancestral)') {
+          p.setCheckpoint(11.5, 1.2, 25.0, 'Sala 3 (Santuario Ancestral)');
+        }
+      } else if (p.pos.z >= 11.5 && p.pos.z < 24.0) {
+        if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 2 (El Abismo)') {
+          p.setCheckpoint(11.5, 1.2, 12.0, 'Sala 2 (El Abismo)');
+        }
+      } else if (p.pos.z < 11.0) {
+        if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 1 (Vestíbulo)') {
+          p.setCheckpoint(WORLD_CONFIG.SPAWN_X, 1.2, WORLD_CONFIG.SPAWN_Z, 'Sala 1 (Vestíbulo)');
+        }
+      }
+    }
+
+    // 3. Rescate y Reaparición al Caer al Abismo / Vacío
+    if (p.pos.y < -0.5) {
+      const cp = p.respawn();
+      if (this.onPlayerRespawn) {
+        this.onPlayerRespawn(p, cp);
+      }
+    }
+
+    // 4. Seguridad Anti-Barda: Si termina en lo alto de las bardas perimetrales exteriores
+    if (p.pos.y >= 3.8 && (p.pos.x <= 1.0 || p.pos.x >= WORLD_CONFIG.SIZE_X - 2.0 || p.pos.z <= 1.0 || p.pos.z >= WORLD_CONFIG.SIZE_Z - 2.0)) {
+      const cp = p.respawn();
+      if (this.onPlayerRespawn) {
+        this.onPlayerRespawn(p, cp);
       }
     }
   }

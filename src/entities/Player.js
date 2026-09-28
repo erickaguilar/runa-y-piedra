@@ -12,12 +12,34 @@ export class Player {
     this.onGround = false;
     this.inputForward = 0;
     this.inputRight = 0;
+    this.checkpoint = { x, y: 1.2, z, roomName: 'Sala 1 (Vestíbulo)' };
   }
 
   setInput(forward, right, yaw = this.yaw) {
     this.inputForward = forward;
     this.inputRight = right;
     this.yaw = yaw;
+  }
+
+  setCheckpoint(x, y, z, roomName = 'Punto de Control') {
+    this.checkpoint = { x, y, z, roomName };
+  }
+
+  respawn() {
+    const cp = this.checkpoint || {
+      x: WORLD_CONFIG.SPAWN_X,
+      y: 1.2,
+      z: WORLD_CONFIG.SPAWN_Z,
+      roomName: 'Sala 1 (Vestíbulo)',
+    };
+    this.pos.x = cp.x;
+    this.pos.y = cp.y;
+    this.pos.z = cp.z;
+    this.vel.x = 0;
+    this.vel.y = 0;
+    this.vel.z = 0;
+    this.onGround = false;
+    return cp;
   }
 
   reset(x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z) {
