@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { WORLD_X, WORLD_Y, WORLD_Z, BLOCK_AIR } from '../core/World.js';
 import { BLOCK_COLORS } from '../config/constants.js';
+import { TextureGenerator } from './TextureGenerator.js';
 
 const THREE_COLORS = {
   1: new THREE.Color(BLOCK_COLORS[1]),
@@ -16,7 +17,11 @@ export class VoxelMap {
     this.max = WORLD_X * WORLD_Y * WORLD_Z;
 
     const geo = new THREE.BoxGeometry(1, 1, 1);
-    const mat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    const texture = TextureGenerator.createVoxelTexture(64);
+    const mat = new THREE.MeshLambertMaterial({
+      color: 0xffffff,
+      map: texture,
+    });
 
     this.mesh = new THREE.InstancedMesh(geo, mat, this.max);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
