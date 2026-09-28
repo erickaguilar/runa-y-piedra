@@ -48,7 +48,7 @@ export const BLOCK_COLORS = {
   3: 0xd97706, // Puerta de madera y hierro reforzado
   4: 0xffffff, // Columnas y pilares monolíticos (blanco neutro para respetar tonos oscuros y desgaste del SVG)
   5: 0xfbbf24, // Pedestal/Luz rúnica dorada
-  6: 0x0ea5e9, // Plataforma de Salto (celeste rúnico)
+  6: 0xffffff, // Plataforma de Salto JUMP_PAD (blanco neutro para respetar base de sillar y runa ámbar del SVG)
   7: 0x991b1b, // Fondo del Abismo / Lava
   8: 0xffffff, // Adoquín limpio
   9: 0xffffff, // Adoquín con grietas

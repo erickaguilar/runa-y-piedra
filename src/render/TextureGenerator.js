@@ -408,21 +408,79 @@ export class TextureGenerator {
         <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
       `,
 
+      // ==================== TILE 14: JUMP_PAD (Losa de Cantería con Runa Ámbar de Salto) ====================
       `
-        <rect width="${S}" height="${S}" fill="#1c2027"/>
-        <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
-        <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
-        <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
-        <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
-        <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-        <line x1="32" y1="0" x2="32" y2="${S}" stroke="#080a0d" stroke-width="2"/>
-        <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
-        <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-        <line x1="64" y1="0" x2="64" y2="${S}" stroke="#080a0d" stroke-width="2"/>
-        <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
-        <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-        <line x1="96" y1="0" x2="96" y2="${S}" stroke="#080a0d" stroke-width="2"/>
-        <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+        <!-- base: sillar oscuro de los nuevos pilares -->
+        <rect width="${S}" height="${S}" fill="#0a0c10"/>
+        <rect x="2" y="2" width="${S - 4}" height="${S - 4}" fill="#252a32"/>
+
+        <!-- bisel: luz cenital arriba-izquierda, sombra abajo-derecha -->
+        <path d="M2 2 L${S - 2} 2 L${S - 2} 6 L6 6 L6 ${S - 2} L2 ${S - 2} Z" fill="#3d434c" opacity="0.9"/>
+        <path d="M2 ${S - 2} L${S - 2} ${S - 2} L${S - 2} 2 L${S - 6} 2 L${S - 6} ${S - 6} L2 ${S - 6} Z" fill="#14181e" opacity="0.9"/>
+
+        <!-- grietas (herencia de la ruina del abismo) -->
+        <g stroke="#14181e" stroke-width="1.2" fill="none" opacity="0.8">
+          <path d="M2 40 L10 44 L8 52 L14 58"/>
+          <path d="M126 82 L118 86 L120 94 L112 100"/>
+          <path d="M56 2 L60 8 L58 14"/>
+        </g>
+        <g stroke="#3d434c" stroke-width="0.5" fill="none" opacity="0.45">
+          <path d="M3 41 L11 45 L9 53 L15 59"/>
+          <path d="M125 83 L117 87 L119 95 L111 101"/>
+        </g>
+
+        <!-- esquineros de hierro forjado -->
+        <g fill="#27272a" stroke="#0a0c10" stroke-width="1">
+          <rect x="6" y="6" width="22" height="4"/>
+          <rect x="6" y="6" width="4" height="22"/>
+          <rect x="100" y="6" width="22" height="4"/>
+          <rect x="118" y="6" width="4" height="22"/>
+          <rect x="6" y="118" width="22" height="4"/>
+          <rect x="6" y="100" width="4" height="22"/>
+          <rect x="100" y="118" width="22" height="4"/>
+          <rect x="118" y="100" width="4" height="22"/>
+        </g>
+
+        <!-- remaches dorados -->
+        <g fill="#8a7a4a">
+          <circle cx="10" cy="10" r="1.8"/>
+          <circle cx="24" cy="10" r="1.8"/>
+          <circle cx="10" cy="24" r="1.8"/>
+          <circle cx="118" cy="10" r="1.8"/>
+          <circle cx="104" cy="10" r="1.8"/>
+          <circle cx="118" cy="24" r="1.8"/>
+          <circle cx="10" cy="118" r="1.8"/>
+          <circle cx="24" cy="118" r="1.8"/>
+          <circle cx="10" cy="104" r="1.8"/>
+          <circle cx="118" cy="118" r="1.8"/>
+          <circle cx="104" cy="118" r="1.8"/>
+          <circle cx="118" cy="104" r="1.8"/>
+        </g>
+
+        <!-- halo ámbar contenido (visibilidad a distancia sin fluorescencia) -->
+        <circle cx="64" cy="64" r="32" fill="#d97706" opacity="0.08"/>
+
+        <!-- surco de sombra bajo la runa (da efecto de bajorrelieve tallado) -->
+        <g fill="none" stroke="#0a0c10" stroke-width="2.6" opacity="0.9" stroke-linecap="round">
+          <path d="M65 35 Q47 49 47 65 Q47 81 65 97 Q83 81 83 65 Q83 49 65 35"/>
+          <path d="M65 51 Q55 59 55 65 Q55 71 65 79"/>
+          <path d="M65 97 L65 109"/>
+          <path d="M65 109 L58 100 M65 109 L72 100"/>
+        </g>
+
+        <!-- runa tallada: espiral de viento + flecha ascendente -->
+        <g fill="none" stroke="#d97706" stroke-width="2.2" opacity="0.9" stroke-linecap="round">
+          <path d="M64 34 Q46 48 46 64 Q46 80 64 96 Q82 80 82 64 Q82 48 64 34"/>
+          <path d="M64 50 Q54 58 54 64 Q54 70 64 78"/>
+          <path d="M64 96 L64 108"/>
+          <path d="M64 108 L57 99 M64 108 L71 99"/>
+        </g>
+
+        <!-- brillo interior de la runa (sub-acento, calidez y volumen) -->
+        <g fill="none" stroke="#f5a623" stroke-width="1.1" opacity="0.6" stroke-linecap="round">
+          <path d="M64 34 Q46 48 46 64 Q46 80 64 96 Q82 80 82 64 Q82 48 64 34"/>
+          <path d="M64 96 L64 108"/>
+        </g>
       `,
 
       // ==================== TILE 15: ESPECIAL / PEDESTALES ====================

@@ -5,6 +5,20 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.22.3] - 2026-09-28
+
+### Added
+- **Sprite de Plataforma de Salto `jumpPadStone` Integrado en el Calabozo ([`TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js), [`VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js), [`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js))**:
+  - Sustitución del antiguo bloque celeste neón fluorescente por una **losa de cantería ancestral arrancada del suelo del templo**:
+    - **Base de sillar oscuro**: Tono idéntico a los pilares y sillar (`#252a32`), con biseles de luz cenital (`#3d434c`) y sombra (`#14181e`).
+    - **Fracturas del colapso**: Grietas de impacto perimetrales en los bordes heredadas de la caída del templo sobre el abismo.
+    - **Refuerzos de forja medieval**: 4 esquineros de hierro forjado (`#27272a`) con 12 remaches dorados (`#8a7a4a`).
+    - **Glifo rúnico de impulso vertical**: Espiral de viento central con flecha ascendente grabada en bajorrelieve (sombra de cincelado `#0a0c10`) en ámbar cálido (`#d97706`), brillo interior volumétrico (`#f5a623`) y halo tenue contenido de visibilidad a distancia (`#d97706` al $8\%$).
+  - **Alojamiento en Casilla 14 del Atlas**: Separación arquitectónica entre `BLOCK_TYPES.JUMP_PAD` (Casilla 14) y `BLOCK_TYPES.PEDESTAL` (Casilla 15).
+  - Tinte neutro calibrado (`BLOCK_COLORS[6] = 0xffffff`) para reproducir fielmente la piedra oscura y el brillo ámbar sin atenuación cromática.
+
+---
+
 ## [1.22.2] - 2026-09-28
 
 ### Changed

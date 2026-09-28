@@ -239,9 +239,10 @@ varying vec2 vAtlasOffset;`
         // Sprite unificado de columna monolítica continua: fuste oscuro, desgastado y sin costuras horizontales
         return 10;
       }
-      case BLOCK_TYPES.PEDESTAL:
       case BLOCK_TYPES.JUMP_PAD:
-        return 15; // Círculo rúnico arcano con estrella de 8 puntas
+        return 14; // Losa de cantería con runa ámbar de salto y refuerzos de forja
+      case BLOCK_TYPES.PEDESTAL:
+        return 15; // Círculo rúnico arcano con estrella de 8 puntas para el pedestal
       case BLOCK_TYPES.LAVA:
         return 6; // Losa quebrada volcánica
       default:
