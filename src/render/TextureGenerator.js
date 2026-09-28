@@ -137,145 +137,153 @@ export class TextureGenerator {
       `,
 
       // ==================== GRUPO 2: PISO (Tiles 5 a 9) ====================
-      // Tile 5: floorTiles — Adoquín limpio (base, ~70% del suelo)
+      // Tile 5: floorTiles — Losas grandes 2x2 limpias (base, ~70% del suelo)
       `
         <defs>
-          <pattern id="floorA" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-            <rect width="32" height="32" fill="#0a0c10"/>
-            <rect x="1" y="1" width="30" height="30" fill="#6a7078"/>
+          <pattern id="floorA" x="0" y="0" width="64" height="64" patternUnits="userSpaceOnUse">
+            <rect width="64" height="64" fill="#22262d"/>
+            <rect x="1" y="1" width="62" height="62" fill="#6a7078"/>
             <!-- bisel superior + lateral izquierdo (luz cenital) -->
-            <path d="M1 1 L31 1 L31 3 L3 3 L3 31 L1 31 Z" fill="#8a929c" opacity="0.45"/>
-            <!-- bisel inferior + lateral derecho (sombra) -->
-            <path d="M1 31 L31 31 L31 1 L29 1 L29 29 L1 29 Z" fill="#0a0c10" opacity="0.5"/>
+            <path d="M1 1 L63 1 L63 3 L3 3 L3 63 L1 63 Z" fill="#9ca3af" opacity="0.4"/>
+            <!-- bisel inferior + lateral derecho (sombra suave sin corte negro agresivo) -->
+            <path d="M1 63 L63 63 L63 1 L61 1 L61 61 L1 61 Z" fill="#181b20" opacity="0.35"/>
           </pattern>
         </defs>
         <rect width="${S}" height="${S}" fill="url(#floorA)"/>
-        <!-- variación sutil de tono por baldosa (rompe la monotonía) -->
-        <rect x="34" y="34" width="28" height="28" fill="#6f757d" opacity="0.4"/>
-        <rect x="98" y="2"  width="28" height="28" fill="#737980" opacity="0.35"/>
-        <rect x="2"  y="66" width="28" height="28" fill="#6c727a" opacity="0.4"/>
-        <rect x="66" y="98" width="28" height="28" fill="#6f757d" opacity="0.35"/>
+        <!-- Variación tonal sutil entre las 4 losas grandes -->
+        <rect x="2" y="2" width="60" height="60" fill="#717780" opacity="0.25"/>
+        <rect x="66" y="66" width="60" height="60" fill="#646a72" opacity="0.25"/>
+        <rect x="66" y="2" width="60" height="60" fill="#6f757e" opacity="0.15"/>
+        <!-- Textura de cantería y grano de piedra natural muy suave -->
+        <circle cx="28" cy="36" r="2" fill="#4b5563" opacity="0.25"/>
+        <circle cx="98" cy="42" r="2.5" fill="#9ca3af" opacity="0.2"/>
+        <circle cx="44" cy="94" r="2" fill="#9ca3af" opacity="0.2"/>
+        <circle cx="106" cy="100" r="2" fill="#4b5563" opacity="0.25"/>
       `,
 
-      // Tile 6: floorTilesWorn — Con grietas (~20%)
+      // Tile 6: floorTilesWorn — Losas grandes 2x2 con grietas (~20%)
       `
         <defs>
-          <pattern id="floorB" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-            <rect width="32" height="32" fill="#0a0c10"/>
-            <rect x="1" y="1" width="30" height="30" fill="#6a7078"/>
-            <path d="M1 1 L31 1 L31 3 L3 3 L3 31 L1 31 Z" fill="#8a929c" opacity="0.45"/>
-            <path d="M1 31 L31 31 L31 1 L29 1 L29 29 L1 29 Z" fill="#0a0c10" opacity="0.5"/>
+          <pattern id="floorB" x="0" y="0" width="64" height="64" patternUnits="userSpaceOnUse">
+            <rect width="64" height="64" fill="#22262d"/>
+            <rect x="1" y="1" width="62" height="62" fill="#6a7078"/>
+            <path d="M1 1 L63 1 L63 3 L3 3 L3 63 L1 63 Z" fill="#9ca3af" opacity="0.4"/>
+            <path d="M1 63 L63 63 L63 1 L61 1 L61 61 L1 61 Z" fill="#181b20" opacity="0.35"/>
           </pattern>
         </defs>
         <rect width="${S}" height="${S}" fill="url(#floorB)"/>
-        <!-- grietas: trazo oscuro + brillo paralelo (sensación de profundidad) -->
-        <g stroke="#0a0c10" stroke-width="1.4" fill="none" opacity="0.85">
-          <path d="M20 6 L24 14 L18 22 L22 30"/>
-          <path d="M50 34 L56 42 L52 50"/>
-          <path d="M96 66 L104 74 L100 82 L108 90"/>
-          <path d="M12 70 L18 78 L14 86"/>
-          <path d="M74 100 L82 108 L78 118"/>
+        <rect x="2" y="2" width="60" height="60" fill="#717780" opacity="0.2"/>
+        <!-- Grietas orgánicas que cruzan las losas grandes con bisel de relieve -->
+        <g stroke="#181b20" stroke-width="1.5" fill="none" opacity="0.8">
+          <path d="M24 10 L30 26 L22 42 L34 54"/>
+          <path d="M84 20 L96 34 L90 50 L104 62"/>
+          <path d="M40 76 L52 88 L46 106 L56 120"/>
+          <path d="M100 80 L112 96 L108 114"/>
         </g>
-        <g stroke="#8a929c" stroke-width="0.6" fill="none" opacity="0.4">
-          <path d="M19 5 L23 13 L17 21 L21 29"/>
-          <path d="M49 33 L55 41 L51 49"/>
-          <path d="M95 65 L103 73 L99 81 L107 89"/>
+        <g stroke="#9ca3af" stroke-width="0.7" fill="none" opacity="0.4">
+          <path d="M23 9 L29 25 L21 41 L33 53"/>
+          <path d="M83 19 L95 33 L89 49 L103 61"/>
+          <path d="M39 75 L51 87 L45 105 L55 119"/>
+          <path d="M99 79 L111 95 L107 113"/>
         </g>
-        <!-- desconchones en esquinas -->
-        <g fill="#0a0c10" opacity="0.6">
-          <path d="M2 2 L6 2 L2 6 Z"/>
-          <path d="M126 34 L122 34 L126 38 Z"/>
-          <path d="M66 126 L66 122 L70 126 Z"/>
+        <!-- Desconchones y lascas en juntas -->
+        <g fill="#181b20" opacity="0.55">
+          <polygon points="62,28 64,28 64,36 60,34"/>
+          <polygon points="92,62 100,64 94,66"/>
+          <polygon points="64,96 66,104 62,102"/>
         </g>
       `,
 
-      // Tile 7: floorTilesMossy — Con musgo (~10%, para zonas húmedas)
+      // Tile 7: floorTilesMossy — Losas grandes 2x2 con musgo (~10%, para zonas húmedas)
       `
         <defs>
-          <pattern id="floorC" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-            <rect width="32" height="32" fill="#0a0c10"/>
-            <rect x="1" y="1" width="30" height="30" fill="#6a7078"/>
-            <path d="M1 1 L31 1 L31 3 L3 3 L3 31 L1 31 Z" fill="#8a929c" opacity="0.45"/>
-            <path d="M1 31 L31 31 L31 1 L29 1 L29 29 L1 29 Z" fill="#0a0c10" opacity="0.5"/>
+          <pattern id="floorC" x="0" y="0" width="64" height="64" patternUnits="userSpaceOnUse">
+            <rect width="64" height="64" fill="#22262d"/>
+            <rect x="1" y="1" width="62" height="62" fill="#6a7078"/>
+            <path d="M1 1 L63 1 L63 3 L3 3 L3 63 L1 63 Z" fill="#9ca3af" opacity="0.4"/>
+            <path d="M1 63 L63 63 L63 1 L61 1 L61 61 L1 61 Z" fill="#181b20" opacity="0.35"/>
           </pattern>
         </defs>
         <rect width="${S}" height="${S}" fill="url(#floorC)"/>
-        <!-- musgo en las juntas (donde se acumula la humedad) -->
+        <!-- Musgo húmedo en las juntas perimetrales y en la cruz central -->
         <g fill="#3d5a2a" opacity="0.75">
-          <rect x="0" y="0"  width="${S}" height="2"/>
-          <rect x="0" y="32" width="${S}" height="2"/>
-          <rect x="0" y="64" width="${S}" height="2"/>
-          <rect x="0" y="96" width="${S}" height="2"/>
-          <rect x="0"  y="0" width="2" height="${S}"/>
-          <rect x="32" y="0" width="2" height="${S}"/>
-          <rect x="64" y="0" width="2" height="${S}"/>
-          <rect x="96" y="0" width="2" height="${S}"/>
+          <rect x="0" y="0" width="${S}" height="2.5"/>
+          <rect x="0" y="62.5" width="${S}" height="3"/>
+          <rect x="0" y="0" width="2.5" height="${S}"/>
+          <rect x="62.5" y="0" width="3" height="${S}"/>
         </g>
-        <!-- matas de musgo (capa oscura de base) -->
+        <!-- Matas de musgo orgánico en la cruz central y bordes -->
         <g fill="#4a6e30">
-          <ellipse cx="8"   cy="40"  rx="7" ry="5"/>
-          <ellipse cx="70"  cy="72"  rx="9" ry="6"/>
-          <ellipse cx="110" cy="100" rx="8" ry="5"/>
-          <ellipse cx="40"  cy="8"   rx="6" ry="4"/>
-          <ellipse cx="100" cy="40"  rx="7" ry="5"/>
+          <ellipse cx="64" cy="64" rx="14" ry="11"/>
+          <ellipse cx="64" cy="38" rx="8"  ry="14"/>
+          <ellipse cx="64" cy="92" rx="9"  ry="13"/>
+          <ellipse cx="36" cy="64" rx="13" ry="8"/>
+          <ellipse cx="94" cy="64" rx="12" ry="8"/>
+          <ellipse cx="14" cy="20" rx="9"  ry="6"/>
+          <ellipse cx="112" cy="108" rx="10" ry="7"/>
         </g>
-        <!-- brillo del musgo (capa clara, da volumen) -->
+        <!-- Brillos volumétricos claros del musgo -->
         <g fill="#5d8a3d" opacity="0.85">
-          <ellipse cx="8"   cy="40"  rx="3.5" ry="2.5"/>
-          <ellipse cx="70"  cy="72"  rx="4.5" ry="3"/>
-          <ellipse cx="110" cy="100" rx="3.5" ry="2.5"/>
-          <ellipse cx="40"  cy="8"   rx="3"   ry="2"/>
-          <ellipse cx="100" cy="40"  rx="3.5" ry="2.5"/>
+          <ellipse cx="64" cy="64" rx="7"   ry="5"/>
+          <ellipse cx="64" cy="38" rx="4"   ry="7"/>
+          <ellipse cx="64" cy="92" rx="4.5" ry="6.5"/>
+          <ellipse cx="36" cy="64" rx="6.5" ry="4"/>
+          <ellipse cx="94" cy="64" rx="6"   ry="4"/>
+          <ellipse cx="14" cy="20" rx="4.5" ry="3"/>
+          <ellipse cx="112" cy="108" rx="5"  ry="3.5"/>
         </g>
       `,
 
-      // Tile 8: floorTilesMossyWorn — Combinación con grietas y brotes de musgo
+      // Tile 8: floorTilesMossyWorn — Losas grandes 2x2 combinando grietas y musgo
       `
         <defs>
-          <pattern id="floorD" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-            <rect width="32" height="32" fill="#0a0c10"/>
-            <rect x="1" y="1" width="30" height="30" fill="#6a7078"/>
-            <path d="M1 1 L31 1 L31 3 L3 3 L3 31 L1 31 Z" fill="#8a929c" opacity="0.45"/>
-            <path d="M1 31 L31 31 L31 1 L29 1 L29 29 L1 29 Z" fill="#0a0c10" opacity="0.5"/>
+          <pattern id="floorD" x="0" y="0" width="64" height="64" patternUnits="userSpaceOnUse">
+            <rect width="64" height="64" fill="#22262d"/>
+            <rect x="1" y="1" width="62" height="62" fill="#6a7078"/>
+            <path d="M1 1 L63 1 L63 3 L3 3 L3 63 L1 63 Z" fill="#9ca3af" opacity="0.4"/>
+            <path d="M1 63 L63 63 L63 1 L61 1 L61 61 L1 61 Z" fill="#181b20" opacity="0.35"/>
           </pattern>
         </defs>
         <rect width="${S}" height="${S}" fill="url(#floorD)"/>
-        <!-- Grietas en adoquín -->
-        <g stroke="#0a0c10" stroke-width="1.4" fill="none" opacity="0.85">
-          <path d="M64 40 L60 52 L68 64 L62 76"/>
-          <path d="M24 96 L32 104 L28 116"/>
+        <!-- Grietas secundarias -->
+        <g stroke="#181b20" stroke-width="1.5" fill="none" opacity="0.8">
+          <path d="M64 40 L54 52 L64 64 L50 78"/>
+          <path d="M84 94 L98 106 L92 118"/>
         </g>
-        <g stroke="#8a929c" stroke-width="0.6" fill="none" opacity="0.4">
-          <path d="M63 39 L59 51 L67 63 L61 75"/>
+        <g stroke="#9ca3af" stroke-width="0.7" fill="none" opacity="0.4">
+          <path d="M63 39 L53 51 L63 63 L49 77"/>
+          <path d="M83 93 L97 105 L91 117"/>
         </g>
-        <!-- Musgo central en junta -->
+        <!-- Musgo en cruz y grieta -->
         <g fill="#4a6e30">
-          <ellipse cx="64" cy="64" rx="8" ry="6"/>
-          <ellipse cx="32" cy="64" rx="6" ry="4"/>
+          <ellipse cx="64" cy="64" rx="11" ry="9"/>
+          <ellipse cx="32" cy="64" rx="8"  ry="5"/>
+          <ellipse cx="64" cy="96" rx="6"  ry="10"/>
         </g>
         <g fill="#5d8a3d" opacity="0.85">
-          <ellipse cx="64" cy="64" rx="4" ry="3"/>
-          <ellipse cx="32" cy="64" rx="3" ry="2"/>
+          <ellipse cx="64" cy="64" rx="5.5" ry="4.5"/>
+          <ellipse cx="32" cy="64" rx="4"   ry="2.5"/>
+          <ellipse cx="64" cy="96" rx="3"   ry="5"/>
         </g>
       `,
 
-      // Tile 9: floorTilesSanctuary — Losa con rombo ceremonial integrado en base de adoquín
+      // Tile 9: floorTilesSanctuary — Losa grande con rombo ceremonial integrado
       `
         <defs>
-          <pattern id="floorE" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-            <rect width="32" height="32" fill="#0a0c10"/>
-            <rect x="1" y="1" width="30" height="30" fill="#6a7078"/>
-            <path d="M1 1 L31 1 L31 3 L3 3 L3 31 L1 31 Z" fill="#8a929c" opacity="0.45"/>
-            <path d="M1 31 L31 31 L31 1 L29 1 L29 29 L1 29 Z" fill="#0a0c10" opacity="0.5"/>
+          <pattern id="floorE" x="0" y="0" width="64" height="64" patternUnits="userSpaceOnUse">
+            <rect width="64" height="64" fill="#22262d"/>
+            <rect x="1" y="1" width="62" height="62" fill="#6a7078"/>
+            <path d="M1 1 L63 1 L63 3 L3 3 L3 63 L1 63 Z" fill="#9ca3af" opacity="0.4"/>
+            <path d="M1 63 L63 63 L63 1 L61 1 L61 61 L1 61 Z" fill="#181b20" opacity="0.35"/>
           </pattern>
         </defs>
         <rect width="${S}" height="${S}" fill="url(#floorE)"/>
-        <!-- Rombo ceremonial con moldura -->
-        <polygon points="64,12 116,64 64,116 12,64" fill="#525860" stroke="#0a0c10" stroke-width="2.5"/>
-        <polygon points="64,14 114,64 64,114 14,64" fill="none" stroke="#8a929c" stroke-width="1.2" opacity="0.6"/>
-        <polygon points="64,28 100,64 64,100 28,64" fill="#6a7078" stroke="#0a0c10" stroke-width="2"/>
-        <circle cx="64" cy="64" r="7" fill="#0a0c10"/>
-        <circle cx="64" cy="64" r="3" fill="#8a929c"/>
+        <!-- Rombo ceremonial que abarca el centro de las 4 losas con bisel pulido -->
+        <polygon points="64,16 112,64 64,112 16,64" fill="#525860" stroke="#181b20" stroke-width="2.5"/>
+        <polygon points="64,18 110,64 64,110 18,64" fill="none" stroke="#9ca3af" stroke-width="1.2" opacity="0.6"/>
+        <polygon points="64,32 96,64 64,96 32,64" fill="#6a7078" stroke="#181b20" stroke-width="2"/>
+        <circle cx="64" cy="64" r="8" fill="#181b20"/>
+        <circle cx="64" cy="64" r="3.5" fill="#9ca3af"/>
       `,
 
       // ==================== GRUPO 3: PILARES (Tiles 10 a 14) ====================

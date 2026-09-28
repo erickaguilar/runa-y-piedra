@@ -5,6 +5,19 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.22.1] - 2026-09-28
+
+### Changed
+- **Ampliación de Escala a Losas Grandes $2 \times 2$ ($50\text{ cm}$) y Mortero Suave ([`TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js))**:
+  - Se sustituyó la antigua cuadrícula densa de 16 cuadritos pequeños ($4 \times 4$ de $25\text{ cm}$) por **4 losas grandes de cantería señorial** ($2 \times 2$ de $50\text{ cm}$, $64 \times 64\text{ px}$ en atlas).
+  - **Eliminación del efecto rejilla negra**:
+    - Se reemplazó el fondo azabache `#0a0c10` por un tono de mortero de juntura suave `#22262d`.
+    - Reducción del ancho visible de junta a $\approx 1\text{ px}$ con bisel de sombra amortiguado (`#181b20`, opacidad reducida a $0.35$).
+    - Rediseño de las grietas (`floorTilesWorn`), acumulación de musgo en la cruz central (`floorTilesMossy`), variante combinada (`floorTilesMossyWorn`) y losa ceremonial (`floorTilesSanctuary`) a la nueva escala métrica.
+    - Se logra un aspecto mucho más espacioso, limpio y monumental en todo el pavimento del calabozo.
+
+---
+
 ## [1.22.0] - 2026-09-28
 
 ### Added
