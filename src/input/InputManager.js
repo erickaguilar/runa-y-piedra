@@ -1,11 +1,10 @@
 import nipplejs from 'nipplejs';
 
 export class InputManager {
-  constructor({ canvas, onJump, onPlace, onDestroy }) {
+  constructor({ canvas, onJump, onInteract }) {
     this.canvas = canvas;
     this.onJump = onJump;
-    this.onPlace = onPlace;
-    this.onDestroy = onDestroy;
+    this.onInteract = onInteract;
 
     this.keys = {};
     this.moveJoystick = { x: 0, y: 0 };
@@ -32,6 +31,8 @@ export class InputManager {
       if (e.code === 'Space') {
         this.pendingJump = true;
         this.onJump?.();
+      } else if (e.code === 'KeyE' || e.code === 'KeyF') {
+        this.onInteract?.();
       }
     });
 
@@ -61,9 +62,7 @@ export class InputManager {
     window.addEventListener('mousedown', (e) => {
       if (!this.pointerLocked) return;
       if (e.button === 0) {
-        this.onDestroy?.();
-      } else if (e.button === 2) {
-        this.onPlace?.();
+        this.onInteract?.();
       }
     });
 
@@ -136,13 +135,12 @@ export class InputManager {
     this.canvas.addEventListener('touchend', endLook, { passive: true });
     this.canvas.addEventListener('touchcancel', endLook, { passive: true });
 
-    // 3. Botones táctiles
+    // 3. Botones táctiles de Mazmorra (SALTAR e INTERACTUAR/ABRIR)
     this.bindTouchButton('btn-jump', () => {
       this.pendingJump = true;
       this.onJump?.();
     });
-    this.bindTouchButton('btn-place', () => this.onPlace?.());
-    this.bindTouchButton('btn-destroy', () => this.onDestroy?.());
+    this.bindTouchButton('btn-interact', () => this.onInteract?.());
   }
 
   bindTouchButton(id, callback) {

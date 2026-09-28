@@ -1,8 +1,8 @@
-# Voxel Sandbox 3D P2P (WebGL 2.0 / 60 FPS)
+# Voxel Dungeon 3D P2P (WebGL 2.0 / 60 FPS)
 
-> Entorno 3D sandbox multijugador interactivo para navegadores móviles y de escritorio, optimizado bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
+> Mazmorra cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](package.json)
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-RTCDataChannel-green.svg)](https://webrtc.org/)
 [![Vite](https://img.shields.io/badge/Bundler-Vite%205-purple.svg)](https://vitejs.dev/)
@@ -11,17 +11,20 @@
 
 ## 🌟 Características Principales
 
+* **Aventura Cooperativa en Mazmorra**: Explora estancias conectadas (Vestíbulo, Gran Puerta y Cripta interior con Pedestal Ancestral) junto a otro jugador en tiempo real.
+* **Gran Puerta Interactiva Sincronizada**: Puerta autoritativa de 2×2 bloques accionable cooperativamente por proximidad o enfoque, sincronizada a través de WebRTC.
+* **Mensajería Narrativa HUD**: Banner translúcido contextual en pantalla que guía a los jugadores sobre descubrimientos, objetivos y desbloqueo de salas.
 * **Arquitectura Listen-Server P2P**: Uno de los dispositivos asume el rol de servidor autoritativo dentro de su navegador. El tráfico de juego fluye directo por Wi-Fi local mediante WebRTC DataChannel (latencia LAN < 5 ms, costo de servidor = **$0**).
 * **Presupuesto de Rendimiento Móvil Estricto**:
-  * **Draw Calls**: Menos de 25 por cuadro (todo el terreno se dibuja en **1 solo `THREE.InstancedMesh`**).
+  * **Draw Calls**: Menos de 25 por cuadro (toda la mazmorra se dibuja en **1 solo `THREE.InstancedMesh`**).
   * **Límite DPR ($\le 1.5$)**: `renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))` para evitar estrangulamiento térmico de GPUs móviles (Mali-G52 / Adreno 610).
-  * **Sin Garbage Collection (Zero-GC)**: Paquetes binarios fijos de 13 y 14 bytes con `DataView` y `ArrayBuffer` reutilizados en el bucle principal.
+  * **Sin Garbage Collection (Zero-GC)**: Paquetes binarios fijos con `DataView` y `ArrayBuffer` reutilizados en el bucle principal.
   * **Físicas Desacopladas a 30 Hz**: Motor de colisiones AABB propio sin sobrecarga en la CPU del teléfono.
-* **Escenario Delimitado Seguro**: Muros perimetrales visibles (`BLOCK_WALL`) y barrera matemática impenetrable para evitar caídas al vacío.
+* **Escenario Delimitado Seguro**: Muros perimetrales impenetrables y sistema de rescate al vacío para evitar caídas fuera del mapa.
 * **Conexión Instantánea por Código QR o PIN**: El Host genera una sala con PIN de 4 dígitos y un código QR que el invitado puede escanear con la cámara de su celular para unirse automáticamente.
 * **Controles Táctiles y de Escritorio**:
-  * **Móvil**: Joystick dinámico Nipple.js (mitad izquierda), Touch Look pasivo a 60–120 Hz (mitad derecha) y botones flotantes (*PONER*, *ROMPER*, *SALTAR*).
-  * **PC**: Teclado WASD, Barra espaciadora y ratón con **Pointer Lock** (clic izquierdo para destruir, clic derecho para colocar).
+  * **Móvil**: Joystick dinámico Nipple.js (mitad izquierda), Touch Look pasivo a 60–120 Hz (mitad derecha) y botones flotantes (*ABRIR*, *SALTAR*).
+  * **PC**: Teclado WASD, Barra espaciadora (`SALTAR`) y teclas `E` / `F` / Clic izquierdo (`INTERACTUAR`).
 
 ---
 
@@ -104,8 +107,7 @@ npm run build
 | **Moverse** | Joystick virtual (pulgar izquierdo) | Teclas `W`, `A`, `S`, `D` |
 | **Mirar / Girar** | Arrastrar en la mitad derecha | Mover ratón (clic en pantalla para Pointer Lock) |
 | **Saltar** | Botón flotante `SALTAR` | Barra `Espaciadora` |
-| **Romper Bloque** | Botón flotante `ROMPER` | Clic izquierdo del ratón |
-| **Colocar Bloque** | Botón flotante `PONER` | Clic derecho del ratón |
+| **Interactuar / Abrir Puerta** | Botón flotante `ABRIR` | Teclas `E`, `F` o Clic izquierdo |
 
 ---
 

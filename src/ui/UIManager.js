@@ -1,16 +1,18 @@
 import QRCode from 'qrcode';
 
 export class UIManager {
-  constructor({ uiContainerId = 'ui', crosshairId = 'crosshair' } = {}) {
+  constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message' } = {}) {
     this.uiEl = document.getElementById(uiContainerId);
     this.crosshair = document.getElementById(crosshairId);
+    this.hudMessage = document.getElementById(hudMessageId);
+    this.messageTimeout = null;
   }
 
   showMenu({ onHost, onJoin }) {
     this.uiEl.innerHTML = `
       <div class="menu">
-        <h1>VOXEL SANDBOX · P2P</h1>
-        <button id="btn-host">Crear Sala</button>
+        <h1>VOXEL DUNGEON · CO-OP</h1>
+        <button id="btn-host">Crear Mazmorra</button>
         <div style="margin-top:16px">
           <input id="pin-input" placeholder="0000" maxlength="4" inputmode="numeric" />
           <button id="btn-join" style="background:#3b82f6">Unirse</button>
@@ -80,6 +82,24 @@ export class UIManager {
   setCrosshairVisible(visible) {
     if (this.crosshair) {
       this.crosshair.style.display = visible ? 'block' : 'none';
+    }
+  }
+
+  showNarrativeMessage(text, durationMs = 4000) {
+    if (!this.hudMessage) return;
+    this.hudMessage.textContent = text;
+    this.hudMessage.style.display = 'block';
+    if (this.messageTimeout) clearTimeout(this.messageTimeout);
+    if (durationMs > 0) {
+      this.messageTimeout = setTimeout(() => {
+        this.hideNarrativeMessage();
+      }, durationMs);
+    }
+  }
+
+  hideNarrativeMessage() {
+    if (this.hudMessage) {
+      this.hudMessage.style.display = 'none';
     }
   }
 }

@@ -3,6 +3,7 @@ export const MSG = {
   SNAPSHOT: 0x02,
   BLOCK:    0x03,
   INIT:     0x04,
+  DOOR:     0x05,
 };
 
 // INPUT: [type][f32 dx][f32 dz][f32 yaw]  -> 13 bytes
@@ -84,3 +85,11 @@ export function deserializeInit(buf) {
   const v = new DataView(buf);
   return { playerId: v.getUint8(1), blocks: new Uint8Array(buf, 2) };
 }
+
+// DOOR: [type (0x05)] -> 1 byte
+export function serializeDoorOpen() {
+  const buf = new ArrayBuffer(1);
+  new DataView(buf).setUint8(0, MSG.DOOR);
+  return buf;
+}
+

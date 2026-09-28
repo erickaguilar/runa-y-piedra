@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { VoxelMap } from '../render/VoxelMap.js';
+import { BLOCK_TYPES } from '../config/constants.js';
 
 export class BlockRaycaster {
   constructor(camera, voxelMap, world) {
@@ -11,33 +12,41 @@ export class BlockRaycaster {
     this.screenCenter = new THREE.Vector2(0, 0);
   }
 
-  getTargetBlock(maxDistance = 7.0) {
+  getTargetInteraction(playerPos, maxDistance = 5.0) {
+    // 1. Chequeo por proximidad a la Gran Puerta (x ~ 11.5, z ~ 12)
+    const distToDoor = Math.hypot(playerPos.x - 11.5, playerPos.z - 12);
+    if (distToDoor < 3.2 && !this.world.isDoorOpen) {
+      return { type: 'door', message: 'Gran Puerta de la Mazmorra' };
+    }
+
+    // 2. Chequeo por Raycaster mirando a bloques
     this.raycaster.setFromCamera(this.screenCenter, this.camera);
     const hits = this.raycaster.intersectObject(this.voxelMap.mesh, false);
 
-    if (!hits.length) return null;
-    const hit = hits[0];
-    if (hit.distance > maxDistance) return null;
+    if (hits.length > 0) {
+      const hit = hits[0];
+      if (hit.distance <= maxDistance) {
+        const bIdx = this.voxelMap.instToBlock[hit.instanceId];
+        if (bIdx !== -1) {
+          const { x, y, z } = VoxelMap.blockIndexToXYZ(bIdx);
+          const blockType = this.world.get(x, y, z);
 
-    const bIdx = this.voxelMap.instToBlock[hit.instanceId];
-    if (bIdx === -1) return null;
+          if (blockType === BLOCK_TYPES.DOOR && !this.world.isDoorOpen) {
+            return { type: 'door', x, y, z, message: 'Gran Puerta de la Mazmorra' };
+          }
+          if (blockType === BLOCK_TYPES.PEDESTAL) {
+            return { type: 'pedestal', x, y, z, message: 'Pedestal Ancestral de la Cripta' };
+          }
+        }
+      }
+    }
 
-    const { x, y, z } = VoxelMap.blockIndexToXYZ(bIdx);
-    const normal = hit.face ? hit.face.normal : new THREE.Vector3(0, 1, 0);
+    // 3. Chequeo por proximidad al pedestal ancestral
+    const distToPedestal = Math.hypot(playerPos.x - 12.5, playerPos.z - 18.5);
+    if (distToPedestal < 3.0) {
+      return { type: 'pedestal', message: 'Pedestal Ancestral de la Cripta' };
+    }
 
-    const placeCoord = {
-      x: x + Math.round(normal.x),
-      y: y + Math.round(normal.y),
-      z: z + Math.round(normal.z),
-    };
-
-    return {
-      x,
-      y,
-      z,
-      normal,
-      placeCoord,
-      isPlaceValid: this.world.inBounds(placeCoord.x, placeCoord.y, placeCoord.z),
-    };
+    return null;
   }
 }

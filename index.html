@@ -25,30 +25,26 @@
       color:#fff;font-weight:700;font-size:11px;z-index:25;box-shadow:0 4px 16px rgba(0,0,0,.5);
       display:none;flex-direction:column;align-items:center;justify-content:center;user-select:none;cursor:pointer}
     .action-btn:active{transform:scale(0.92)}
-    #btn-place{right:120px;bottom:110px;background:#3b82f6}
-    #btn-destroy{right:30px;bottom:170px;background:#ef4444}
+    #btn-interact{right:30px;bottom:150px;background:#d97706}
     #btn-jump{right:30px;bottom:60px;background:#6b7280}
+    #hud-message{position:fixed;top:16px;left:50%;transform:translateX(-50%);
+      background:rgba(15,23,42,0.88);backdrop-filter:blur(8px);border:1px solid rgba(217,119,6,0.6);
+      color:#fbbf24;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;
+      display:none;z-index:25;letter-spacing:0.5px;box-shadow:0 4px 16px rgba(0,0,0,0.6);text-align:center}
     #qr-canvas{border-radius:8px;margin:8px 0;background:#fff;padding:4px}
   </style>
 </head>
 <body>
   <canvas id="canvas"></canvas>
   <div class="crosshair" id="crosshair"></div>
-  <button class="action-btn" id="btn-place">
+  <div id="hud-message"></div>
+  <button class="action-btn" id="btn-interact">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-      <line x1="12" y1="22.08" x2="12" y2="12"/>
+      <path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"/>
+      <path d="M2 20h20"/>
+      <circle cx="14" cy="12" r="1.5" fill="currentColor"/>
     </svg>
-    <span style="font-size:10px;margin-top:2px;">PONER</span>
-  </button>
-  <button class="action-btn" id="btn-destroy">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M14.5 4l5.5 5.5-3 3-5.5-5.5 3-3z"/>
-      <path d="M12 7.5L5 14.5a2.121 2.121 0 0 0 0 3l1.5 1.5a2.121 2.121 0 0 0 3 0L16.5 12"/>
-      <line x1="18" y1="15" x2="15" y2="12"/>
-    </svg>
-    <span style="font-size:10px;margin-top:2px;">ROMPER</span>
+    <span style="font-size:10px;margin-top:2px;">ABRIR</span>
   </button>
   <button class="action-btn" id="btn-jump">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">

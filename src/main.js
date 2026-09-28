@@ -36,8 +36,7 @@ class VoxelSandboxGame {
     this.input = new InputManager({
       canvas: this.canvas,
       onJump: () => this.handleJump(),
-      onPlace: () => this.handlePlaceBlock(),
-      onDestroy: () => this.handleDestroyBlock(),
+      onInteract: () => this.handleInteract(),
     });
 
     this.initNetworkEvents();
@@ -54,7 +53,7 @@ class VoxelSandboxGame {
   }
 
   async startHost() {
-    this.ui.setStatus('Creando sala...');
+    this.ui.setStatus('Creando mazmorra...');
     try {
       const pin = await this.network.host();
       this.mode = 'host';
@@ -63,7 +62,9 @@ class VoxelSandboxGame {
       const hostAddr = isLocal ? '192.168.100.28:5173' : window.location.host;
       const joinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
 
-      this.ui.showHostRoom(pin, joinUrl);
+      this.ui.showHostRoom(pin, joinUrl, () => {
+        this.ui.showNarrativeMessage('Sala 1: Vestíbulo de la Mazmorra. Buscad la salida.', 5000);
+      });
     } catch (e) {
       this.ui.setStatus('Error al crear sala: ' + (e?.message || e));
     }
@@ -74,12 +75,13 @@ class VoxelSandboxGame {
       this.ui.setStatus('PIN inválido (debe contener 4 dígitos)');
       return;
     }
-    this.ui.setStatus('Conectando a sala...');
+    this.ui.setStatus('Conectando a la mazmorra...');
     try {
       await this.network.join(pin);
       this.mode = 'client';
       this.ui.setCrosshairVisible(true);
       this.ui.hideMenu();
+      this.ui.showNarrativeMessage('Conectado a la Mazmorra. Explorad juntos.', 5000);
     } catch (e) {
       this.ui.setStatus('Error de conexión: ' + (e?.message || e));
     }
@@ -93,43 +95,36 @@ class VoxelSandboxGame {
     }
   }
 
-  handleDestroyBlock() {
+  handleInteract() {
     if (!this.mode) return;
-    const target = this.raycaster.getTargetBlock();
-    if (!target) return;
-    this.applyBlockEdit(0, target.x, target.y, target.z);
-  }
+    const local = this.playerManager.localPlayer;
+    const interaction = this.raycaster.getTargetInteraction(local.pos);
+    if (!interaction) {
+      this.ui.showNarrativeMessage('Nada con lo que interactuar cerca.', 2000);
+      return;
+    }
 
-  handlePlaceBlock() {
-    if (!this.mode) return;
-    const target = this.raycaster.getTargetBlock();
-    if (!target || !target.isPlaceValid) return;
-    this.applyBlockEdit(1, target.placeCoord.x, target.placeCoord.y, target.placeCoord.z);
-  }
-
-  applyBlockEdit(action, x, y, z) {
-    if (this.mode === 'host') {
-      this.applyBlockEditLocal(action, x, y, z);
-      this.network.broadcast(Proto.serializeBlock(action, x, y, z));
-    } else {
-      this.network.sendToHost(Proto.serializeBlock(action, x, y, z));
+    if (interaction.type === 'door') {
+      if (this.world.isDoorOpen) return;
+      if (this.mode === 'host') {
+        this.openDoor();
+      } else {
+        this.network.sendToHost(Proto.serializeDoorOpen());
+        this.ui.showNarrativeMessage('Abriendo la Gran Puerta...', 2500);
+      }
+    } else if (interaction.type === 'pedestal') {
+      this.ui.showNarrativeMessage('✨ Pedestal Ancestral: ¡Habéis alcanzado el Santuario interior de la Mazmorra!', 6000);
     }
   }
 
-  applyBlockEditLocal(action, x, y, z) {
-    // Proteger muros perimetrales de la arena
-    if (action === 0 && this.world.isBorder(x, z) && y >= 4) return;
+  openDoor() {
+    if (this.world.isDoorOpen) return;
+    this.world.openDungeonDoor();
+    this.voxelMap.openDungeonDoor();
+    this.ui.showNarrativeMessage('🚪 ¡La Gran Puerta ha sido abierta! Avanzad hacia la Cripta.', 4500);
 
-    if (action === 0) {
-      if (this.world.get(x, y, z) !== 0) {
-        this.world.set(x, y, z, BLOCK_TYPES.AIR);
-        this.voxelMap.removeBlock(x, y, z);
-      }
-    } else {
-      if (this.world.get(x, y, z) === 0) {
-        this.world.set(x, y, z, BLOCK_TYPES.DIRT);
-        this.voxelMap.addBlock(x, y, z, BLOCK_TYPES.DIRT);
-      }
+    if (this.mode === 'host') {
+      this.network.broadcast(Proto.serializeDoorOpen());
     }
   }
 
@@ -162,11 +157,8 @@ class VoxelSandboxGame {
       }
     });
 
-    this.network.addEventListener('block-edit', (e) => {
-      if (this.mode !== 'host') return;
-      const { action, x, y, z } = e.detail;
-      this.applyBlockEditLocal(action, x, y, z);
-      this.network.broadcast(Proto.serializeBlock(action, x, y, z));
+    this.network.addEventListener('door-open', () => {
+      this.openDoor();
     });
 
     this.network.addEventListener('snapshot', (e) => {
@@ -182,6 +174,9 @@ class VoxelSandboxGame {
       this.world.setFromArray(e.detail.blocks);
       this.voxelMap.rebuildFromWorld();
       this.playerManager.setLocalId(e.detail.playerId);
+      if (this.world.isDoorOpen) {
+        this.ui.showNarrativeMessage('La Gran Puerta ya está abierta. Explorad la Cripta.', 4000);
+      }
     });
   }
 

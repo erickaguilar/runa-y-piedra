@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { WORLD_X, WORLD_Y, WORLD_Z, BLOCK_AIR } from '../core/World.js';
-import { BLOCK_COLORS } from '../config/constants.js';
+import { WORLD_X, WORLD_Y, WORLD_Z } from '../core/World.js';
+import { BLOCK_COLORS, BLOCK_TYPES } from '../config/constants.js';
 import { TextureGenerator } from './TextureGenerator.js';
 
 const THREE_COLORS = {
@@ -8,6 +8,7 @@ const THREE_COLORS = {
   2: new THREE.Color(BLOCK_COLORS[2]),
   3: new THREE.Color(BLOCK_COLORS[3]),
   4: new THREE.Color(BLOCK_COLORS[4]),
+  5: new THREE.Color(BLOCK_COLORS[5]),
 };
 
 export class VoxelMap {
@@ -86,6 +87,13 @@ export class VoxelMap {
     this.freeSlots.push(inst);
   }
 
+  openDungeonDoor() {
+    this.removeBlock(11, 1, 12);
+    this.removeBlock(11, 2, 12);
+    this.removeBlock(12, 1, 12);
+    this.removeBlock(12, 2, 12);
+  }
+
   rebuildFromWorld() {
     this.blockToInst.fill(-1);
     this.instToBlock.fill(-1);
@@ -97,7 +105,7 @@ export class VoxelMap {
       for (let y = 0; y < WORLD_Y; y++) {
         for (let z = 0; z < WORLD_Z; z++) {
           const t = this.world.get(x, y, z);
-          if (t !== BLOCK_AIR) this.addBlock(x, y, z, t);
+          if (t !== BLOCK_TYPES.AIR) this.addBlock(x, y, z, t);
         }
       }
     }
