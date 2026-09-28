@@ -5,6 +5,30 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.20.0] - 2026-09-28
+
+### Added
+- **Rediseño Completo del Cofre del Tesoro 3D Medieval ([`ChestRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js))**:
+  - **Eliminación de la apariencia de caja de regalo**:
+    - Supresión de las cintas cruzadas en "+" central que asemejaban un paquete con lazos de regalo.
+    - Transformación de la tapa plana en una **bóveda semicilíndrica arqueada** de proporciones góticas ($0.90\text{ m}$ ancho $\times 0.60\text{ m}$ profundidad $\times 0.225\text{ m}$ flecha de arco).
+  - **Textura Procedural SVG de Roble de Mazmorra**:
+    - Textura canvas de $256 \times 256$ píxeles generada en código con 4 tablones horizontales de roble noble envejecido (`#2e1405`, `#4a240a`, `#5c2e0e`), juntas con sombras profundas y bisel de luz, vetas orgánicas longitudinales, nudos artesanales y clavos de forja oscuros con brillo especular.
+  - **Herrajes de Forja Paralelos y Piezas Fusionadas ([`BufferGeometryUtils.mergeGeometries`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js))**:
+    - 2 bandas de hierro forjado paralelas ($X = \pm 0.25\text{ m}$) que recorren la curvatura de la bóveda superior y abrazan la base de madera.
+    - 4 esquineros de refuerzo en ángulo en los vértices del sillar.
+    - Plinto inferior y marco de encaje perimetral para ambas piezas.
+    - Gran placa de cerradura medieval frontal con cerrojo articulado colgante (*hasp*) que pivota con la tapa al abrirse.
+    - Asas laterales de transporte de hierro con anillas abatibles (*drop rings*).
+    - Fusión en memoria a **solo 2 draw calls por sección** (madera noble con textura SVG + herrajes de forja unificados).
+  - **Tesoro Interior Esculpido**:
+    - Montículo de monedas de oro brillantes y tres gemas rúnicas talladas (zafiro, rubí y esmeralda) bañadas por la luz dorada interior (`lootLight`) acoplada a la física del resorte.
+
+- **Nuevo Sprite/Icono SVG Arqueado de Cofre para Alertas y HUD ([`Icons.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js))**:
+  - Actualización del icono vectorial de cofre (`chest`) con silueta de tapa en cúpula abovedada, bandas de refuerzo dobles y cerradura central con cerradero para sustituir la antigua caja plana en todos los mensajes narrativos y banners de recompensa.
+
+---
+
 ## [1.19.0] - 2026-09-28
 
 ### Added

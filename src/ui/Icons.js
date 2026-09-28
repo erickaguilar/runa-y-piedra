@@ -104,7 +104,7 @@ export const ICONS = {
     stroke: 'currentColor',
     strokeWidth: 2,
     defaultColor: '#f59e0b',
-    body: `<path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3H3V8zM3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8H3zM10 11h4v3h-4z" stroke-linecap="round" stroke-linejoin="round"/>`,
+    body: `<path d="M3 10c0-4.5 4-6.5 9-6.5s9 2 9 6.5v1H3v-1zM3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8H3zM7 5.5v15.5M17 5.5v15.5M10 10h4v4h-4z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/>`,
   },
 
   key: {
