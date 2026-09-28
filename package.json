@@ -1,6 +1,6 @@
 {
   "name": "voxel-sandbox-p2p",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "type": "module",
   "scripts": {
     "dev": "node node_modules/vite/bin/vite.js --host",

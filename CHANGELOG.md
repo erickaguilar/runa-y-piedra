@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.4.0] - 2026-09-28
+
+### Added
+- **Arquitectura de Niveles Desacoplada en Archivos de Datos**:
+  - Creación del subsistema `src/levels/` para definir y almacenar mapas de mazmorras en archivos JSON limpios, legibles y extensibles sin tocar el código fuente del motor.
+  - **Nivel 1**: [`src/levels/data/dungeon_classic.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/dungeon_classic.json) (*"Mazmorra Ancestral: Las Tres Cámaras"* - vestíbulo, foso de abismo con parkour y santuario del pedestal).
+  - **Nivel 2**: [`src/levels/data/crypt_inferno.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/crypt_inferno.json) (*"Cripta del Fuego: Rocas Volcánicas"* - nuevo mapa con pilares de basalto, saltos en zig-zag sobre río de lava y altar ígneo).
+  - **`LevelLoader`**: Motor interpretador que traduce directivas declarativas (`perimeter`, `fill`, `divider`, `pillar`, `block`) a la malla voxel de `World`, e incluye utilidades para importar/exportar niveles JSON.
+  - **`LevelRegistry`**: Catálogo central para registro, consulta y cambio de niveles en caliente.
+  - **Selector Visual de Niveles en el Lobby**:
+    - El Host puede elegir interactivamente entre los diferentes mapas antes de iniciar la partida con tarjetas visuales, iconos de ambientación y etiquetas de dificultad.
+    - Sincronización automática P2P: los clientes reciben el mapa seleccionado por el Host en el paquete `INIT` sin configuraciones adicionales.
+
+---
+
 ## [1.3.2] - 2026-09-28
 
 ### Fixed
