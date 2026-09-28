@@ -22,6 +22,7 @@ export class UIManager {
       this.selectedColorIndex = 0;
     }
     this.playerName = localStorage.getItem('dungeon_player_name') || 'Aventurero';
+    this.setActionButtonsVisible(false);
   }
 
   bindSettings(callbacks = {}) {
@@ -35,6 +36,7 @@ export class UIManager {
     this.currentScreen = 'menu';
     this.lastMenuParams = { onHost, onJoin };
     this.setCrosshairVisible(false);
+    this.setActionButtonsVisible(false);
 
     const heroesHtml = PLAYER_HEROES.map((h, i) => `
       <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
@@ -134,6 +136,8 @@ export class UIManager {
   showHostRoom(pin, joinUrl, options = {}) {
     this.currentScreen = 'host_room';
     this.lastHostParams = { pin, joinUrl, options };
+    this.setCrosshairVisible(false);
+    this.setActionButtonsVisible(false);
     const { hostName, hostColorHex, onPlay, levels = [], selectedLevelId = 'dungeon_classic', onSelectLevel } = options;
 
     const levelsHtml = levels.length > 0 ? `
@@ -233,6 +237,7 @@ export class UIManager {
       this.currentScreen = 'in_game';
       this.hideMenu();
       this.setCrosshairVisible(true);
+      this.setActionButtonsVisible(true);
       onPlay?.();
     });
   }
@@ -248,6 +253,7 @@ export class UIManager {
   openSettingsModal() {
     this.isSettingsOpen = true;
     this.setCrosshairVisible(false);
+    this.setActionButtonsVisible(false);
     document.exitPointerLock?.();
 
     if (this.settingsBtn) {
@@ -419,6 +425,7 @@ export class UIManager {
     if (this.currentScreen === 'in_game') {
       this.hideMenu();
       this.setCrosshairVisible(true);
+      this.setActionButtonsVisible(true);
     } else if (this.currentScreen === 'host_room' && this.lastHostParams) {
       this.showHostRoom(this.lastHostParams.pin, this.lastHostParams.joinUrl, this.lastHostParams.options);
     } else if (this.lastMenuParams) {
@@ -507,6 +514,13 @@ export class UIManager {
     if (this.crosshair) {
       this.crosshair.style.display = visible ? 'block' : 'none';
     }
+  }
+
+  setActionButtonsVisible(visible) {
+    const btnInteract = document.getElementById('btn-interact');
+    const btnJump = document.getElementById('btn-jump');
+    if (btnInteract) btnInteract.style.display = visible ? 'flex' : 'none';
+    if (btnJump) btnJump.style.display = visible ? 'flex' : 'none';
   }
 
   showNarrativeMessage(text, durationMs = 4000) {

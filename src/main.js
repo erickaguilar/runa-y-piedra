@@ -169,6 +169,7 @@ class VoxelSandboxGame {
       this.currentJoinUrl = `${window.location.protocol}//${window.location.host}/?join=${pin}`;
       this.ui.currentScreen = 'in_game';
       this.ui.setCrosshairVisible(true);
+      this.ui.setActionButtonsVisible(true);
       this.ui.hideMenu();
       this.ui.showNarrativeMessage(`Conectado como ${name}. Explorad juntos.`, 5000);
 

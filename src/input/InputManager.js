@@ -147,7 +147,7 @@ export class InputManager {
   bindTouchButton(id, callback) {
     const btn = document.getElementById(id);
     if (!btn) return;
-    btn.style.display = 'flex';
+    btn.style.display = 'none'; // Oculto inicialmente; UIManager lo activa solo al entrar en juego
     const handler = (e) => {
       e.preventDefault();
       callback();

@@ -7,6 +7,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.7.1] - 2026-09-28
+
+### Fixed
+- **Ocultamiento de Botones de Saltar y Acción en Modales y Lobby (`UIManager`)**:
+  - Eliminada la presencia de los botones flotantes de acción (**SALTAR** e **ACTION**) durante las pantallas de menú principal, modal de "Crear Mazmorra" / Sala de Expedición del Host y ventana de Configuración.
+  - En [`InputManager.js`](file:///data/data/com.termux/files/home/develop/game/src/input/InputManager.js), los botones táctiles se inicializan como invisibles (`display = 'none'`) en lugar de forzarse en pantalla al cargar la página.
+  - En [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), se implementó el método reactivo [`setActionButtonsVisible(visible)`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js#L519-L525) que asegura que los botones táctiles permanezcan ocultos mientras cualquier modal o lobby esté abierto, mostrándose únicamente cuando el jugador entra efectivamente a la mazmorra en partida activa.
+
+---
+
 ## [1.7.0] - 2026-09-28
 
 ### Added
