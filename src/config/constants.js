@@ -2,11 +2,11 @@ export const WORLD_CONFIG = {
   SIZE_X: 24,
   SIZE_Y: 16,
   SIZE_Z: 36,
-  MIN_Y: -3, // Capas inferiores: fosa de lava (y=-1) y pozo de escalinata (hasta y=-3)
+  MIN_Y: -5, // Capas inferiores: lava (y=-1) y pozo de escalinata (hasta y=-5)
   SPAWN_X: 12.0,
   SPAWN_Y: 2.1,
   SPAWN_Z: 4.5,
-  VOID_RESCUE_Y: -4.5,
+  VOID_RESCUE_Y: -5.5,
 };
 
 export const PHYSICS_CONFIG = {

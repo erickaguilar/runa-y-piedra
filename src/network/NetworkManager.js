@@ -199,14 +199,23 @@ export class NetworkManager extends EventTarget {
         break;
       }
 
-      case Proto.MSG.DESCENT: {
-        const d = Proto.deserializeDescent(buf);
+      case Proto.MSG.DESCENT: {        const d = Proto.deserializeDescent(buf);
         // NOW solo lo procesa el Host; START/GO solo los clientes
         // (el Host ejecuta su propio descenso en local).
         if (d.kind === Proto.DESCENT_KIND.NOW && !this.isHost) break;
         if (d.kind !== Proto.DESCENT_KIND.NOW && this.isHost) break;
         d.conn = conn;
         this.dispatchEvent(new CustomEvent('descent', { detail: d }));
+        break;
+      }
+
+      case Proto.MSG.STAIRS: {
+        const s = Proto.deserializeStairs(buf);
+        // REQ solo lo procesa el Host; OPEN solo los clientes.
+        if (s.kind === Proto.STAIRS_KIND.REQ && !this.isHost) break;
+        if (s.kind !== Proto.STAIRS_KIND.REQ && this.isHost) break;
+        s.conn = conn;
+        this.dispatchEvent(new CustomEvent('stairs', { detail: s }));
         break;
       }
 

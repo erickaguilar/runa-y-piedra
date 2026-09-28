@@ -306,17 +306,58 @@ class VoxelSandboxGame {
     return this.world.stairwells?.[0] || null;
   }
 
+  /**
+   * Apertura de la losa sellada (solo Host): valida cercanía y la abre para todos.
+   * La fosa con escalinata hasta y=-5 queda transitable y activa el descenso.
+   */
+  requestStairsOpen(player = null) {
+    if (this.mode !== 'host' || this.transitioning || this.world.stairsOpen) return false;
+    const w = this.world.stairwells?.[0];
+    if (!w) return false;
+    if (player) {
+      const cx = (w.x1 + w.x2 + 1) / 2;
+      const cz = (w.z1 + w.z2 + 1) / 2;
+      const dist = Math.hypot(player.pos.x - cx, player.pos.z - cz);
+      if (dist > 3.2) {
+        console.warn(`[AntiCheat] Apertura de losa rechazada: ${player.name} fuera de rango (${dist.toFixed(2)}m)`);
+        return false;
+      }
+    }
+    this.network.broadcast(Proto.serializeStairsOpen());
+    this.openStairsCeremony();
+    return true;
+  }
+
+  /** Ceremonia local de apertura: fosa real, losa animada, sonido y mensaje. */
+  openStairsCeremony() {
+    if (this.transitioning) return;
+    this.transitioning = true;
+    const rect = this.stairPitRect();
+    if (rect) {
+      this.applyStairPit(rect);
+      this.tintStairPit(rect);
+      this.world.stairsOpen = true;
+      for (const w of this.world.stairwells) w.open = true;
+    }
+    this.stairsRenderer.open();
+    this.soundManager.playSlabGrind();
+    this.ui.showNarrativeMessage('🪨 ¡La losa cede! Una escalinata desciende a la oscuridad. ¡Bajad!', 6000);
+    setTimeout(() => { this.transitioning = false; }, 2600);
+  }
+
   /** Oscurece el pozo (peldaños en degradado + fondo y muros casi negros). */
   tintStairPit(rect) {
     if (!rect) return;
     for (let x = rect.x1; x <= rect.x2; x++) {
-      this.voxelMap.setTint(x, -1, rect.z1, 0x3a3a3a); // peldaño 1
-      this.voxelMap.setTint(x, -2, rect.z1 + 1, 0x232323); // peldaño 2
-      this.voxelMap.setTint(x, -3, rect.z1 + 2, 0x0b0b0b); // fondo oscuro
+      this.voxelMap.setTint(x, -1, rect.z1, 0x4a4a4a); // peldaño 1
+      this.voxelMap.setTint(x, -2, rect.z1 + 1, 0x2e2e2e); // peldaño 2
+      this.voxelMap.setTint(x, -3, rect.z1 + 2, 0x1c1c1c); // peldaño 3
+      this.voxelMap.setTint(x, -4, rect.z1 + 2, 0x121212); // peldaño 4
+      this.voxelMap.setTint(x, -5, rect.z1 + 2, 0x0b0b0b); // fondo oscuro
     }
     for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
       for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
-        for (let y = -3; y <= -1; y++) {
+        for (let y = -5; y <= -1; y++) {
           if (this.world.get(x, y, z) === BLOCK_TYPES.WALL) {
             this.voxelMap.setTint(x, y, z, 0x141414);
           }
@@ -326,9 +367,10 @@ class VoxelSandboxGame {
   }
 
   /**
-   * Abre la fosa real en el mundo: retira 6 bloques de suelo, construye escalones
-   * con colisión (y=-1, y=-2), descansillo oscuro (y=-3) y reviste el pozo con
-   * muros de piedra. Determinista: host y clientes aplican lo mismo.
+   * Abre la fosa real en el mundo: retira 6 bloques de suelo y construye una
+   * escalinata con colisión hasta y=-5 (peldaños en z1:-1, z1+1:-2, z1+2:-3/-4/-5),
+   * con macizo bajo los peldaños y pozo revestido de muros.
+   * Determinista: host y clientes aplican lo mismo.
    */
   applyStairPit(rect) {
     if (!rect) return;
@@ -343,34 +385,32 @@ class VoxelSandboxGame {
         this.voxelMap.removeBlock(x, 0, z);
       }
     }
-    // 2. Revestir el pozo con muros (anillo expandido, y=-1..-3, solo donde hay aire)
+    // 2. Revestir el pozo con muros (anillo expandido, y=-5..-1, solo donde hay aire)
     for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
       for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
         const inside = x >= rect.x1 && x <= rect.x2 && z >= rect.z1 && z <= rect.z2;
         if (inside) continue;
-        for (let y = -3; y <= -1; y++) {
+        for (let y = -5; y <= -1; y++) {
           if (this.world.get(x, y, z) === BLOCK_TYPES.AIR) {
             setSolid(x, y, z, BLOCK_TYPES.WALL);
           }
         }
       }
     }
-    // 3. Escalones reales descendentes + macizo bajo ellos (sin bloques flotantes)
+    // 3. Escalinata real descendente + macizo (sin bloques flotantes)
     for (let x = rect.x1; x <= rect.x2; x++) {
-      const s1 = floorVariant(x, rect.z1);
-      setSolid(x, -1, rect.z1, s1); // peldaño 1 (cima 0.0)
-      setSolid(x, -2, rect.z1, BLOCK_TYPES.WALL);
-      setSolid(x, -3, rect.z1, BLOCK_TYPES.WALL);
-      const s2 = floorVariant(x, rect.z1 + 1);
-      setSolid(x, -2, rect.z1 + 1, s2); // peldaño 2 (cima -1.0)
-      setSolid(x, -3, rect.z1 + 1, BLOCK_TYPES.WALL);
-      const land = floorVariant(x, rect.z1 + 2);
-      setSolid(x, -3, rect.z1 + 2, land); // fondo oscuro (cima -2.0)
+      setSolid(x, -1, rect.z1, floorVariant(x, rect.z1)); // peldaño 1 (cima 0.0)
+      for (let y = -5; y <= -2; y++) setSolid(x, y, rect.z1, BLOCK_TYPES.WALL);
+      setSolid(x, -2, rect.z1 + 1, floorVariant(x, rect.z1 + 1)); // peldaño 2 (cima -1.0)
+      for (let y = -5; y <= -3; y++) setSolid(x, y, rect.z1 + 1, BLOCK_TYPES.WALL);
+      setSolid(x, -3, rect.z1 + 2, floorVariant(x, rect.z1 + 2)); // peldaño 3 (cima -2.0)
+      setSolid(x, -4, rect.z1 + 2, floorVariant(x, rect.z1 + 2)); // peldaño 4 (cima -3.0)
+      setSolid(x, -5, rect.z1 + 2, floorVariant(x, rect.z1 + 2)); // fondo oscuro (cima -4.0)
     }
   }
 
-  /** Ceremonia local del portal: altar, losa deslizante, fosa y mensaje (sin cambio de nivel). */
-  startPortalCeremony({ isLast = false, nextLevelId = '', nextName = '' } = {}) {
+  /** Ceremonia local del portal: altar y (si no es el final) apertura de la escalinata. */
+  startPortalCeremony({ isLast = false } = {}) {
     if (this.transitioning) return;
     this.transitioning = true;
     this.pedestalRenderer.activate();
@@ -386,17 +426,9 @@ class VoxelSandboxGame {
       return;
     }
 
-    const rect = this.stairPitRect();
-    if (rect) {
-      this.applyStairPit(rect);
-      this.tintStairPit(rect);
-      this.world.stairsOpen = true;
-      for (const w of this.world.stairwells) w.open = true;
-    }
-    this.stairsRenderer.open();
-    this.soundManager.playSlabGrind();
-    this.ui.showNarrativeMessage('✨ ¡El altar despierta! La losa se desliza y una escalinata desciende a la oscuridad. ¡Bajad!', 6000);
-    setTimeout(() => { this.transitioning = false; }, 2600);
+    // Delegar la apertura (gestiona su propio flag y temporizador)
+    this.transitioning = false;
+    this.openStairsCeremony();
   }
 
   // ================= DESCENSO SINCRONIZADO (8s, estilo Deep Rock) =================
@@ -526,6 +558,15 @@ class VoxelSandboxGame {
       } else {
         this.network.sendToHost(Proto.serializeChestOpen(chestId));
         this.ui.showNarrativeMessage('Abriendo cofre...', 1500);
+      }
+    } else if (interaction.type === 'stairs') {
+      if (this.world.stairsOpen) return;
+      if (this.transitioning) return;
+      if (this.mode === 'host') {
+        this.requestStairsOpen(local);
+      } else {
+        this.network.sendToHost(Proto.serializeStairsReq());
+        this.ui.showNarrativeMessage('Empujando la losa sellada...', 1500);
       }
     } else if (interaction.type === 'pedestal') {
       if (this.transitioning) return;
@@ -810,8 +851,20 @@ class VoxelSandboxGame {
       }
     });
 
-    this.network.addEventListener('descent', (e) => {
+    this.network.addEventListener('stairs', (e) => {
       const detail = e.detail || {};
+      if (this.mode === 'host') {
+        if (detail.kind !== Proto.STAIRS_KIND.REQ || this.transitioning) return;
+        const player = this.playerManager.getPlayerByConnection(detail.conn);
+        if (!player) return;
+        this.requestStairsOpen(player);
+      } else if (this.mode === 'client') {
+        if (detail.kind !== Proto.STAIRS_KIND.OPEN) return;
+        this.openStairsCeremony();
+      }
+    });
+
+    this.network.addEventListener('descent', (e) => {      const detail = e.detail || {};
       if (this.mode === 'host') {
         // "Bajar ya" de un cliente: transición inmediata si hay cuenta atrás
         if (detail.kind === Proto.DESCENT_KIND.NOW && this.descentActive) {

@@ -68,14 +68,14 @@ export class StairsRenderer {
     // oscuro se logra tiñendo esos bloques de negro (VoxelMap.setTint) + luz tenue.
 
     // --- Luz brasienta tenue desde el fondo + niebla ascendente ---
-    const pitLight = new THREE.PointLight(0xea580c, 0, 6, 2.0);
-    pitLight.position.set(0, -1.8, 0);
+    const pitLight = new THREE.PointLight(0xea580c, 0, 7, 2.0);
+    pitLight.position.set(0, -3.6, 0);
     root.add(pitLight);
 
     const fogPos = new Float32Array(FOG_COUNT * 3);
     for (let k = 0; k < FOG_COUNT; k++) {
       fogPos[k * 3] = (Math.random() - 0.5) * (w - 0.4);
-      fogPos[k * 3 + 1] = -2.8 + Math.random() * 3.2;
+      fogPos[k * 3 + 1] = -4.8 + Math.random() * 5.2;
       fogPos[k * 3 + 2] = (Math.random() - 0.5) * (d - 0.4);
     }
     const fogGeo = new THREE.BufferGeometry();
@@ -147,7 +147,7 @@ export class StairsRenderer {
       const arr = attr.array;
       for (let i = 0; i < FOG_COUNT; i++) {
         let y = arr[i * 3 + 1] + safeDt * 0.22;
-        if (y > 0.5) y = -2.8;
+        if (y > 0.5) y = -4.8;
         arr[i * 3 + 1] = y;
       }
       attr.needsUpdate = true;

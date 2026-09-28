@@ -132,7 +132,7 @@ export class SimulationEngine {
       return;
     }
 
-    // 4. Rescate y pérdida de vida al Caer al Abismo / Vacío (extendido 4 bloques: de -0.5 a -4.5)
+    // 4. Rescate y pérdida de vida al Caer al Abismo / Vacío (bajo el fondo del mundo)
     if (p.pos.y < (WORLD_CONFIG.VOID_RESCUE_Y ?? -4.5)) {
       this.killPlayer(p, 'void');
       return;

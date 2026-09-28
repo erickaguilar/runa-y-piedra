@@ -24,6 +24,7 @@ export const MSG = {
   KEY:          0x0C, // Key grant sync (host -> clients, rare event)
   PEDESTAL:     0x0D, // Portal altar: request (client->host) & ceremony (host->all)
   DESCENT:      0x0E, // Synced descent: NOW (client->host), START/GO (host->all)
+  STAIRS:       0x0F, // Sealed slab: REQ (client->host) & OPEN (host->all)
 };
 
 export const ACTION_FLAGS = {
@@ -424,6 +425,34 @@ export function deserializeDescent(buf) {
     return { kind, nextLevelId, nextName };
   }
   return { kind };
+}
+
+// ==========================================
+// 12. LOSA SELLADA (apertura de escalinata)
+// REQ:  [type:1][kind:0] (cliente -> host)
+// OPEN: [type:1][kind:1] (host -> todos)
+// ==========================================
+export const STAIRS_KIND = { REQ: 0, OPEN: 1 };
+
+export function serializeStairsReq() {
+  const buf = new ArrayBuffer(2);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.STAIRS);
+  v.setUint8(1, STAIRS_KIND.REQ);
+  return buf;
+}
+
+export function serializeStairsOpen() {
+  const buf = new ArrayBuffer(2);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.STAIRS);
+  v.setUint8(1, STAIRS_KIND.OPEN);
+  return buf;
+}
+
+export function deserializeStairs(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  return { kind: v.byteLength > 1 ? v.getUint8(1) : 0 };
 }
 
 // ==========================================

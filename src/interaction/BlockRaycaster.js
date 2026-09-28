@@ -37,13 +37,25 @@ export class BlockRaycaster {
     }
 
     // 2. Chequeo por proximidad a objetivos/pedestales del nivel
-    // (sin fallback: los niveles sin altar —como los dos primeros— no tienen interacción)
+    // (sin fallback: los niveles sin altar no tienen esta interacción)
     if (Array.isArray(this.world.objectives) && this.world.objectives.length > 0) {
       for (let i = 0; i < this.world.objectives.length; i++) {
         const obj = this.world.objectives[i];
         const dist = Math.hypot(playerPos.x - obj.x, playerPos.z - obj.z);
         if (dist < (obj.triggerRadius || 3.2)) {
           return { type: obj.type || 'pedestal', objIndex: i, message: obj.completeMessage || obj.name };
+        }
+      }
+    }
+
+    // 2b. Losa sellada de la escalinata (interactuable mientras siga cerrada)
+    if (Array.isArray(this.world.stairwells) && this.world.stairwells.length > 0) {
+      for (const w of this.world.stairwells) {
+        if (w.open) continue;
+        const cx = (w.x1 + w.x2 + 1) / 2;
+        const cz = (w.z1 + w.z2 + 1) / 2;
+        if (Math.hypot(playerPos.x - cx, playerPos.z - cz) < 2.8) {
+          return { type: 'stairs', message: 'Losa sellada de la escalinata' };
         }
       }
     }
