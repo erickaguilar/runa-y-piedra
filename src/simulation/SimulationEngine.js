@@ -27,20 +27,31 @@ export class SimulationEngine {
       p.onGround = false;
     }
 
-    // 2. Registro dinámico de Puntos de Reaparición (Checkpoints por sala)
+    // 2. Registro dinámico de Puntos de Reaparición (Checkpoints por nivel)
     // Se registran únicamente cuando el jugador pisa suelo firme (pos.y >= 0.95)
     if (p.onGround && p.pos.y >= 0.95) {
-      if (p.pos.z >= 24.5) {
-        if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 3 (Santuario Ancestral)') {
-          p.setCheckpoint(11.5, 1.2, 25.0, 'Sala 3 (Santuario Ancestral)');
+      if (Array.isArray(this.world.checkpoints) && this.world.checkpoints.length > 0) {
+        for (const cp of this.world.checkpoints) {
+          if (p.pos.z >= cp.minZ && p.pos.z <= cp.maxZ) {
+            if (!p.checkpoint || p.checkpoint.roomName !== cp.name) {
+              p.setCheckpoint(cp.respawn.x, cp.respawn.y, cp.respawn.z, cp.name);
+            }
+            break;
+          }
         }
-      } else if (p.pos.z >= 11.5 && p.pos.z < 24.0) {
-        if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 2 (El Abismo)') {
-          p.setCheckpoint(11.5, 1.2, 12.0, 'Sala 2 (El Abismo)');
-        }
-      } else if (p.pos.z < 11.0) {
-        if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 1 (Vestíbulo)') {
-          p.setCheckpoint(WORLD_CONFIG.SPAWN_X, 1.2, WORLD_CONFIG.SPAWN_Z, 'Sala 1 (Vestíbulo)');
+      } else {
+        if (p.pos.z >= 24.5) {
+          if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 3 (Santuario Ancestral)') {
+            p.setCheckpoint(11.5, 1.2, 25.0, 'Sala 3 (Santuario Ancestral)');
+          }
+        } else if (p.pos.z >= 11.5 && p.pos.z < 24.0) {
+          if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 2 (El Abismo)') {
+            p.setCheckpoint(11.5, 1.2, 12.0, 'Sala 2 (El Abismo)');
+          }
+        } else if (p.pos.z < 11.0) {
+          if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 1 (Vestíbulo)') {
+            p.setCheckpoint(WORLD_CONFIG.SPAWN_X, 1.2, WORLD_CONFIG.SPAWN_Z, 'Sala 1 (Vestíbulo)');
+          }
         }
       }
     }

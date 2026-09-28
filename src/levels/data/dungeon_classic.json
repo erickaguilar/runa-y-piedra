@@ -1,0 +1,97 @@
+{
+  "id": "dungeon_classic",
+  "name": "Mazmorra Ancestral: Las Tres Cámaras",
+  "description": "Explora el vestíbulo, supera el abismo mediante saltos precisos y activa el pedestal del Santuario.",
+  "difficulty": "Normal",
+  "icon": "🏰",
+  "dimensions": {
+    "sizeX": 24,
+    "sizeY": 16,
+    "sizeZ": 36
+  },
+  "spawn": {
+    "x": 12.0,
+    "y": 1.2,
+    "z": 4.5
+  },
+  "doors": [
+    {
+      "id": 1,
+      "name": "Puerta 1 (Vestíbulo)",
+      "z": 11,
+      "coords": [
+        { "x": 11, "y": 1, "z": 11 },
+        { "x": 11, "y": 2, "z": 11 },
+        { "x": 12, "y": 1, "z": 11 },
+        { "x": 12, "y": 2, "z": 11 }
+      ],
+      "openMessage": "🚪 ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!"
+    },
+    {
+      "id": 2,
+      "name": "Puerta 2 (Santuario)",
+      "z": 24,
+      "coords": [
+        { "x": 11, "y": 1, "z": 24 },
+        { "x": 11, "y": 2, "z": 24 },
+        { "x": 12, "y": 1, "z": 24 },
+        { "x": 12, "y": 2, "z": 24 }
+      ],
+      "openMessage": "🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "sala_1",
+      "name": "Sala 1 (Vestíbulo)",
+      "minZ": 0,
+      "maxZ": 11.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 4.5 }
+    },
+    {
+      "id": "sala_2",
+      "name": "Sala 2 (El Abismo)",
+      "minZ": 11.5,
+      "maxZ": 24.0,
+      "respawn": { "x": 11.5, "y": 1.2, "z": 12.0 }
+    },
+    {
+      "id": "sala_3",
+      "name": "Sala 3 (Santuario Ancestral)",
+      "minZ": 24.5,
+      "maxZ": 36.0,
+      "respawn": { "x": 11.5, "y": 1.2, "z": 25.0 }
+    }
+  ],
+  "objectives": [
+    {
+      "type": "pedestal",
+      "name": "Pedestal Ancestral del Santuario",
+      "x": 12,
+      "y": 1,
+      "z": 30,
+      "triggerRadius": 3.2,
+      "completeMessage": "✨ ¡Pedestal Ancestral Activado! Habéis completado la Mazmorra Cooperativa con éxito."
+    }
+  ],
+  "regions": [
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 10] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 24], "to": [22, 0, 34] },
+    { "type": "perimeter", "height": 3, "block": "WALL" },
+    { "type": "divider", "z": 11, "height": 3, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
+    { "type": "divider", "z": 24, "height": 3, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
+    { "type": "pillar", "x": 6, "z": 5, "height": 3, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 5, "height": 3, "block": "PILLAR" },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 12], "to": [13, 0, 12] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [11, 0, 14], "to": [12, 0, 14] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [10, 0, 17], "to": [13, 0, 17] },
+    { "type": "fill", "block": "PILLAR", "from": [11, 0, 19], "to": [12, 0, 19] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [11, 1, 19], "to": [12, 1, 19] },
+    { "type": "fill", "block": "PILLAR", "from": [11, 0, 21], "to": [12, 0, 21] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [11, 1, 21], "to": [12, 1, 21] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 23], "to": [13, 0, 23] },
+    { "type": "pillar", "x": 6, "z": 29, "height": 3, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 29, "height": 3, "block": "PILLAR" },
+    { "type": "block", "block": "PEDESTAL", "pos": [12, 1, 30] }
+  ]
+}

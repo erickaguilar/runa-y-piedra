@@ -13,22 +13,42 @@ export class BlockRaycaster {
   }
 
   getTargetInteraction(playerPos, maxDistance = 5.0) {
-    // 1. Chequeo por proximidad a la Puerta 1 (z ~ 11)
-    const distToDoor1 = Math.hypot(playerPos.x - 11.5, playerPos.z - 11);
-    if (distToDoor1 < 3.2 && !this.world.isDoor1Open) {
-      return { type: 'door', doorId: 1, message: 'Puerta 1 (Vestíbulo)' };
+    // 1. Chequeo por proximidad a puertas definidas en el nivel
+    if (Array.isArray(this.world.doors) && this.world.doors.length > 0) {
+      for (const door of this.world.doors) {
+        const isOpen = door.id === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
+        if (!isOpen) {
+          const doorZ = door.z ?? 11;
+          const dist = Math.hypot(playerPos.x - 11.5, playerPos.z - doorZ);
+          if (dist < 3.2) {
+            return { type: 'door', doorId: door.id, message: door.name };
+          }
+        }
+      }
+    } else {
+      const distToDoor1 = Math.hypot(playerPos.x - 11.5, playerPos.z - 11);
+      if (distToDoor1 < 3.2 && !this.world.isDoor1Open) {
+        return { type: 'door', doorId: 1, message: 'Puerta 1 (Vestíbulo)' };
+      }
+      const distToDoor2 = Math.hypot(playerPos.x - 11.5, playerPos.z - 24);
+      if (distToDoor2 < 3.2 && !this.world.isDoor2Open) {
+        return { type: 'door', doorId: 2, message: 'Puerta 2 (Santuario)' };
+      }
     }
 
-    // 2. Chequeo por proximidad a la Puerta 2 (z ~ 24)
-    const distToDoor2 = Math.hypot(playerPos.x - 11.5, playerPos.z - 24);
-    if (distToDoor2 < 3.2 && !this.world.isDoor2Open) {
-      return { type: 'door', doorId: 2, message: 'Puerta 2 (Santuario)' };
-    }
-
-    // 3. Chequeo por proximidad al pedestal ancestral (z ~ 30)
-    const distToPedestal = Math.hypot(playerPos.x - 12.0, playerPos.z - 30);
-    if (distToPedestal < 3.2) {
-      return { type: 'pedestal', message: 'Pedestal Ancestral del Santuario' };
+    // 2. Chequeo por proximidad a objetivos/pedestales del nivel
+    if (Array.isArray(this.world.objectives) && this.world.objectives.length > 0) {
+      for (const obj of this.world.objectives) {
+        const dist = Math.hypot(playerPos.x - obj.x, playerPos.z - obj.z);
+        if (dist < (obj.triggerRadius || 3.2)) {
+          return { type: obj.type || 'pedestal', message: obj.completeMessage || obj.name };
+        }
+      }
+    } else {
+      const distToPedestal = Math.hypot(playerPos.x - 12.0, playerPos.z - 30);
+      if (distToPedestal < 3.2) {
+        return { type: 'pedestal', message: 'Pedestal Ancestral del Santuario' };
+      }
     }
 
     // 4. Chequeo por Raycaster mirando a bloques en el punto de mira

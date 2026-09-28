@@ -134,7 +134,25 @@ export class UIManager {
   showHostRoom(pin, joinUrl, options = {}) {
     this.currentScreen = 'host_room';
     this.lastHostParams = { pin, joinUrl, options };
-    const { hostName, hostColorHex, onPlay } = options;
+    const { hostName, hostColorHex, onPlay, levels = [], selectedLevelId = 'dungeon_classic', onSelectLevel } = options;
+
+    const levelsHtml = levels.length > 0 ? `
+        <div class="level-box">
+          <div class="level-title">Seleccionar Mapa de la Mazmorra</div>
+          <div class="level-grid" id="level-grid">
+            ${levels.map(lvl => `
+              <div class="level-card ${lvl.id === selectedLevelId ? 'selected' : ''}" data-level-id="${lvl.id}">
+                <div class="level-card-header">
+                  <span class="level-icon">${lvl.icon || '🏰'}</span>
+                  <span class="level-badge">${lvl.difficulty || 'Normal'}</span>
+                </div>
+                <div class="level-name">${lvl.name}</div>
+                <div class="level-desc">${lvl.description || ''}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+    ` : '';
 
     this.uiEl.innerHTML = `
       <div class="menu">
@@ -161,6 +179,8 @@ export class UIManager {
         <canvas id="qr-canvas"></canvas>
         <div style="font-size:11px;color:#94a3b8;margin-top:2px">O escanea el código con la cámara</div>
 
+        ${levelsHtml}
+
         <div class="party-box">
           <div class="party-title">Compañeros de Mazmorra</div>
           <div id="party-list">
@@ -184,6 +204,17 @@ export class UIManager {
     if (qrCanvas) {
       QRCode.toCanvas(qrCanvas, joinUrl, { width: 130, margin: 1 });
     }
+
+    // Selector de nivel interactivo
+    const levelCards = this.uiEl.querySelectorAll('.level-card');
+    levelCards.forEach(card => {
+      card.onclick = () => {
+        const id = card.dataset.levelId;
+        levelCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        onSelectLevel?.(id);
+      };
+    });
 
     // Compartir por mensajería (WhatsApp / Telegram / etc.)
     const shareBtn = document.getElementById('btn-share-link');

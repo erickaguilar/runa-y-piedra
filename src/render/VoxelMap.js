@@ -90,16 +90,23 @@ export class VoxelMap {
   }
 
   openDoor(doorId = 1) {
-    if (doorId === 1) {
-      this.removeBlock(11, 1, 11);
-      this.removeBlock(11, 2, 11);
-      this.removeBlock(12, 1, 11);
-      this.removeBlock(12, 2, 11);
-    } else if (doorId === 2) {
-      this.removeBlock(11, 1, 24);
-      this.removeBlock(11, 2, 24);
-      this.removeBlock(12, 1, 24);
-      this.removeBlock(12, 2, 24);
+    const door = this.world?.doors?.find(d => d.id === doorId);
+    if (door && Array.isArray(door.coords)) {
+      for (const c of door.coords) {
+        this.removeBlock(c.x, c.y, c.z);
+      }
+    } else {
+      if (doorId === 1) {
+        this.removeBlock(11, 1, 11);
+        this.removeBlock(11, 2, 11);
+        this.removeBlock(12, 1, 11);
+        this.removeBlock(12, 2, 11);
+      } else if (doorId === 2) {
+        this.removeBlock(11, 1, 24);
+        this.removeBlock(11, 2, 24);
+        this.removeBlock(12, 1, 24);
+        this.removeBlock(12, 2, 24);
+      }
     }
   }
 

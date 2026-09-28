@@ -113,16 +113,40 @@ class VoxelSandboxGame {
       this.currentJoinUrl = joinUrl;
 
       const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+      const allLevels = this.world.levelRegistry.getAllLevels();
+      const currentLevel = this.world.levelRegistry.getCurrentLevel();
+
       this.ui.showHostRoom(pin, joinUrl, {
         hostName: name,
         hostColorHex: hero.color,
+        levels: allLevels,
+        selectedLevelId: currentLevel.id,
+        onSelectLevel: (lvlId) => {
+          this.switchLevel(lvlId);
+        },
         onPlay: () => {
-          this.ui.showNarrativeMessage(`Sala 1: Vestíbulo de la Mazmorra. Adelante, ${name}.`, 5000);
+          const lvl = this.world.levelRegistry.getCurrentLevel();
+          this.ui.showNarrativeMessage(`🏰 ${lvl.name}. ¡Adelante, ${name}!`, 5000);
         },
       });
     } catch (e) {
       this.ui.setStatus('Error al crear sala: ' + (e?.message || e));
     }
+  }
+
+  switchLevel(levelId) {
+    const levelData = this.world.levelRegistry.getLevel(levelId);
+    if (!levelData) return;
+    this.world.levelRegistry.setCurrentLevel(levelId);
+    this.world.loadLevel(levelData);
+    this.voxelMap.rebuildFromWorld();
+
+    const spawn = levelData.spawn || { x: 12.0, y: 1.2, z: 4.5 };
+    const local = this.playerManager.localPlayer;
+    local.setCheckpoint(spawn.x, spawn.y, spawn.z, levelData.name);
+    local.respawn();
+
+    this.ui.showNarrativeMessage(`Mapa cargado: ${levelData.name}`, 3500);
   }
 
   async joinRoom(pin, profile = {}) {
@@ -180,7 +204,8 @@ class VoxelSandboxGame {
         this.ui.showNarrativeMessage(`Abriendo Puerta ${doorId}...`, 2500);
       }
     } else if (interaction.type === 'pedestal') {
-      this.ui.showNarrativeMessage('✨ ¡Pedestal Ancestral Activado! Habéis completado la Mazmorra Cooperativa con éxito.', 6000);
+      const msg = interaction.message || '✨ ¡Pedestal Ancestral Activado! Habéis completado la Mazmorra Cooperativa con éxito.';
+      this.ui.showNarrativeMessage(msg, 6000);
     }
   }
 
@@ -191,11 +216,11 @@ class VoxelSandboxGame {
     this.world.openDoor(doorId);
     this.voxelMap.openDoor(doorId);
 
-    if (doorId === 1) {
-      this.ui.showNarrativeMessage('🚪 ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!', 6500);
-    } else if (doorId === 2) {
-      this.ui.showNarrativeMessage('🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.', 5000);
-    }
+    const door = this.world.doors?.find(d => d.id === doorId);
+    const msg = door?.openMessage || (doorId === 1
+      ? '🚪 ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!'
+      : '🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.');
+    this.ui.showNarrativeMessage(msg, 6000);
 
     if (this.mode === 'host') {
       this.network.broadcast(Proto.serializeDoorOpen(doorId));

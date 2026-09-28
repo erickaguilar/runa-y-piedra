@@ -1,0 +1,36 @@
+import dungeonClassic from './data/dungeon_classic.json';
+import cryptInferno from './data/crypt_inferno.json';
+
+export class LevelRegistry {
+  constructor() {
+    this.levels = new Map();
+    this.registerLevel(dungeonClassic);
+    this.registerLevel(cryptInferno);
+    this.currentLevelId = dungeonClassic.id;
+  }
+
+  registerLevel(levelData) {
+    if (!levelData || !levelData.id) return;
+    this.levels.set(levelData.id, levelData);
+  }
+
+  getLevel(id) {
+    return this.levels.get(id) || this.levels.get('dungeon_classic');
+  }
+
+  getAllLevels() {
+    return Array.from(this.levels.values());
+  }
+
+  getCurrentLevel() {
+    return this.getLevel(this.currentLevelId);
+  }
+
+  setCurrentLevel(id) {
+    if (this.levels.has(id)) {
+      this.currentLevelId = id;
+      return true;
+    }
+    return false;
+  }
+}
