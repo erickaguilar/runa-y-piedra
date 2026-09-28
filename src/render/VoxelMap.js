@@ -236,9 +236,8 @@ varying vec2 vAtlasOffset;`
         return 7;             // floorTilesMossy
       }
       case BLOCK_TYPES.PILLAR: {
-        // 5 estilos arquitectónicos para columnas y pilares de sillar
-        const pillarPalette = [10, 11, 12, 13, 14];
-        return pillarPalette[h % pillarPalette.length];
+        // Sprite unificado de columna monolítica continua: fuste oscuro, desgastado y sin costuras horizontales
+        return 10;
       }
       case BLOCK_TYPES.PEDESTAL:
       case BLOCK_TYPES.JUMP_PAD:

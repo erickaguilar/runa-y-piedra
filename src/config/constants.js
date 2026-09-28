@@ -46,7 +46,7 @@ export const BLOCK_COLORS = {
   1: 0xffffff, // Suelo de adoquín (blanco neutro para respetar los tonos y el musgo verde del SVG)
   2: 0x334155, // Muro de mazmorra de piedra labrada (slate-700)
   3: 0xd97706, // Puerta de madera y hierro reforzado
-  4: 0x64748b, // Columnas y pilares de sillar (slate-500)
+  4: 0xffffff, // Columnas y pilares monolíticos (blanco neutro para respetar tonos oscuros y desgaste del SVG)
   5: 0xfbbf24, // Pedestal/Luz rúnica dorada
   6: 0x0ea5e9, // Plataforma de Salto (celeste rúnico)
   7: 0x991b1b, // Fondo del Abismo / Lava

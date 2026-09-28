@@ -5,6 +5,21 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.22.2] - 2026-09-28
+
+### Changed
+- **Sprite Unificado de Columna Monolítica Continua ([`TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js), [`VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js))**:
+  - Se sustituyó la antigua mezcla de 5 estilos dispares de pilares por **un único sprite continuo** (Casilla 10), garantizando que las columnas verticales de varios bloques apilados se perciban visualmente como una sola pieza monolítica.
+  - **Continuidad Vertical Absoluta (*Seamless Vertical Tiling*)**:
+    - Supresión radical de cualquier línea horizontal o bisel en $Y = 0$ y $Y = 128$.
+    - 3 acanaladuras/estrías verticales continuas ($X = 32, 64, 96$) que corren de extremo a extremo sin costura ni salto de fase al apilarse los bloques.
+    - Sombreado de volumen cilíndrico/prismático continuo: realce lumínico lateral en $X = 0..14$ y sombra de caída en $X = 116..128$.
+  - **Estética Oscura y Desgastada de Piedra Antigua**:
+    - Base de sillar de basalto oscuro (`#1c2027`) con tinte neutro calibrado (`BLOCK_COLORS[4] = 0xffffff` y `THREE_COLORS[4]`).
+    - Micro-fisuras de compresión longitudinales en cantería, desconchones en las aristas de las estrías, pátina vertical de hollín y grano mineral picado.
+
+---
+
 ## [1.22.1] - 2026-09-28
 
 ### Changed

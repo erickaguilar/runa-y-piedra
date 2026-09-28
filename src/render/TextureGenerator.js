@@ -286,115 +286,143 @@ export class TextureGenerator {
         <circle cx="64" cy="64" r="3.5" fill="#9ca3af"/>
       `,
 
-      // ==================== GRUPO 3: PILARES (Tiles 10 a 14) ====================
-      // Tile 10: Columna estriada clásica con acanaladuras verticales
+      // ==================== GRUPO 3: PILARES (Tile 10 a 14 unificados) ====================
+      // Tile 10: Columna monolítica continua: fuste oscuro, desgastado y con continuidad vertical absoluta (seamless)
       `
-        <rect width="${S}" height="${S}" fill="#d4d4d8"/>
-        <!-- 6 Acanaladuras verticales alternando sombras y luces -->
-        <g stroke-width="3">
-          <line x1="16" y1="0" x2="16" y2="${S}" stroke="#18181b" opacity="0.8"/>
-          <line x1="18" y1="0" x2="18" y2="${S}" stroke="#ffffff" opacity="0.6"/>
-          
-          <line x1="36" y1="0" x2="36" y2="${S}" stroke="#18181b" opacity="0.8"/>
-          <line x1="38" y1="0" x2="38" y2="${S}" stroke="#ffffff" opacity="0.6"/>
+        <!-- Fondo base: Piedra oscura de sillar macizo -->
+        <rect width="${S}" height="${S}" fill="#1c2027"/>
 
-          <line x1="56" y1="0" x2="56" y2="${S}" stroke="#18181b" opacity="0.8"/>
-          <line x1="58" y1="0" x2="58" y2="${S}" stroke="#ffffff" opacity="0.6"/>
+        <!-- Sombreado de volumen cilíndrico/prismático continuo (sin cortes horizontales) -->
+        <!-- Realce lumínico en el lateral izquierdo -->
+        <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
+        <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
+        <!-- Sombra en el lateral derecho -->
+        <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
+        <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
 
-          <line x1="74" y1="0" x2="74" y2="${S}" stroke="#18181b" opacity="0.8"/>
-          <line x1="76" y1="0" x2="76" y2="${S}" stroke="#ffffff" opacity="0.6"/>
+        <!-- 3 Acanaladuras/Estrías verticales profundas continuas de Y=0 a Y=S -->
+        <!-- Estría 1 (X = 32) -->
+        <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="32"   y1="0" x2="32"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
 
-          <line x1="94" y1="0" x2="94" y2="${S}" stroke="#18181b" opacity="0.8"/>
-          <line x1="96" y1="0" x2="96" y2="${S}" stroke="#ffffff" opacity="0.6"/>
+        <!-- Estría 2 (Central, X = 64) -->
+        <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="64"   y1="0" x2="64"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
 
-          <line x1="112" y1="0" x2="112" y2="${S}" stroke="#18181b" opacity="0.8"/>
-          <line x1="114" y1="0" x2="114" y2="${S}" stroke="#ffffff" opacity="0.6"/>
+        <!-- Estría 3 (X = 96) -->
+        <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="96"   y1="0" x2="96"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+
+        <!-- Desgaste y erosión por los siglos (micro-fisuras verticales en cantería) -->
+        <g stroke="#080a0d" stroke-width="1.4" fill="none" opacity="0.75">
+          <path d="M 16,14 L 18,28 L 15,44 L 17,58"/>
+          <path d="M 48,68 L 51,84 L 47,102 L 50,116"/>
+          <path d="M 80,22 L 78,38 L 82,54 L 79,70"/>
+          <path d="M 110,50 L 108,66 L 111,82"/>
         </g>
-        <!-- Borde sutil superior e inferior -->
-        <line x1="0" y1="2" x2="${S}" y2="2" stroke="#ffffff" stroke-width="2" opacity="0.5"/>
-        <line x1="0" y1="${S - 2}" x2="${S}" y2="${S - 2}" stroke="#18181b" stroke-width="2" opacity="0.5"/>
-      `,
-
-      // Tile 11: Pilar con anillo/abrazadera horizontal de refuerzo y remaches
-      `
-        <rect width="${S}" height="${S}" fill="#d4d4d8"/>
-        <!-- Estrías de fondo -->
-        <line x1="24" y1="0" x2="24" y2="${S}" stroke="#18181b" stroke-width="2" opacity="0.5"/>
-        <line x1="48" y1="0" x2="48" y2="${S}" stroke="#18181b" stroke-width="2" opacity="0.5"/>
-        <line x1="80" y1="0" x2="80" y2="${S}" stroke="#18181b" stroke-width="2" opacity="0.5"/>
-        <line x1="104" y1="0" x2="104" y2="${S}" stroke="#18181b" stroke-width="2" opacity="0.5"/>
-        <!-- Anillo central de hierro forjado -->
-        <rect x="0" y="44" width="${S}" height="40" fill="#27272a"/>
-        <line x1="0" y1="44" x2="${S}" y2="44" stroke="#ffffff" stroke-width="2" opacity="0.7"/>
-        <line x1="0" y1="84" x2="${S}" y2="84" stroke="#09090b" stroke-width="3"/>
-        <!-- Remaches de forja con reflejo -->
-        <g fill="#18181b">
-          <circle cx="20" cy="64" r="5"/><circle cx="50" cy="64" r="5"/>
-          <circle cx="78" cy="64" r="5"/><circle cx="108" cy="64" r="5"/>
+        <g stroke="#454f5d" stroke-width="0.6" fill="none" opacity="0.4">
+          <path d="M 17,14 L 19,28 L 16,44 L 18,58"/>
+          <path d="M 49,68 L 52,84 L 48,102 L 51,116"/>
+          <path d="M 81,22 L 79,38 L 83,54 L 80,70"/>
         </g>
-        <g fill="#e4e4e7">
-          <circle cx="18" cy="62" r="1.8"/><circle cx="48" cy="62" r="1.8"/>
-          <circle cx="76" cy="62" r="1.8"/><circle cx="106" cy="62" r="1.8"/>
+
+        <!-- Muescas de piedra desconchada y desgaste en aristas -->
+        <g fill="#080a0d" opacity="0.7">
+          <polygon points="32,36 36,40 32,44"/>
+          <polygon points="64,74 60,78 64,82"/>
+          <polygon points="96,26 92,30 96,34"/>
+          <polygon points="96,90 100,94 96,98"/>
+          <polygon points="16,50 18,54 15,56"/>
+          <polygon points="80,62 83,66 79,68"/>
         </g>
-      `,
 
-      // Tile 12: Bloque almohadillado rústico con bordes achaflanados pronunciados
-      `
-        <rect width="${S}" height="${S}" fill="#18181b"/>
-        <!-- Cara frontal elevada en pirámide truncada -->
-        <polygon points="0,0 ${S},0 ${S - 14},14 14,14" fill="#ffffff" opacity="0.5"/>
-        <polygon points="0,0 14,14 14,${S - 14} 0,${S}" fill="#ffffff" opacity="0.35"/>
-        <polygon points="${S},0 ${S},${S} ${S - 14},${S - 14} ${S - 14},14" fill="#18181b" opacity="0.6"/>
-        <polygon points="0,${S} ${S},${S} ${S - 14},${S - 14} 14,${S - 14}" fill="#18181b" opacity="0.8"/>
-        <!-- Almohadillado central picado -->
-        <rect x="14" y="14" width="${S - 28}" height="${S - 28}" fill="#d4d4d8"/>
-        <g fill="#71717a" opacity="0.35">
-          <rect x="28" y="28" width="8" height="6"/><rect x="68" y="36" width="10" height="6"/>
-          <rect x="42" y="64" width="8" height="8"/><rect x="84" y="74" width="10" height="6"/>
-          <rect x="36" y="88" width="6" height="8"/><rect x="64" y="92" width="8" height="6"/>
+        <!-- Pátina oscura / hollín vertical acumulado -->
+        <g fill="#080a0d" opacity="0.35">
+          <ellipse cx="32" cy="64" rx="4" ry="18"/>
+          <ellipse cx="64" cy="40" rx="5" ry="22"/>
+          <ellipse cx="96" cy="80" rx="4" ry="20"/>
+          <ellipse cx="122" cy="64" rx="3" ry="30"/>
         </g>
-      `,
 
-      // Tile 13: Columna salomónica / espiral rúnica helicoidal
-      `
-        <rect width="${S}" height="${S}" fill="#d4d4d8"/>
-        <!-- Bandas diagonales en espiral a 45 grados con luces y sombras -->
-        <g stroke-width="5" stroke-linecap="round">
-          <line x1="-30" y1="30" x2="30" y2="-30" stroke="#18181b" opacity="0.7"/>
-          <line x1="0" y1="64" x2="64" y2="0" stroke="#18181b" opacity="0.7"/>
-          <line x1="2" y1="62" x2="66" y2="-2" stroke="#ffffff" stroke-width="2" opacity="0.6"/>
-
-          <line x1="32" y1="96" x2="96" y2="32" stroke="#18181b" opacity="0.7"/>
-          <line x1="34" y1="94" x2="98" y2="30" stroke="#ffffff" stroke-width="2" opacity="0.6"/>
-
-          <line x1="64" y1="128" x2="128" y2="64" stroke="#18181b" opacity="0.7"/>
-          <line x1="66" y1="126" x2="130" y2="62" stroke="#ffffff" stroke-width="2" opacity="0.6"/>
-
-          <line x1="96" y1="160" x2="160" y2="96" stroke="#18181b" opacity="0.7"/>
-          <line x1="98" y1="158" x2="162" y2="94" stroke="#ffffff" stroke-width="2" opacity="0.6"/>
+        <!-- Picado de cantería y textura mineral áspera -->
+        <g fill="#454f5d" opacity="0.3">
+          <circle cx="12" cy="34" r="1.5"/><circle cx="24" cy="86" r="2"/>
+          <circle cx="44" cy="22" r="2"/><circle cx="54" cy="96" r="1.5"/>
+          <circle cx="74" cy="48" r="1.8"/><circle cx="86" cy="104" r="2"/>
+          <circle cx="104" cy="32" r="1.5"/><circle cx="114" cy="78" r="1.8"/>
         </g>
       `,
 
-      // Tile 14: Base / Capitel con molduras escalonadas y herrajes de escuadra
+      // Tiles 11 a 14: Réplicas coordinadas para garantizar que cualquier mapeo de pilar sea idéntico
       `
-        <rect width="${S}" height="${S}" fill="#d4d4d8"/>
-        <!-- Moldura horizontal superior escalonada -->
-        <rect x="0" y="0" width="${S}" height="18" fill="#e4e4e7"/>
-        <line x1="0" y1="18" x2="${S}" y2="18" stroke="#18181b" stroke-width="3"/>
-        <rect x="6" y="18" width="${S - 12}" height="12" fill="#d4d4d8"/>
-        <line x1="6" y1="30" x2="${S - 6}" y2="30" stroke="#18181b" stroke-width="2"/>
-        
-        <!-- Fuste medio -->
-        <rect x="12" y="30" width="${S - 24}" height="68" fill="#e4e4e7"/>
-        <line x1="36" y1="30" x2="36" y2="98" stroke="#18181b" stroke-width="2" opacity="0.4"/>
-        <line x1="64" y1="30" x2="64" y2="98" stroke="#18181b" stroke-width="2" opacity="0.4"/>
-        <line x1="92" y1="30" x2="92" y2="98" stroke="#18181b" stroke-width="2" opacity="0.4"/>
+        <rect width="${S}" height="${S}" fill="#1c2027"/>
+        <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
+        <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
+        <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
+        <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
+        <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="32" y1="0" x2="32" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+        <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="64" y1="0" x2="64" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+        <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="96" y1="0" x2="96" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+      `,
 
-        <!-- Moldura horizontal inferior (plinto) -->
-        <rect x="6" y="98" width="${S - 12}" height="12" fill="#d4d4d8"/>
-        <line x1="0" y1="110" x2="${S}" y2="110" stroke="#18181b" stroke-width="3"/>
-        <rect x="0" y="110" width="${S}" height="18" fill="#27272a"/>
-        <line x1="0" y1="110" x2="${S}" y2="110" stroke="#ffffff" stroke-width="2" opacity="0.6"/>
+      `
+        <rect width="${S}" height="${S}" fill="#1c2027"/>
+        <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
+        <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
+        <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
+        <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
+        <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="32" y1="0" x2="32" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+        <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="64" y1="0" x2="64" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+        <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="96" y1="0" x2="96" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+      `,
+
+      `
+        <rect width="${S}" height="${S}" fill="#1c2027"/>
+        <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
+        <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
+        <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
+        <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
+        <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="32" y1="0" x2="32" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+        <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="64" y1="0" x2="64" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+        <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="96" y1="0" x2="96" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+      `,
+
+      `
+        <rect width="${S}" height="${S}" fill="#1c2027"/>
+        <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
+        <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
+        <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
+        <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
+        <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="32" y1="0" x2="32" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+        <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="64" y1="0" x2="64" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+        <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+        <line x1="96" y1="0" x2="96" y2="${S}" stroke="#080a0d" stroke-width="2"/>
+        <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
       `,
 
       // ==================== TILE 15: ESPECIAL / PEDESTALES ====================
