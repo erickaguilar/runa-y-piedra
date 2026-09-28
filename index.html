@@ -232,6 +232,17 @@
     .action-btn:active{transform:scale(0.88);transition:transform 80ms ease-out;}
     #btn-interact{right:30px;bottom:150px;background:#d97706}
     #btn-jump{right:30px;bottom:60px;background:#6b7280}
+    /* HUD de vidas (corazones) */
+    #hud-lives{position:fixed;top:max(12px, env(safe-area-inset-top));left:max(12px, env(safe-area-inset-left));
+      display:none;align-items:center;gap:4px;z-index:25;pointer-events:none;
+      background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.12);
+      border-radius:12px;padding:7px 10px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    #hud-lives .heart{font-size:18px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));
+      transition:transform .18s cubic-bezier(0.34,1.56,0.64,1), opacity .18s, filter .18s}
+    #hud-lives .heart.lost{opacity:.28;filter:grayscale(1)}
+    #hud-lives .heart.hurt{animation:heartShake .4s ease-out}
+    @keyframes heartShake{0%{transform:scale(1)}30%{transform:scale(1.5) rotate(-8deg)}60%{transform:scale(0.9)}100%{transform:scale(1)}}
+    #hud-lives.invuln{border-color:rgba(56,189,248,.6);box-shadow:0 0 12px rgba(56,189,248,.35)}
     /* Contenedor y Pila en Lista para Alertas y Mensajes Narrativos */
     #hud-message {
       position: fixed;
@@ -366,6 +377,7 @@
     </svg>
   </button>
   <div class="crosshair" id="crosshair"></div>
+  <div id="hud-lives" title="Vidas"></div>
   <div id="hud-message"></div>
   <button class="action-btn" id="btn-interact">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">

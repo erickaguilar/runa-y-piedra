@@ -3,6 +3,7 @@ import { VoxelMap } from './render/VoxelMap.js';
 import { AvatarRenderer } from './render/AvatarRenderer.js';
 import { ChestRenderer } from './render/ChestRenderer.js';
 import { DoorRenderer } from './render/DoorRenderer.js';
+import { PedestalRenderer } from './render/PedestalRenderer.js';
 import { World } from './core/World.js';
 import { GameLoop } from './core/GameLoop.js';
 import { PlayerManager } from './entities/PlayerManager.js';
@@ -31,13 +32,32 @@ class VoxelSandboxGame {
     this.chestRenderer.loadChests(this.world.chests);
     this.doorRenderer = new DoorRenderer(this.sceneManager.scene);
     this.doorRenderer.loadDoors(this.world.doors);
+    this.pedestalRenderer = new PedestalRenderer(this.sceneManager.scene);
+    this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
     this.avatars = new AvatarRenderer(this.sceneManager.scene);
     this.playerManager = new PlayerManager();
     this.simulation = new SimulationEngine(this.world, {
-      onPlayerRespawn: (p, cp) => {
-        if (p === this.playerManager.localPlayer) {
+      onPlayerRespawn: (p, cp, info = {}) => {
+        if (p !== this.playerManager.localPlayer) return;
+        const { cause = 'void', lives = 3, maxLives = 3, gameOver = false, noPenalty = false } = info;
+        if (noPenalty) {
+          this.ui.showNarrativeMessage('⚠️ ¡Zona restringida! Vuelves al checkpoint.', 2500);
+          return;
+        }
+        this.ui.updateLives(lives, maxLives);
+        if (gameOver) {
+          this.soundManager.playGameOver();
+          this.ui.showGameOver(lives, maxLives);
+          // Tras Game Over las vidas ya se restauraron a 3: refrescar HUD lleno
+          this.ui.updateLives(p.lives, p.maxLives ?? 3);
+        } else {
+          this.soundManager.playHurt();
           const roomMsg = cp?.roomName ? ` en ${cp.roomName}` : '';
-          this.ui.showNarrativeMessage(`⚠️ ¡Caíste al abismo! Reapareciendo${roomMsg}...`, 2800);
+          if (cause === 'lava') {
+            this.ui.showNarrativeMessage(`🔥 ¡Te quemó la lava! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo${roomMsg}...`, 3200);
+          } else {
+            this.ui.showNarrativeMessage(`⚠️ ¡Caíste al abismo! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo${roomMsg}...`, 3200);
+          }
         }
       },
     });
@@ -146,6 +166,10 @@ class VoxelSandboxGame {
       this.ui.hideMenu();
       this.ui.setCrosshairVisible(true);
       this.ui.setActionButtonsVisible(true);
+      this.ui.setLivesVisible(true);
+      const localInit = this.playerManager.localPlayer;
+      localInit.resetLives();
+      this.ui.updateLives(localInit.lives, localInit.maxLives);
 
       const lvl = this.world.levelRegistry.getCurrentLevel();
       this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}). Toca ⚙️ para invitar amigos o cambiar mapa.`, 5500);
@@ -162,14 +186,18 @@ class VoxelSandboxGame {
     this.voxelMap.rebuildFromWorld();
     this.chestRenderer.loadChests(this.world.chests);
     this.doorRenderer.loadDoors(this.world.doors);
+    this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
 
     const spawn = levelData.spawn || { x: 12.0, y: 1.2, z: 4.5 };
     const local = this.playerManager.localPlayer;
     local.setCheckpoint(spawn.x, spawn.y, spawn.z, levelData.name);
     local.respawn();
+    local.resetLives();
     local.vel.x = 0;
     local.vel.y = 0;
     local.vel.z = 0;
+    this.ui.setLivesVisible(true);
+    this.ui.updateLives(local.lives, local.maxLives);
 
     // Limpiar buffers de reconciliación y cola de inputs para evitar replay cruzado de niveles
     this.reconciler.reset();
@@ -180,6 +208,12 @@ class VoxelSandboxGame {
     if (broadcast && this.mode === 'host') {
       this.network.broadcast(Proto.serializeLevelChange(levelId));
     }
+  }
+
+  /** Tema visual del altar según la mazmorra activa (clásico dorado / inferno brasa). */
+  pedestalTheme() {
+    const id = this.world.levelRegistry.getCurrentLevel()?.id || '';
+    return id.includes('inferno') ? 'inferno' : 'classic';
   }
 
   async joinRoom(pin, profile = {}) {
@@ -200,6 +234,10 @@ class VoxelSandboxGame {
       this.ui.setCrosshairVisible(true);
       this.ui.setActionButtonsVisible(true);
       this.ui.hideMenu();
+      this.ui.setLivesVisible(true);
+      const localCli = this.playerManager.localPlayer;
+      localCli.resetLives();
+      this.ui.updateLives(localCli.lives, localCli.maxLives);
       this.ui.showNarrativeMessage(`Conectado como ${name}. Explorad juntos.`, 5000);
 
       // Enviar metadatos locales (nombre y color de clase) al Host
@@ -250,6 +288,8 @@ class VoxelSandboxGame {
       }
     } else if (interaction.type === 'pedestal') {
       const msg = interaction.message || '✨ ¡Pedestal Ancestral Activado! Habéis completado la Mazmorra Cooperativa con éxito.';
+      this.pedestalRenderer.activate();
+      this.soundManager.playPedestal();
       this.ui.showNarrativeMessage(msg, 6000);
     }
   }
@@ -452,6 +492,17 @@ class VoxelSandboxGame {
       const simTime = e.detail?.time || performance.now();
       const local = this.playerManager.localPlayer;
       this.reconciler.onSnapshot(simTime, players, local, this.simulation);
+      // Sincronización autoritativa de vidas desde el host
+      const localEntry = players.find(p => p.id === local.id);
+      if (localEntry && localEntry.lives !== undefined && localEntry.lives !== local.lives) {
+        const wasGameOver = localEntry.lives >= (local.maxLives ?? 3) && local.lives <= 0;
+        local.lives = localEntry.lives;
+        this.ui.updateLives(local.lives, local.maxLives ?? 3);
+        if (wasGameOver) {
+          this.soundManager.playGameOver();
+          this.ui.showGameOver(local.lives, local.maxLives ?? 3);
+        }
+      }
     });
 
     this.network.addEventListener('init', (e) => {
@@ -459,6 +510,7 @@ class VoxelSandboxGame {
       this.voxelMap.rebuildFromWorld();
       this.chestRenderer.loadChests(this.world.chests);
       this.doorRenderer.loadDoors(this.world.doors);
+      this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
       if (this.world.isDoor1Open) {
         this.doorRenderer.setOpenInstant(1);
       }
@@ -562,6 +614,12 @@ class VoxelSandboxGame {
           local.updateVisualSmoothing(dt);
           this.cameraController.update(local, local.yaw, local.pitch);
 
+          // Reflejar invulnerabilidad post-respawn en el HUD sin re-renderizar corazones
+          const livesHud = document.getElementById('hud-lives');
+          if (livesHud) {
+            livesHud.classList.toggle('invuln', !!local.isInvulnerable);
+          }
+
           if (this.mode === 'client') {
             // Interpolación temporal de entidades remotas (~100ms)
             this.reconciler.updateRemoteAvatars(this.avatars);
@@ -580,6 +638,7 @@ class VoxelSandboxGame {
         }
         this.chestRenderer.update(dt);
         this.doorRenderer.update(dt);
+        this.pedestalRenderer.update(dt);
         this.sceneManager.render();
       },
     });

@@ -3,6 +3,7 @@ import { WORLD_CONFIG, PHYSICS_CONFIG } from '../config/constants.js';
 export const PLAYER_W = PHYSICS_CONFIG.PLAYER_W;
 export const PLAYER_H = PHYSICS_CONFIG.PLAYER_H;
 const HALF_W = PLAYER_W / 2;
+const MIN_Y = WORLD_CONFIG.MIN_Y ?? 0;
 
 function overlaps(world, x, y, z) {
   const minX = Math.floor(x - HALF_W);
@@ -18,11 +19,11 @@ function overlaps(world, x, y, z) {
   }
 
   // Si el cuerpo del jugador está totalmente bajo el mundo (en el abismo), no colisiona con bloques
-  if (maxY < 0) {
+  if (maxY < MIN_Y) {
     return false;
   }
 
-  const checkMinY = Math.max(0, minY);
+  const checkMinY = Math.max(MIN_Y, minY);
   const checkMaxY = Math.min(WORLD_CONFIG.SIZE_Y - 1, maxY);
 
   for (let bx = minX; bx <= maxX; bx++) {
@@ -77,7 +78,7 @@ export function tryMove(world, pos, dx, dy, dz) {
           for (let bz = minZ; bz <= maxZ; bz++) {
             // Buscamos bloques sólidos inmediatamente debajo o al nivel de los pies previos
             const maxBy = Math.min(WORLD_CONFIG.SIZE_Y - 1, Math.floor(oldY + 0.1));
-            for (let by = maxBy; by >= 0; by--) {
+            for (let by = maxBy; by >= MIN_Y; by--) {
               if (world.get(bx, by, bz) !== 0) {
                 const top = by + 1.0;
                 // Solo aterriza si el jugador venía desde arriba de la superficie (evita subir a muros/bardas)
@@ -114,7 +115,7 @@ export function tryMove(world, pos, dx, dy, dz) {
     const maxZ = Math.floor(pos.z + HALF_W);
     const checkBy = Math.floor(pos.y - 0.05);
 
-    if (checkBy >= 0 && checkBy < WORLD_CONFIG.SIZE_Y) {
+    if (checkBy >= MIN_Y && checkBy < WORLD_CONFIG.SIZE_Y) {
       for (let bx = minX; bx <= maxX; bx++) {
         for (let bz = minZ; bz <= maxZ; bz++) {
           if (world.get(bx, checkBy, bz) !== 0) {

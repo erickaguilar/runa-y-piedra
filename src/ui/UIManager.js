@@ -4,12 +4,14 @@ import { renderIcon, replaceEmojisWithSvg } from './Icons.js';
 import { soundManager } from '../audio/SoundManager.js';
 
 export class UIManager {
-  constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message', settingsBtnId = 'btn-settings' } = {}) {
+  constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message', settingsBtnId = 'btn-settings', livesHudId = 'hud-lives' } = {}) {
     this.uiEl = document.getElementById(uiContainerId);
     this.crosshair = document.getElementById(crosshairId);
     this.hudMessage = document.getElementById(hudMessageId);
+    this.livesHud = document.getElementById(livesHudId);
     this.settingsBtn = document.getElementById(settingsBtnId);
     this.messageTimeout = null;
+    this._lastLives = -1;
 
     // Estado de pantallas
     this.currentScreen = 'menu'; // 'menu' | 'host_room' | 'in_game'
@@ -63,6 +65,7 @@ export class UIManager {
     this.lastMenuParams = { onHost, onJoin };
     this.setCrosshairVisible(false);
     this.setActionButtonsVisible(false);
+    this.setLivesVisible(false);
 
     const heroesHtml = PLAYER_HEROES.map((h, i) => `
       <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
@@ -632,6 +635,7 @@ export class UIManager {
       this.hideMenu();
       this.setCrosshairVisible(true);
       this.setActionButtonsVisible(true);
+      this.setLivesVisible(true);
     } else if (this.lastMenuParams) {
       this.showMenu(this.lastMenuParams);
     }
@@ -726,6 +730,38 @@ export class UIManager {
     const btnJump = document.getElementById('btn-jump');
     if (btnInteract) btnInteract.style.display = visible ? 'flex' : 'none';
     if (btnJump) btnJump.style.display = visible ? 'flex' : 'none';
+  }
+
+  setLivesVisible(visible) {
+    if (this.livesHud) {
+      this.livesHud.style.display = visible ? 'flex' : 'none';
+    }
+  }
+
+  /**
+   * Actualiza el HUD de corazones. lives: vidas restantes, maxLives: total.
+   * Si hubo pérdida, anima el corazón perdido con shake.
+   */
+  updateLives(lives = 3, maxLives = 3, { invulnerable = false } = {}) {
+    if (!this.livesHud) return;
+    const lost = this._lastLives !== -1 && lives < this._lastLives;
+    this._lastLives = lives;
+    let html = '';
+    for (let i = 0; i < maxLives; i++) {
+      const alive = i < lives;
+      const cls = alive ? 'heart' : 'heart lost';
+      html += `<span class="${cls}${lost && !alive ? ' hurt' : ''}">${alive ? '❤️' : '🖤'}</span>`;
+    }
+    this.livesHud.innerHTML = html;
+    this.livesHud.classList.toggle('invuln', !!invulnerable);
+  }
+
+  showGameOver(lives, maxLives) {
+    this.updateLives(lives, maxLives);
+    this.showNarrativeMessage(
+      '💀 ¡GAME OVER! Te quedaste sin vidas. Reapareces en el inicio con corazones llenos.',
+      5000
+    );
   }
 
   parseMessageToList(content) {

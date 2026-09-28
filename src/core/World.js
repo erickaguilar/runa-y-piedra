@@ -4,12 +4,17 @@ import { LevelLoader, LevelRegistry } from '../levels/index.js';
 export const WORLD_X = WORLD_CONFIG.SIZE_X;
 export const WORLD_Y = WORLD_CONFIG.SIZE_Y;
 export const WORLD_Z = WORLD_CONFIG.SIZE_Z;
+// Rango vertical ampliado: [MIN_Y, SIZE_Y). La capa y=-1 aloja la fosa de lava.
+export const WORLD_MIN_Y = WORLD_CONFIG.MIN_Y ?? 0;
+export const WORLD_Y_SIZE = WORLD_Y - WORLD_MIN_Y;
 
 export { BLOCK_FLOOR_STONE, BLOCK_FLOOR_WORN, BLOCK_FLOOR_MOSS };
 
 export class World {
   constructor(levelData = null) {
-    this.blocks = new Uint8Array(WORLD_X * WORLD_Y * WORLD_Z);
+    this.minY = WORLD_MIN_Y;
+    this.sizeY = WORLD_Y_SIZE;
+    this.blocks = new Uint8Array(WORLD_X * this.sizeY * WORLD_Z);
     this.isDoor1Open = false;
     this.isDoor2Open = false;
     this.doors = [];
@@ -25,11 +30,11 @@ export class World {
   }
 
   idx(x, y, z) {
-    return x + y * WORLD_X + z * WORLD_X * WORLD_Y;
+    return x + (y - this.minY) * WORLD_X + z * WORLD_X * this.sizeY;
   }
 
   inBounds(x, y, z) {
-    return x >= 0 && x < WORLD_X && y >= 0 && y < WORLD_Y && z >= 0 && z < WORLD_Z;
+    return x >= 0 && x < WORLD_X && y >= this.minY && y < WORLD_Y && z >= 0 && z < WORLD_Z;
   }
 
   isBorder(x, z) {

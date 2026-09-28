@@ -2,6 +2,7 @@ export const WORLD_CONFIG = {
   SIZE_X: 24,
   SIZE_Y: 16,
   SIZE_Z: 36,
+  MIN_Y: -1, // Capa inferior: permite fosa de lava hundida (y=-1) bajo el suelo (y=0)
   SPAWN_X: 12.0,
   SPAWN_Y: 2.1,
   SPAWN_Z: 4.5,
@@ -49,7 +50,7 @@ export const BLOCK_COLORS = {
   4: 0xffffff, // Columnas y pilares monolíticos (blanco neutro para respetar tonos oscuros y desgaste del SVG)
   5: 0xfbbf24, // Pedestal/Luz rúnica dorada
   6: 0xffffff, // Plataforma de Salto JUMP_PAD (blanco neutro para respetar base de sillar y runa ámbar del SVG)
-  7: 0x991b1b, // Fondo del Abismo / Lava
+  7: 0xffffff, // Lava volcánica (blanco neutro para respetar naranjas y rojos del SVG)
   8: 0xffffff, // Adoquín limpio
   9: 0xffffff, // Adoquín con grietas
   10: 0xffffff, // Adoquín con musgo

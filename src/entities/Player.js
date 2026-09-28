@@ -20,6 +20,11 @@ export class Player {
     this.inputRight = 0;
     this.lastInputSeq = 0;
     this.checkpoint = { x, y: 1.2, z, roomName: 'Sala 1 (Vestíbulo)' };
+
+    // Sistema de vidas: 3 corazones, muerte instantánea en lava/vacío
+    this.maxLives = 3;
+    this.lives = 3;
+    this.invulnTicks = 0; // Protección anti-muerte-en-bucle tras reaparecer (~2s)
   }
 
   setColorIndex(colorIndex) {
@@ -64,7 +69,43 @@ export class Player {
     this.vel.y = 0;
     this.vel.z = 0;
     this.onGround = false;
+    // 2s de invulnerabilidad a 30 ticks/s para evitar morir al reaparecer
+    this.invulnTicks = 60;
     return cp;
+  }
+
+  /**
+   * Pierde 1 vida por lava/vacío. Retorna { lives, gameOver }.
+   * Si gameOver === true, el llamador debe hacer fullResetToSpawn().
+   */
+  loseLife() {
+    if (this.invulnTicks > 0) return { lives: this.lives, gameOver: false, ignored: true };
+    this.lives = Math.max(0, this.lives - 1);
+    const gameOver = this.lives <= 0;
+    return { lives: this.lives, gameOver, ignored: false };
+  }
+
+  get isInvulnerable() {
+    return this.invulnTicks > 0;
+  }
+
+  tickInvulnerability() {
+    if (this.invulnTicks > 0) this.invulnTicks--;
+  }
+
+  resetLives() {
+    this.lives = this.maxLives;
+    this.invulnTicks = 60;
+  }
+
+  /**
+   * Game Over: vuelve al spawn inicial del nivel, restaura checkpoint y vidas.
+   */
+  fullResetToSpawn(spawn) {
+    const s = spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
+    this.checkpoint = { x: s.x, y: s.y, z: s.z, roomName: 'Sala 1 (Vestíbulo)' };
+    this.lives = this.maxLives;
+    return this.respawn();
   }
 
   reset(x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z) {
@@ -78,6 +119,7 @@ export class Player {
     this.vel.y = 0;
     this.vel.z = 0;
     this.onGround = false;
+    this.resetLives();
   }
 
   toSnapshot() {
@@ -90,6 +132,7 @@ export class Player {
       yaw: this.yaw,
       velY: this.vel.y,
       onGround: this.onGround,
+      lives: this.lives,
     };
   }
 }

@@ -374,6 +374,114 @@ export class SoundManager {
     osc.start(t);
     osc.stop(t + 0.04);
   }
+
+  /**
+   * Bendición del Pedestal Ancestral: arpegio ascendente místico + velo brillante.
+   */
+  playPedestal() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    const t = this.ctx.currentTime;
+    // Arpegio ascendente sagrado: Sol4, Do5, Mi5, Sol5, Do6
+    const notes = [392.0, 523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t + idx * 0.09);
+      gain.gain.setValueAtTime(0.001, t + idx * 0.09);
+      gain.gain.linearRampToValueAtTime(0.26, t + idx * 0.09 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.09 + 0.9);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t + idx * 0.09);
+      osc.stop(t + idx * 0.09 + 0.95);
+    });
+    // Velo brillante (shimmer agudo que corona la bendición)
+    if (this._noiseBuffer) {
+      const src = this.ctx.createBufferSource();
+      const filt = this.ctx.createBiquadFilter();
+      const g = this.ctx.createGain();
+      src.buffer = this._noiseBuffer;
+      filt.type = 'highpass';
+      filt.frequency.setValueAtTime(5200, t);
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.linearRampToValueAtTime(0.10, t + 0.35);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
+      src.connect(filt);
+      filt.connect(g);
+      g.connect(this.masterGain);
+      src.start(t);
+      src.stop(t + 1.05);
+    }
+  }
+
+  /**
+   * Daño por lava/caída: golpe descendente + chisporroteo de ruido.
+   */
+  playHurt() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(320, t);
+    osc.frequency.exponentialRampToValueAtTime(90, t + 0.28);
+    gain.gain.setValueAtTime(0.35, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.34);
+    // Chisporroteo de lava con ruido blanco filtrado
+    if (this._noiseBuffer) {
+      const src = this.ctx.createBufferSource();
+      const filt = this.ctx.createBiquadFilter();
+      const g = this.ctx.createGain();
+      src.buffer = this._noiseBuffer;
+      filt.type = 'highpass';
+      filt.frequency.setValueAtTime(1800, t);
+      g.gain.setValueAtTime(0.22, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      src.connect(filt);
+      filt.connect(g);
+      g.connect(this.masterGain);
+      src.start(t);
+      src.stop(t + 0.42);
+    }
+  }
+
+  /**
+   * Game Over: fanfarria descendente de 3 notas graves.
+   */
+  playGameOver() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    const t = this.ctx.currentTime;
+    [220, 174, 130].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t + idx * 0.18);
+      gain.gain.setValueAtTime(0.001, t + idx * 0.18);
+      gain.gain.linearRampToValueAtTime(0.32, t + idx * 0.18 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.18 + 0.35);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t + idx * 0.18);
+      osc.stop(t + idx * 0.18 + 0.4);
+    });
+  }
 }
 
 // Instancia singleton para fácil reutilización

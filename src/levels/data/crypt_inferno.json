@@ -111,6 +111,7 @@
     { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
     { "type": "divider", "z": 24, "height": 5, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
     { "type": "ceiling", "y": 6, "block": "WALL", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+    { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 23] },
     { "type": "pillar", "x": 5, "z": 4, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 4, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 5, "z": 8, "height": 5, "block": "PILLAR" },

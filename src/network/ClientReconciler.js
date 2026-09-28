@@ -45,8 +45,18 @@ export class ClientReconciler {
       inputForward: 0,
       inputRight: 0,
       hero: null,
+      lives: 3,
+      maxLives: 3,
+      invulnTicks: 0,
+      get isInvulnerable() { return this.invulnTicks > 0; },
       setCheckpoint: () => {},
-      respawn: () => {},
+      respawn() {
+        this.invulnTicks = 60;
+        return { roomName: '' };
+      },
+      loseLife() { return { lives: this.lives, gameOver: false, ignored: false }; },
+      tickInvulnerability() { if (this.invulnTicks > 0) this.invulnTicks--; },
+      fullResetToSpawn() { return this.respawn(); },
     };
 
     // Métricas de diagnóstico

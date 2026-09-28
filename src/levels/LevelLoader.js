@@ -59,10 +59,12 @@ export class LevelLoader {
       case 'perimeter': {
         const height = region.height || 3;
         const blockType = BLOCK_TYPES[region.block] ?? BLOCK_TYPES.WALL;
+        // Arrancar en minY sella la fosa de lava (y=-1) contra el vacío exterior
+        const yStart = world.minY ?? 0;
         for (let x = 0; x < sizeX; x++) {
           for (let z = 0; z < sizeZ; z++) {
             if (x === 0 || x === sizeX - 1 || z === 0 || z === sizeZ - 1) {
-              for (let y = 0; y <= height; y++) {
+              for (let y = yStart; y <= height; y++) {
                 world.set(x, y, z, blockType);
               }
             }
@@ -103,6 +105,10 @@ export class LevelLoader {
         for (let x = 1; x < sizeX - 1; x++) {
           // Suelo sólido firme bajo el muro divisor y bajo el umbral de la puerta
           world.set(x, 0, z, floorVariant(x, z));
+          // Sellar bajo el umbral (y<0) para que la fosa de lava no muestre huecos
+          for (let y = (world.minY ?? 0); y < 0; y++) {
+            world.set(x, y, z, blockType);
+          }
 
           for (let y = 1; y <= height; y++) {
             if (doorOpening.includes(x)) {

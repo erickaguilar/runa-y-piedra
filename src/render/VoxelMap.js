@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { WORLD_X, WORLD_Y, WORLD_Z } from '../core/World.js';
+import { WORLD_X, WORLD_Y, WORLD_Z, WORLD_MIN_Y, WORLD_Y_SIZE } from '../core/World.js';
 import { BLOCK_COLORS, BLOCK_TYPES } from '../config/constants.js';
 import { TextureGenerator } from './TextureGenerator.js';
 
@@ -20,7 +20,9 @@ export class VoxelMap {
   constructor(scene, world) {
     this.world = world;
     this.scene = scene;
-    this.max = WORLD_X * WORLD_Y * WORLD_Z;
+    this.minY = world.minY ?? WORLD_MIN_Y;
+    this.sizeY = world.sizeY ?? WORLD_Y_SIZE;
+    this.max = WORLD_X * this.sizeY * WORLD_Z;
 
     const geo = new THREE.BoxGeometry(1, 1, 1);
 
@@ -91,6 +93,7 @@ varying vec2 vAtlasOffset;`
 
   addBlock(x, y, z, type) {
     if (type === BLOCK_TYPES.DOOR) return; // Las puertas las renderiza DoorRenderer con hojas 3D batientes
+    if (type === BLOCK_TYPES.PEDESTAL) return; // El pedestal lo renderiza PedestalRenderer como altar 3D
     const bIdx = this.world.idx(x, y, z);
     if (this.blockToInst[bIdx] !== -1) return;
 
@@ -175,10 +178,10 @@ varying vec2 vAtlasOffset;`
     this.mesh.count = 0;
 
     for (let x = 0; x < WORLD_X; x++) {
-      for (let y = 0; y < WORLD_Y; y++) {
+      for (let y = this.minY; y < WORLD_Y; y++) {
         for (let z = 0; z < WORLD_Z; z++) {
           const t = this.world.get(x, y, z);
-          if (t !== BLOCK_TYPES.AIR && t !== BLOCK_TYPES.DOOR) {
+          if (t !== BLOCK_TYPES.AIR && t !== BLOCK_TYPES.DOOR && t !== BLOCK_TYPES.PEDESTAL) {
             this.addBlock(x, y, z, t);
           }
         }
@@ -189,8 +192,9 @@ varying vec2 vAtlasOffset;`
   /** Convierte índice interno en coordenadas {x, y, z}. */
   static blockIndexToXYZ(bIdx) {
     const x = bIdx % WORLD_X;
-    const y = Math.floor(bIdx / WORLD_X) % WORLD_Y;
-    const z = Math.floor(bIdx / (WORLD_X * WORLD_Y));
+    const tmp = Math.floor(bIdx / WORLD_X);
+    const y = (tmp % WORLD_Y_SIZE) + WORLD_MIN_Y;
+    const z = Math.floor(tmp / WORLD_Y_SIZE);
     return { x, y, z };
   }
 
@@ -244,7 +248,7 @@ varying vec2 vAtlasOffset;`
       case BLOCK_TYPES.PEDESTAL:
         return 15; // Círculo rúnico arcano con estrella de 8 puntas para el pedestal
       case BLOCK_TYPES.LAVA:
-        return 6; // Losa quebrada volcánica
+        return 13; // Magma volcánico: base ígnea con grietas de obsidiana
       default:
         return 0;
     }

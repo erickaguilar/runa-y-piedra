@@ -1,6 +1,9 @@
 import { tryMove } from '../core/PhysicsAABB.js';
-import { PHYSICS_CONFIG, WORLD_CONFIG } from '../config/constants.js';
+import { PHYSICS_CONFIG, WORLD_CONFIG, BLOCK_TYPES } from '../config/constants.js';
 import { ACTION_FLAGS } from '../network/Protocol.js';
+
+const HALF_W = (PHYSICS_CONFIG.PLAYER_W || 0.6) / 2;
+const PLAYER_H = PHYSICS_CONFIG.PLAYER_H || 1.8;
 
 export class SimulationEngine {
   constructor(world, { onPlayerRespawn } = {}) {
@@ -8,7 +11,57 @@ export class SimulationEngine {
     this.onPlayerRespawn = onPlayerRespawn || null;
   }
 
+  isTouchingLava(p) {
+    const minX = Math.floor(p.pos.x - HALF_W);
+    const maxX = Math.floor(p.pos.x + HALF_W);
+    const minY = Math.floor(p.pos.y);
+    const maxY = Math.floor(p.pos.y + PLAYER_H - 1e-4);
+    const minZ = Math.floor(p.pos.z - HALF_W);
+    const maxZ = Math.floor(p.pos.z + HALF_W);
+    for (let bx = minX; bx <= maxX; bx++) {
+      for (let by = minY; by <= maxY; by++) {
+        for (let bz = minZ; bz <= maxZ; bz++) {
+          if (this.world.get(bx, by, bz) === BLOCK_TYPES.LAVA) return true;
+        }
+      }
+    }
+    // También detectar pisar directamente sobre lava (bloque bajo los pies)
+    const feetBy = Math.floor(p.pos.y - 0.08);
+    for (let bx = minX; bx <= maxX; bx++) {
+      for (let bz = minZ; bz <= maxZ; bz++) {
+        if (this.world.get(bx, feetBy, bz) === BLOCK_TYPES.LAVA) return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Aplica muerte por causa ('lava' | 'void' | 'fence'):
+   * quita 1 vida, respawnea en checkpoint o hace Game Over al spawn.
+   */
+  killPlayer(p, cause) {
+    const res = p.loseLife ? p.loseLife() : { lives: 0, gameOver: false, ignored: false };
+    if (res.ignored) return null; // invulnerable: ignorar
+    let cp;
+    let gameOver = false;
+    if (res.gameOver) {
+      const spawn = this.world.spawnPoint || {
+        x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z,
+      };
+      cp = p.fullResetToSpawn ? p.fullResetToSpawn(spawn) : p.respawn();
+      gameOver = true;
+    } else {
+      cp = p.respawn();
+    }
+    if (this.onPlayerRespawn) {
+      this.onPlayerRespawn(p, cp, { cause, lives: p.lives, maxLives: p.maxLives ?? 3, gameOver });
+    }
+    return { cp, ...res, gameOver };
+  }
+
   integratePlayer(p, dt, actions = 0) {
+    // Tick de invulnerabilidad post-respawn
+    if (p.tickInvulnerability) p.tickInvulnerability();
     // 0. Aplicar acciones edge-triggered deterministas (Salto autoritativo)
     if (actions & ACTION_FLAGS.JUMP) {
       if (p.onGround) {
@@ -71,19 +124,25 @@ export class SimulationEngine {
       }
     }
 
-    // 3. Rescate y Reaparición al Caer al Abismo / Vacío (extendido 4 bloques: de -0.5 a -4.5)
-    if (p.pos.y < (WORLD_CONFIG.VOID_RESCUE_Y ?? -4.5)) {
-      const cp = p.respawn();
-      if (this.onPlayerRespawn) {
-        this.onPlayerRespawn(p, cp);
-      }
+    // 3. Muerte por Lava (muerte instantánea, -1 vida). Se comprueba antes del vacío
+    // para que el mensaje sea "lava" aunque el bloque esté al fondo del abismo.
+    if (!p.isInvulnerable && this.isTouchingLava(p)) {
+      this.killPlayer(p, 'lava');
+      return;
     }
 
-    // 4. Seguridad Anti-Barda y Techo: Si escapa por encima de las bardas perimetrales o el techo
+    // 4. Rescate y pérdida de vida al Caer al Abismo / Vacío (extendido 4 bloques: de -0.5 a -4.5)
+    if (p.pos.y < (WORLD_CONFIG.VOID_RESCUE_Y ?? -4.5)) {
+      this.killPlayer(p, 'void');
+      return;
+    }
+
+    // 5. Seguridad Anti-Barda y Techo: Si escapa por encima de las bardas perimetrales o el techo
+    // No quita vida (es anti-trampas), solo reposiciona sin castigo.
     if (p.pos.y >= 6.0 || (p.pos.y >= 5.0 && (p.pos.x <= 1.0 || p.pos.x >= WORLD_CONFIG.SIZE_X - 2.0 || p.pos.z <= 1.0 || p.pos.z >= WORLD_CONFIG.SIZE_Z - 2.0))) {
       const cp = p.respawn();
       if (this.onPlayerRespawn) {
-        this.onPlayerRespawn(p, cp);
+        this.onPlayerRespawn(p, cp, { cause: 'fence', lives: p.lives, maxLives: p.maxLives ?? 3, gameOver: false, noPenalty: true });
       }
     }
   }

@@ -356,7 +356,7 @@ export class TextureGenerator {
         </g>
       `,
 
-      // Tiles 11 a 14: Réplicas coordinadas para garantizar que cualquier mapeo de pilar sea idéntico
+      // Tiles 11 y 12: Réplicas del pilar monolítico (el tile 13 ahora es LAVA)
       `
         <rect width="${S}" height="${S}" fill="#1c2027"/>
         <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
@@ -391,21 +391,37 @@ export class TextureGenerator {
         <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
       `,
 
+      // Tile 13: LAVA (Magma volcánico con costra de obsidiana)
       `
-        <rect width="${S}" height="${S}" fill="#1c2027"/>
-        <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
-        <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
-        <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
-        <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
-        <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-        <line x1="32" y1="0" x2="32" y2="${S}" stroke="#080a0d" stroke-width="2"/>
-        <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
-        <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-        <line x1="64" y1="0" x2="64" y2="${S}" stroke="#080a0d" stroke-width="2"/>
-        <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
-        <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-        <line x1="96" y1="0" x2="96" y2="${S}" stroke="#080a0d" stroke-width="2"/>
-        <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+        <rect width="${S}" height="${S}" fill="#7c2d12"/>
+        <rect width="${S}" height="${S}" fill="#ea580c" opacity="0.55"/>
+        <g stroke="#fdba74" stroke-width="3" opacity="0.9" fill="none" stroke-linecap="round">
+          <path d="M 8,30 Q 30,22 48,32 Q 66,42 88,30 Q 108,20 122,32"/>
+          <path d="M 6,70 Q 28,62 52,72 Q 76,82 100,68 Q 114,60 124,68"/>
+          <path d="M 16,104 Q 40,94 64,104 Q 88,114 112,100"/>
+        </g>
+        <g stroke="#fde68a" stroke-width="1.4" opacity="0.85" fill="none" stroke-linecap="round">
+          <path d="M 8,30 Q 30,22 48,32 Q 66,42 88,30 Q 108,20 122,32"/>
+          <path d="M 6,70 Q 28,62 52,72 Q 76,82 100,68 Q 114,60 124,68"/>
+          <path d="M 16,104 Q 40,94 64,104 Q 88,114 112,100"/>
+        </g>
+        <g fill="#1c1917" stroke="#0c0a09" stroke-width="1.5">
+          <polygon points="20,10 48,14 42,34 14,30"/>
+          <polygon points="70,44 104,40 110,62 76,68"/>
+          <polygon points="30,80 60,78 54,100 24,98"/>
+          <polygon points="88,88 116,86 112,108 86,106"/>
+        </g>
+        <g fill="#44403c" opacity="0.6">
+          <polygon points="22,12 34,13 28,20"/>
+          <polygon points="72,46 86,44 80,52"/>
+          <polygon points="32,82 44,81 38,88"/>
+        </g>
+        <g fill="#fef3c7" opacity="0.9">
+          <circle cx="60" cy="52" r="2.5"/>
+          <circle cx="104" cy="22" r="2"/>
+          <circle cx="36" cy="60" r="1.8"/>
+          <circle cx="80" cy="96" r="2.2"/>
+        </g>
       `,
 
       // ==================== TILE 14: JUMP_PAD (Losa de Cantería con Runa Ámbar de Salto) ====================
