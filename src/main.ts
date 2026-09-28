@@ -5,6 +5,7 @@ import { PhysicsWorld, PlayerPhysicsState } from './physics/PhysicsWorld';
 import { InputManager } from './input/InputManager';
 import { BinaryProtocol, PacketType, FullPlayerState, BlockChange, PlayerTransform } from './net/BinaryProtocol';
 import { PeerNetwork } from './net/PeerNetwork';
+import QRCode from 'qrcode';
 
 class GameApp {
   private engine: Engine;
@@ -50,6 +51,7 @@ class GameApp {
     });
 
     this.setupUI();
+    this.checkAutoJoin();
     this.engine.registerRenderCallback(this.onUpdate.bind(this));
   }
 
@@ -61,6 +63,11 @@ class GameApp {
     const lobbyPanel = document.getElementById('lobby-panel')!;
     const touchControls = document.getElementById('touch-controls')!;
     const reticle = document.getElementById('reticle')!;
+    const qrModal = document.getElementById('qr-modal')!;
+    const qrCanvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+    const qrPinText = document.getElementById('qr-pin-text')!;
+    const qrLinkText = document.getElementById('qr-link-text')!;
+    const btnCloseQr = document.getElementById('btn-close-qr')!;
 
     btnCreate.addEventListener('click', async () => {
       btnCreate.setAttribute('disabled', 'true');
@@ -69,12 +76,37 @@ class GameApp {
 
       try {
         const pin = await this.network.startHost();
-        roomStatus.innerHTML = `Sala Creada: <strong>PIN ${pin}</strong><br/>Esperando jugador...`;
-        this.startGameSession(lobbyPanel, touchControls, reticle);
+        lobbyPanel.classList.add('hidden');
+
+        // Determinar host para el enlace QR
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        // Si es localhost, sugerir la IP Wi-Fi local para que otro dispositivo pueda acceder
+        const hostAddress = isLocal ? '192.168.100.28:3000' : window.location.host;
+        const joinUrl = `${window.location.protocol}//${hostAddress}/?join=${pin}`;
+
+        // Renderizar Código QR
+        await QRCode.toCanvas(qrCanvas, joinUrl, {
+          width: 200,
+          margin: 1,
+          color: {
+            dark: '#0f172a',
+            light: '#ffffff'
+          }
+        });
+
+        qrPinText.textContent = `PIN DE SALA: ${pin}`;
+        qrLinkText.textContent = joinUrl;
+        qrModal.classList.remove('hidden');
       } catch (err) {
         roomStatus.textContent = `Error al crear sala: ${err}`;
         btnCreate.removeAttribute('disabled');
       }
+    });
+
+    btnCloseQr.addEventListener('click', () => {
+      qrModal.classList.add('hidden');
+      touchControls.classList.remove('hidden');
+      reticle.classList.remove('hidden');
     });
 
     btnJoin.addEventListener('click', async () => {
@@ -100,10 +132,25 @@ class GameApp {
 
     // Clic en canvas para activar Pointer Lock en ordenador
     this.engine.renderer.domElement.addEventListener('click', () => {
-      if (lobbyPanel.classList.contains('hidden')) {
+      if (lobbyPanel.classList.contains('hidden') && qrModal.classList.contains('hidden')) {
         this.engine.renderer.domElement.requestPointerLock?.();
       }
     });
+  }
+
+  private checkAutoJoin(): void {
+    const urlParams = new URLSearchParams(window.location.search);
+    const joinCode = urlParams.get('join');
+    if (joinCode) {
+      const inputCode = document.getElementById('input-room-code') as HTMLInputElement;
+      const btnJoin = document.getElementById('btn-join-room')!;
+      if (inputCode && btnJoin) {
+        inputCode.value = joinCode.toUpperCase();
+        setTimeout(() => {
+          btnJoin.click();
+        }, 300);
+      }
+    }
   }
 
   private startGameSession(lobby: HTMLElement, touch: HTMLElement, reticle: HTMLElement): void {

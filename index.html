@@ -42,6 +42,21 @@
         <div id="room-status" class="room-status hidden"></div>
       </div>
 
+      <!-- QR Code Share Modal -->
+      <div id="qr-modal" class="panel hidden">
+        <h2 class="title" style="font-size: 20px;">Invitar Jugador</h2>
+        <p class="subtitle" style="margin-bottom: 12px;">Escanea este código con la cámara de tu celular para unirte instantáneamente:</p>
+        
+        <div id="qr-container">
+          <canvas id="qr-canvas"></canvas>
+        </div>
+
+        <p id="qr-pin-text" style="font-size: 16px; font-weight: 700; margin: 10px 0; color: #38bdf8;"></p>
+        <p id="qr-link-text" style="font-size: 11px; word-break: break-all; color: #94a3b8; margin-bottom: 14px;"></p>
+
+        <button id="btn-close-qr" class="btn btn-primary" style="width: 100%;">Entrar a la Partida</button>
+      </div>
+
       <!-- In-Game Mobile Touch Controls -->
       <div id="touch-controls" class="hidden">
         <!-- Left half: Nipple.js Joystick Zone -->

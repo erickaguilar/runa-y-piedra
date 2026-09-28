@@ -9,14 +9,16 @@
     "preview": "node node_modules/vite/bin/vite.js preview --host 0.0.0.0"
   },
   "dependencies": {
-    "three": "^0.160.0",
-    "peerjs": "^1.5.4",
     "nipplejs": "^0.10.1",
-    "stats.js": "^0.17.0"
+    "peerjs": "^1.5.4",
+    "qrcode": "^1.5.4",
+    "stats.js": "^0.17.0",
+    "three": "^0.160.0"
   },
   "devDependencies": {
-    "@types/three": "^0.160.0",
+    "@types/qrcode": "^1.5.6",
     "@types/stats.js": "^0.17.3",
+    "@types/three": "^0.160.0",
     "typescript": "^5.3.3",
     "vite": "^5.1.0"
   }

@@ -162,6 +162,20 @@ html, body {
   border: 1px solid rgba(56, 189, 248, 0.2);
 }
 
+#qr-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+}
+
+#qr-canvas {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  background: #ffffff;
+  padding: 6px;
+}
+
 /* Touch Controls */
 #touch-controls {
   position: absolute;
