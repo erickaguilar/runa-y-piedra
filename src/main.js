@@ -39,10 +39,48 @@ class VoxelSandboxGame {
       onInteract: () => this.handleInteract(),
     });
 
+    this.currentJoinUrl = null;
+
+    // Aplicar calidad gráfica guardada
+    const savedDpr = parseFloat(localStorage.getItem('dungeon_dpr') || '1.5');
+    this.sceneManager.setQuality(savedDpr);
+
     this.initNetworkEvents();
     this.initNetworkTimers();
     this.initGameLoop();
+    this.initSettings();
     this.initUI();
+  }
+
+  initSettings() {
+    this.ui.bindSettings({
+      onProfileSave: ({ name, colorIndex }) => {
+        const local = this.playerManager.localPlayer;
+        local.name = name;
+        local.colorIndex = colorIndex;
+
+        // Si estamos conectados en red, propagar metadatos a los demás
+        if (this.mode === 'host') {
+          this.network.broadcast(Proto.serializePlayerMeta(local.id, colorIndex, name));
+        } else if (this.mode === 'client') {
+          this.network.sendToHost(Proto.serializePlayerMeta(local.id, colorIndex, name));
+        }
+      },
+      onQualityChange: (dpr) => {
+        this.sceneManager.setQuality(dpr);
+      },
+      onSensitivityChange: (val) => {
+        this.input.setSensitivity(val);
+      },
+      onLeaveGame: () => {
+        window.location.href = window.location.origin + window.location.pathname;
+      },
+      getGameState: () => ({
+        inGame: this.mode !== null,
+        roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
+        joinUrl: this.currentJoinUrl,
+      }),
+    });
   }
 
   initUI() {
@@ -65,6 +103,7 @@ class VoxelSandboxGame {
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const hostAddr = isLocal ? (localStorage.getItem('dungeon_lan_ip') || '192.168.100.28:5173') : window.location.host;
       const joinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
+      this.currentJoinUrl = joinUrl;
 
       const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
       this.ui.showHostRoom(pin, joinUrl, {
@@ -92,6 +131,8 @@ class VoxelSandboxGame {
     try {
       await this.network.join(pin);
       this.mode = 'client';
+      this.currentJoinUrl = `${window.location.protocol}//${window.location.host}/?join=${pin}`;
+      this.ui.currentScreen = 'in_game';
       this.ui.setCrosshairVisible(true);
       this.ui.hideMenu();
       this.ui.showNarrativeMessage(`Conectado como ${name}. Explorad juntos.`, 5000);

@@ -40,5 +40,10 @@ export class SceneManager {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
   }
+  setQuality(dpr) {
+    const clamped = Math.max(0.75, Math.min(window.devicePixelRatio, dpr));
+    this.renderer.setPixelRatio(clamped);
+    this._onResize();
+  }
   render() { this.renderer.render(this.scene, this.camera); }
 }

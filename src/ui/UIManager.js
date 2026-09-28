@@ -2,11 +2,19 @@ import QRCode from 'qrcode';
 import { PLAYER_HEROES } from '../config/constants.js';
 
 export class UIManager {
-  constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message' } = {}) {
+  constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message', settingsBtnId = 'btn-settings' } = {}) {
     this.uiEl = document.getElementById(uiContainerId);
     this.crosshair = document.getElementById(crosshairId);
     this.hudMessage = document.getElementById(hudMessageId);
+    this.settingsBtn = document.getElementById(settingsBtnId);
     this.messageTimeout = null;
+
+    // Estado de pantallas
+    this.currentScreen = 'menu'; // 'menu' | 'host_room' | 'in_game'
+    this.lastMenuParams = null;
+    this.lastHostParams = null;
+    this.isSettingsOpen = false;
+    this.settingsCallbacks = null;
 
     // Cargar perfil guardado del jugador
     this.selectedColorIndex = parseInt(localStorage.getItem('dungeon_player_color') || '0', 10);
@@ -16,7 +24,18 @@ export class UIManager {
     this.playerName = localStorage.getItem('dungeon_player_name') || 'Aventurero';
   }
 
+  bindSettings(callbacks = {}) {
+    this.settingsCallbacks = callbacks;
+    if (this.settingsBtn) {
+      this.settingsBtn.onclick = () => this.toggleSettingsModal();
+    }
+  }
+
   showMenu({ onHost, onJoin }) {
+    this.currentScreen = 'menu';
+    this.lastMenuParams = { onHost, onJoin };
+    this.setCrosshairVisible(false);
+
     const heroesHtml = PLAYER_HEROES.map((h, i) => `
       <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
            data-index="${i}" 
@@ -112,8 +131,11 @@ export class UIManager {
     }
   }
 
-  showHostRoom(pin, joinUrl, { hostName, hostColorHex, onPlay }) {
-    this.setCrosshairVisible(true);
+  showHostRoom(pin, joinUrl, options = {}) {
+    this.currentScreen = 'host_room';
+    this.lastHostParams = { pin, joinUrl, options };
+    const { hostName, hostColorHex, onPlay } = options;
+
     this.uiEl.innerHTML = `
       <div class="menu">
         <h1 style="margin-bottom:2px">SALA DE EXPEDICIÓN</h1>
@@ -177,9 +199,200 @@ export class UIManager {
 
     // Comenzar juego
     document.getElementById('btn-start-play')?.addEventListener('click', () => {
+      this.currentScreen = 'in_game';
       this.hideMenu();
+      this.setCrosshairVisible(true);
       onPlay?.();
     });
+  }
+
+  toggleSettingsModal() {
+    if (this.isSettingsOpen) {
+      this.closeSettingsModal();
+    } else {
+      this.openSettingsModal();
+    }
+  }
+
+  openSettingsModal() {
+    this.isSettingsOpen = true;
+    this.setCrosshairVisible(false);
+    document.exitPointerLock?.();
+
+    if (this.settingsBtn) {
+      this.settingsBtn.style.borderColor = '#38bdf8';
+      this.settingsBtn.style.color = '#38bdf8';
+    }
+
+    const state = this.settingsCallbacks?.getGameState ? this.settingsCallbacks.getGameState() : {};
+    const inGame = this.currentScreen === 'in_game';
+    const sens = parseFloat(localStorage.getItem('dungeon_sensitivity') || '1.0');
+    const dpr = parseFloat(localStorage.getItem('dungeon_dpr') || '1.5');
+
+    const heroesHtml = PLAYER_HEROES.map((h, i) => `
+      <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
+           data-index="${i}" 
+           style="background:${h.color}; --hero-color:${h.color}" 
+           title="${h.name}"></div>
+    `).join('');
+    const currentHero = PLAYER_HEROES[this.selectedColorIndex];
+
+    this.uiEl.innerHTML = `
+      <div class="menu" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
+        <div class="settings-header">
+          <h2>⚙️ CONFIGURACIÓN</h2>
+          <button id="btn-close-settings" class="close-x-btn" title="Cerrar">✕</button>
+        </div>
+
+        <!-- 1. Perfil de Aventurero -->
+        <div class="settings-group">
+          <label class="lobby-label">Tu Aventurero</label>
+          <input id="settings-name-input" class="name-input" maxlength="12" 
+                 placeholder="Nombre o Apodo" value="${this.playerName}" autocomplete="off" />
+        </div>
+
+        <div class="settings-group">
+          <label class="lobby-label">Clase y Color</label>
+          <div class="heroes-row" id="settings-heroes-row">
+            ${heroesHtml}
+          </div>
+          <div id="settings-hero-badge" class="hero-badge" style="color:${currentHero.color}">
+            🛡️ ${currentHero.name}
+          </div>
+        </div>
+
+        <div class="divider" style="margin:10px 0"></div>
+
+        <!-- 2. Controles -->
+        <div class="settings-group">
+          <div class="setting-row">
+            <span class="lobby-label" style="margin:0">Sensibilidad de Mirada</span>
+            <span id="sens-val-display" style="font-size:12px;color:#38bdf8;font-weight:700">${sens.toFixed(1)}x</span>
+          </div>
+          <input id="settings-sens-slider" type="range" min="0.4" max="2.5" step="0.1" value="${sens}" 
+                 style="width:100%;accent-color:#38bdf8;cursor:pointer;margin-top:4px;" />
+        </div>
+
+        <!-- 3. Gráficos & Rendimiento -->
+        <div class="settings-group">
+          <div class="setting-row">
+            <span class="lobby-label" style="margin:0">Rendimiento Gráfico</span>
+          </div>
+          <div class="quality-selector">
+            <button class="quality-btn ${dpr <= 1.0 ? 'active' : ''}" id="btn-dpr-1" data-dpr="1.0">
+              Ahorro / Fluido (1.0x)
+            </button>
+            <button class="quality-btn ${dpr > 1.0 ? 'active' : ''}" id="btn-dpr-15" data-dpr="1.5">
+              Alta Nitidez (1.5x)
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Acciones de Sala (si está en partida) -->
+        ${inGame && state.roomPin ? `
+          <div class="divider" style="margin:10px 0"></div>
+          <div class="settings-group" style="background:rgba(11,17,32,0.7);border-radius:10px;padding:8px 10px;border:1px solid #1e293b;">
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px">SALA ACTUAL: <strong style="color:#fbbf24;font-size:13px">${state.roomPin}</strong></div>
+            <div style="display:flex;gap:6px">
+              <button id="btn-settings-share" class="copy-btn" style="flex:1">📱 Compartir</button>
+              <button id="btn-settings-copy" class="copy-btn" style="flex:1">📋 Copiar Link</button>
+            </div>
+          </div>
+        ` : ''}
+
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          ${inGame ? `<button id="btn-leave-game" class="btn-danger" style="flex:1">Salir al Menú</button>` : ''}
+          <button id="btn-save-settings" class="btn-primary" style="flex:1">Aceptar</button>
+        </div>
+      </div>`;
+
+    // Interacciones del modal
+    document.getElementById('btn-close-settings').onclick = () => this.closeSettingsModal();
+
+    // Selector de clases en configuración
+    const chips = this.uiEl.querySelectorAll('.hero-chip');
+    chips.forEach(chip => {
+      chip.onclick = () => {
+        chips.forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        const idx = parseInt(chip.dataset.index, 10);
+        this.selectedColorIndex = idx;
+        localStorage.setItem('dungeon_player_color', idx.toString());
+
+        const hero = PLAYER_HEROES[idx];
+        const badge = document.getElementById('settings-hero-badge');
+        if (badge) {
+          badge.textContent = `🛡️ ${hero.name}`;
+          badge.style.color = hero.color;
+        }
+      };
+    });
+
+    // Slider de sensibilidad
+    const sensSlider = document.getElementById('settings-sens-slider');
+    const sensVal = document.getElementById('sens-val-display');
+    sensSlider.oninput = (e) => {
+      const val = parseFloat(e.target.value);
+      sensVal.textContent = `${val.toFixed(1)}x`;
+      this.settingsCallbacks?.onSensitivityChange?.(val);
+    };
+
+    // Botones de calidad (DPR)
+    const btnDpr1 = document.getElementById('btn-dpr-1');
+    const btnDpr15 = document.getElementById('btn-dpr-15');
+    const setDpr = (val) => {
+      localStorage.setItem('dungeon_dpr', val.toString());
+      btnDpr1.classList.toggle('active', val <= 1.0);
+      btnDpr15.classList.toggle('active', val > 1.0);
+      this.settingsCallbacks?.onQualityChange?.(val);
+    };
+    btnDpr1.onclick = () => setDpr(1.0);
+    btnDpr15.onclick = () => setDpr(1.5);
+
+    // Compartir y copiar dentro de partida
+    const shareBtn = document.getElementById('btn-settings-share');
+    if (shareBtn && state.joinUrl) {
+      shareBtn.onclick = () => this.shareLink(state.joinUrl, state.roomPin);
+    }
+    const copyBtn = document.getElementById('btn-settings-copy');
+    if (copyBtn && state.joinUrl) {
+      copyBtn.onclick = () => this.copyLink(state.joinUrl);
+    }
+
+    // Salir al menú
+    document.getElementById('btn-leave-game')?.addEventListener('click', () => {
+      if (confirm('¿Deseas salir al menú principal? Se abandonará la partida actual.')) {
+        this.closeSettingsModal();
+        this.settingsCallbacks?.onLeaveGame?.();
+      }
+    });
+
+    // Guardar cambios
+    document.getElementById('btn-save-settings').onclick = () => {
+      const name = document.getElementById('settings-name-input').value.trim() || 'Aventurero';
+      this.playerName = name;
+      localStorage.setItem('dungeon_player_name', name);
+      this.settingsCallbacks?.onProfileSave?.({ name, colorIndex: this.selectedColorIndex });
+      this.showNarrativeMessage('Configuración guardada correctamente.', 2500);
+      this.closeSettingsModal();
+    };
+  }
+
+  closeSettingsModal() {
+    this.isSettingsOpen = false;
+    if (this.settingsBtn) {
+      this.settingsBtn.style.borderColor = 'rgba(255, 255, 255, 0.16)';
+      this.settingsBtn.style.color = '#cbd5e1';
+    }
+
+    if (this.currentScreen === 'in_game') {
+      this.hideMenu();
+      this.setCrosshairVisible(true);
+    } else if (this.currentScreen === 'host_room' && this.lastHostParams) {
+      this.showHostRoom(this.lastHostParams.pin, this.lastHostParams.joinUrl, this.lastHostParams.options);
+    } else if (this.lastMenuParams) {
+      this.showMenu(this.lastMenuParams);
+    }
   }
 
   async shareLink(url, pin) {

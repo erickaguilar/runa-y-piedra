@@ -23,7 +23,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - **Protocolo de Metadatos de Red (`MSG.PLAYER_META = 0x06`)**:
   - Intercambio binario de metadatos (ID, índice de color, longitud y nombre codificado en UTF-8 con `TextEncoder` / `TextDecoder`).
   - Avisos en el HUD al unirse o desconectarse compañeros: *"🛡️ ¡[Nombre] se unió a la expedición!"*.
-  - Lista en tiempo real de aventureros conectados en la sala de espera del Host.
+- **Botón Flotante de Configuración en Pantalla (Superior Derecha)**:
+  - Botón translúcido circular (`#btn-settings`) con icono SVG de engranaje accesible en todo momento (tanto en menús como dentro de la mazmorra).
+  - Modal de Ajustes en tiempo real:
+    - Edición del nombre y clase de aventurero con sincronización instantánea a compañeros.
+    - Slider de **Sensibilidad de Mirada** (0.4x a 2.5x) para móvil (Touch Look) y PC (Mouse Look).
+    - Selector de **Rendimiento Gráfico** en caliente: Modo Fluido / Batería (1.0x DPR) vs Alta Nitidez (1.5x DPR).
+    - Acciones rápidas de sala: visualización del PIN, compartir/copiar enlace y botón para salir al menú principal.
 
 ---
 

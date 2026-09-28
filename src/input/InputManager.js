@@ -19,6 +19,7 @@ export class InputManager {
     this.lookTouchY = 0;
 
     this.isTouchDevice = matchMedia('(pointer: coarse)').matches;
+    this.sensitivity = parseFloat(localStorage.getItem('dungeon_sensitivity') || '1.0');
 
     this.initKeyboard();
     this.initMouseLook();
@@ -54,8 +55,8 @@ export class InputManager {
 
     document.addEventListener('mousemove', (e) => {
       if (!this.pointerLocked) return;
-      this.yaw -= e.movementX * 0.0022;
-      this.pitch -= e.movementY * 0.0022;
+      this.yaw -= e.movementX * 0.0022 * this.sensitivity;
+      this.pitch -= e.movementY * 0.0022 * this.sensitivity;
       this.pitch = Math.max(-1.55, Math.min(1.55, this.pitch));
     });
 
@@ -116,8 +117,8 @@ export class InputManager {
     this.canvas.addEventListener('touchmove', (e) => {
       for (const t of e.changedTouches) {
         if (t.identifier === this.lookTouchId) {
-          this.yaw -= (t.clientX - this.lookTouchX) * 0.006;
-          this.pitch -= (t.clientY - this.lookTouchY) * 0.006;
+          this.yaw -= (t.clientX - this.lookTouchX) * 0.006 * this.sensitivity;
+          this.pitch -= (t.clientY - this.lookTouchY) * 0.006 * this.sensitivity;
           this.pitch = Math.max(-1.55, Math.min(1.55, this.pitch));
           this.lookTouchX = t.clientX;
           this.lookTouchY = t.clientY;
@@ -175,5 +176,10 @@ export class InputManager {
     const jump = this.pendingJump;
     this.pendingJump = false;
     return jump;
+  }
+
+  setSensitivity(val) {
+    this.sensitivity = Math.max(0.3, Math.min(3.0, val));
+    localStorage.setItem('dungeon_sensitivity', this.sensitivity.toString());
   }
 }
