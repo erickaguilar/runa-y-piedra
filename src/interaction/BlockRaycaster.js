@@ -48,13 +48,14 @@ export class BlockRaycaster {
       }
     }
 
-    // 2b. Losa sellada de la escalinata (interactuable mientras siga cerrada)
+    // 2b. Losa sellada de la escalinata (interactuable mientras siga cerrada).
+    // Distancia al punto más cercano del rectángulo (el tiro puede ser largo).
     if (Array.isArray(this.world.stairwells) && this.world.stairwells.length > 0) {
       for (const w of this.world.stairwells) {
         if (w.open) continue;
-        const cx = (w.x1 + w.x2 + 1) / 2;
-        const cz = (w.z1 + w.z2 + 1) / 2;
-        if (Math.hypot(playerPos.x - cx, playerPos.z - cz) < 2.8) {
+        const qx = Math.min(Math.max(playerPos.x, w.x1), w.x2 + 1);
+        const qz = Math.min(Math.max(playerPos.z, w.z1), w.z2 + 1);
+        if (Math.hypot(playerPos.x - qx, playerPos.z - qz) < 2.8) {
           return { type: 'stairs', message: 'Losa sellada de la escalinata' };
         }
       }

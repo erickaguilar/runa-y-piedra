@@ -5,8 +5,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 // Máquina de estados de la losa: closed -> shaking -> sliding -> open
 const SHAKE_TIME = 0.5;
 const SLIDE_TIME = 1.4;
-const SLIDE_DIST = 2.4;
-const FOG_COUNT = 10;
+const FOG_COUNT = 24;
 
 export class StairsRenderer {
   constructor(scene) {
@@ -46,7 +45,7 @@ export class StairsRenderer {
     slabBase.position.y = 0.07;
     slab.add(slabBase);
     const bandGeos = [];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < d; i++) {
       const zoff = -d / 2 + 0.5 + i * 1.0;
       bandGeos.push(new THREE.BoxGeometry(w + 0.24, 0.05, 0.12).translate(0, 0.15, zoff));
     }
@@ -91,6 +90,8 @@ export class StairsRenderer {
     this.group.add(root);
     this.stairs = {
       rect, root, slab, pitLight, fog,
+      // La losa se desliza al norte (eje corto): despeja el tiro y reposa en el suelo
+      slideDist: d + 0.8,
       state: 'closed', t: 0, shakeSeed: Math.random() * 10,
     };
   }
@@ -111,7 +112,7 @@ export class StairsRenderer {
   setOpenInstant() {
     if (!this.stairs) return;
     this.stairs.state = 'open';
-    this.stairs.slab.position.x = SLIDE_DIST;
+    this.stairs.slab.position.z = -this.stairs.slideDist;
     this.stairs.fog.visible = true;
     this.stairs.fog.material.opacity = 0.6;
     this.stairs.pitLight.intensity = 0.9;
@@ -130,13 +131,14 @@ export class StairsRenderer {
       if (s.t >= SHAKE_TIME) {
         s.state = 'sliding';
         s.t = 0;
+        s.slab.position.x = 0;
         s.slab.position.z = 0;
       }
     } else if (s.state === 'sliding') {
       s.t += safeDt;
       const k = Math.min(1, s.t / SLIDE_TIME);
       const eased = 1 - Math.pow(1 - k, 3);
-      s.slab.position.x = eased * SLIDE_DIST;
+      s.slab.position.z = -eased * s.slideDist;
       s.fog.visible = k > 0.3;
       s.fog.material.opacity = 0.6 * k;
       s.pitLight.intensity = 0.9 * k;

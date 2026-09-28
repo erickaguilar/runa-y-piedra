@@ -315,9 +315,9 @@ class VoxelSandboxGame {
     const w = this.world.stairwells?.[0];
     if (!w) return false;
     if (player) {
-      const cx = (w.x1 + w.x2 + 1) / 2;
-      const cz = (w.z1 + w.z2 + 1) / 2;
-      const dist = Math.hypot(player.pos.x - cx, player.pos.z - cz);
+      const qx = Math.min(Math.max(player.pos.x, w.x1), w.x2 + 1);
+      const qz = Math.min(Math.max(player.pos.z, w.z1), w.z2 + 1);
+      const dist = Math.hypot(player.pos.x - qx, player.pos.z - qz);
       if (dist > 3.2) {
         console.warn(`[AntiCheat] Apertura de losa rechazada: ${player.name} fuera de rango (${dist.toFixed(2)}m)`);
         return false;
@@ -355,11 +355,11 @@ class VoxelSandboxGame {
       const v = Math.round(74 - f * (74 - 11));
       return (v << 16) | (v << 8) | v;
     };
-    for (let x = rect.x1; x <= rect.x2; x++) {
-      this.voxelMap.setTint(x, -1, rect.z1, shade(-1));
-      this.voxelMap.setTint(x, -2, rect.z1 + 1, shade(-2));
-      for (let y = BOTTOM; y <= -3; y++) {
-        this.voxelMap.setTint(x, y, rect.z1 + 2, shade(y));
+    let i = 0;
+    for (let x = rect.x1; x <= rect.x2; x++, i++) {
+      const d = -1 - i;
+      for (let z = rect.z1; z <= rect.z2; z++) {
+        this.voxelMap.setTint(x, d, z, shade(d));
       }
     }
     for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
@@ -374,10 +374,10 @@ class VoxelSandboxGame {
   }
 
   /**
-   * Abre la fosa real en el mundo: retira 6 bloques de suelo y construye una
-   * escalinata con colisión hasta el fondo (MIN_Y): peldaños en z1:-1, z1+1:-2
-   * y columna transitable en z1+2 hasta el fondo oscuro, con macizo y pozo
-   * revestido de muros. Determinista: host y clientes aplican lo mismo.
+   * Abre la fosa real en el mundo: retira el suelo del rectángulo y construye una
+   * escalinata con colisión a lo largo de X (un peldaño de 1 m por bloque) hasta
+   * el fondo (MIN_Y), con macizo bajo los peldaños y pozo revestido de muros.
+   * Determinista: host y clientes aplican lo mismo.
    */
   applyStairPit(rect) {
     if (!rect) return;
@@ -386,7 +386,7 @@ class VoxelSandboxGame {
       this.world.set(x, y, z, type);
       this.voxelMap.addBlock(x, y, z, type);
     };
-    // 1. Retirar suelo y=0 del rectángulo 2x3
+    // 1. Retirar suelo y=0 del rectángulo
     for (let x = rect.x1; x <= rect.x2; x++) {
       for (let z = rect.z1; z <= rect.z2; z++) {
         this.world.set(x, 0, z, BLOCK_TYPES.AIR);
@@ -405,14 +405,13 @@ class VoxelSandboxGame {
         }
       }
     }
-    // 3. Escalinata real descendente + macizo (sin bloques flotantes)
-    for (let x = rect.x1; x <= rect.x2; x++) {
-      setSolid(x, -1, rect.z1, floorVariant(x, rect.z1)); // peldaño (cima 0.0)
-      for (let y = BOTTOM; y <= -2; y++) setSolid(x, y, rect.z1, BLOCK_TYPES.WALL);
-      setSolid(x, -2, rect.z1 + 1, floorVariant(x, rect.z1 + 1)); // peldaño (cima -1.0)
-      for (let y = BOTTOM; y <= -3; y++) setSolid(x, y, rect.z1 + 1, BLOCK_TYPES.WALL);
-      for (let y = BOTTOM; y <= -3; y++) { // columna transitable hasta el fondo
-        setSolid(x, y, rect.z1 + 2, floorVariant(x, rect.z1 + 2));
+    // 3. Escalinata descendente hacia +X + macizo (sin bloques flotantes)
+    let i = 0;
+    for (let x = rect.x1; x <= rect.x2; x++, i++) {
+      const d = -1 - i; // bloque del peldaño (cima = d + 1)
+      for (let z = rect.z1; z <= rect.z2; z++) {
+        setSolid(x, d, z, floorVariant(x, z));
+        for (let y = BOTTOM; y <= d - 1; y++) setSolid(x, y, z, BLOCK_TYPES.WALL);
       }
     }
   }
