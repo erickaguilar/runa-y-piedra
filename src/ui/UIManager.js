@@ -816,18 +816,21 @@ export class UIManager {
     card.innerHTML = `
       <div class="descent-title">${renderIcon('vortex', { size: 18, color: '#38bdf8' })} ¡${byName} desciende!</div>
       <div class="descent-timer">8</div>
-      <div class="descent-sub">Baja a la escalinata para ir ya</div>
-      <button id="btn-descend-now" type="button">BAJAR YA</button>`;
+      <div class="descent-sub">Baja a la escalinata para ir ya</div>`;
     document.body.appendChild(card);
     this.descentCard = card;
+
+    const bigBtn = document.createElement('button');
+    bigBtn.id = 'btn-descend-now';
+    bigBtn.type = 'button';
+    bigBtn.textContent = 'BAJAR YA';
+    document.body.appendChild(bigBtn);
+    this.descentBtn = bigBtn;
     this.descentOnNow = onNow;
 
-    const btn = card.querySelector('#btn-descend-now');
-    if (btn) {
-      btn.onclick = () => {
-        if (this.descentOnNow) this.descentOnNow();
-      };
-    }
+    bigBtn.onclick = () => {
+      if (this.descentOnNow) this.descentOnNow();
+    };
 
     const tick = () => {
       if (!this.descentCard) return;
@@ -844,6 +847,10 @@ export class UIManager {
     if (this.descentCard) {
       this.descentCard.remove();
       this.descentCard = null;
+    }
+    if (this.descentBtn) {
+      this.descentBtn.remove();
+      this.descentBtn = null;
     }
     this.descentOnNow = null;
   }
