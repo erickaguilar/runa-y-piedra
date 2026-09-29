@@ -260,7 +260,7 @@ class VoxelSandboxGame {
   }
 
 
-  async joinRoom(pin, profile = {}) {
+  async joinRoom(pin, profile = {}, attempts = 2) {
     if (!/^\d{4}$/.test(pin)) {
       this.ui.setStatus('PIN inválido (debe contener 4 dígitos)');
       return;
@@ -269,27 +269,34 @@ class VoxelSandboxGame {
     const colorIndex = profile.colorIndex ?? 0;
     this.playerManager.setLocalProfile(name, colorIndex);
 
-    this.ui.setStatus('Conectando a la mazmorra...');
-    try {
-      await this.network.join(pin);
-      this.mode = 'client';
-      this.currentJoinUrl = `${window.location.protocol}//${window.location.host}/?join=${pin}`;
-      this.ui.currentScreen = 'in_game';
-      this.ui.setCrosshairVisible(true);
-      this.ui.setActionButtonsVisible(true);
-      this.ui.hideMenu();
-      this.ui.setLivesVisible(true);
-      const localCli = this.playerManager.localPlayer;
-      localCli.resetLives();
-      this.ui.updateLives(localCli.lives, localCli.maxLives);
-      this.ui.setHasKey(false);
-      this.ui.showNarrativeMessage(`Conectado como ${escapeHtml(name)}. Explorad juntos.`, 5000);
-
-      // Enviar metadatos locales (nombre y color de clase) al Host
-      this.network.sendToHost(Proto.serializePlayerMeta(0, colorIndex, name));
-    } catch (e) {
-      this.ui.setStatus('Error de conexión: ' + (e?.message || e));
+    for (let i = 1; i <= attempts; i++) {
+      this.ui.setStatus(i === 1 ? 'Conectando a la mazmorra...' : `Reintentando conexión (${i}/${attempts})...`);
+      try {
+        await this.network.join(pin, { timeoutMs: 12000 });
+        this.mode = 'client';
+        break;
+      } catch (e) {
+        if (i === attempts) {
+          this.ui.setStatus('Error de conexión: ' + (e?.message || e));
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 1200));
+      }
     }
+    this.currentJoinUrl = `${window.location.protocol}//${window.location.host}/?join=${pin}`;
+    this.ui.currentScreen = 'in_game';
+    this.ui.setCrosshairVisible(true);
+    this.ui.setActionButtonsVisible(true);
+    this.ui.hideMenu();
+    this.ui.setLivesVisible(true);
+    const localCli = this.playerManager.localPlayer;
+    localCli.resetLives();
+    this.ui.updateLives(localCli.lives, localCli.maxLives);
+    this.ui.setHasKey(false);
+    this.ui.showNarrativeMessage(`Conectado como ${escapeHtml(name)}. Explorad juntos.`, 5000);
+
+    // Enviar metadatos locales (nombre y color de clase) al Host (canal fiable)
+    this.network.sendToHost(Proto.serializePlayerMeta(0, colorIndex, name));
   }
 
 
@@ -455,12 +462,12 @@ class VoxelSandboxGame {
   }
 
   initNetworkTimers() {
-    // Broadcast de snapshots (Host -> Clientes @ 20 Hz con sequence number)
+    // Broadcast de snapshots (Host -> Clientes @ 20 Hz, canal hot unreliable)
     setInterval(() => {
       if (this.mode !== 'host') return;
       this.snapshotSeq = (this.snapshotSeq + 1) & 0xFFFF;
       const snapshots = this.playerManager.getSnapshots();
-      this.network.broadcast(Proto.serializeSnapshot(this.snapshotSeq, snapshots));
+      this.network.broadcastHot(Proto.serializeSnapshot(this.snapshotSeq, snapshots));
 
       // Actualizar réplicas visuales en el host
       for (const p of snapshots) {
@@ -515,8 +522,9 @@ class VoxelSandboxGame {
         } else if (this.mode === 'client') {
           this.inputSeq = (this.inputSeq + 1) & 0xFFFF;
 
-          // 1. Enviar input autoritativo con flags de acción al Host en lockstep con el tick de física
-          this.network.sendToHost(
+          // 1. Enviar input autoritativo con flags de acción al Host en lockstep
+          // (canal hot unreliable: si se pierde, el siguiente tick lo reemplaza)
+          this.network.sendToHostHot(
             Proto.serializeInput(
               this.inputSeq,
               local.inputRight,

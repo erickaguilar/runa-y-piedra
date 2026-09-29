@@ -1,7 +1,7 @@
 /**
  * Icons.js - Global Reusable SVG Icon Registry
  * 
- * Centralized repository of high-resolution vector SVG icons for Voxel Dungeon.
+ * Centralized repository of high-resolution vector SVG icons for Runa y Piedra.
  * Provides direct icon rendering, custom sizing/coloring, and automated
  * emoji-to-SVG conversion for menus, HUD notifications, buttons, and levels.
  */
@@ -35,6 +35,16 @@ export const ICONS = {
     strokeWidth: 2,
     defaultColor: '#94a3b8',
     body: `<path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l2 2M16 16l4 4M19 13l2 2M9.5 17.5L21 6V3h-3L6.5 14.5M11 19l-2 2M8 16l-4 4M5 13l-2 2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  raido: {
+    name: 'raido',
+    viewBox: '0 0 64 64',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 4,
+    defaultColor: '#d97706',
+    body: `<path d="M27 14 L27 50" stroke-linecap="square"/><path d="M27 14 L44 22 L27 32" stroke-linecap="square"/>`,
   },
 
   shield: {

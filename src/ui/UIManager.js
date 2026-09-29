@@ -81,7 +81,7 @@ export class UIManager {
 
     this.uiEl.innerHTML = `
       <div class="menu">
-        <h1>${renderIcon('swords', { size: 20, color: '#94a3b8' })} VOXEL DUNGEON · CO-OP</h1>
+        <h1>${renderIcon('raido', { size: 22, color: '#d97706' })} RUNA Y PIEDRA</h1>
         
         <div class="lobby-section">
           <label class="lobby-label">Tu Aventurero</label>
@@ -494,8 +494,8 @@ export class UIManager {
 
   async shareLink(url, pin) {
     const shareData = {
-      title: 'Voxel Dungeon Co-op P2P',
-      text: `¡Únete a mi mazmorra cooperativa en 3D! Código PIN: ${pin}`,
+      title: 'Runa y Piedra — Mazmorra Cooperativa P2P',
+      text: `¡Únete a mi expedición en Runa y Piedra! Código PIN: ${pin}`,
       url: url,
     };
     if (navigator.share) {

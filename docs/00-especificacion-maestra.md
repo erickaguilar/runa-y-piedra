@@ -1,11 +1,12 @@
-# 00. Especificación Maestra: Sandbox Voxel Multijugador P2P Web
+# 00. Especificación Maestra: Runa y Piedra — Mazmorra Vóxel Multijugador P2P
 
-Este documento contiene la especificación de arquitectura y requerimientos de implementación definitiva para el proyecto.
+> [!NOTE]
+> Este documento contiene la visión y requerimientos fundacionales. Para el desglose técnico completo de subsistemas (niveles, red v2, canales duales, reconciliación, clases, audio y UI), consulta el [**Índice de Documentación Técnica**](./README.md).
 
 ---
 
 ## 1. Visión General del Proyecto
-Crear un minijuego sandbox 3D interactivo multijugador para navegadores móviles y de escritorio, optimizado para ejecutarse fluidamente (60 FPS) en dispositivos móviles estándar globales (gama de entrada/media, 3–4 GB RAM).
+Crear un juego de mazmorra vóxel 3D interactivo multijugador (*Runa y Piedra*) para navegadores móviles y de escritorio, optimizado para ejecutarse fluidamente (60 FPS) en dispositivos móviles estándar globales (gama de entrada/media, 3–4 GB RAM).
 - **Modelo de Red**: Arquitectura Listen-Server (uno de los navegadores actúa como servidor autoritativo).
 - **Tráfico de Juego**: P2P directo sobre Wi-Fi local mediante WebRTC DataChannel (latencia LAN < 5 ms, 0 kbps de consumo en servidores externos durante el gameplay).
 - **Alojamiento**: Sitio estático servido bajo HTTPS vía Vercel (únicamente para servir el bundle web inicial).

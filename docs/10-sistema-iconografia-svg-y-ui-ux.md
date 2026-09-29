@@ -14,7 +14,7 @@ Para garantizar una estética medieval-voxel profesional y nítida en pantallas 
 | :--- | :---: | :---: | :--- |
 | `castle` | 🏰 | `#fbbf24` | Botón "Crear Mazmorra", cabecera de sala y mapa Mazmorra Ancestral |
 | `volcano` | 🌋 | `#f97316` | Tarjeta del mapa Cripta del Fuego |
-| `swords` | ⚔️ | `#94a3b8` | Título del Menú Principal (`VOXEL DUNGEON · CO-OP`) |
+| `swords` | ⚔️ | `#94a3b8` | Título del Menú Principal (`RUNA Y PIEDRA`) |
 | `shield` | 🛡️ | `#38bdf8` | Emblema de clase Paladín y escudo de aventurero |
 | `compass` | 🧭 | `#38bdf8` | Emblema de clase Aventurero |
 | `feather` | 🪶 | `#10b981` | Emblema de clase Explorador |

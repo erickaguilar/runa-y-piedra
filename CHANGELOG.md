@@ -5,6 +5,25 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.23.0] - 2026-09-29
+
+### Added
+- **Canales duales WebRTC ([`NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js), [`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js), [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**:
+  - Canal `game-safe` (`reliable: true`) para eventos raros: `INIT`, `DOOR`, `CHEST`, `KEY`, `LEVEL_CHANGE`, `PLAYER_META`.
+  - Canal `game-hot` (`reliable: false`) para hot-path tolerante a pérdida: `INPUT` (30 Hz), `SNAPSHOT` (20 Hz), `PING`/`PONG` (1 Hz). Un paquete perdido lo reemplaza el siguiente tick, sin head-of-line blocking.
+  - Fallback automático a `safe` si el `hot` aún no abrió o se cae; `getLinkInfo()` expone el estado para UI/debug.
+  - Normalización al canal `safe` como clave estable en `PlayerManager`/`InputQueue` aunque el `INPUT` llegue por `hot`.
+- **Conexión endurecida P0**:
+  - Config ICE con STUN público + TURN opcional vía `localStorage` (`dungeon_turn_url/user/pass`).
+  - `host()` reintenta PIN si hay colisión (`unavailable-id`, hasta 5 intentos).
+  - `join(pin, { timeoutMs: 12000 })` con timeout de 12 s, errores traducidos al español y `joinRoom()` con 1 reintento automático.
+- **Constantes de red (`NET_CONFIG`)**: `CHANNEL_SAFE/HOT`, `HOT_MSGS`, `JOIN_TIMEOUT_MS`, `JOIN_RETRIES`.
+- **Tests de regresión ([`tests/network-channels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/network-channels.test.js))**: 4 tests de enrutado hot vs safe.
+- **Nombre Oficial del Videojuego — Runa y Piedra**:
+  - Sustitución de denominaciones técnicas previas (*voxel-sandbox-p2p*, *Voxel Dungeon*) por la identidad de marca oficial **`Runa y Piedra`** en [`package.json`](file:///data/data/com.termux/files/home/develop/game/package.json), [`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html), [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), [`README.md`](file:///data/data/com.termux/files/home/develop/game/README.md) y documentación técnica en [`docs/`](file:///data/data/com.termux/files/home/develop/game/docs/).
+
+---
+
 ## [1.22.3] - 2026-09-28
 
 ### Added

@@ -1,5 +1,8 @@
 # 03. Protocolo de Red Binario y Señalización WebRTC
 
+> [!NOTE]
+> Este documento describe los fundamentos iniciales de señalización y paquetes base (v1). Para la especificación en producción del protocolo de alto rendimiento con ack de reconciliación, consulta [**11. Protocolo Híbrido v2**](./11-protocolo-hibrido-v2-telemetria-y-resiliencia.md), [**12. Reconciliación Cliente-Servidor**](./12-reconciliacion-cliente-servidor-e-interpolacion.md) y [**13. Canales Duales WebRTC**](./13-canales-duales-webrtc-endurecimiento-p0.md).
+
 ## 1. Topología Listen-Server P2P
 
 El sistema adopta una **Topología en Estrella** donde uno de los teléfonos móviles actúa como Host (servidor autoritativo de físicas y reglas de juego) y los demás se conectan directamente a él a través de canales de datos WebRTC (`RTCDataChannel`).

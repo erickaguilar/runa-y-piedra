@@ -29,8 +29,9 @@ export const PROTOCOL_VERSION = 2;
 
 | Opcode | Nombre | Frecuencia | Tamaño | Propósito |
 | :--- | :--- | :--- | :--- | :--- |
-| `0x01` | `INPUT` | 30 Hz | 15 bytes | Input de movimiento del cliente al host |
-| `0x02` | `SNAPSHOT` | 20 Hz | $8 + N \times 17$ bytes | Estado autoritativo de entidades emitido por el host |
+| `0x00` | `HANDSHAKE` | Conexión | 2 bytes | Negociación inicial de protocolo |
+| `0x01` | `INPUT` | 30 Hz | 16 bytes | Input autoritativo del cliente con banderas de acción |
+| `0x02` | `SNAPSHOT` | 20 Hz | $8 + N \times 25$ bytes | Estado autoritativo de entidades con ack de input, física vertical y vidas |
 | `0x03` | `BLOCK` | Bajo demanda | 14 bytes | Edición o destrucción de bloques en el voxel map |
 | `0x04` | `INIT` | Conexión | Variable | Asignación de ID local + Voxel map completo + Version byte |
 | `0x05` | `DOOR` | Bajo demanda | 2 bytes | Sincronización de apertura de portones |
@@ -40,31 +41,40 @@ export const PROTOCOL_VERSION = 2;
 | `0x09` | `PONG` | 1 Hz | 5 bytes | Eco inmediato del host para cálculo de RTT |
 | `0x0A` | `HOST_CLOSING`| Desconexión | 2 bytes | Aviso de salida ordenada del anfitrión |
 | `0x0B` | `LEVEL_CHANGE`| Cambio mapa | $2 + L$ bytes | Conmutación dinámica del nivel en caliente |
+| `0x0C` | `KEY` | Evento | 3 bytes | Sincronización de llave otorgada al equipo |
+| `0x0D` | `PEDESTAL` | Evento | 3 bytes | Petición y ceremonia del altar ancestral de victoria |
+| `0x0E` | `DESCENT` | Transición | 3 bytes | Sincronización de descenso secuencial de nivel (`START` / `GO` / `NOW`) |
+| `0x0F` | `STAIRS` | Evento | 3 bytes | Petición (`REQ`) y apertura (`OPEN`) de escalinata sellada |
 
 ---
 
 ## 3. Estructura de Paquetes en el Hot Path
 
-### A. Paquete de Input del Jugador (`0x01` — 15 bytes)
-Reutiliza un `ArrayBuffer(15)` estático sin crear un solo objeto en memoria:
+### A. Paquete de Input del Jugador (`0x01` — 16 bytes)
+Reutiliza un `ArrayBuffer(16)` estático sin crear un solo objeto en memoria:
 - `Offset 0` (`Uint8`): `0x01` (`MSG.INPUT`)
 - `Offset 1-2` (`Uint16`): Número de secuencia cíclico `seq` ($0 - 65535$)
 - `Offset 3-6` (`Float32`): Componente lateral `inputRight` ($dx$)
 - `Offset 7-10` (`Float32`): Componente frontal `inputForward` ($dz$)
 - `Offset 11-14` (`Float32`): Ángulo de rotación horizontal `yaw`
+- `Offset 15` (`Uint8`): Banderas de acción (`JUMP: 0x01`, `DESTROY: 0x02`, `PLACE: 0x04`, `INTERACT: 0x08`)
 
-### B. Paquete de Snapshot Autoritativo (`0x02` — $8 + N \times 17$ bytes)
-Transmite la posición de todos los jugadores activos en la sala:
+### B. Paquete de Snapshot Autoritativo (`0x02` — $8 + N \times 25$ bytes)
+Transmite la posición de todos los jugadores activos en la sala con confirmación de input y estado vital:
 - `Offset 0` (`Uint8`): `0x02` (`MSG.SNAPSHOT`)
 - `Offset 1-2` (`Uint16`): Número de secuencia cíclico `seq` del snapshot
 - `Offset 3-6` (`Uint32`): Timestamp de simulación (`performance.now() | 0`)
 - `Offset 7` (`Uint8`): Número de entidades incluidas ($N$)
-- **Bloques por Entidad (17 bytes cada uno)**:
+- **Bloques por Entidad (25 bytes cada uno)**:
   - `Offset +0` (`Uint8`): `playerId`
-  - `Offset +1` (`Float32`): Posición X
-  - `Offset +5` (`Float32`): Posición Y
-  - `Offset +9` (`Float32`): Posición Z
-  - `Offset +13` (`Float32`): Rotación Yaw
+  - `Offset +1-2` (`Uint16`): `lastInputSeq` (Ack de reconciliación en el cliente)
+  - `Offset +3-6` (`Float32`): Posición X
+  - `Offset +7-10` (`Float32`): Posición Y
+  - `Offset +11-14` (`Float32`): Posición Z
+  - `Offset +15-18` (`Float32`): Rotación Yaw
+  - `Offset +19-22` (`Float32`): Velocidad vertical $v_y$
+  - `Offset +23` (`Uint8`): Bandera `onGround` ($1$ si está en suelo firme, $0$ en el aire)
+  - `Offset +24` (`Uint8`): Contador de vidas restantes ($0 - 3$)
 
 ### C. Sonda de Latencia RTT Ping / Pong (`0x08` y `0x09` — 5 bytes)
 - `Offset 0` (`Uint8`): `0x08` (PING) o `0x09` (PONG)

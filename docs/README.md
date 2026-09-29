@@ -1,6 +1,6 @@
-# Documentación Técnica: Sandbox 3D Multijugador Móvil WebGL
+# Documentación Técnica: Runa y Piedra (Mazmorra Vóxel 3D Multijugador P2P)
 
-Este directorio contiene el compendio integral de hallazgos técnicos, diseño de arquitectura, presupuestos de rendimiento y protocolos de comunicación para un entorno 3D sandbox multijugador a 60 FPS estables en navegadores móviles estándar.
+Este directorio contiene el compendio integral de hallazgos técnicos, diseño de arquitectura, presupuestos de rendimiento y protocolos de comunicación de Runa y Piedra para navegadores móviles y de escritorio a 60 FPS estables.
 
 ---
 
@@ -46,13 +46,13 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
 
 7. [**07. Arquitectura Atómica y Modular del Código**](./07-arquitectura-atomica-modular.md)
    - Desglose de responsabilidades únicas (SRP) por módulo y carpeta.
-   - Eliminación del antipatrón God-file y desacoplamiento de simulación, input y render.
+   - Eliminación del antipatrón God-file y desacoplamiento de simulación, input, render, controladores y UI.
 
 8. [**08. Sistema de Mazmorras, Niveles y Progresión Cooperativa**](./08-sistema-mazmorras-niveles-y-progresion.md)
-   - Definición de escenarios desacoplada en JSON (`dungeon_classic.json`, `crypt_inferno.json`).
-   - `LevelLoader` y `LevelRegistry` para conmutación de mapas en caliente.
-   - Techos abovedados, umbral continuo bajo puertas, parkour en el abismo/lava y sensación de caída libre ($5.5\text{ m}$).
-   - Puntos de control automáticos (Checkpoints por sala) y cofres interactivos con animación 3D de tapa ($77^\circ$).
+   - Catálogo de 4 niveles (`lobby_tutorial`, `dungeon_classic`, `crypt_inferno`, `abyss_throne`).
+   - `LevelLoader` y `LevelRegistry` para conmutación de mapas y progresión.
+   - Escalinatas de descenso cooperativo, llaves y puertas con cerradura, plataformas de salto rúnico (*Jump Pads*) y fosa de lava.
+   - Puntos de control automáticos (Checkpoints por sala), ciclo de 3 vidas y cofres interactivos con animación 3D ($77^\circ$).
 
 9. [**09. Biblioteca de Héroes, Clases Únicas y Modificadores Físicos**](./09-biblioteca-heroes-clases-y-fisica.md)
    - Base de datos declarativa en JSON (`heroes.json`) y gestor `HeroRegistry`.
@@ -68,8 +68,9 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Visibilidad contextual inteligente de botones de acción táctiles.
 
 11. [**11. Protocolo Híbrido v2, Telemetría de Red y Resiliencia WebRTC**](./11-protocolo-hibrido-v2-telemetria-y-resiliencia.md)
-    - Protocolo híbrido DataView Zero-GC para hot paths (15 bytes INPUT, 8+N*17 bytes SNAPSHOT).
+    - Protocolo híbrido DataView Zero-GC para hot paths (16 bytes INPUT con acciones, 8+N*25 bytes SNAPSHOT con vidas y ack).
     - `PROTOCOL_VERSION = 2` y handshake de verificación estricta contra versiones obsoletas.
+    - Opcodes para eventos de juego (`KEY`, `PEDESTAL`, `DESCENT`, `STAIRS`).
     - Medición en caliente de RTT (Ping/Pong a 1 Hz) con media móvil de jitter.
     - Cierre ordenado de sala (`HOST_CLOSING`) en `beforeunload` y sincronización de `LEVEL_CHANGE`.
     - Monitor HUD de telemetría en tiempo real (`NetworkStats.js`) con toggle `?debug=1`.
@@ -80,5 +81,17 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Repetición (*replay*) física Zero-GC con umbrales de tolerancia ($0.04\text{ m}$) y teletransporte ($2.5\text{ m}$).
     - Interpolación temporal de entidades remotas a $100\text{ ms}$ en el pasado para absorber jitter de Wi-Fi.
     - Nuevas métricas en el HUD: `Pred Err (m)`, `In Flight` y `Corrections/s`.
+
+13. [**13. Canales Duales WebRTC y Endurecimiento de Conexión P0**](./13-canales-duales-webrtc-endurecimiento-p0.md)
+    - Arquitectura de canales duales sobre `RTCDataChannel`: canal seguro (`game-safe`, `reliable: true`) para eventos críticos frente a canal caliente (`game-hot`, `reliable: false`) para inputs (30 Hz) y snapshots (20 Hz).
+    - Erradicación del *Head-of-Line Blocking* (HoL) en redes inalámbricas y datos móviles.
+    - Normalización de conexiones lógicas en el Host y fallback transparente en clientes.
+    - Endurecimiento P0: STUN/TURN configurable, reintentos de PIN en colisiones, timeout de 12 s con reintentos automáticos y traducción de errores al español.
+
+14. [**14. Subsistemas de Audio Procedural, Vidas, Resortes y Suite de Tests**](./14-subsistemas-audio-procedural-vidas-y-resortes.md)
+    - Motor de audio procedural sintetizado con Web Audio API (`SoundManager.js`) con cero descarga de ficheros pesados.
+    - Ciclo de 3 vidas, peligros ambientales letales (lava y abismo), invulnerabilidad temporal (2.5 s) y Game Over cooperativo.
+    - Oscilador armónico amortiguado (`Spring.js`) para animaciones elásticas reactivas de UI.
+    - Suite de 58 pruebas automatizadas nativas con `node:test` sin dependencias externas pesadas.
 
 

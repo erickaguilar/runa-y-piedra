@@ -25,6 +25,12 @@ export const NET_CONFIG = {
   INPUT_HZ: 30,
   SNAPSHOT_HZ: 20,
   ROOM_PREFIX: 'VOXELSALA-',
+  JOIN_TIMEOUT_MS: 12000,
+  JOIN_RETRIES: 2,
+  // Canales WebRTC: hot (INPUT/SNAPSHOT/PING, unreliable) vs safe (eventos, reliable).
+  CHANNEL_SAFE: 'game-safe',
+  CHANNEL_HOT: 'game-hot',
+  HOT_MSGS: [0x01, 0x02, 0x08, 0x09], // INPUT, SNAPSHOT, PING, PONG
 };
 
 export const BLOCK_TYPES = {

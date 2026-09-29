@@ -10,52 +10,74 @@ En lugar de construir la mazmorra de forma procedimental o rígida en código fu
 
 ### Catálogo de Niveles Registrados
 
-1. **[`dungeon_classic.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/dungeon_classic.json)** — *Mazmorra Ancestral: Las Tres Cámaras*:
+1. **[`lobby_tutorial.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/lobby_tutorial.json)** — *Vestíbulo de Entrenamiento*:
+   - **Dimensiones**: $24 \times 16 \times 24$ bloques vóxel.
+   - **Propósito**: Sala introductoria segura, hub de conexión y punto de reaparición tras Game Over.
+   - **Elementos**: Cofre de entrenamiento con Llave Ancestral, portón blindado con cerradura y losa rúnica de descenso hacia el calabozo principal.
+2. **[`dungeon_classic.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/dungeon_classic.json)** — *Mazmorra Ancestral: Las Tres Cámaras*:
    - **Dimensiones**: $24 \times 16 \times 36$ bloques vóxel.
-   - **Sala 1 (Vestíbulo)**: Recepción con columnas de piedra labrada y *Cofre Antiguo* (Llave Antigua + 100 Gemas).
-   - **Sala 2 (El Abismo)**: Foso sin fondo con plataformas de salto rúnico sobre el vacío.
-   - **Sala 3 (Santuario Ancestral)**: Cámara final con *Cofre Secreto* (Cáliz Sagrado + 250 Gemas) y el *Pedestal Ancestral* de victoria.
-2. **[`crypt_inferno.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/crypt_inferno.json)** — *Cripta del Fuego: Rocas Volcánicas*:
+   - **Sala 1 (Vestíbulo)**: Columnas monolíticas de sillar oscuro y *Cofre Antiguo* con Llave de Bronce.
+   - **Sala 2 (El Abismo y Fosa de Lava)**: Foso letal con río de lava ardiente en el fondo, plataformas suspendidas y plataformas de salto rúnico (*Jump Pads*).
+   - **Sala 3 (Santuario Ancestral)**: Cámara final con losa de descenso oculta hacia la cripta infernal.
+3. **[`crypt_inferno.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/crypt_inferno.json)** — *Cripta del Fuego: Rocas Volcánicas*:
    - **Dimensiones**: $24 \times 16 \times 36$ bloques vóxel.
-   - **Sala 1 (Vestíbulo de Cenizas)**: Pilares de basalto y *Cofre de Brasas* (Esquirla de Magma + 120 Gemas Volcánicas).
-   - **Sala 2 (Río de Lava)**: Lago de magma ardiente con plataformas en zig-zag.
-   - **Sala 3 (Altar Ígneo)**: *Cofre Volcánico* (Corazón del Volcán + 300 Gemas) y Altar de Fuego.
+   - **Sala 1 (Vestíbulo de Cenizas)**: Pilares de basalto y *Cofre de Brasas*.
+   - **Sala 2 (Río de Lava Extendido)**: Plataformas en zig-zag sobre magma activo.
+   - **Sala 3 (Altar Ígneo)**: Losa rúnica de descenso hacia el nivel final.
+4. **[`abyss_throne.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/abyss_throne.json)** — *Trono del Abismo (Nivel Cumbre)*:
+   - **Dimensiones**: $24 \times 16 \times 36$ bloques vóxel.
+   - **Cámara Soberana**: Plataforma central suspendida sobre la nada infinita, custodiada por columnas colosales.
+   - **Sin Escalinata de Descenso**: Aloja el *Pedestal Ancestral* definitivo con el orbe de victoria y ceremonia final cooperativa.
 
 ### Componentes del Subsistema
 
-- **[`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js)**: Intérprete que traduce directivas JSON (`perimeter`, `fill`, `divider`, `pillar`, `ceiling`, `chests`, `checkpoints`, `doors`) a la matriz 3D en [`World.js`](file:///data/data/com.termux/files/home/develop/game/src/core/World.js).
-- **[`LevelRegistry.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelRegistry.js)**: Catálogo en memoria que permite al anfitrión (Host) cambiar de nivel en caliente desde la configuración sin reiniciar la conexión WebRTC.
+- **[`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js)**: Intérprete que traduce directivas JSON (`perimeter`, `fill`, `divider`, `pillar`, `ceiling`, `chests`, `checkpoints`, `doors`, `stairs`, `lava`) a la matriz 3D en [`World.js`](file:///data/data/com.termux/files/home/develop/game/src/core/World.js).
+- **[`LevelRegistry.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelRegistry.js)**: Catálogo en memoria que administra los 4 niveles y coordina la progresión ordenada o conmutación en caliente sin interrumpir la sesión WebRTC.
+- **[`DescentManager.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/DescentManager.js)**: Orquestador del flujo de descenso cooperativo mediante máquina de estados (`START` $\rightarrow$ `GO` $\rightarrow$ `NOW`).
 
 ---
 
 ## 2. Progresión por Estancias y Objetivos Cooperativos
 
 ```mermaid
-flowchart LR
-    S1["Sala 1: Vestíbulo\n(Spawn Inicial + Cofre 1)"] -->|Botón ACTION| D1["Puerta 1\n(Apertura Sincronizada)"]
-    D1 --> S2["Sala 2: El Abismo / Lava\n(Parkour y Checkpoint Seguro)"]
-    S2 -->|Botón ACTION| D2["Puerta 2\n(Apertura Sincronizada)"]
-    D2 --> S3["Sala 3: Santuario / Altar\n(Cofre Legendario + Pedestal)"]
-    S3 --> V["¡Mazmorra Conquistada!\n(Notificación y Victoria)"]
+flowchart TD
+    L["Lobby / Tutorial\n(Cofre con Llave + Losa Inicial)"] -->|Descenso Cooperativo| D1["Mazmorra Ancestral\n(Fosa de Lava + Jump Pads)"]
+    D1 -->|Descenso Cooperativo| D2["Cripta del Fuego\n(Río Magma en Zig-Zag)"]
+    D2 -->|Descenso Cooperativo| D3["Trono del Abismo\n(Altar Ceremonial Final)"]
+    D3 -->|Ceremonia Pedestal| V["¡Victoria Legendaria!\n(Orbe Ancestral Activado)"]
 ```
 
-### Directivas de Construcción Arquitectónica
+### Mecánicas de Desbloqueo y Avance
 
-- **Techos Abovedados (`ceiling`)**:
-  - Toda la mazmorra está techada a altura $y = 6$ ($5.0\text{ m}$ libres de altura interior).
-  - Permite saltos máximos sobre plataformas elevadas con más de $1\text{ m}$ de holgura.
-  - La física de colisiones en [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js) detecta impacto superior (`r.hitY && p.vel.y > 0`) y anula la velocidad vertical hacia arriba para una caída natural.
-- **Suelo Continuo bajo Puertas**:
-  - El umbral de las puertas situadas en $z = 11$ y $z = 24$ garantiza losas de piedra sólidas (`STONE_FLOOR`, $y = 0$). Al abrir el portón, el suelo permanece $100\%$ transitable y plano sin huecos vacíos.
+1. **Llaves y Puertas con Cerradura**:
+   - Determinadas puertas tienen `requiresKey: true`. El botón de acción contextual solo permite abrirlas si el jugador ha recogido previamente la llave de la sala desde un cofre.
+   - El Host valida la posesión de la llave en [`Player.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/Player.js) y transmite el mensaje `KEY` (`0x0C`) a los clientes para sincronizar el estado visual en el HUD.
+2. **Escalinata de Descenso y Losa Rúnica ([`StairsRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/StairsRenderer.js))**:
+   - En lugar de cambios de nivel instantáneos, los jugadores descubren una losa rúnica sellada en el suelo.
+   - Un aventurero acciona la losa (`STAIRS_REQ`), el Host valida y emite `STAIRS_OPEN`. La losa se repliega suavemente revelando una escalinata descendente.
+   - Al pisar el sensor de descenso, [`DescentManager.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/DescentManager.js) inicia una cuenta atrás de 3 segundos con mensajes narrativos sincronizados y teletransporta a todos los miembros de la expedición al spawn del siguiente nivel.
+3. **Plataformas de Salto Rúnico (*Jump Pads*)**:
+   - Bloques especiales (`BLOCK_TYPES.JUMP_PAD`, casilla 14 del atlas de texturas) construidos con base de sillar oscuro, cantoneras de hierro con 12 remaches dorados y un glifo ámbar en relieve.
+   - En [`PhysicsAABB.js`](file:///data/data/com.termux/files/home/develop/game/src/core/PhysicsAABB.js), al detectar contacto con la cara superior de un *Jump Pad*, se inyecta instantáneamente un impulso vertical de $v_y = 12.0\text{ m/s}$, permitiendo sortear fosos de lava insalvables con salto convencional.
+4. **Pedestal Ancestral de Victoria ([`PedestalRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/PedestalRenderer.js))**:
+   - Ubicado en el corazón del Trono del Abismo.
+   - Al interactuar ambos jugadores o el líder de expedición, se dispara la ceremonia: orbe brillante en rotación, haz de luz ascendente y fanfarria triunfal sintetizada por [`SoundManager.js`](file:///data/data/com.termux/files/home/develop/game/src/audio/SoundManager.js).
 
 ---
 
-## 3. Dinámica de Caída Libre y Checkpoints por Sala
+## 3. Dinámica de Peligros, Sistema de 3 Vidas y Checkpoints
 
-### Sensación de Vértigo en el Abismo
-- **Umbral de Rescate del Vacío**: Configurado en [`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js) como `VOID_RESCUE_Y = -4.5`.
-- **Distancia Vertical**: Desde el plano transitable ($y = 1.0$), el aventurero experimenta $5.5\text{ metros}$ de caída libre acelerada ($g = -20\text{ m/s}^2$).
-- **Tiempo y Velocidad**: $\approx 0.74\text{ s}$ de vuelo descendente, alcanzando velocidades cercanas a $-15\text{ m/s}$, transmitiendo un auténtico vértigo al errar un salto.
+### Peligros Ambientales Letales
+- **Fosa de Lava (`BLOCK_TYPES.LAVA`)**:
+  - Presente en el fondo de las simas de *dungeon_classic* y *crypt_inferno*.
+  - El motor de físicas AABB comprueba intersección con bloques de tipo lava; al rozarla, el jugador pierde 1 vida inmediatamente y reproduce el efecto sonoro de quemadura.
+- **Caída al Vacío**:
+  - Si el jugador cae por debajo de `VOID_RESCUE_Y = -4.5`, sufre daño letal por caída al vacío, perdiendo 1 vida.
+
+### Ciclo de Vidas y Reaparición
+- Cada jugador cuenta con **3 vidas**.
+- **Invulnerabilidad Post-Respawn**: Tras reaparecer en el último checkpoint seguro, el jugador recibe **2.5 segundos de invulnerabilidad** (indicada mediante parpadeo translúcido del avatar 3D), evitando muertes consecutivas inmediatas.
+- **Game Over Cooperativo**: Al agotarse las 3 vidas, se muestra la pantalla de Game Over y se regresa al *Lobby / Tutorial* con vidas restauradas para reiniciar la expedición.
 
 ### Registro Dinámico de Puntos de Control (Checkpoints)
 En [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js), cuando el jugador pisa suelo firme ($p.pos.y \ge 0.95$ y $p.onGround$), se registra automáticamente el punto de control correspondiente al tramo $z$:
@@ -65,8 +87,6 @@ En [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/
 | **Sala 1 (Vestíbulo)** | $0.0 \le z < 11.0$ | $(12.0, 1.2, 4.5)$ | *Reapareciendo en Sala 1 (Vestíbulo)...* |
 | **Sala 2 (El Abismo / Lava)** | $11.0 \le z < 24.0$ | $(11.5, 1.2, 12.0)$ | *Reapareciendo en Sala 2 (El Abismo)...* |
 | **Sala 3 (Santuario Ancestral)** | $24.0 \le z \le 36.0$ | $(11.5, 1.2, 25.0)$ | *Reapareciendo en Sala 3 (Santuario)...* |
-
-- **Prevención de Elevación a Bardas**: Se eliminó cualquier bucle de corrección vertical indiscriminada. Si un jugador cae rozando un muro lateral, sufre caída limpia al abismo sin ser teletransportado a la cornisa.
 
 ---
 
@@ -78,9 +98,10 @@ En [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/
 
 ### Sincronización de Red P2P
 1. El cliente detecta la colisión visual del raycast hacia el cofre.
-2. Emite el mensaje binario `CHEST_OPEN` a través de [`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js).
-3. El Host valida la apertura, bloquea re-aperturas y difunde el estado a todos los compañeros conectados.
-4. Todos los clientes ven abrirse la tapa al unísono y reciben el mensaje narrativo del botín en el HUD.
+2. Emite el mensaje binario `CHEST_OPEN` (`0x07`) a través de [`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js).
+3. El Host valida la apertura, bloquea reaperturas y difunde el estado a todos los compañeros conectados.
+4. Si el cofre contiene una llave de mazmorra, el Host emite además el evento `KEY` (`0x0C`), añadiéndola al inventario del equipo.
+5. Todos los clientes ven abrirse la tapa al unísono y reciben el mensaje narrativo del botín en el HUD.
 
 ---
 
