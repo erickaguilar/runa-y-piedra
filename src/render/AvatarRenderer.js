@@ -15,7 +15,8 @@ export class AvatarRenderer {
   static _buildSharedGeometries() {
     const head = new THREE.BoxGeometry(0.5, 0.5, 0.5);
     const torso = new THREE.BoxGeometry(0.55, 0.65, 0.32);
-    const belt = new THREE.BoxGeometry(0.57, 0.1, 0.34);
+    // Cinto 20 mm por fuera del torso: evita caras casi-coplanares (z-fighting)
+    const belt = new THREE.BoxGeometry(0.59, 0.12, 0.36);
     const arm = new THREE.BoxGeometry(0.18, 0.62, 0.2);
     arm.translate(0, -0.28, 0); // pivote en el hombro
     const leg = new THREE.BoxGeometry(0.22, 0.75, 0.24);
@@ -108,9 +109,10 @@ export class AvatarRenderer {
 
     const root = new THREE.Group();
 
-    // Cabeza: piel por los lados, cara al frente (+z), pelo arriba y atrás
+    // Cabeza: piel por los lados, cara al frente (+z), pelo arriba y atrás.
+    // Base 25 mm dentro del torso para que no haya caras casi-coplanares.
     const headMesh = new THREE.Mesh(G.head, [M.skin, M.skin, hairMat, M.skin, M.face, hairMat]);
-    headMesh.position.set(0, 1.62, 0);
+    headMesh.position.set(0, 1.6, 0);
     root.add(headMesh);
 
     // Torso con túnica del héroe + cinto de forja
@@ -121,14 +123,14 @@ export class AvatarRenderer {
     beltMesh.position.set(0, 0.78, 0);
     root.add(beltMesh);
 
-    // Brazos con pivote en el hombro (y=1.32)
+    // Brazos con pivote en el hombro (y=1.32), incrustados 25 mm en el torso
     const armLPivot = new THREE.Group();
-    armLPivot.position.set(-0.37, 1.32, 0);
+    armLPivot.position.set(-0.34, 1.32, 0);
     const armL = new THREE.Mesh(G.arm, tunicMat);
     armLPivot.add(armL);
     root.add(armLPivot);
     const armRPivot = new THREE.Group();
-    armRPivot.position.set(0.37, 1.32, 0);
+    armRPivot.position.set(0.34, 1.32, 0);
     const armR = new THREE.Mesh(G.arm, tunicMat);
     armRPivot.add(armR);
     root.add(armRPivot);
