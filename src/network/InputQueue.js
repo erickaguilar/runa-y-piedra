@@ -17,25 +17,31 @@ export class InputQueue {
     this.rateLimits = new Map();
   }
 
+  _key(conn) {
+    if (!conn) return null;
+    return conn.peer || conn;
+  }
+
   enqueue(conn, rawInput) {
     if (!conn) return;
+    const key = this._key(conn);
 
     // 1. Rate Limiting por conexión (máximo 45 inputs/seg para prevenir inundación)
     const now = performance.now();
-    let rl = this.rateLimits.get(conn);
+    let rl = this.rateLimits.get(key);
     if (!rl || (now - rl.windowStart) >= 1000) {
       rl = { count: 0, windowStart: now };
-      this.rateLimits.set(conn, rl);
+      this.rateLimits.set(key, rl);
     }
     rl.count++;
     if (rl.count > 45) {
       return; // Descartar exceso
     }
 
-    let q = this.queues.get(conn);
+    let q = this.queues.get(key);
     if (!q) {
       q = [];
-      this.queues.set(conn, q);
+      this.queues.set(key, q);
     }
 
     // 2. Sanitización de vector de movimiento (Anti-Speedhack y Clamping)
@@ -73,11 +79,12 @@ export class InputQueue {
 
   dequeue(conn) {
     if (!conn) return null;
+    const key = this._key(conn);
 
-    const q = this.queues.get(conn);
+    const q = this.queues.get(key);
     if (q && q.length > 0) {
       const input = q.shift();
-      this.lastInputs.set(conn, {
+      this.lastInputs.set(key, {
         seq: input.seq,
         dx: input.dx,
         dz: input.dz,
@@ -88,7 +95,7 @@ export class InputQueue {
     }
 
     // Si la cola está vacía por jitter de red, reutilizamos el último input
-    const last = this.lastInputs.get(conn);
+    const last = this.lastInputs.get(key);
     if (last) {
       last.missingTicks = (last.missingTicks || 0) + 1;
 
@@ -124,9 +131,15 @@ export class InputQueue {
   }
 
   remove(conn) {
-    this.queues.delete(conn);
-    this.lastInputs.delete(conn);
-    this.rateLimits.delete(conn);
+    const key = this._key(conn);
+    this.queues.delete(key);
+    this.lastInputs.delete(key);
+    this.rateLimits.delete(key);
+    if (key !== conn) {
+      this.queues.delete(conn);
+      this.lastInputs.delete(conn);
+      this.rateLimits.delete(conn);
+    }
   }
 
   clear() {

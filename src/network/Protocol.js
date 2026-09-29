@@ -225,10 +225,14 @@ export function serializeInit(blocks, playerId) {
 }
 
 export function deserializeInit(buf) {
-  const v = buf instanceof DataView ? buf : new DataView(buf);
+  const v = buf instanceof DataView
+    ? buf
+    : (ArrayBuffer.isView(buf)
+      ? new DataView(buf.buffer, buf.byteOffset, buf.byteLength)
+      : new DataView(buf));
   const version = v.getUint8(1);
   const playerId = v.getUint8(2);
-  const blocks = new Uint8Array(buf, 3);
+  const blocks = new Uint8Array(v.buffer, v.byteOffset + 3, v.byteLength - 3);
   return { version, playerId, blocks };
 }
 
@@ -299,11 +303,15 @@ export function serializePlayerMeta(playerId, colorIndex, name) {
 }
 
 export function deserializePlayerMeta(buf) {
-  const v = buf instanceof DataView ? buf : new DataView(buf);
+  const v = buf instanceof DataView
+    ? buf
+    : (ArrayBuffer.isView(buf)
+      ? new DataView(buf.buffer, buf.byteOffset, buf.byteLength)
+      : new DataView(buf));
   const playerId = v.getUint8(1);
   const colorIndex = v.getUint8(2);
   const len = v.getUint8(3);
-  const nameBytes = new Uint8Array(buf, 4, len);
+  const nameBytes = new Uint8Array(v.buffer, v.byteOffset + 4, len);
   const name = textDecoder.decode(nameBytes);
   return { playerId, colorIndex, name };
 }

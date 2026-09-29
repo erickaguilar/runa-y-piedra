@@ -399,6 +399,9 @@ export class AvatarRenderer {
 
   setMetadata(id, name, color, heroId = null) {
     const a = this.ensure(id, color);
+    if (!a.isLocal) {
+      a.mesh.visible = true;
+    }
     if (color !== undefined) {
       for (const m of a.mats) m.color.set(color);
     }
@@ -434,6 +437,9 @@ export class AvatarRenderer {
 
   setTarget(id, x, y, z, yaw, color = AvatarRenderer.colorFor(id)) {
     const a = this.ensure(id, color);
+    if (!a.isLocal) {
+      a.mesh.visible = true;
+    }
     a.target.x = x;
     a.target.y = y;
     a.target.z = z;

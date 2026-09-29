@@ -182,9 +182,8 @@ export class ClientReconciler {
       }
     }
 
-    // 2. BUFFER DE ENTIDADES REMOTAS
+    // 2. BUFFER DE ENTIDADES REMOTAS (Timestamp local del cliente para interpolación sin desincronización de reloj)
     const now = performance.now();
-    const packetTime = simTime || now;
 
     for (let i = 0; i < players.length; i++) {
       const p = players[i];
@@ -197,7 +196,7 @@ export class ClientReconciler {
       }
 
       list.push({
-        time: packetTime,
+        time: now,
         x: p.x,
         y: p.y,
         z: p.z,

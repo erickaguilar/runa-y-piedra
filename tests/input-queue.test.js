@@ -42,3 +42,16 @@ test('remove y clear limpian por conexión', () => {
   q.clear();
   assert.equal(q.dequeue(b), null);
 });
+
+test('soporta canales duales WebRTC vinculados por peer id', () => {
+  const q = new InputQueue();
+  const safeConn = { peer: 'peer-abc-123', label: 'game-safe' };
+  const hotConn = { peer: 'peer-abc-123', label: 'game-hot' };
+
+  q.enqueue(hotConn, { seq: 42, dx: 0.5, dz: -0.8, yaw: 1.5, actions: 0 });
+  const dequeued = q.dequeue(safeConn);
+  assert.ok(dequeued, 'debe desencolar el input enviado por el canal hot usando el canal safe');
+  assert.equal(dequeued.seq, 42);
+  assert.equal(dequeued.dx, 0.5);
+});
+

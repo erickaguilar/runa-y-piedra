@@ -34,25 +34,49 @@ export class PlayerManager {
   }
 
   updatePlayerMeta(id, name, colorIndex) {
-    const player = this.players.get(id);
-    if (!player) return null;
-    if (name) player.name = name;
-    if (colorIndex !== undefined) player.setColorIndex(colorIndex);
+    let player = this.players.get(id);
+    if (!player) {
+      const spawnZ = id === 0 ? WORLD_CONFIG.SPAWN_Z : WORLD_CONFIG.SPAWN_Z + 3.0;
+      player = new Player(id, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, spawnZ, name || 'Aventurero', colorIndex ?? 0);
+      this.players.set(id, player);
+    } else {
+      if (name) player.name = name;
+      if (colorIndex !== undefined) player.setColorIndex(colorIndex);
+    }
     return player;
   }
 
   removeByConnection(conn) {
-    const pid = this.connToPlayerId.get(conn);
+    let pid = this.connToPlayerId.get(conn);
+    let matchedConn = conn;
+    if (pid === undefined && conn?.peer) {
+      for (const [c, id] of this.connToPlayerId.entries()) {
+        if (c?.peer === conn.peer) {
+          pid = id;
+          matchedConn = c;
+          break;
+        }
+      }
+    }
     if (pid === undefined) return null;
 
     const player = this.players.get(pid);
     this.players.delete(pid);
+    this.connToPlayerId.delete(matchedConn);
     this.connToPlayerId.delete(conn);
     return player;
   }
 
   getPlayerByConnection(conn) {
-    const pid = this.connToPlayerId.get(conn);
+    let pid = this.connToPlayerId.get(conn);
+    if (pid === undefined && conn?.peer) {
+      for (const [c, id] of this.connToPlayerId.entries()) {
+        if (c?.peer === conn.peer) {
+          pid = id;
+          break;
+        }
+      }
+    }
     if (pid === undefined) return null;
     return this.players.get(pid) || null;
   }

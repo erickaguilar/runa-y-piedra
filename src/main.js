@@ -399,6 +399,7 @@ class VoxelSandboxGame {
         } else if (playerId !== this.playerManager.localPlayer.id) {
           this.ui.showNarrativeMessage(`🛡️ ¡${escapeHtml(name)} (${hero.name}) se unió!`, 4000);
         }
+        this.ui.updatePartyList(this.playerManager.getAllPlayers());
       }
     });
 
@@ -419,6 +420,17 @@ class VoxelSandboxGame {
       const simTime = e.detail?.time || performance.now();
       const local = this.playerManager.localPlayer;
       this.reconciler.onSnapshot(simTime, players, local, this.simulation);
+
+      // Posicionamiento inmediato si el avatar remoto aún no se había inicializado
+      for (const p of players) {
+        if (p.id !== local.id) {
+          const remoteAv = this.avatars.avatars.get(p.id);
+          if (!remoteAv) {
+            this.avatars.setTarget(p.id, p.x, p.y, p.z, p.yaw);
+          }
+        }
+      }
+
       // Sincronización autoritativa de vidas desde el host
       const localEntry = players.find(p => p.id === local.id);
       if (localEntry && localEntry.lives !== undefined && localEntry.lives !== local.lives) {
@@ -453,6 +465,32 @@ class VoxelSandboxGame {
         }
       }
       this.playerManager.setLocalId(e.detail.playerId);
+      const local = this.playerManager.localPlayer;
+
+      // Colocar al jugador invitado en el punto de spawn de invitado (offset +3 en Z)
+      const spawnZ = WORLD_CONFIG.SPAWN_Z + 3.0;
+      local.pos.x = WORLD_CONFIG.SPAWN_X;
+      local.pos.y = WORLD_CONFIG.SPAWN_Y;
+      local.pos.z = spawnZ;
+      if (local.visualPos) {
+        local.visualPos.x = WORLD_CONFIG.SPAWN_X;
+        local.visualPos.y = WORLD_CONFIG.SPAWN_Y;
+        local.visualPos.z = spawnZ;
+      }
+
+      // El avatar 0 es el anfitrión: debe ser visible y no considerarse local
+      const hostAvatar = this.avatars.avatars.get(0);
+      if (hostAvatar) {
+        hostAvatar.isLocal = false;
+        hostAvatar.mesh.visible = true;
+      }
+
+      // Enviar metadatos oficiales del jugador con su ID asignado al host
+      this.network.sendToHost(Proto.serializePlayerMeta(local.id, local.colorIndex, local.name));
+
+      // Actualizar lista de miembros de la partida en el cliente
+      this.ui.updatePartyList(this.playerManager.getAllPlayers());
+
       if (this.world.isDoor2Open) {
         this.ui.showNarrativeMessage('Las dos puertas ya están abiertas. El Santuario os espera.', 4000);
       } else if (this.world.isDoor1Open) {

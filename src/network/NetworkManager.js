@@ -148,11 +148,13 @@ export class NetworkManager extends EventTarget {
 
   _setupHostChannel(conn) {
     const isHot = this._isHotChannel(conn);
+    // Enlazar inmediatamente para que conn.peer esté disponible de inmediato
+    this._trackLink(conn, isHot ? 'hot' : 'safe');
+
     conn.on('open', () => {
       const link = this._trackLink(conn, isHot ? 'hot' : 'safe');
       if (isHot) {
         // El canal hot es oportunista: no dispara peer-joined, solo se enlaza.
-        // Si el safe aún no llegó, se enlazará cuando abra.
         if (link?.safe && link.safe.open) {
           // Ya unido: nada que hacer, el hot queda listo para INPUTs.
         }
@@ -166,7 +168,10 @@ export class NetworkManager extends EventTarget {
     conn.on('close', () => {
       if (isHot) {
         const link = this._links?.get(conn?.peer);
-        if (link) link.hot = null;
+        if (link) {
+          link.hot = null;
+          link.hotReady = false;
+        }
         return; // el peer sigue unido por el canal safe (fallback)
       }
       this.connections = this.connections.filter(c => c !== conn);
@@ -215,13 +220,19 @@ export class NetworkManager extends EventTarget {
           serialization: 'binary',
         });
 
+        this._trackLink(safe, 'safe');
+        this._trackLink(hot, 'hot');
+
+        // Escuchar datos de inmediato para no perder paquetes de negociación inicial
+        safe.on('data', (d) => this._handleIncoming(d, safe));
         safe.on('error', (e) => done(reject, new Error(NetworkManager.translatePeerError(e))));
+
+        hot.on('data', (d) => this._handleIncoming(d, hot));
         hot.on('error', () => { /* oportunista: fallback a safe */ });
 
         safe.on('open', () => {
           this.hostConn = safe;
           this._trackLink(safe, 'safe');
-          safe.on('data', (d) => this._handleIncoming(d, safe));
           this.stats.setMode('CLIENT', 1);
 
           // Iniciar sonda periódica de latencia (Ping RTT cada 1000ms, por hot si hay)
@@ -237,7 +248,6 @@ export class NetworkManager extends EventTarget {
         hot.on('open', () => {
           this.hostHotConn = hot;
           this._trackLink(hot, 'hot');
-          hot.on('data', (d) => this._handleIncoming(d, hot));
         });
         hot.on('close', () => {
           if (this.hostHotConn === hot) this.hostHotConn = null;
@@ -262,10 +272,25 @@ export class NetworkManager extends EventTarget {
   }
 
   _handleIncoming(data, conn) {
-    // PeerJS binary entrega ArrayBuffer
-    const buf = data instanceof ArrayBuffer ? data : data.buffer || data;
+    let buf;
+    if (data instanceof ArrayBuffer) {
+      buf = data;
+    } else if (ArrayBuffer.isView(data)) {
+      buf = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+    } else if (data?.buffer instanceof ArrayBuffer) {
+      buf = data.buffer;
+    } else {
+      buf = data;
+    }
     if (!buf || buf.byteLength < 1) return;
     this.stats.recordPacketIn(buf.byteLength);
+
+    const isHot = this._isHotChannel(conn);
+    const peerId = conn?.peer;
+    if (isHot && peerId && this._links) {
+      const link = this._links.get(peerId);
+      if (link) link.hotReady = true;
+    }
 
     // Normalizar al canal safe para claves estables (PlayerManager/InputQueue).
     const logicalConn = this.isHost ? this._safeForConn(conn) : conn;
@@ -437,11 +462,12 @@ export class NetworkManager extends EventTarget {
     for (const [, link] of this._links || []) {
       const hot = link?.hot;
       const safe = link?.safe;
-      if (hot?.open) {
+      // Solo enviar por hot si está abierto Y ha confirmado recepción bidireccional (hotReady)
+      if (hot?.open && link.hotReady) {
         hot.send(buf);
         n++;
       } else if (safe?.open) {
-        safe.send(buf); // fallback: el peer aún no tiene hot
+        safe.send(buf); // fallback seguro al canal fiable
         n++;
       }
     }
