@@ -245,6 +245,53 @@
     @keyframes interactPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
     #btn-jump{right:max(24px, env(safe-area-inset-right));bottom:max(48px, env(safe-area-inset-bottom));
       background:linear-gradient(160deg,rgba(107,114,128,.92),rgba(55,65,81,.92))}
+
+    /* Adaptabilidad de controles según el modo de entrada (InputMode) */
+    body.input-pc .action-btn,
+    body.input-pc #joystick-zone {
+      display: none !important;
+    }
+    body.input-pc .crosshair {
+      display: block;
+    }
+    body.input-touch .crosshair {
+      display: none !important;
+    }
+
+    /* Cartel flotante de controles para PC */
+    .input-hint {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      background: rgba(10, 12, 20, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      color: #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      display: none;
+      pointer-events: none;
+      z-index: 40;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+    .input-hint strong {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+    body.input-pc .input-hint.shown {
+      display: block;
+      animation: hintFadeIn 0.35s ease-out;
+    }
+    @keyframes hintFadeIn {
+      from { opacity: 0; transform: translate(-50%, 12px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
     /* HUD de vidas (corazones) */
     #hud-lives{position:fixed;top:max(12px, env(safe-area-inset-top));left:max(12px, env(safe-area-inset-left));
       display:none;align-items:center;gap:4px;z-index:25;pointer-events:none;
@@ -426,6 +473,9 @@
   <div id="hud-lives" title="Vidas"></div>
   <div id="level-transition"></div>
   <div id="hud-message"></div>
+  <div id="pc-hint" class="input-hint">
+    <strong>WASD</strong> mover · <strong>Espacio</strong> saltar · <strong>E</strong> interactuar / bajar · <strong>Click</strong> mirar · <strong>Esc</strong> menú
+  </div>
   <button class="action-btn dim" id="btn-interact" title="Interactuar">
     <span class="ab-icon" id="interact-icon"><svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="#fde68a" stroke="none"><path d="M12 2l2.6 6.2 6.7.5-5.1 4.4 1.6 6.6L12 16l-5.8 3.7 1.6-6.6L2.7 8.7l6.7-.5L12 2z"/></svg></span>
     <span class="ab-label" id="interact-label">USAR</span>

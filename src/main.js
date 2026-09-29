@@ -21,6 +21,7 @@ import { escapeHtml } from './ui/Icons.js';
 import { InteractionController } from './controllers/InteractionController.js';
 import { DescentManager } from './controllers/DescentManager.js';
 import { soundManager } from './audio/SoundManager.js';
+import { InputMode } from './ui/InputMode.js';
 import { NET_CONFIG, PHYSICS_CONFIG, PLAYER_HEROES } from './config/constants.js';
 
 class VoxelSandboxGame {
@@ -81,15 +82,39 @@ class VoxelSandboxGame {
     this.ui = new UIManager();
     this.soundManager = soundManager;
     this.network.stats.setRenderer(this.sceneManager.renderer);
+    this.inputMode = new InputMode();
 
-    // 3. Controles (el sonido de salto se emite al ejecutarse en el tick, con buffer)
+    // 3. Controles adaptativos PC / Táctil
     this.input = new InputManager({
       canvas: this.canvas,
+      inputMode: this.inputMode,
+      isGameActive: () => !!this.mode,
       onJump: () => {},
       onInteract: () => this.interaction.handleInteract(),
       onCameraToggle: () => this.toggleCameraMode(),
+      onSettingsToggle: () => this.toggleSettings(),
     });
     this.cameraMode = localStorage.getItem('dungeon_camera') || 'first';
+
+    // Banner flotante de controles para PC
+    let pcHintTimer = null;
+    const showPcHint = () => {
+      if (!this.mode) return; // Solo en partida
+      const hint = document.getElementById('pc-hint');
+      if (!hint) return;
+      hint.classList.add('shown');
+      if (pcHintTimer) clearTimeout(pcHintTimer);
+      pcHintTimer = setTimeout(() => hint.classList.remove('shown'), 6500);
+    };
+
+    this.inputMode.onModeChange((mode) => {
+      if (mode === 'pc') {
+        showPcHint();
+      } else {
+        const hint = document.getElementById('pc-hint');
+        if (hint) hint.classList.remove('shown');
+      }
+    });
 
     this.currentJoinUrl = null;
     this.inputSeq = 0;
@@ -247,6 +272,15 @@ class VoxelSandboxGame {
   /** Alterna 1ª/3ª persona (tecla V o ajustes). Persiste la preferencia. */
   toggleCameraMode() {
     this.setCameraMode(this.cameraMode === 'third' ? 'first' : 'third');
+  }
+
+  /** Abre o cierra el modal de configuración (tecla Escape). */
+  toggleSettings() {
+    if (document.getElementById('modal-settings')) {
+      this.ui.closeSettingsModal();
+    } else if (this.mode) {
+      this.ui.showSettings();
+    }
   }
 
   setCameraMode(mode) {

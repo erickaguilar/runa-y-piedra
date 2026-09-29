@@ -1,11 +1,14 @@
 import nipplejs from 'nipplejs';
 
 export class InputManager {
-  constructor({ canvas, onJump, onInteract, onCameraToggle }) {
+  constructor({ canvas, inputMode = null, isGameActive = null, onJump, onInteract, onCameraToggle, onSettingsToggle }) {
     this.canvas = canvas;
+    this.inputMode = inputMode;
+    this.isGameActive = isGameActive;
     this.onJump = onJump;
     this.onInteract = onInteract;
     this.onCameraToggle = onCameraToggle;
+    this.onSettingsToggle = onSettingsToggle;
 
     this.keys = {};
     this.moveJoystick = { x: 0, y: 0 };
@@ -45,15 +48,32 @@ export class InputManager {
       const tag = e.target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-      this.keys[e.code] = true;
       if (e.code === 'Space') {
+        e.preventDefault(); // Evitar scroll accidental de la página en navegadores de escritorio
+        this.keys[e.code] = true;
         this.pendingJump = true;
         this.onJump?.();
-      } else if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'Enter') {
-        this.onInteract?.();
-      } else if (e.code === 'KeyV') {
-        this.onCameraToggle?.();
+        return;
       }
+
+      if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'Enter') {
+        e.preventDefault();
+        this.onInteract?.();
+        return;
+      }
+
+      if (e.code === 'KeyV') {
+        e.preventDefault();
+        this.onCameraToggle?.();
+        return;
+      }
+
+      if (e.code === 'Escape') {
+        this.onSettingsToggle?.();
+        return;
+      }
+
+      this.keys[e.code] = true;
     });
 
     window.addEventListener('keyup', (e) => {
@@ -72,13 +92,21 @@ export class InputManager {
 
   initMouseLook() {
     this.canvas.addEventListener('click', () => {
-      if (!this.isTouchDevice) {
+      // Solo en modo PC y si la partida está activa (evitar capturar ratón en menús)
+      if (this.inputMode && this.inputMode.mode !== 'pc') return;
+      if (this.isGameActive && !this.isGameActive()) return;
+
+      // No capturar pointer lock si hay un modal de configuración abierto
+      if (document.getElementById('modal-settings')) return;
+
+      if (document.pointerLockElement !== this.canvas) {
         this.canvas.requestPointerLock?.();
       }
     });
 
     document.addEventListener('pointerlockchange', () => {
       this.pointerLocked = document.pointerLockElement === this.canvas;
+      if (!this.pointerLocked) this.clearKeys();
     });
 
     document.addEventListener('mousemove', (e) => {
