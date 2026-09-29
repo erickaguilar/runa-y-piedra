@@ -11,7 +11,9 @@ export const WORLD_CONFIG = {
 
 export const PHYSICS_CONFIG = {
   SPEED: 4.8,
-  JUMP_VELOCITY: 6.8,
+  // 7.2 base: el héroe más pesado (guardián ×0.96) libra 1.19 m y supera
+  // el bloque de 1 m con margen; el resto escala con su multiplicador.
+  JUMP_VELOCITY: 7.2,
   GRAVITY: -20,
   TERMINAL_VELOCITY: -40,
   PLAYER_W: 0.6,
