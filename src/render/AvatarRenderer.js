@@ -7,7 +7,45 @@ export class AvatarRenderer {
   constructor(scene) {
     this.scene = scene;
     this.avatars = new Map();
-    this._geo = new THREE.BoxGeometry(0.6, AVATAR_H, 0.6);
+    this._geoCache = AvatarRenderer._buildSharedGeometries();
+    this._sharedMats = AvatarRenderer._buildSharedMaterials();
+  }
+
+  /** Geometrías compartidas del muñeco (1.8 m, encaja en la cápsula física). */
+  static _buildSharedGeometries() {
+    const head = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+    const torso = new THREE.BoxGeometry(0.55, 0.65, 0.32);
+    const belt = new THREE.BoxGeometry(0.57, 0.1, 0.34);
+    const arm = new THREE.BoxGeometry(0.18, 0.62, 0.2);
+    arm.translate(0, -0.28, 0); // pivote en el hombro
+    const leg = new THREE.BoxGeometry(0.22, 0.75, 0.24);
+    leg.translate(0, -0.375, 0); // pivote en la cadera
+    return { head, torso, belt, arm, leg };
+  }
+
+  /** Materiales compartidos: piel, cara, pantalón y cinto (el color del héroe es por avatar). */
+  static _buildSharedMaterials() {
+    // Cara procedural 64x64: ojos y boca sobre tono piel
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#e8b98a';
+    ctx.fillRect(0, 0, 64, 64);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(14, 26, 10, 12); // ojo izq
+    ctx.fillRect(40, 26, 10, 12); // ojo der
+    ctx.fillStyle = '#7c2d12';
+    ctx.fillRect(24, 46, 16, 5);  // boca
+    const faceTex = new THREE.CanvasTexture(canvas);
+    faceTex.magFilter = THREE.NearestFilter;
+    faceTex.colorSpace = THREE.SRGBColorSpace;
+    return {
+      skin: new THREE.MeshLambertMaterial({ color: 0xe8b98a }),
+      face: new THREE.MeshLambertMaterial({ map: faceTex }),
+      pants: new THREE.MeshLambertMaterial({ color: 0x334155 }),
+      belt: new THREE.MeshLambertMaterial({ color: 0x27272a }),
+    };
   }
 
   static colorFor(id) {
@@ -61,16 +99,65 @@ export class AvatarRenderer {
   ensure(id, color = AvatarRenderer.colorFor(id)) {
     let a = this.avatars.get(id);
     if (a) return a;
-    const mat = new THREE.MeshLambertMaterial({ color });
-    const mesh = new THREE.Mesh(this._geo, mat);
-    mesh.position.set(0, 1, 0);
-    this.scene.add(mesh);
+
+    // Materiales con el color del héroe (túnica y pelo)
+    const tunicMat = new THREE.MeshLambertMaterial({ color });
+    const hairMat = new THREE.MeshLambertMaterial({ color });
+    const G = this._geoCache;
+    const M = this._sharedMats;
+
+    const root = new THREE.Group();
+
+    // Cabeza: piel por los lados, cara al frente (+z), pelo arriba y atrás
+    const headMesh = new THREE.Mesh(G.head, [M.skin, M.skin, hairMat, M.skin, M.face, hairMat]);
+    headMesh.position.set(0, 1.62, 0);
+    root.add(headMesh);
+
+    // Torso con túnica del héroe + cinto de forja
+    const torsoMesh = new THREE.Mesh(G.torso, tunicMat);
+    torsoMesh.position.set(0, 1.05, 0);
+    root.add(torsoMesh);
+    const beltMesh = new THREE.Mesh(G.belt, M.belt);
+    beltMesh.position.set(0, 0.78, 0);
+    root.add(beltMesh);
+
+    // Brazos con pivote en el hombro (y=1.32)
+    const armLPivot = new THREE.Group();
+    armLPivot.position.set(-0.37, 1.32, 0);
+    const armL = new THREE.Mesh(G.arm, tunicMat);
+    armLPivot.add(armL);
+    root.add(armLPivot);
+    const armRPivot = new THREE.Group();
+    armRPivot.position.set(0.37, 1.32, 0);
+    const armR = new THREE.Mesh(G.arm, tunicMat);
+    armRPivot.add(armR);
+    root.add(armRPivot);
+
+    // Piernas con pivote en la cadera (y=0.75)
+    const legLPivot = new THREE.Group();
+    legLPivot.position.set(-0.14, 0.75, 0);
+    const legL = new THREE.Mesh(G.leg, M.pants);
+    legLPivot.add(legL);
+    root.add(legLPivot);
+    const legRPivot = new THREE.Group();
+    legRPivot.position.set(0.14, 0.75, 0);
+    const legR = new THREE.Mesh(G.leg, M.pants);
+    legRPivot.add(legR);
+    root.add(legRPivot);
+
+    root.position.set(0, 1, 0);
+    this.scene.add(root);
     a = {
-      mesh,
+      mesh: root,
+      mats: [tunicMat, hairMat],
+      parts: { armLPivot, armRPivot, legLPivot, legRPivot },
       sprite: null,
       name: 'Aventurero',
       target:  { x: 0, y: 1, z: 0, yaw: 0 },
       current: { x: 0, y: 1, z: 0, yaw: 0 },
+      speed: 0,
+      walkPhase: Math.random() * Math.PI * 2,
+      isLocal: false,
     };
     this.avatars.set(id, a);
     return a;
@@ -79,7 +166,7 @@ export class AvatarRenderer {
   setMetadata(id, name, color) {
     const a = this.ensure(id, color);
     if (color !== undefined) {
-      a.mesh.material.color.set(color);
+      for (const m of a.mats) m.color.set(color);
     }
     if (name) {
       a.name = name;
@@ -105,7 +192,7 @@ export class AvatarRenderer {
       a.sprite.material.dispose();
     }
     this.scene.remove(a.mesh);
-    a.mesh.material.dispose();
+    for (const m of a.mats || []) m.dispose();
     this.avatars.delete(id);
   }
 
@@ -129,8 +216,11 @@ export class AvatarRenderer {
     if (!a) return;
     if (a.isFrozen !== isFrozen) {
       a.isFrozen = isFrozen;
-      a.mesh.material.opacity = isFrozen ? 0.55 : 1.0;
-      a.mesh.material.transparent = isFrozen;
+      // Solo los materiales propios (túnica/pelo): los compartidos no se tocan
+      for (const m of a.mats || []) {
+        m.opacity = isFrozen ? 0.55 : 1.0;
+        m.transparent = isFrozen;
+      }
     }
   }
 
@@ -140,7 +230,17 @@ export class AvatarRenderer {
    */
   updateLocal(id, x, y, z, yaw, color) {
     const a = this.ensure(id, color);
-    if (color !== undefined) a.mesh.material.color.set(color);
+    a.isLocal = true;
+    if (color !== undefined) {
+      for (const m of a.mats) m.color.set(color);
+    }
+    const now = performance.now();
+    const dt = a._lt ? Math.min(0.25, (now - a._lt) / 1000) : 0.016;
+    a._lt = now;
+    if (dt > 1e-4) {
+      const inst = Math.hypot(x - a.current.x, z - a.current.z) / dt;
+      a.speed += (Math.min(inst, 8) - a.speed) * 0.35;
+    }
     a.mesh.visible = true;
     a.target.x = x;
     a.target.y = y;
@@ -150,8 +250,8 @@ export class AvatarRenderer {
     a.current.y = y;
     a.current.z = z;
     a.current.yaw = yaw;
-    a.mesh.position.set(x, y + AVATAR_H / 2, z);
-    a.mesh.rotation.y = yaw;
+    a.mesh.position.set(x, y, z);
+    a.mesh.rotation.y = yaw + Math.PI;
   }
 
   setLocalVisible(id, visible) {
@@ -163,17 +263,35 @@ export class AvatarRenderer {
   update(dt) {
     const t = 1 - Math.pow(0.0001, dt); // lerp rápido y estable
     for (const a of this.avatars.values()) {
-      a.current.x += (a.target.x - a.current.x) * t;
-      a.current.y += (a.target.y - a.current.y) * t;
-      a.current.z += (a.target.z - a.current.z) * t;
+      if (!a.isLocal) {
+        const px = a.current.x;
+        const pz = a.current.z;
+        a.current.x += (a.target.x - a.current.x) * t;
+        a.current.y += (a.target.y - a.current.y) * t;
+        a.current.z += (a.target.z - a.current.z) * t;
 
-      let dy = a.target.yaw - a.current.yaw;
-      while (dy > Math.PI) dy -= Math.PI * 2;
-      while (dy < -Math.PI) dy += Math.PI * 2;
-      a.current.yaw += dy * t;
+        let dy = a.target.yaw - a.current.yaw;
+        while (dy > Math.PI) dy -= Math.PI * 2;
+        while (dy < -Math.PI) dy += Math.PI * 2;
+        a.current.yaw += dy * t;
 
-      a.mesh.position.set(a.current.x, a.current.y + AVATAR_H / 2, a.current.z);
-      a.mesh.rotation.y = a.current.yaw;
+        // Velocidad horizontal para la animación de marcha
+        const inst = Math.hypot(a.current.x - px, a.current.z - pz) / Math.max(dt, 1e-4);
+        a.speed += (Math.min(inst, 8) - a.speed) * Math.min(1, dt * 6);
+
+        // El grupo tiene origen en los pies (las piezas usan altura absoluta)
+        a.mesh.position.set(a.current.x, a.current.y, a.current.z);
+        a.mesh.rotation.y = a.current.yaw + Math.PI; // cara (+z) hacia el avance
+      }
+
+      // Marcha: brazos y piernas opuestos; balanceo sutil en reposo
+      const amp = 0.06 + Math.min(0.65, a.speed * 0.14);
+      a.walkPhase += dt * (2.5 + a.speed * 2.0);
+      const s = Math.sin(a.walkPhase) * amp;
+      a.parts.armLPivot.rotation.x = s;
+      a.parts.armRPivot.rotation.x = -s;
+      a.parts.legLPivot.rotation.x = -s;
+      a.parts.legRPivot.rotation.x = s;
     }
   }
 }
