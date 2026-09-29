@@ -175,6 +175,7 @@ La carpeta [`docs/`](docs/) contiene el desglose técnico y las decisiones de di
 * [**12. Reconciliación Cliente-Servidor Real e Interpolación Temporal**](docs/12-reconciliacion-cliente-servidor-e-interpolacion.md)
 * [**13. Canales Duales WebRTC y Endurecimiento de Conexión P0**](docs/13-canales-duales-webrtc-endurecimiento-p0.md)
 * [**14. Subsistemas de Audio Procedural, Vidas, Resortes y Suite de Tests**](docs/14-subsistemas-audio-procedural-vidas-y-resortes.md)
+* [**15. Flujo de Trabajo Git y Creación de Nuevos Niveles de Mazmorra**](docs/15-flujo-de-trabajo-git-y-creacion-de-niveles.md)
 
 ---
 

@@ -94,4 +94,10 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Oscilador armónico amortiguado (`Spring.js`) para animaciones elásticas reactivas de UI.
     - Suite de 58 pruebas automatizadas nativas con `node:test` sin dependencias externas pesadas.
 
+15. [**15. Flujo de Trabajo Git y Creación de Nuevos Niveles de Mazmorra**](./15-flujo-de-trabajo-git-y-creacion-de-niveles.md)
+    - Metodología de ramificación GitFlow (`main`, `develop`, `feature/*`, `hotfix/*`).
+    - Guía paso a paso para diseñar escenarios en JSON (`src/levels/data/`) y registrarlos en `LevelRegistry`.
+    - Protocolo de validación obligatoria con `npm test` y compilación `npm run build`.
+    - Convención de commits semánticos y publicación de versiones (*releases*).
+
 
