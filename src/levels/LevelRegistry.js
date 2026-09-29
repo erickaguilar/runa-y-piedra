@@ -1,7 +1,7 @@
-import lobbyTutorial from './data/lobby_tutorial.json';
-import dungeonClassic from './data/dungeon_classic.json';
-import cryptInferno from './data/crypt_inferno.json';
-import abyssThrone from './data/abyss_throne.json';
+import lobbyTutorial from './data/lobby_tutorial.json' with { type: 'json' };
+import dungeonClassic from './data/dungeon_classic.json' with { type: 'json' };
+import cryptInferno from './data/crypt_inferno.json' with { type: 'json' };
+import abyssThrone from './data/abyss_throne.json' with { type: 'json' };
 
 export class LevelRegistry {
   constructor() {

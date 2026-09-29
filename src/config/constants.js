@@ -58,7 +58,7 @@ export const BLOCK_COLORS = {
   10: 0xffffff, // Adoquín con musgo
 };
 
-import heroesData from '../heroes/data/heroes.json';
+import heroesData from '../heroes/data/heroes.json' with { type: 'json' };
 
 export const PLAYER_HEROES = heroesData.heroes;
 export const PLAYER_PALETTE = heroesData.heroes.map(h => h.hex);
