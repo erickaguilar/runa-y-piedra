@@ -42,20 +42,39 @@ export class NetworkManager extends EventTarget {
     }
   }
 
-  /** Config ICE: STUN público + TURN opcional vía localStorage (dungeon_turn_url/user/pass). */
+  /** Config ICE: STUN público + TURN opcional vía ?turn=openrelay o localStorage (dungeon_turn_url/user/pass). */
   getIceConfig() {
     const iceServers = [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
     ];
     try {
-      const url = localStorage.getItem('dungeon_turn_url');
-      const user = localStorage.getItem('dungeon_turn_user') || '';
-      const pass = localStorage.getItem('dungeon_turn_pass') || '';
-      if (url) {
-        iceServers.push({ urls: url, username: user || undefined, credential: pass || undefined });
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const turnParam = urlParams.get('turn');
+        if (turnParam === 'openrelay' || turnParam === 'test') {
+          iceServers.push(
+            {
+              urls: 'turn:openrelay.metered.ca:80',
+              username: 'openrelayproject',
+              credential: 'openrelayproject',
+            },
+            {
+              urls: 'turn:openrelay.metered.ca:443',
+              username: 'openrelayproject',
+              credential: 'openrelayproject',
+            }
+          );
+        } else {
+          const url = localStorage.getItem('dungeon_turn_url');
+          const user = localStorage.getItem('dungeon_turn_user') || '';
+          const pass = localStorage.getItem('dungeon_turn_pass') || '';
+          if (url) {
+            iceServers.push({ urls: url, username: user || undefined, credential: pass || undefined });
+          }
+        }
       }
-    } catch { /* localStorage no disponible: solo STUN */ }
+    } catch { /* localStorage / window no disponible */ }
     return { iceServers };
   }
 
@@ -77,7 +96,17 @@ export class NetworkManager extends EventTarget {
   }
 
   _newPeer(roomIdOrOpts, opts = {}) {
-    const base = { debug: 0, config: this.getIceConfig() };
+    let debugLevel = 0;
+    try {
+      if (typeof window !== 'undefined') {
+        const p = new URLSearchParams(window.location.search);
+        if (p.has('debug') || p.has('webrtc_debug')) {
+          debugLevel = parseInt(p.get('webrtc_debug') || '3', 10);
+        }
+      }
+    } catch { /* ignore */ }
+
+    const base = { debug: debugLevel, config: this.getIceConfig() };
     if (typeof roomIdOrOpts === 'string') {
       return new Peer(roomIdOrOpts, { ...base, ...opts });
     }
