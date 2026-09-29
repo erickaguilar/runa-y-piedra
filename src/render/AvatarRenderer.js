@@ -373,6 +373,9 @@ export class AvatarRenderer {
     root.add(legRPivot);
 
     root.position.set(0, 1, 0);
+    // 90% del tamaño físico: mejor encaje visual en puertas y pasillos
+    // (el origen está en los pies, así que la planta no se mueve)
+    root.scale.setScalar(0.9);
     this.scene.add(root);
     a = {
       mesh: root,
