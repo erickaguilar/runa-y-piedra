@@ -3,6 +3,11 @@ import { PLAYER_PALETTE, PHYSICS_CONFIG } from '../config/constants.js';
 
 const AVATAR_H = PHYSICS_CONFIG.PLAYER_H;
 
+// Equipo distintivo por id de héroe (ampliable: ranger, wizard...)
+const GEAR_BUILDERS = {
+  paladin: (a, G, add) => AvatarRenderer._buildPaladinGear(a, G, add),
+};
+
 export class AvatarRenderer {
   constructor(scene) {
     this.scene = scene;
@@ -25,8 +30,7 @@ export class AvatarRenderer {
   }
 
   /** Materiales compartidos: piel, cara, pantalón y cinto (el color del héroe es por avatar). */
-  static _buildSharedMaterials() {
-    // Cara procedural 64x64: ojos y boca sobre tono piel
+  static _buildSharedMaterials() {    // Cara procedural 64x64: ojos y boca sobre tono piel
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
@@ -47,6 +51,86 @@ export class AvatarRenderer {
       pants: new THREE.MeshLambertMaterial({ color: 0x334155 }),
       belt: new THREE.MeshLambertMaterial({ color: 0x27272a }),
     };
+  }
+
+  /**
+   * Equipo distintivo por héroe. Recibe (a, G, add) donde add(obj, parent)
+   * registra el nodo para poder retirarlo al cambiar de héroe.
+   * Retorna los materiales propios creados (se disponen con el avatar).
+   */
+  static _buildPaladinGear(a, G, add) {
+    const silverMat = new THREE.MeshLambertMaterial({ color: 0xcbd5e1 });
+    const goldMat = new THREE.MeshLambertMaterial({ color: 0xf59e0b, emissive: 0x78350f });
+    const crestMat = new THREE.MeshLambertMaterial({ color: 0xdc2626 });
+
+    // Yelmo plateado sobre la cabeza + cresta roja de crin
+    const helm = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.22, 0.54), silverMat);
+    helm.position.set(0, 1.82, 0);
+    add(helm, a.gear);
+    const crest = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.2, 0.44), crestMat);
+    crest.position.set(0, 2.0, -0.02);
+    add(crest, a.gear);
+
+    // Hombreras redondeadas
+    const pauldronGeo = new THREE.SphereGeometry(0.16, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    const pauldronL = new THREE.Mesh(pauldronGeo, silverMat);
+    pauldronL.position.set(-0.34, 1.34, 0);
+    add(pauldronL, a.gear);
+    const pauldronR = new THREE.Mesh(pauldronGeo, silverMat);
+    pauldronR.position.set(0.34, 1.34, 0);
+    add(pauldronR, a.gear);
+
+    // Escudo antebrazo izquierdo: tabla, cantos y umbo dorado (sigue el balanceo)
+    const shield = new THREE.Group();
+    const board = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.52, 0.38), silverMat);
+    shield.add(board);
+    const rimV = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.56, 0.06), goldMat);
+    rimV.position.set(0, 0, 0.17);
+    shield.add(rimV);
+    const rimV2 = rimV.clone();
+    rimV2.position.z = -0.17;
+    shield.add(rimV2);
+    const boss = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), goldMat);
+    boss.position.set(-0.05, 0, 0);
+    shield.add(boss);
+    shield.position.set(-0.14, -0.32, 0.02);
+    add(shield, a.parts.armLPivot);
+
+    return [silverMat, goldMat, crestMat];
+  }
+
+  /** Retira el equipo anterior del avatar (nodos + materiales). */
+  _clearGear(a) {
+    for (const { obj, parent } of a.gearNodes || []) {
+      parent.remove(obj);
+      obj.traverse((o) => { if (o.isMesh) o.geometry.dispose?.(); });
+    }
+    for (const m of a.gearMats || []) m.dispose?.();
+    a.gearNodes = [];
+    a.gearMats = [];
+    if (a.gear) {
+      a.mesh.remove(a.gear);
+      a.gear = null;
+    }
+  }
+
+  /** Cambia el equipo visual según el id del héroe ('paladin', etc.). */
+  setHeroGear(a, heroId) {
+    if (!a || a.heroId === (heroId || null)) return;
+    this._clearGear(a);
+    a.heroId = heroId || null;
+    const build = (heroId && GEAR_BUILDERS[heroId]) || null;
+    if (!build) return;
+    const gear = new THREE.Group();
+    a.mesh.add(gear);
+    a.gear = gear;
+    a.gearNodes = [];
+    a.gearMats = [];
+    const add = (obj, parent) => {
+      parent.add(obj);
+      a.gearNodes.push({ obj, parent });
+    };
+    a.gearMats = build(a, this._geoCache, add) || [];
   }
 
   static colorFor(id) {
@@ -152,6 +236,10 @@ export class AvatarRenderer {
     a = {
       mesh: root,
       mats: [tunicMat, hairMat],
+      gear: null,
+      gearNodes: [],
+      gearMats: [],
+      heroId: null,
       parts: { armLPivot, armRPivot, legLPivot, legRPivot },
       sprite: null,
       name: 'Aventurero',
@@ -165,11 +253,12 @@ export class AvatarRenderer {
     return a;
   }
 
-  setMetadata(id, name, color) {
+  setMetadata(id, name, color, heroId = null) {
     const a = this.ensure(id, color);
     if (color !== undefined) {
       for (const m of a.mats) m.color.set(color);
     }
+    this.setHeroGear(a, heroId);
     if (name) {
       a.name = name;
       if (a.sprite) {
@@ -188,6 +277,7 @@ export class AvatarRenderer {
   remove(id) {
     const a = this.avatars.get(id);
     if (!a) return;
+    this._clearGear(a);
     if (a.sprite) {
       a.mesh.remove(a.sprite);
       a.sprite.material.map.dispose();
@@ -230,12 +320,13 @@ export class AvatarRenderer {
    * Avatar del jugador local (tercera persona): sin etiqueta de nombre y con
    * snap directo (sin interpolación) para cero latencia visual.
    */
-  updateLocal(id, x, y, z, yaw, color) {
+  updateLocal(id, x, y, z, yaw, color, heroId = null) {
     const a = this.ensure(id, color);
     a.isLocal = true;
     if (color !== undefined) {
       for (const m of a.mats) m.color.set(color);
     }
+    this.setHeroGear(a, heroId);
     const now = performance.now();
     const dt = a._lt ? Math.min(0.25, (now - a._lt) / 1000) : 0.016;
     a._lt = now;

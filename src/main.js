@@ -803,7 +803,7 @@ class VoxelSandboxGame {
         if (player) {
           player.name = name;
           player.colorIndex = colorIndex;
-          this.avatars.setMetadata(player.id, name, hero.hex);
+          this.avatars.setMetadata(player.id, name, hero.hex, hero.id || null);
           this.ui.showNarrativeMessage(`🛡️ ¡${name} (${hero.name}) se unió a la partida!`, 4500);
 
           // Transmitir metadatos oficiales del jugador a todos los clientes
@@ -812,7 +812,7 @@ class VoxelSandboxGame {
         }
       } else if (this.mode === 'client') {
         this.playerManager.updatePlayerMeta(playerId, name, colorIndex);
-        this.avatars.setMetadata(playerId, name, hero.hex);
+        this.avatars.setMetadata(playerId, name, hero.hex, hero.id || null);
         if (playerId === 0) {
           this.ui.showNarrativeMessage(`🏰 Mazmorra de ${name} (${hero.name})`, 4000);
         } else if (playerId !== this.playerManager.localPlayer.id) {
@@ -1083,7 +1083,7 @@ class VoxelSandboxGame {
           // Avatar propio solo visible en tercera persona
           if (this.cameraMode === 'third') {
             const hero = local.hero || PLAYER_HEROES[local.colorIndex] || PLAYER_HEROES[0];
-            this.avatars.updateLocal(local.id, local.visualPos.x, local.visualPos.y, local.visualPos.z, local.yaw, hero.hex || hero.color);
+            this.avatars.updateLocal(local.id, local.visualPos.x, local.visualPos.y, local.visualPos.z, local.yaw, hero.hex || hero.color, hero.id || null);
           } else {
             this.avatars.setLocalVisible(local.id, false);
           }
