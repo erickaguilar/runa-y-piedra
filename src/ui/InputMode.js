@@ -9,6 +9,7 @@
  */
 export class InputMode {
   constructor() {
+    this.lastKeyTime = 0;
     this.mode = this._initialGuess();
     this.listeners = new Set();
     this._bind();
@@ -28,15 +29,17 @@ export class InputMode {
   _bind() {
     if (typeof window === 'undefined') return;
 
-    // Cualquier pulsación de tecla real -> cambiar inmediatamente a modo PC
+    // Cualquier pulsación de tecla real -> cambiar inmediatamente a modo PC y marcar timestamp
     window.addEventListener('keydown', (e) => {
+      this.lastKeyTime = Date.now();
       if (['ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight',
            'AltLeft', 'AltRight', 'MetaLeft', 'MetaRight'].includes(e.code)) return;
       this.setMode('pc');
     }, { passive: true });
 
-    // Cualquier toque táctil en pantalla -> cambiar inmediatamente a modo táctil
+    // Toque táctil -> cambiar a modo táctil solo si no se pulsó teclado en los últimos 500ms (evita falsos toques en laptops táctiles)
     window.addEventListener('touchstart', () => {
+      if (Date.now() - this.lastKeyTime < 500) return;
       this.setMode('touch');
     }, { passive: true });
   }

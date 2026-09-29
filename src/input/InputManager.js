@@ -62,12 +62,6 @@ export class InputManager {
         return;
       }
 
-      if (e.code === 'KeyV') {
-        e.preventDefault();
-        this.onCameraToggle?.();
-        return;
-      }
-
       if (e.code === 'Escape') {
         this.onSettingsToggle?.();
         return;
