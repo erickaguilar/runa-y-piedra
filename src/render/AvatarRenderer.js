@@ -134,6 +134,31 @@ export class AvatarRenderer {
     }
   }
 
+  /**
+   * Avatar del jugador local (tercera persona): sin etiqueta de nombre y con
+   * snap directo (sin interpolación) para cero latencia visual.
+   */
+  updateLocal(id, x, y, z, yaw, color) {
+    const a = this.ensure(id, color);
+    if (color !== undefined) a.mesh.material.color.set(color);
+    a.mesh.visible = true;
+    a.target.x = x;
+    a.target.y = y;
+    a.target.z = z;
+    a.target.yaw = yaw;
+    a.current.x = x;
+    a.current.y = y;
+    a.current.z = z;
+    a.current.yaw = yaw;
+    a.mesh.position.set(x, y + AVATAR_H / 2, z);
+    a.mesh.rotation.y = yaw;
+  }
+
+  setLocalVisible(id, visible) {
+    const a = this.avatars.get(id);
+    if (a) a.mesh.visible = visible;
+  }
+
   /** dt en segundos; usa un factor independiente del framerate. */
   update(dt) {
     const t = 1 - Math.pow(0.0001, dt); // lerp rápido y estable

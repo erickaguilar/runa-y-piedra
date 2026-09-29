@@ -299,6 +299,7 @@ export class UIManager {
     const inGame = this.currentScreen === 'in_game';
     const sens = parseFloat(localStorage.getItem('dungeon_sensitivity') || '1.0');
     const dpr = parseFloat(localStorage.getItem('dungeon_dpr') || '1.5');
+    this.cameraModeUI = localStorage.getItem('dungeon_camera') || 'first';
     const debugEnabled = localStorage.getItem('dungeon_debug') === '1' || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1');
 
     const heroesHtml = PLAYER_HEROES.map((h, i) => `
@@ -386,6 +387,21 @@ export class UIManager {
           </div>
           <input id="settings-sens-slider" type="range" min="0.4" max="2.5" step="0.1" value="${sens}" 
                  style="width:100%;accent-color:#38bdf8;cursor:pointer;margin-top:4px;" />
+        </div>
+
+        <!-- 2b. Cámara -->
+        <div class="settings-group">
+          <div class="setting-row">
+            <span class="lobby-label" style="margin:0">Vista de Cámara (V)</span>
+          </div>
+          <div class="quality-selector">
+            <button class="quality-btn ${this.cameraModeUI !== 'third' ? 'active' : ''}" id="btn-cam-first">
+              1ª Persona
+            </button>
+            <button class="quality-btn ${this.cameraModeUI === 'third' ? 'active' : ''}" id="btn-cam-third">
+              3ª Persona
+            </button>
+          </div>
         </div>
 
         <!-- 3. Gráficos & Rendimiento -->
@@ -526,6 +542,18 @@ export class UIManager {
     };
     btnDpr1.onclick = () => setDpr(1.0);
     btnDpr15.onclick = () => setDpr(1.5);
+
+    // Botones de cámara (1ª / 3ª persona)
+    const btnCamFirst = document.getElementById('btn-cam-first');
+    const btnCamThird = document.getElementById('btn-cam-third');
+    const setCam = (mode) => {
+      this.cameraModeUI = mode;
+      btnCamFirst.classList.toggle('active', mode !== 'third');
+      btnCamThird.classList.toggle('active', mode === 'third');
+      this.settingsCallbacks?.onCameraChange?.(mode);
+    };
+    if (btnCamFirst) btnCamFirst.onclick = () => setCam('first');
+    if (btnCamThird) btnCamThird.onclick = () => setCam('third');
 
     // Botones de Telemetría de Red (?debug=1)
     const btnNetDebugOff = document.getElementById('btn-net-debug-off');

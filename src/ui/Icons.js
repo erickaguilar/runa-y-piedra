@@ -333,6 +333,16 @@ export const ICONS = {
     defaultColor: '#fde68a',
     body: `<path d="M12 2l2.6 6.2 6.7.5-5.1 4.4 1.6 6.6L12 16l-5.8 3.7 1.6-6.6L2.7 8.7l6.7-.5L12 2z"/>`,
   },
+
+  camera: {
+    name: 'camera',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="13" r="4"/>`,
+  },
 };
 
 /**
@@ -369,6 +379,7 @@ export const EMOJI_TO_ICON_MAP = [
   { regex: /🖤\uFE0F?/g, icon: 'heart', defaultColor: '#475569' },
   { regex: /⬆\uFE0F?/g, icon: 'arrowUp', defaultColor: '#fff' },
   { regex: /✦/g,         icon: 'star', defaultColor: '#fde68a' },
+  { regex: /📷\uFE0F?/g, icon: 'camera', defaultColor: '#38bdf8' },
   { regex: /✕/g,        icon: 'x',     defaultColor: '#94a3b8' },
 ];
 

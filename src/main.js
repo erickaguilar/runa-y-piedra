@@ -69,6 +69,7 @@ class VoxelSandboxGame {
       },
     });
     this.cameraController = new CameraController(this.sceneManager.camera);
+    this.cameraController.setWorld(this.world);
     this.raycaster = new BlockRaycaster(this.sceneManager.camera, this.voxelMap, this.world);
 
     // 2. Red, Audio y UI
@@ -82,7 +83,9 @@ class VoxelSandboxGame {
       canvas: this.canvas,
       onJump: () => {},
       onInteract: () => this.handleInteract(),
+      onCameraToggle: () => this.toggleCameraMode(),
     });
+    this.cameraMode = localStorage.getItem('dungeon_camera') || 'first';
 
     this.currentJoinUrl = null;
     this.inputSeq = 0;
@@ -128,6 +131,9 @@ class VoxelSandboxGame {
       },
       onSensitivityChange: (val) => {
         this.input.setSensitivity(val);
+      },
+      onCameraChange: (mode) => {
+        this.setCameraMode(mode);
       },
       onLeaveGame: () => {
         window.location.href = window.location.origin + window.location.pathname;
@@ -257,6 +263,21 @@ class VoxelSandboxGame {
       }
     }
     return true;
+  }
+
+  /** Alterna 1ª/3ª persona (tecla V o ajustes). Persiste la preferencia. */
+  toggleCameraMode() {
+    this.setCameraMode(this.cameraMode === 'third' ? 'first' : 'third');
+  }
+
+  setCameraMode(mode) {
+    this.cameraMode = mode === 'third' ? 'third' : 'first';
+    localStorage.setItem('dungeon_camera', this.cameraMode);
+    const local = this.playerManager.localPlayer;
+    if (local) this.avatars.setLocalVisible(local.id, this.cameraMode === 'third');
+    this.ui.showNarrativeMessage(
+      this.cameraMode === 'third' ? '📷 Vista en tercera persona.' : '📷 Vista en primera persona.', 2000
+    );
   }
 
   /** Tema visual del altar según la mazmorra activa (dorado / brasa / amatista). */
@@ -1057,7 +1078,15 @@ class VoxelSandboxGame {
         if (this.mode) {
           const local = this.playerManager.localPlayer;
           local.updateVisualSmoothing(dt);
-          this.cameraController.update(local, local.yaw, local.pitch);
+          this.cameraController.update(local, local.yaw, local.pitch, this.cameraMode);
+
+          // Avatar propio solo visible en tercera persona
+          if (this.cameraMode === 'third') {
+            const hero = local.hero || PLAYER_HEROES[local.colorIndex] || PLAYER_HEROES[0];
+            this.avatars.updateLocal(local.id, local.visualPos.x, local.visualPos.y, local.visualPos.z, local.yaw, hero.hex || hero.color);
+          } else {
+            this.avatars.setLocalVisible(local.id, false);
+          }
 
           // Reflejar invulnerabilidad post-respawn en el HUD sin re-renderizar corazones
           const livesHud = document.getElementById('hud-lives');
