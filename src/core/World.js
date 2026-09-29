@@ -97,10 +97,6 @@ export class World {
     }
   }
 
-  openDungeonDoor() {
-    this.openDoor(1);
-  }
-
   get isDoorOpen() {
     return this.isDoor1Open;
   }

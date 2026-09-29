@@ -555,15 +555,6 @@ class VoxelSandboxGame {
     }
   }
 
-  handleJump() {
-    const local = this.playerManager.localPlayer;
-    if (local.onGround) {
-      const jumpMult = local.hero?.jumpMultiplier || 1.0;
-      local.vel.y = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult;
-      local.onGround = false;
-    }
-  }
-
   handleInteract() {
     if (!this.mode) return;
     const local = this.playerManager.localPlayer;
@@ -654,14 +645,12 @@ class VoxelSandboxGame {
 
   /** Feedback local al recibir una llave: insignia del HUD + sonido. */
   onLocalKeyReceived(chestData = {}) {
-    const local = this.playerManager.localPlayer;
     this.ui.setHasKey(true);
     this.soundManager.playKeyPickup();
     const keyName = chestData.keyName || 'Llave del Santuario';
     const door = this.world.doors?.find(d => d.requiresKey === chestData.givesKey);
     const doorMsg = door?.name ? ` Ahora puedes abrir: ${door.name}.` : '';
     this.ui.showNarrativeMessage(`🗝️ ¡${keyName} conseguida!${doorMsg}`, 4500);
-    void local;
   }
 
   /** Puerta bloqueada por falta de llave: mensaje + sonido metálico (solo jugador local). */

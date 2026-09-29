@@ -18,9 +18,8 @@ export class UIManager {
     this._interactKey = null;
 
     // Estado de pantallas
-    this.currentScreen = 'menu'; // 'menu' | 'host_room' | 'in_game'
+    this.currentScreen = 'menu'; // 'menu' | 'in_game'
     this.lastMenuParams = null;
-    this.lastHostParams = null;
     this.isSettingsOpen = false;
     this.settingsCallbacks = null;
 
@@ -173,108 +172,6 @@ export class UIManager {
     }
   }
 
-  showHostRoom(pin, joinUrl, options = {}) {
-    this.currentScreen = 'host_room';
-    this.lastHostParams = { pin, joinUrl, options };
-    this.setCrosshairVisible(false);
-    this.setActionButtonsVisible(false);
-    const { hostName, hostColorHex, onPlay, levels = [], selectedLevelId = 'dungeon_classic', onSelectLevel } = options;
-
-    const levelsHtml = levels.length > 0 ? `
-        <div class="level-box">
-          <div class="level-title">Seleccionar Mapa de la Mazmorra</div>
-          <div class="level-grid" id="level-grid">
-            ${levels.map(lvl => `
-              <div class="level-card ${lvl.id === selectedLevelId ? 'selected' : ''}" data-level-id="${lvl.id}">
-                <div class="level-card-header">
-                  <span class="level-icon">${renderIcon(lvl.icon || 'castle', { size: 24, color: lvl.icon === 'volcano' ? '#f97316' : '#fbbf24' })}</span>
-                  <span class="level-badge">${lvl.difficulty || 'Normal'}</span>
-                </div>
-                <div class="level-name">${lvl.name}</div>
-                <div class="level-desc">${lvl.description || ''}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-    ` : '';
-
-    this.uiEl.innerHTML = `
-      <div class="menu">
-        <h1 style="margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:6px;">${renderIcon('castle', { size: 20, color: '#fbbf24' })} SALA DE EXPEDICIÓN</h1>
-        <div class="room-pin-display">${pin}</div>
-        <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">PIN de 4 dígitos</div>
-
-        <button id="btn-share-link" class="share-btn">
-          ${renderIcon('share', { size: 18, color: '#fff' })}
-          <span>Compartir en Mensajería</span>
-        </button>
-
-        <button id="btn-copy-link" class="copy-btn">
-          ${renderIcon('copy', { size: 16, color: '#cbd5e1' })}
-          <span id="copy-btn-text">Copiar Enlace</span>
-        </button>
-
-        <canvas id="qr-canvas"></canvas>
-        <div style="font-size:11px;color:#94a3b8;margin-top:2px">O escanea el código con la cámara</div>
-
-        ${levelsHtml}
-
-        <div class="party-box">
-          <div class="party-title">Compañeros de Mazmorra</div>
-          <div id="party-list">
-            <div class="party-item">
-              <div class="party-member">
-                <span class="party-dot" style="background:${hostColorHex}"></span>
-                <span>${hostName}</span>
-              </div>
-              <span class="party-badge">Host</span>
-            </div>
-            <div id="party-waiting" class="party-item" style="color:#64748b;font-style:italic">
-              <span>Esperando compañero...</span>
-            </div>
-          </div>
-        </div>
-
-        <button id="btn-start-play" class="btn-play">Comenzar Aventura</button>
-      </div>`;
-
-    const qrCanvas = document.getElementById('qr-canvas');
-    if (qrCanvas) {
-      QRCode.toCanvas(qrCanvas, joinUrl, { width: 130, margin: 1 });
-    }
-
-    // Selector de nivel interactivo
-    const levelCards = this.uiEl.querySelectorAll('.level-card');
-    levelCards.forEach(card => {
-      card.onclick = () => {
-        const id = card.dataset.levelId;
-        levelCards.forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        onSelectLevel?.(id);
-      };
-    });
-
-    // Compartir por mensajería (WhatsApp / Telegram / etc.)
-    const shareBtn = document.getElementById('btn-share-link');
-    if (shareBtn) {
-      shareBtn.onclick = () => this.shareLink(joinUrl, pin);
-    }
-
-    // Copiar enlace directo
-    const copyBtn = document.getElementById('btn-copy-link');
-    if (copyBtn) {
-      copyBtn.onclick = () => this.copyLink(joinUrl);
-    }
-
-    // Comenzar juego
-    document.getElementById('btn-start-play')?.addEventListener('click', () => {
-      this.currentScreen = 'in_game';
-      this.hideMenu();
-      this.setCrosshairVisible(true);
-      this.setActionButtonsVisible(true);
-      onPlay?.();
-    });
-  }
 
   toggleSettingsModal() {
     if (this.isSettingsOpen) {

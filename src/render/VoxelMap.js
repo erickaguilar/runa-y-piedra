@@ -178,10 +178,6 @@ varying vec2 vAtlasOffset;`
     }
   }
 
-  openDungeonDoor() {
-    this.openDoor(1);
-  }
-
   rebuildFromWorld() {
     this.blockToInst.fill(-1);
     this.instToBlock.fill(-1);
