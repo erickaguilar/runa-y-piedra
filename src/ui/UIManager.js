@@ -302,14 +302,6 @@ export class UIManager {
     this.cameraModeUI = localStorage.getItem('dungeon_camera') || 'first';
     const debugEnabled = localStorage.getItem('dungeon_debug') === '1' || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1');
 
-    const heroesHtml = PLAYER_HEROES.map((h, i) => `
-      <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
-           data-index="${i}" 
-           style="background:${h.color}; --hero-color:${h.color}" 
-           title="${h.name}"></div>
-    `).join('');
-    const currentHero = PLAYER_HEROES[this.selectedColorIndex];
-
     const playersList = state.players || [];
     let partyHtml = '';
     if (playersList.length > 0) {
@@ -362,19 +354,6 @@ export class UIManager {
           <label class="lobby-label">Tu Aventurero</label>
           <input id="settings-name-input" class="name-input" maxlength="12" 
                  placeholder="Nombre o Apodo" value="${this.playerName}" autocomplete="off" />
-        </div>
-
-        <div class="settings-group">
-          <label class="lobby-label">Clase y Color</label>
-          <div class="heroes-row" id="settings-heroes-row">
-            ${heroesHtml}
-          </div>
-          <div id="settings-hero-badge" class="hero-badge" style="color:${currentHero.color}">
-            ${renderIcon(currentHero.icon || 'shield', { size: 15, color: currentHero.color })} <span>${currentHero.name}</span>
-          </div>
-          <div id="settings-hero-trait-container">
-            ${this.renderHeroTraitCard(currentHero)}
-          </div>
         </div>
 
         <div class="divider" style="margin:10px 0"></div>
@@ -497,30 +476,6 @@ export class UIManager {
       soundManager.playClick();
       this.closeSettingsModal();
     };
-
-    // Selector de clases en configuración
-    const chips = this.uiEl.querySelectorAll('.hero-chip');
-    chips.forEach(chip => {
-      chip.onclick = () => {
-        soundManager.playClick();
-        chips.forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        const idx = parseInt(chip.dataset.index, 10);
-        this.selectedColorIndex = idx;
-        localStorage.setItem('dungeon_player_color', idx.toString());
-
-        const hero = PLAYER_HEROES[idx];
-        const badge = document.getElementById('settings-hero-badge');
-        if (badge) {
-          badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
-          badge.style.color = hero.color;
-        }
-        const traitContainer = document.getElementById('settings-hero-trait-container');
-        if (traitContainer) {
-          traitContainer.innerHTML = this.renderHeroTraitCard(hero);
-        }
-      };
-    });
 
     // Slider de sensibilidad
     const sensSlider = document.getElementById('settings-sens-slider');
