@@ -228,7 +228,14 @@ class VoxelSandboxGame {
 
     this.ui.showNarrativeMessage(`Mapa cargado: ${levelData.name}`, 3500);
     if (levelData.id === 'lobby_tutorial') {
-      this.ui.showNarrativeMessage('🎯 Practica: salta las losas ámbar, abre el 📦 cofre, usa la 🗝️ llave en la 🚪 puerta, empuja la 🪨 losa y baja.', 6500);
+      const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(pointer: coarse)').matches
+        : false;
+      if (!isTouch) {
+        this.ui.showNarrativeMessage('🎮 Controles: WASD mover · Click apuntar · Espacio saltar · E interactuar / bajar · V cámara', 7500);
+      } else {
+        this.ui.showNarrativeMessage('🎯 Practica: salta las losas ámbar, abre el 📦 cofre, usa la 🗝️ llave en la 🚪 puerta, empuja la 🪨 losa y baja.', 6500);
+      }
     }
 
     if (broadcast && this.mode === 'host') {

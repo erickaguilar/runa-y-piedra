@@ -19,21 +19,37 @@ export class InputManager {
     this.lookTouchX = 0;
     this.lookTouchY = 0;
 
-    this.isTouchDevice = matchMedia('(pointer: coarse)').matches;
-    this.sensitivity = parseFloat(localStorage.getItem('dungeon_sensitivity') || '1.0');
+    this.isTouchDevice = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(pointer: coarse)').matches
+      : false;
+    let sens = 1.0;
+    try {
+      sens = parseFloat(localStorage.getItem('dungeon_sensitivity') || '1.0');
+    } catch { /* ignore */ }
+    this.sensitivity = sens;
 
     this.initKeyboard();
     this.initMouseLook();
     this.initTouchControls();
   }
 
+  clearKeys() {
+    this.keys = {};
+    this.pendingJump = false;
+    this.moveJoystick.x = 0;
+    this.moveJoystick.y = 0;
+  }
+
   initKeyboard() {
     window.addEventListener('keydown', (e) => {
+      const tag = e.target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
       this.keys[e.code] = true;
       if (e.code === 'Space') {
         this.pendingJump = true;
         this.onJump?.();
-      } else if (e.code === 'KeyE' || e.code === 'KeyF') {
+      } else if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'Enter') {
         this.onInteract?.();
       } else if (e.code === 'KeyV') {
         this.onCameraToggle?.();
@@ -42,6 +58,15 @@ export class InputManager {
 
     window.addEventListener('keyup', (e) => {
       this.keys[e.code] = false;
+    });
+
+    // Limpieza de estado al perder el foco para evitar teclas atascadas (Alt+Tab, cambio de pestaña, salir de pointer lock)
+    window.addEventListener('blur', () => this.clearKeys());
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') this.clearKeys();
+    });
+    document.addEventListener('pointerlockchange', () => {
+      if (document.pointerLockElement !== this.canvas) this.clearKeys();
     });
   }
 
@@ -164,8 +189,8 @@ export class InputManager {
   }
 
   getMovement() {
-    const kForward = (this.keys['KeyW'] ? 1 : 0) - (this.keys['KeyS'] ? 1 : 0);
-    const kRight = (this.keys['KeyD'] ? 1 : 0) - (this.keys['KeyA'] ? 1 : 0);
+    const kForward = (this.keys['KeyW'] || this.keys['ArrowUp'] ? 1 : 0) - (this.keys['KeyS'] || this.keys['ArrowDown'] ? 1 : 0);
+    const kRight = (this.keys['KeyD'] || this.keys['ArrowRight'] ? 1 : 0) - (this.keys['KeyA'] || this.keys['ArrowLeft'] ? 1 : 0);
 
     let forward = kForward + this.moveJoystick.y;
     let right = kRight + this.moveJoystick.x;

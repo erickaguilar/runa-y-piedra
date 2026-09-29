@@ -23,6 +23,13 @@ export class InteractionController {
   handleInteract() {
     const game = this.game;
     if (!game.mode) return;
+
+    // Si la tarjeta de descenso ("Bajar ya") está en pantalla, pulsar E / click activa el descenso inmediato
+    if (game.ui?.descentCard && game.ui.descentOnNow) {
+      game.ui.descentOnNow();
+      return;
+    }
+
     const local = game.playerManager.localPlayer;
     const interaction = game.raycaster.getTargetInteraction(local.pos);
     if (!interaction) {

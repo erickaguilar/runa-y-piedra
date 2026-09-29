@@ -577,10 +577,22 @@ export class UIManager {
   }
 
   setActionButtonsVisible(visible) {
+    const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(pointer: coarse)').matches
+      : false;
     const btnInteract = document.getElementById('btn-interact');
     const btnJump = document.getElementById('btn-jump');
-    if (btnInteract) btnInteract.style.display = visible ? 'flex' : 'none';
-    if (btnJump) btnJump.style.display = visible ? 'flex' : 'none';
+
+    // El botón táctil de salto solo se muestra en dispositivos móviles (en desktop se usa Espacio)
+    if (btnJump) btnJump.style.display = (visible && isTouch) ? 'flex' : 'none';
+    if (btnInteract) {
+      if (!isTouch) {
+        // En desktop solo se muestra si hay un objeto interactuable cercano (indicador de tecla E)
+        btnInteract.style.display = (visible && this._interactKey && this._interactKey !== 'none') ? 'flex' : 'none';
+      } else {
+        btnInteract.style.display = visible ? 'flex' : 'none';
+      }
+    }
     if (!visible) this._interactKey = null;
   }
 
@@ -595,24 +607,30 @@ export class UIManager {
     if (key === this._interactKey) return;
     this._interactKey = key;
 
+    const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(pointer: coarse)').matches
+      : false;
+
     const iconEl = document.getElementById('interact-icon');
     const labelEl = document.getElementById('interact-label');
     const MAP = {
-      door: ['door', 'ABRIR'],
-      chest: ['chest', 'ABRIR'],
-      stairs: ['stone', 'EMPUJAR'],
-      pedestal: ['sparkles', 'ACTIVAR'],
+      door: ['door', isTouch ? 'ABRIR' : '[E] ABRIR'],
+      chest: ['chest', isTouch ? 'ABRIR' : '[E] ABRIR'],
+      stairs: ['stone', isTouch ? 'EMPUJAR' : '[E] EMPUJAR'],
+      pedestal: ['sparkles', isTouch ? 'ACTIVAR' : '[E] ACTIVAR'],
     };
     if (MAP[key]) {
       if (iconEl) iconEl.innerHTML = renderIcon(MAP[key][0], { size: 26 });
       if (labelEl) labelEl.textContent = MAP[key][1];
       btn.classList.remove('dim');
       btn.classList.add('ready');
+      if (!isTouch) btn.style.display = 'flex';
     } else {
       if (iconEl) iconEl.innerHTML = renderIcon('star', { size: 24 });
-      if (labelEl) labelEl.textContent = 'USAR';
+      if (labelEl) labelEl.textContent = isTouch ? 'USAR' : '[E] USAR';
       btn.classList.add('dim');
       btn.classList.remove('ready');
+      if (!isTouch) btn.style.display = 'none';
     }
   }
 
@@ -691,19 +709,23 @@ export class UIManager {
    */
   showDescentCountdown({ byName = 'Un compañero', endsAtMs = 0, onNow = null } = {}) {
     this.hideDescent();
+    const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(pointer: coarse)').matches
+      : false;
+
     const card = document.createElement('div');
     card.id = 'descent-card';
     card.innerHTML = `
       <div class="descent-title">${renderIcon('vortex', { size: 18, color: '#38bdf8' })} ¡${escapeHtml(byName)} desciende!</div>
       <div class="descent-timer">8</div>
-      <div class="descent-sub">Baja a la escalinata para ir ya</div>`;
+      <div class="descent-sub">${isTouch ? 'Baja a la escalinata para ir ya' : 'Pulsa [E / CLICK] o baja a la escalinata para ir ya'}</div>`;
     document.body.appendChild(card);
     this.descentCard = card;
 
     const bigBtn = document.createElement('button');
     bigBtn.id = 'btn-descend-now';
     bigBtn.type = 'button';
-    bigBtn.textContent = 'BAJAR YA';
+    bigBtn.textContent = isTouch ? 'BAJAR YA' : '[E / CLICK] BAJAR YA';
     document.body.appendChild(bigBtn);
     this.descentBtn = bigBtn;
     this.descentOnNow = onNow;
