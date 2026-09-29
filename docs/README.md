@@ -104,4 +104,11 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Metodología de pruebas de latencia y fluctuación con emulación de red (Slow 4G).
     - Lista de control (*Release Checklist*) obligatoria previa a fusión en `main`.
 
+17. [**17. Arquitectura de Capítulos y Escalado de Mazmorras (10 Capítulos × 3 Niveles)**](./17-arquitectura-de-capitulos-y-escalado-de-mazmorras.md)
+    - Viabilidad técnica, matriz de complejidad y presupuesto de memoria/red para 30 mazmorras.
+    - Modelo jerárquico `ChapterRegistry`, ciclo de 3 mazmorras por capítulo y clímax ceremonial.
+    - Taxonomía de los 10 biomas temáticos y peligros ambientales exclusivos (hielo, ácido, pistones, teletransporte).
+    - Hub de selección en el Lobby, persistencia en `localStorage` y estrategia de generación modular.
+
+
 
