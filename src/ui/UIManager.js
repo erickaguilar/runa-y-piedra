@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import { PLAYER_HEROES } from '../config/constants.js';
-import { renderIcon, replaceEmojisWithSvg } from './Icons.js';
+import { renderIcon, replaceEmojisWithSvg, escapeHtml } from './Icons.js';
 import { soundManager } from '../audio/SoundManager.js';
 
 export class UIManager {
@@ -87,7 +87,7 @@ export class UIManager {
         <div class="lobby-section">
           <label class="lobby-label">Tu Aventurero</label>
           <input id="player-name-input" class="name-input" maxlength="12" 
-                 placeholder="Nombre o Apodo" value="${this.playerName}" autocomplete="off" />
+                 placeholder="Nombre o Apodo" value="${escapeHtml(this.playerName)}" autocomplete="off" />
         </div>
 
         <div class="lobby-section">
@@ -313,7 +313,7 @@ export class UIManager {
             <div class="party-member">
               <span class="party-dot" style="background:${hero.color}"></span>
               ${renderIcon(hero.icon || 'shield', { size: 13, color: hero.color })}
-              <span>${p.name || 'Aventurero'} (${hero.name})</span>
+              <span>${escapeHtml(p.name || 'Aventurero')} (${hero.name})</span>
             </div>
             <span class="party-badge" style="${isHost ? '' : 'background:rgba(56,189,248,.2);color:#38bdf8'}">${isHost ? 'Host' : 'Listo'}</span>
           </div>`;
@@ -331,7 +331,7 @@ export class UIManager {
           <div class="party-member">
             <span class="party-dot" style="background:${hero.color}"></span>
             ${renderIcon(hero.icon || 'shield', { size: 13, color: hero.color })}
-            <span>${this.playerName} (${hero.name})</span>
+            <span>${escapeHtml(this.playerName)} (${hero.name})</span>
           </div>
           <span class="party-badge">${state.isHost ? 'Host' : 'Tú'}</span>
         </div>
@@ -353,7 +353,7 @@ export class UIManager {
         <div class="settings-group">
           <label class="lobby-label">Tu Aventurero</label>
           <input id="settings-name-input" class="name-input" maxlength="12" 
-                 placeholder="Nombre o Apodo" value="${this.playerName}" autocomplete="off" />
+                 placeholder="Nombre o Apodo" value="${escapeHtml(this.playerName)}" autocomplete="off" />
         </div>
 
         <div class="divider" style="margin:10px 0"></div>
@@ -648,7 +648,7 @@ export class UIManager {
           <div class="party-member">
             <span class="party-dot" style="background:${hero.color}"></span>
             ${renderIcon(hero.icon || 'shield', { size: 13, color: hero.color })}
-            <span>${p.name || 'Aventurero'} (${hero.name})</span>
+            <span>${escapeHtml(p.name || 'Aventurero')} (${hero.name})</span>
           </div>
           <span class="party-badge" style="${isHost ? '' : 'background:rgba(56,189,248,.2);color:#38bdf8'}">
             ${isHost ? 'Host' : 'Listo'}
@@ -797,7 +797,7 @@ export class UIManager {
     const card = document.createElement('div');
     card.id = 'descent-card';
     card.innerHTML = `
-      <div class="descent-title">${renderIcon('vortex', { size: 18, color: '#38bdf8' })} ¡${byName} desciende!</div>
+      <div class="descent-title">${renderIcon('vortex', { size: 18, color: '#38bdf8' })} ¡${escapeHtml(byName)} desciende!</div>
       <div class="descent-timer">8</div>
       <div class="descent-sub">Baja a la escalinata para ir ya</div>`;
     document.body.appendChild(card);

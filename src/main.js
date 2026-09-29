@@ -18,6 +18,7 @@ import * as Proto from './network/Protocol.js';
 import { ClientReconciler } from './network/ClientReconciler.js';
 import { InputQueue } from './network/InputQueue.js';
 import { UIManager } from './ui/UIManager.js';
+import { escapeHtml } from './ui/Icons.js';
 import { soundManager } from './audio/SoundManager.js';
 import { NET_CONFIG, BLOCK_TYPES, PHYSICS_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from './config/constants.js';
 
@@ -492,7 +493,7 @@ class VoxelSandboxGame {
     this.ui.showDescentCountdown({
       byName: initiator.name, endsAtMs: deadline, onNow: () => this.goNow(),
     });
-    this.ui.showNarrativeMessage(`🌀 ¡${initiator.name} desciende! 8s para bajar juntos...`, 4000);
+    this.ui.showNarrativeMessage(`🌀 ¡${escapeHtml(initiator.name)} desciende! 8s para bajar juntos...`, 4000);
     this.descentTimer = setTimeout(() => this.goNow(), 8000);
   }
 
@@ -545,7 +546,7 @@ class VoxelSandboxGame {
       localCli.resetLives();
       this.ui.updateLives(localCli.lives, localCli.maxLives);
       this.ui.setHasKey(false);
-      this.ui.showNarrativeMessage(`Conectado como ${name}. Explorad juntos.`, 5000);
+      this.ui.showNarrativeMessage(`Conectado como ${escapeHtml(name)}. Explorad juntos.`, 5000);
 
       // Enviar metadatos locales (nombre y color de clase) al Host
       this.network.sendToHost(Proto.serializePlayerMeta(0, colorIndex, name));
@@ -769,7 +770,7 @@ class VoxelSandboxGame {
       const removedPlayer = this.playerManager.removeByConnection(e.detail.conn);
       if (removedPlayer) {
         this.avatars.remove(removedPlayer.id);
-        this.ui.showNarrativeMessage(`⚠️ ${removedPlayer.name} ha abandonado la partida.`, 4000);
+        this.ui.showNarrativeMessage(`⚠️ ${escapeHtml(removedPlayer.name)} ha abandonado la partida.`, 4000);
         this.ui.updatePartyList(this.playerManager.getAllPlayers());
       }
     });
@@ -804,7 +805,7 @@ class VoxelSandboxGame {
           player.name = name;
           player.colorIndex = colorIndex;
           this.avatars.setMetadata(player.id, name, hero.hex, hero.id || null);
-          this.ui.showNarrativeMessage(`🛡️ ¡${name} (${hero.name}) se unió a la partida!`, 4500);
+          this.ui.showNarrativeMessage(`🛡️ ¡${escapeHtml(name)} (${hero.name}) se unió a la partida!`, 4500);
 
           // Transmitir metadatos oficiales del jugador a todos los clientes
           this.network.broadcast(Proto.serializePlayerMeta(player.id, colorIndex, name));
@@ -814,9 +815,9 @@ class VoxelSandboxGame {
         this.playerManager.updatePlayerMeta(playerId, name, colorIndex);
         this.avatars.setMetadata(playerId, name, hero.hex, hero.id || null);
         if (playerId === 0) {
-          this.ui.showNarrativeMessage(`🏰 Mazmorra de ${name} (${hero.name})`, 4000);
+          this.ui.showNarrativeMessage(`🏰 Mazmorra de ${escapeHtml(name)} (${hero.name})`, 4000);
         } else if (playerId !== this.playerManager.localPlayer.id) {
-          this.ui.showNarrativeMessage(`🛡️ ¡${name} (${hero.name}) se unió!`, 4000);
+          this.ui.showNarrativeMessage(`🛡️ ¡${escapeHtml(name)} (${hero.name}) se unió!`, 4000);
         }
       }
     });
@@ -922,7 +923,7 @@ class VoxelSandboxGame {
           endsAtMs: detail.deadline || (Date.now() + 8000),
           onNow: () => this.network.sendToHost(Proto.serializeDescentNow()),
         });
-        this.ui.showNarrativeMessage(`🌀 ¡${detail.byName || 'Un compañero'} desciende! 8s para bajar juntos...`, 4000);
+        this.ui.showNarrativeMessage(`🌀 ¡${escapeHtml(detail.byName || 'Un compañero')} desciende! 8s para bajar juntos...`, 4000);
       } else if (detail.kind === Proto.DESCENT_KIND.GO) {
         this.descentActive = false;
         this.beginDescentFade(detail.nextName || '');

@@ -453,6 +453,19 @@ export function replaceEmojisWithSvg(text, options = {}) {
 }
 
 /**
+ * Escapa texto controlado por el usuario para interpolarlo en HTML
+ * (nombres de jugador) sin riesgo de XSS. Cubre contexto de texto y atributos.
+ */
+export function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
  * Reinicia o dispara una animación CSS de resorte (Spring) sobre un elemento SVG o icono
  * utilizando el patrón estándar de reflow forzado (void el.offsetWidth) sin clonar el nodo.
  * 
