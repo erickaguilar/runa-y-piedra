@@ -39,11 +39,11 @@ class VoxelSandboxGame {
     this.pedestalRenderer = new PedestalRenderer(this.sceneManager.scene);
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
     this.stairsRenderer = new StairsRenderer(this.sceneManager.scene);
-    this.ensureStairsState();
-    this.avatars = new AvatarRenderer(this.sceneManager.scene);
-    this.playerManager = new PlayerManager();
     this.interaction = new InteractionController(this);
     this.descent = new DescentManager(this);
+    this.interaction.ensureStairsState();
+    this.avatars = new AvatarRenderer(this.sceneManager.scene);
+    this.playerManager = new PlayerManager();
     this.simulation = new SimulationEngine(this.world, {
       onStairTouch: (p) => this.descent.onStairTouch(p),
       onPlayerRespawn: (p, cp, info = {}) => {        if (p !== this.playerManager.localPlayer) return;
