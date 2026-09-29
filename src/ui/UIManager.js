@@ -638,6 +638,16 @@ export class UIManager {
     if (this.livesHud) {
       this.livesHud.style.display = visible ? 'flex' : 'none';
     }
+    if (!visible) {
+      this.setTutorialControlsVisible(false);
+    }
+  }
+
+  setTutorialControlsVisible(visible) {
+    const el = document.getElementById('tutorial-controls-hud');
+    if (el) {
+      el.style.display = visible ? 'flex' : 'none';
+    }
   }
 
   /**

@@ -204,12 +204,13 @@ class VoxelSandboxGame {
       this.ui.setCrosshairVisible(true);
       this.ui.setActionButtonsVisible(true);
       this.ui.setLivesVisible(true);
+      const lvl = this.world.levelRegistry.getCurrentLevel();
+      this.ui.setTutorialControlsVisible(lvl?.id === 'lobby_tutorial');
       const localInit = this.playerManager.localPlayer;
       localInit.resetLives();
       this.ui.updateLives(localInit.lives, localInit.maxLives);
       this.ui.setHasKey(false);
 
-      const lvl = this.world.levelRegistry.getCurrentLevel();
       this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}). Toca ⚙️ para invitar amigos o cambiar mapa.`, 5500);
     } catch (e) {
       this.ui.setStatus('Error al crear sala: ' + (e?.message || e));
@@ -239,6 +240,7 @@ class VoxelSandboxGame {
     local.vel.z = 0;
     this.ui.setLivesVisible(true);
     this.ui.updateLives(local.lives, local.maxLives);
+    this.ui.setTutorialControlsVisible(levelData.id === 'lobby_tutorial');
     // Nueva mazmorra, nuevas llaves: los cofres reaparecen cerrados
     for (const pl of this.playerManager.getAllPlayers()) {
       pl.clearKeys?.();
@@ -331,6 +333,8 @@ class VoxelSandboxGame {
     this.ui.setActionButtonsVisible(true);
     this.ui.hideMenu();
     this.ui.setLivesVisible(true);
+    const curLevel = this.world.levelRegistry.getCurrentLevel();
+    this.ui.setTutorialControlsVisible(curLevel?.id === 'lobby_tutorial');
     const localCli = this.playerManager.localPlayer;
     localCli.resetLives();
     this.ui.updateLives(localCli.lives, localCli.maxLives);

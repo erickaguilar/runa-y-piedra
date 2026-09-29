@@ -306,6 +306,98 @@
       animation:heartShake .4s ease-out}
     @keyframes heartShake{0%{transform:scale(1)}30%{transform:scale(1.5) rotate(-8deg)}60%{transform:scale(0.9)}100%{transform:scale(1)}}
     #hud-lives.invuln{border-color:rgba(56,189,248,.6);box-shadow:0 0 12px rgba(56,189,248,.35)}
+
+    /* Guía de controles bajo los corazones en la mazmorra tutorial */
+    #tutorial-controls-hud {
+      position: fixed;
+      top: calc(max(12px, env(safe-area-inset-top)) + 46px);
+      left: max(12px, env(safe-area-inset-left));
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 25;
+      pointer-events: none;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 8px 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+      animation: hintFadeIn 0.3s ease-out;
+    }
+    .hud-controls-title {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: #38bdf8;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .hud-control-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      line-height: 1.2;
+    }
+    .hud-control-desc {
+      font-weight: 600;
+      color: #94a3b8;
+      font-size: 11px;
+    }
+    .hud-kbd-group {
+      display: inline-flex;
+      gap: 2px;
+    }
+    .hud-kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 19px;
+      height: 19px;
+      padding: 0 4px;
+      font-size: 10px;
+      font-weight: 800;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #f8fafc;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-bottom: 2px solid #334155;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+    .hud-kbd-space {
+      min-width: 48px;
+    }
+    .hud-touch-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #e2e8f0;
+      background: rgba(51, 65, 85, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+    }
+    .hud-pill-action {
+      background: rgba(217, 119, 6, 0.85);
+      color: #fef3c7;
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+    .hud-pc-controls,
+    .hud-touch-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    body.input-pc .hud-pc-controls { display: flex; }
+    body.input-pc .hud-touch-controls { display: none !important; }
+    body.input-touch .hud-pc-controls { display: none !important; }
+    body.input-touch .hud-touch-controls { display: flex; }
+
     /* Velo de transición del portal entre mazmorras (fade negro + nombre, estilo Dark Souls) */
     #level-transition{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;
       align-items:center;justify-content:center;text-align:center;padding:24px;
@@ -471,6 +563,41 @@
   </button>
   <div class="crosshair" id="crosshair"></div>
   <div id="hud-lives" title="Vidas"></div>
+  <div id="tutorial-controls-hud" class="tutorial-controls-hud">
+    <div class="hud-controls-title">🎮 CONTROLES</div>
+    <!-- Versión PC -->
+    <div class="hud-pc-controls">
+      <div class="hud-control-row">
+        <span class="hud-kbd-group">
+          <span class="hud-kbd">W</span><span class="hud-kbd">A</span><span class="hud-kbd">S</span><span class="hud-kbd">D</span>
+        </span>
+        <span class="hud-control-desc">Moverse</span>
+      </div>
+      <div class="hud-control-row">
+        <span class="hud-kbd hud-kbd-space">Espacio</span>
+        <span class="hud-control-desc">Saltar</span>
+      </div>
+      <div class="hud-control-row">
+        <span class="hud-kbd">E</span><span style="opacity:0.5;font-size:9px;">/</span><span class="hud-kbd">F</span>
+        <span class="hud-control-desc">Acción / Bajar</span>
+      </div>
+    </div>
+    <!-- Versión Táctil (Móvil / Tablet) -->
+    <div class="hud-touch-controls">
+      <div class="hud-control-row">
+        <span class="hud-touch-pill">🕹️ Joystick</span>
+        <span class="hud-control-desc">Moverse</span>
+      </div>
+      <div class="hud-control-row">
+        <span class="hud-touch-pill">SALTAR</span>
+        <span class="hud-control-desc">Brincar</span>
+      </div>
+      <div class="hud-control-row">
+        <span class="hud-touch-pill hud-pill-action">USAR</span>
+        <span class="hud-control-desc">Acción / Bajar</span>
+      </div>
+    </div>
+  </div>
   <div id="level-transition"></div>
   <div id="hud-message"></div>
   <div id="pc-hint" class="input-hint">
