@@ -2,6 +2,35 @@ import Peer from 'peerjs';
 import * as Proto from './Protocol.js';
 import { NetworkStats } from './NetworkStats.js';
 
+const TURN_USERNAME = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TURN_USERNAME) || '520abdc449e671e900251fc6';
+const TURN_CREDENTIAL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TURN_CREDENTIAL) || 'ML25kOXmKOcfSLFO';
+
+export const ICE_SERVERS = [
+  { urls: 'stun:stun.relay.metered.ca:80' },
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  {
+    urls: 'turn:global.relay.metered.ca:80',
+    username: TURN_USERNAME,
+    credential: TURN_CREDENTIAL,
+  },
+  {
+    urls: 'turn:global.relay.metered.ca:80?transport=tcp',
+    username: TURN_USERNAME,
+    credential: TURN_CREDENTIAL,
+  },
+  {
+    urls: 'turn:global.relay.metered.ca:443',
+    username: TURN_USERNAME,
+    credential: TURN_CREDENTIAL,
+  },
+  {
+    urls: 'turns:global.relay.metered.ca:443?transport=tcp',
+    username: TURN_USERNAME,
+    credential: TURN_CREDENTIAL,
+  },
+];
+
 export class NetworkManager extends EventTarget {
   constructor() {
     super();
@@ -42,40 +71,23 @@ export class NetworkManager extends EventTarget {
     }
   }
 
-  /** Config ICE: STUN público + TURN opcional vía ?turn=openrelay o localStorage (dungeon_turn_url/user/pass). */
+  /** Config ICE: STUN/TURN de Metered por defecto + fallback Google STUN + override opcional vía localStorage. */
   getIceConfig() {
-    const iceServers = [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-    ];
+    const iceServers = [...ICE_SERVERS];
     try {
       if (typeof window !== 'undefined') {
-        const urlParams = new URLSearchParams(window.location.search);
-        const turnParam = urlParams.get('turn');
-        if (turnParam === 'openrelay' || turnParam === 'test') {
-          iceServers.push(
-            {
-              urls: 'turn:openrelay.metered.ca:80',
-              username: 'openrelayproject',
-              credential: 'openrelayproject',
-            },
-            {
-              urls: 'turn:openrelay.metered.ca:443',
-              username: 'openrelayproject',
-              credential: 'openrelayproject',
-            }
-          );
-        } else {
-          const url = localStorage.getItem('dungeon_turn_url');
-          const user = localStorage.getItem('dungeon_turn_user') || '';
-          const pass = localStorage.getItem('dungeon_turn_pass') || '';
-          if (url) {
-            iceServers.push({ urls: url, username: user || undefined, credential: pass || undefined });
-          }
+        const url = localStorage.getItem('dungeon_turn_url');
+        const user = localStorage.getItem('dungeon_turn_user') || '';
+        const pass = localStorage.getItem('dungeon_turn_pass') || '';
+        if (url) {
+          iceServers.unshift({ urls: url, username: user || undefined, credential: pass || undefined });
         }
       }
     } catch { /* localStorage / window no disponible */ }
-    return { iceServers };
+    return {
+      iceServers,
+      iceCandidatePoolSize: 10,
+    };
   }
 
   static translatePeerError(e) {
@@ -87,7 +99,7 @@ export class NetworkManager extends EventTarget {
       return 'PIN en uso, genera una sala nueva.';
     }
     if (type === 'network' || /network/i.test(String(type))) {
-      return 'Error de red o NAT restrictivo. Prueba en la misma Wi-Fi o configura un TURN.';
+      return 'Error de conexión de red o NAT restrictivo. Si están en la misma red Wi-Fi, inténtalo de nuevo.';
     }
     if (type === 'server-error' || /server/i.test(String(type))) {
       return 'Servidor de señalización no disponible. Reintenta en unos segundos.';
@@ -96,7 +108,7 @@ export class NetworkManager extends EventTarget {
   }
 
   _newPeer(roomIdOrOpts, opts = {}) {
-    let debugLevel = 0;
+    let debugLevel = 1;
     try {
       if (typeof window !== 'undefined') {
         const p = new URLSearchParams(window.location.search);
