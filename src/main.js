@@ -5,7 +5,6 @@ import { ChestRenderer } from './render/ChestRenderer.js';
 import { DoorRenderer } from './render/DoorRenderer.js';
 import { PedestalRenderer } from './render/PedestalRenderer.js';
 import { StairsRenderer } from './render/StairsRenderer.js';
-import { floorVariant } from './levels/LevelLoader.js';
 import { World } from './core/World.js';
 import { GameLoop } from './core/GameLoop.js';
 import { PlayerManager } from './entities/PlayerManager.js';
@@ -19,8 +18,10 @@ import { ClientReconciler } from './network/ClientReconciler.js';
 import { InputQueue } from './network/InputQueue.js';
 import { UIManager } from './ui/UIManager.js';
 import { escapeHtml } from './ui/Icons.js';
+import { InteractionController } from './controllers/InteractionController.js';
+import { DescentManager } from './controllers/DescentManager.js';
 import { soundManager } from './audio/SoundManager.js';
-import { NET_CONFIG, BLOCK_TYPES, PHYSICS_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from './config/constants.js';
+import { NET_CONFIG, PHYSICS_CONFIG, PLAYER_HEROES } from './config/constants.js';
 
 class VoxelSandboxGame {
   constructor() {
@@ -41,8 +42,10 @@ class VoxelSandboxGame {
     this.ensureStairsState();
     this.avatars = new AvatarRenderer(this.sceneManager.scene);
     this.playerManager = new PlayerManager();
+    this.interaction = new InteractionController(this);
+    this.descent = new DescentManager(this);
     this.simulation = new SimulationEngine(this.world, {
-      onStairTouch: (p) => this._onStairTouch(p),
+      onStairTouch: (p) => this.descent.onStairTouch(p),
       onPlayerRespawn: (p, cp, info = {}) => {        if (p !== this.playerManager.localPlayer) return;
         const { cause = 'void', lives = 3, maxLives = 3, gameOver = false, noPenalty = false } = info;
         if (noPenalty) {
@@ -83,7 +86,7 @@ class VoxelSandboxGame {
     this.input = new InputManager({
       canvas: this.canvas,
       onJump: () => {},
-      onInteract: () => this.handleInteract(),
+      onInteract: () => this.interaction.handleInteract(),
       onCameraToggle: () => this.toggleCameraMode(),
     });
     this.cameraMode = localStorage.getItem('dungeon_camera') || 'first';
@@ -93,14 +96,9 @@ class VoxelSandboxGame {
     this.snapshotSeq = 0;
     this.inputQueue = new InputQueue();
     this.reconciler = new ClientReconciler();
-    this.transitioning = false; // Ceremonia de portal en curso (bloquea re-activaciones)
     // Salto con perdón: buffer 150ms + coyote time 120ms
     this.jumpBufferTime = 0;
     this.lastGroundTime = 0;
-    // Descenso sincronizado por la escalinata
-    this.descentActive = false;
-    this.descentInitiator = null;
-    this.descentTimer = null;
 
     // Aplicar calidad gráfica guardada
     const savedDpr = parseFloat(localStorage.getItem('dungeon_dpr') || '1.5');
@@ -201,12 +199,9 @@ class VoxelSandboxGame {
     this.chestRenderer.loadChests(this.world.chests);
     this.doorRenderer.loadDoors(this.world.doors);
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
-    this.ensureStairsState();
+    this.interaction.ensureStairsState();
     // Reset del descenso sincronizado al cambiar de mapa
-    if (this.descentTimer) { clearTimeout(this.descentTimer); this.descentTimer = null; }
-    this.descentActive = false;
-    this.descentInitiator = null;
-    this.ui.hideDescent();
+    this.descent.reset();
 
     const spawn = levelData.spawn || { x: 12.0, y: 1.2, z: 4.5 };
     const local = this.playerManager.localPlayer;
@@ -224,7 +219,6 @@ class VoxelSandboxGame {
     }
     this.ui.setHasKey(false);
     // Fin de la transición del portal (el velo se retira sobre el nuevo mapa)
-    this.transitioning = false;
     this.ui.hideLevelTransition();
 
     // Limpiar buffers de reconciliación y cola de inputs para evitar replay cruzado de niveles
@@ -241,30 +235,6 @@ class VoxelSandboxGame {
     }
   }
 
-  /** Estado inicial de la escalinata: abierta desde el inicio o ya abierta en bloques recibidos. */
-  ensureStairsState() {
-    const rect = this.stairPitRect();
-    this.stairsRenderer.loadStairs(rect);
-    if (!rect) return;
-    const shouldOpen = !!rect.open || this.isPitOpenInBlocks(rect);
-    if (shouldOpen && !this.world.stairsOpen) {
-      if (!this.isPitOpenInBlocks(rect)) this.applyStairPit(rect);
-      this.tintStairPit(rect);
-      this.world.stairsOpen = true;
-      for (const w of this.world.stairwells) w.open = true;
-      this.stairsRenderer.setOpenInstant();
-    }
-  }
-
-  /** La fosa está abierta si el suelo y=0 fue retirado en todo el rectángulo. */
-  isPitOpenInBlocks(rect) {
-    for (let x = rect.x1; x <= rect.x2; x++) {
-      for (let z = rect.z1; z <= rect.z2; z++) {
-        if (this.world.get(x, 0, z) !== BLOCK_TYPES.AIR) return false;
-      }
-    }
-    return true;
-  }
 
   /** Alterna 1ª/3ª persona (tecla V o ajustes). Persiste la preferencia. */
   toggleCameraMode() {
@@ -289,239 +259,6 @@ class VoxelSandboxGame {
     return 'classic';
   }
 
-  /**
-   * Petición de portal (solo Host): valida distancia al altar y arranca la ceremonia
-   * para todos. Si hay siguiente mazmorra, viajan tras la ceremonia; si no, victoria.
-   */
-  requestPedestal(objIndex = 0, player = null) {
-    if (this.mode !== 'host' || this.transitioning) return false;
-    const obj = this.world.objectives?.[objIndex];
-    if (!obj) return false;
-    if (player) {
-      const dist = Math.hypot(player.pos.x - obj.x, player.pos.z - obj.z);
-      if (dist > (obj.triggerRadius || 3.2) + 0.5) {
-        console.warn(`[AntiCheat] Activación de altar rechazada: ${player.name} fuera de rango (${dist.toFixed(2)}m)`);
-        return false;
-      }
-    }
-
-    const levels = this.world.levelRegistry.getAllLevels();
-    const curIdx = levels.findIndex(l => l.id === this.world.levelRegistry.getCurrentLevel()?.id);
-    const next = levels[curIdx + 1] || null;
-    if (this.world.stairsOpen) {
-      this.ui.showNarrativeMessage('La escalinata ya desciende. ¡Bajad!', 3000);
-      return true;
-    }
-    const evt = {
-      index: objIndex,
-      isLast: !next,
-      nextLevelId: next?.id || '',
-      nextName: next?.name || '',
-    };
-    this.network.broadcast(Proto.serializePedestalEvent(evt.index, evt.nextLevelId, evt.nextName, evt.isLast));
-    this.startPortalCeremony(evt);
-    return true;
-  }
-
-  /** Rectángulo de fosa de la escalinata del nivel actual (o null). */
-  stairPitRect() {
-    return this.world.stairwells?.[0] || null;
-  }
-
-  /**
-   * Apertura de la losa sellada (solo Host): valida cercanía y la abre para todos.
-   * La fosa con escalinata hasta y=-5 queda transitable y activa el descenso.
-   */
-  requestStairsOpen(player = null) {
-    if (this.mode !== 'host' || this.transitioning || this.world.stairsOpen) return false;
-    const w = this.world.stairwells?.[0];
-    if (!w) return false;
-    if (player) {
-      const qx = Math.min(Math.max(player.pos.x, w.x1), w.x2 + 1);
-      const qz = Math.min(Math.max(player.pos.z, w.z1), w.z2 + 1);
-      const dist = Math.hypot(player.pos.x - qx, player.pos.z - qz);
-      if (dist > 3.2) {
-        console.warn(`[AntiCheat] Apertura de losa rechazada: ${player.name} fuera de rango (${dist.toFixed(2)}m)`);
-        return false;
-      }
-    }
-    this.network.broadcast(Proto.serializeStairsOpen());
-    this.openStairsCeremony();
-    return true;
-  }
-
-  /** Ceremonia local de apertura: fosa real, losa animada, sonido y mensaje. */
-  openStairsCeremony() {
-    if (this.transitioning) return;
-    this.transitioning = true;
-    const rect = this.stairPitRect();
-    if (rect) {
-      this.applyStairPit(rect);
-      this.tintStairPit(rect);
-      this.world.stairsOpen = true;
-      for (const w of this.world.stairwells) w.open = true;
-    }
-    this.stairsRenderer.open();
-    this.soundManager.playSlabGrind();
-    this.ui.showNarrativeMessage('🪨 ¡La losa cede! Una escalinata desciende a la oscuridad. ¡Bajad!', 6000);
-    setTimeout(() => { this.transitioning = false; }, 2600);
-  }
-
-  /** Oscurece el pozo (serpentina en degradado + fondo y muros casi negros). */
-  tintStairPit(rect) {
-    if (!rect) return;
-    const BOTTOM = WORLD_CONFIG.MIN_Y ?? -8;
-    const shade = (y) => {
-      const f = Math.min(1, Math.max(0, (-1 - y) / (-1 - BOTTOM)));
-      const v = Math.round(74 - f * (74 - 11));
-      return (v << 16) | (v << 8) | v;
-    };
-    const PATH = [
-      [0, 0, -1], [1, 0, -2], [1, 1, -3],
-      [0, 1, -4], [0, 2, -5], [1, 2, -6],
-    ];
-    for (const [dx, dz, y] of PATH) {
-      this.voxelMap.setTint(rect.x1 + dx, y, rect.z1 + dz, shade(y));
-    }
-    for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
-      for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
-        for (let y = BOTTOM; y <= -1; y++) {
-          if (this.world.get(x, y, z) === BLOCK_TYPES.WALL) {
-            this.voxelMap.setTint(x, y, z, 0x141414);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Abre la fosa real en el mundo: retira el suelo del rectángulo 2x3 y talla una
-   * serpentina descendente con colisión (un peldaño de 1 m por celda, 6 peldaños
-   * hasta cima -5.0), con macizo, altura libre y pozo revestido de muros.
-   * Determinista: host y clientes aplican lo mismo.
-   */
-  applyStairPit(rect) {
-    if (!rect) return;
-    const BOTTOM = WORLD_CONFIG.MIN_Y ?? -8;
-    // Recorrido en serpentina dentro del hueco 2x3 (dx,dz relativos + bloque y)
-    const PATH = [
-      { dx: 0, dz: 0, y: -1 },
-      { dx: 1, dz: 0, y: -2 },
-      { dx: 1, dz: 1, y: -3 },
-      { dx: 0, dz: 1, y: -4 },
-      { dx: 0, dz: 2, y: -5 },
-      { dx: 1, dz: 2, y: -6 },
-    ];
-    const setCell = (x, y, z, type) => {
-      this.world.set(x, y, z, type);
-      this.voxelMap.removeBlock(x, y, z);
-      if (type !== BLOCK_TYPES.AIR) this.voxelMap.addBlock(x, y, z, type);
-    };
-    // 1. Retirar suelo y=0 del rectángulo
-    for (let x = rect.x1; x <= rect.x2; x++) {
-      for (let z = rect.z1; z <= rect.z2; z++) {
-        setCell(x, 0, z, BLOCK_TYPES.AIR);
-      }
-    }
-    // 2. Macizar el hueco hasta el fondo
-    for (let x = rect.x1; x <= rect.x2; x++) {
-      for (let z = rect.z1; z <= rect.z2; z++) {
-        for (let y = BOTTOM; y <= -1; y++) setCell(x, y, z, BLOCK_TYPES.WALL);
-      }
-    }
-    // 3. Revestir el pozo con muros (anillo expandido, hasta el fondo, solo aire)
-    for (let x = rect.x1 - 1; x <= rect.x2 + 1; x++) {
-      for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
-        const inside = x >= rect.x1 && x <= rect.x2 && z >= rect.z1 && z <= rect.z2;
-        if (inside) continue;
-        for (let y = BOTTOM; y <= -1; y++) {
-          if (this.world.get(x, y, z) === BLOCK_TYPES.AIR) {
-            setCell(x, y, z, BLOCK_TYPES.WALL);
-          }
-        }
-      }
-    }
-    // 4. Tallar peldaños + altura libre (2 m sobre cada peldaño)
-    for (const s of PATH) {
-      const x = rect.x1 + s.dx;
-      const z = rect.z1 + s.dz;
-      setCell(x, s.y, z, floorVariant(x, z));
-      for (let y = s.y + 1; y <= -1; y++) setCell(x, y, z, BLOCK_TYPES.AIR);
-    }
-  }
-
-  /** Ceremonia local del portal: altar y (si no es el final) apertura de la escalinata. */
-  startPortalCeremony({ isLast = false } = {}) {
-    if (this.transitioning) return;
-    this.transitioning = true;
-    this.pedestalRenderer.activate();
-    this.soundManager.playPedestal();
-
-    if (isLast) {
-      this.ui.showLevelTransition(
-        '🏆 ¡Mazmorras Conquistadas!',
-        'Habéis bendecido todos los altares. ¡Leyendas de la mazmorra cooperativa!',
-        { victory: true, autoHideMs: 6000 }
-      );
-      setTimeout(() => { this.transitioning = false; }, 6000);
-      return;
-    }
-
-    // Delegar la apertura (gestiona su propio flag y temporizador)
-    this.transitioning = false;
-    this.openStairsCeremony();
-  }
-
-  // ================= DESCENSO SINCRONIZADO (8s, estilo Deep Rock) =================
-
-  _onStairTouch(p) {
-    if (this.mode !== 'host') return;
-    if (!this.world.stairsOpen || this.transitioning) return;
-    if (!this.descentActive) {
-      this.startDescentCountdown(p);
-    } else if (p !== this.descentInitiator) {
-      this.goNow();
-    }
-  }
-
-  startDescentCountdown(initiator) {
-    if (this.descentActive) return;
-    this.descentActive = true;
-    this.descentInitiator = initiator;
-    const deadline = Date.now() + 8000;
-    this.network.broadcast(Proto.serializeDescentStart(initiator.id, initiator.name, deadline));
-    this.ui.showDescentCountdown({
-      byName: initiator.name, endsAtMs: deadline, onNow: () => this.goNow(),
-    });
-    this.ui.showNarrativeMessage(`🌀 ¡${escapeHtml(initiator.name)} desciende! 8s para bajar juntos...`, 4000);
-    this.descentTimer = setTimeout(() => this.goNow(), 8000);
-  }
-
-  /** Transición inmediata de toda la party: fade negro + siguiente nivel. */
-  goNow() {
-    if (!this.descentActive) return;
-    if (this.descentTimer) { clearTimeout(this.descentTimer); this.descentTimer = null; }
-    this.descentActive = false;
-    this.descentInitiator = null;
-
-    const levels = this.world.levelRegistry.getAllLevels();
-    const curIdx = levels.findIndex(l => l.id === this.world.levelRegistry.getCurrentLevel()?.id);
-    const next = levels[curIdx + 1] || null;
-    if (!next) return;
-    this.network.broadcast(Proto.serializeDescentGo(next.id, next.name));
-    this.beginDescentFade(next.name);
-    if (this.mode === 'host') {
-      setTimeout(() => {
-        if (this.mode === 'host') this.switchLevel(next.id, true);
-      }, 1600);
-    }
-  }
-
-  beginDescentFade(nextName = '') {
-    this.ui.hideDescent();
-    this.ui.showLevelTransition(nextName || 'Descendiendo...', 'Descendiendo a las profundidades…');
-    this.soundManager.playDescentEcho();
-  }
 
   async joinRoom(pin, profile = {}) {
     if (!/^\d{4}$/.test(pin)) {
@@ -555,159 +292,6 @@ class VoxelSandboxGame {
     }
   }
 
-  handleInteract() {
-    if (!this.mode) return;
-    const local = this.playerManager.localPlayer;
-    const interaction = this.raycaster.getTargetInteraction(local.pos);
-    if (!interaction) {
-      this.ui.showNarrativeMessage('Nada con lo que interactuar cerca.', 2000);
-      return;
-    }
-
-    if (interaction.type === 'door') {
-      const doorId = interaction.doorId || 1;
-      const isOpen = doorId === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
-      if (isOpen) return;
-
-      if (this.mode === 'host') {
-        this.requestOpenDoor(doorId, local);
-      } else {
-        // Pre-chequeo local de llave para feedback inmediato sin tráfico de red
-        const door = this.world.doors?.find(d => d.id === doorId);
-        if (door?.requiresKey && !local.hasKey?.(door.requiresKey)) {
-          this.doorLockedFeedback(door);
-          return;
-        }
-        this.network.sendToHost(Proto.serializeDoorOpen(doorId));
-        this.ui.showNarrativeMessage(`Abriendo Puerta ${doorId}...`, 2500);
-      }
-    } else if (interaction.type === 'chest') {
-      const chestId = interaction.chestId || 1;
-      if (this.chestRenderer.isChestOpen(chestId)) return;
-
-      if (this.mode === 'host') {
-        this.openChest(chestId, local);
-      } else {
-        this.network.sendToHost(Proto.serializeChestOpen(chestId));
-        this.ui.showNarrativeMessage('Abriendo cofre...', 1500);
-      }
-    } else if (interaction.type === 'stairs') {
-      if (this.world.stairsOpen) return;
-      if (this.transitioning) return;
-      if (this.mode === 'host') {
-        this.requestStairsOpen(local);
-      } else {
-        this.network.sendToHost(Proto.serializeStairsReq());
-        this.ui.showNarrativeMessage('Empujando la losa sellada...', 1500);
-      }
-    } else if (interaction.type === 'pedestal') {
-      if (this.transitioning) return;
-      const objIndex = interaction.objIndex ?? 0;
-      if (this.mode === 'host') {
-        this.requestPedestal(objIndex, local);
-      } else {
-        this.network.sendToHost(Proto.serializePedestalRequest(objIndex));
-        this.ui.showNarrativeMessage('Activando el altar...', 1500);
-      }
-    }
-  }
-
-  openChest(chestId = 1, opener = null) {
-    const opened = this.chestRenderer.openChest(chestId);
-    if (!opened) return;
-
-    const chestData = this.world.chests?.find(c => c.id === chestId);
-    if (chestData) chestData.isOpen = true;
-
-    const local = this.playerManager.localPlayer;
-    if (chestData && local) {
-      this.soundManager.playChestOpen({ x: chestData.x, y: chestData.y, z: chestData.z }, local.pos);
-    } else {
-      this.soundManager.playChestOpen();
-    }
-
-    if (this.mode === 'host') {
-      this.network.broadcast(Proto.serializeChestOpen(chestId));
-      // Otorgamiento autoritativo de llave al jugador que abrió el cofre
-      if (chestData?.givesKey && opener?.addKey) {
-        if (opener.addKey(chestData.givesKey)) {
-          this.network.broadcast(Proto.serializeKeyUpdate(opener.id, chestData.givesKey));
-          if (opener === local) {
-            this.onLocalKeyReceived(chestData);
-          }
-        }
-      }
-    }
-
-    const msg = chestData?.message || `📦 ¡Has abierto el ${chestData?.name || 'Cofre'}! Recompensa: ${chestData?.reward || 'Tesoros de la Mazmorra'}`;
-    this.ui.showNarrativeMessage(msg, 5000);
-  }
-
-  /** Feedback local al recibir una llave: insignia del HUD + sonido. */
-  onLocalKeyReceived(chestData = {}) {
-    this.ui.setHasKey(true);
-    this.soundManager.playKeyPickup();
-    const keyName = chestData.keyName || 'Llave del Santuario';
-    const door = this.world.doors?.find(d => d.requiresKey === chestData.givesKey);
-    const doorMsg = door?.name ? ` Ahora puedes abrir: ${door.name}.` : '';
-    this.ui.showNarrativeMessage(`🗝️ ¡${keyName} conseguida!${doorMsg}`, 4500);
-  }
-
-  /** Puerta bloqueada por falta de llave: mensaje + sonido metálico (solo jugador local). */
-  doorLockedFeedback(door) {
-    const msg = door?.lockedMessage || '🔒 ¡Puerta sellada! Necesitas una llave.';
-    this.soundManager.playLocked();
-    this.ui.showNarrativeMessage(msg, 4000);
-  }
-
-  /**
-   * Apertura validada: verifica llave requerida antes de abrir.
-   * Retorna true si se abrió, false si está bloqueada o ya abierta.
-   */
-  requestOpenDoor(doorId = 1, player = null) {
-    const isOpen = doorId === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
-    if (isOpen) return false;
-
-    const door = this.world.doors?.find(d => d.id === doorId);
-    const keyId = door?.requiresKey;
-    if (keyId && !(player?.hasKey?.(keyId))) {
-      // Solo el jugador local recibe el aviso; los remotos ya fueron filtrados en su cliente
-      if (player === this.playerManager.localPlayer) {
-        this.doorLockedFeedback(door);
-      }
-      return false;
-    }
-
-    this.openDoor(doorId);
-    return true;
-  }
-
-  openDoor(doorId = 1) {
-    const isOpen = doorId === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
-    if (isOpen) return;
-
-    this.world.openDoor(doorId);
-    this.voxelMap.openDoor(doorId);
-    this.doorRenderer.openDoor(doorId);
-
-    const door = this.world.doors?.find(d => d.id === doorId);
-    const doorZ = door?.z ?? (doorId === 1 ? 11 : 24);
-    const local = this.playerManager.localPlayer;
-    if (local) {
-      this.soundManager.playDoorOpen({ x: 12.0, y: 2.0, z: doorZ + 0.5 }, local.pos);
-    } else {
-      this.soundManager.playDoorOpen();
-    }
-
-    const msg = door?.openMessage || (doorId === 1
-      ? '🚪 ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!'
-      : '🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.');
-    this.ui.showNarrativeMessage(msg, 6000);
-
-    if (this.mode === 'host') {
-      this.network.broadcast(Proto.serializeDoorOpen(doorId));
-    }
-  }
 
   initNetworkEvents() {
     this.network.addEventListener('peer-joined', (e) => {
@@ -816,118 +400,10 @@ class VoxelSandboxGame {
       this.inputQueue.enqueue(e.detail.conn, e.detail);
     });
 
-    this.network.addEventListener('door-open', (e) => {
-      const doorId = e.detail?.doorId || 1;
-      const conn = e.detail?.conn;
+    this.interaction.bindNetworkEvents();
 
-      // Validación autoritativa en el Host: distancia euclidiana <= 3.5m (tolerancia de jitter)
-      let requester = null;
-      if (this.mode === 'host' && conn) {
-        requester = this.playerManager.getPlayerByConnection(conn);
-        if (!requester) return;
-
-        const door = this.world.doors?.find(d => d.id === doorId);
-        const doorZ = door?.z ?? (doorId === 1 ? 11 : 24);
-        const doorCenterX = 12.0;
-        const doorCenterZ = doorZ + 0.5;
-        const dist = Math.hypot(requester.pos.x - doorCenterX, requester.pos.z - doorCenterZ);
-        if (dist > 3.5) {
-          console.warn(`[AntiCheat] Apertura de puerta ${doorId} rechazada: jugador ${requester.name} fuera de rango (${dist.toFixed(2)}m > 3.5m)`);
-          return;
-        }
-
-        // Validación de llave en el Host (el cliente ya pre-chequeó, esto es anti-trampas)
-        this.requestOpenDoor(doorId, requester);
-        return;
-      }
-
-      this.openDoor(doorId);
-    });
-
-    this.network.addEventListener('chest-open', (e) => {
-      const chestId = e.detail?.chestId || 1;
-      const conn = e.detail?.conn;
-
-      // Validación autoritativa en el Host: distancia euclidiana al cofre <= 3.2m
-      let opener = null;
-      if (this.mode === 'host' && conn) {
-        opener = this.playerManager.getPlayerByConnection(conn);
-        if (!opener) return;
-
-        const chest = this.world.chests?.find(c => c.id === chestId);
-        if (chest) {
-          const dist = Math.hypot(opener.pos.x - chest.x, opener.pos.z - chest.z);
-          if (dist > 3.2) {
-            console.warn(`[AntiCheat] Apertura de cofre ${chestId} rechazada: jugador ${opener.name} fuera de rango (${dist.toFixed(2)}m > 3.2m)`);
-            return;
-          }
-        }
-      }
-
-      this.openChest(chestId, opener);
-    });
-
-    this.network.addEventListener('pedestal', (e) => {
-      const detail = e.detail || {};
-      if (this.mode === 'host') {
-        // Petición de un cliente: validar solicitante y arrancar ceremonia global
-        if (!detail.isRequest) return;
-        if (this.transitioning) return;
-        const player = this.playerManager.getPlayerByConnection(detail.conn);
-        if (!player) return;
-        this.requestPedestal(detail.index ?? 0, player);
-      } else if (this.mode === 'client') {
-        // Ceremonia retransmitida por el Host: vivirla en local
-        if (detail.isRequest) return;
-        this.startPortalCeremony(detail);
-      }
-    });
-
-    this.network.addEventListener('stairs', (e) => {
-      const detail = e.detail || {};
-      if (this.mode === 'host') {
-        if (detail.kind !== Proto.STAIRS_KIND.REQ || this.transitioning) return;
-        const player = this.playerManager.getPlayerByConnection(detail.conn);
-        if (!player) return;
-        this.requestStairsOpen(player);
-      } else if (this.mode === 'client') {
-        if (detail.kind !== Proto.STAIRS_KIND.OPEN) return;
-        this.openStairsCeremony();
-      }
-    });
-
-    this.network.addEventListener('descent', (e) => {      const detail = e.detail || {};
-      if (this.mode === 'host') {
-        // "Bajar ya" de un cliente: transición inmediata si hay cuenta atrás
-        if (detail.kind === Proto.DESCENT_KIND.NOW && this.descentActive) {
-          this.goNow();
-        }
-        return;
-      }
-      if (this.mode !== 'client') return;
-      if (detail.kind === Proto.DESCENT_KIND.START) {
-        this.descentActive = true;
-        this.ui.showDescentCountdown({
-          byName: detail.byName || 'Un compañero',
-          endsAtMs: detail.deadline || (Date.now() + 8000),
-          onNow: () => this.network.sendToHost(Proto.serializeDescentNow()),
-        });
-        this.ui.showNarrativeMessage(`🌀 ¡${escapeHtml(detail.byName || 'Un compañero')} desciende! 8s para bajar juntos...`, 4000);
-      } else if (detail.kind === Proto.DESCENT_KIND.GO) {
-        this.descentActive = false;
-        this.beginDescentFade(detail.nextName || '');
-      }
-    });
-
-    this.network.addEventListener('key-update', (e) => {      if (this.mode !== 'client') return;
-      const { playerId, keyId } = e.detail || {};
-      if (!keyId) return;
-      const player = this.playerManager.getPlayerById(playerId);
-      if (!player) return;
-      if (player.addKey(keyId) && player === this.playerManager.localPlayer) {
-        const chestData = this.world.chests?.find(c => c.givesKey === keyId);
-        this.onLocalKeyReceived(chestData || {});
-      }
+    this.network.addEventListener('descent', (e) => {
+      this.descent.onDescendEvent(e.detail || {});
     });
 
     this.network.addEventListener('snapshot', (e) => {
@@ -955,7 +431,7 @@ class VoxelSandboxGame {
       this.chestRenderer.loadChests(this.world.chests);
       this.doorRenderer.loadDoors(this.world.doors);
       this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
-      this.ensureStairsState();
+      this.interaction.ensureStairsState();
       if (this.world.isDoor1Open) {
         this.doorRenderer.setOpenInstant(1);
       }
