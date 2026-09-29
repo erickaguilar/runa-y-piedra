@@ -275,7 +275,7 @@ export class AvatarRenderer {
   }
 
   static colorFor(id) {
-    return PLAYER_PALETTE[id % PLAYER_PALETTE.length];
+    return PLAYER_PALETTE[Math.abs(Number(id) || 0) % PLAYER_PALETTE.length];
   }
 
   static createNameSprite(name, color = '#38bdf8') {

@@ -166,6 +166,7 @@ class VoxelSandboxGame {
     try {
       const pin = await this.network.host();
       this.mode = 'host';
+      this.playerManager.setLocalId(0);
 
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const hostAddr = isLocal ? (localStorage.getItem('dungeon_lan_ip') || '192.168.100.28:5173') : window.location.host;

@@ -2,8 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PlayerManager } from '../src/entities/PlayerManager.js';
 
-test('jugador local id 0 y remotos incrementales', () => {
+test('jugador local id -1 inicial y asignable a 0 (host) o 1+ (cliente)', () => {
   const pm = new PlayerManager();
+  assert.equal(pm.localPlayer.id, -1, 'el jugador local debe arrancar con id -1 (no asignado)');
+  pm.setLocalId(0); // Anfitrión
   assert.equal(pm.localPlayer.id, 0);
   const c1 = {}, c2 = {};
   const r1 = pm.addRemotePlayer(c1);

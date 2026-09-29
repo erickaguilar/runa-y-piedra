@@ -25,17 +25,21 @@ export class NetworkManager extends EventTarget {
         this.broadcast(Proto.serializeHostClosing(0));
       }
     };
-    window.addEventListener('beforeunload', sendHostClosing);
-    window.addEventListener('pagehide', sendHostClosing);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden' && this.isHost) {
-        setTimeout(() => {
-          if (document.visibilityState === 'hidden') {
-            sendHostClosing();
-          }
-        }, 2500);
-      }
-    });
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', sendHostClosing);
+      window.addEventListener('pagehide', sendHostClosing);
+    }
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && this.isHost) {
+          setTimeout(() => {
+            if (document.visibilityState === 'hidden') {
+              sendHostClosing();
+            }
+          }, 2500);
+        }
+      });
+    }
   }
 
   /** Config ICE: STUN público + TURN opcional vía localStorage (dungeon_turn_url/user/pass). */

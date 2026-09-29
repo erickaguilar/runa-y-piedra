@@ -3,9 +3,9 @@ import { WORLD_CONFIG } from '../config/constants.js';
 
 export class PlayerManager {
   constructor() {
-    this.localPlayer = new Player(0, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, WORLD_CONFIG.SPAWN_Z);
+    this.localPlayer = new Player(-1, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, WORLD_CONFIG.SPAWN_Z);
     this.players = new Map();
-    this.players.set(0, this.localPlayer);
+    this.players.set(-1, this.localPlayer);
 
     this.connToPlayerId = new Map();
     this.nextPlayerId = 1;

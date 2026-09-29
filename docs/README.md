@@ -96,8 +96,12 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
 
 15. [**15. Flujo de Trabajo Git y Creación de Nuevos Niveles de Mazmorra**](./15-flujo-de-trabajo-git-y-creacion-de-niveles.md)
     - Metodología de ramificación GitFlow (`main`, `develop`, `feature/*`, `hotfix/*`).
-    - Guía paso a paso para diseñar escenarios en JSON (`src/levels/data/`) y registrarlos en `LevelRegistry`.
     - Protocolo de validación obligatoria con `npm test` y compilación `npm run build`.
     - Convención de commits semánticos y publicación de versiones (*releases*).
+
+16. [**Smoke Test y Protocolo de Verificación Multijugador**](./smoke-test.md)
+    - Protocolo de 7 pasos para validación end-to-end de partidas cooperativas.
+    - Metodología de pruebas de latencia y fluctuación con emulación de red (Slow 4G).
+    - Lista de control (*Release Checklist*) obligatoria previa a fusión en `main`.
 
 
