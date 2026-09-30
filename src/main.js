@@ -22,6 +22,8 @@ import { InteractionController } from './controllers/InteractionController.js';
 import { DescentManager } from './controllers/DescentManager.js';
 import { soundManager } from './audio/SoundManager.js';
 import { InputMode } from './ui/InputMode.js';
+import { NET_CONFIG, PHYSICS_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from './config/constants.js';
+
 // Auditoría automática de eventos de red WebRTC para diagnóstico en tiempo real
 if (typeof window !== 'undefined') {
   const AUDIT_EVENTS = ['input', 'snapshot', 'block-edit', 'init', 'door-open', 'chest-open', 'peer-joined', 'peer-left', 'player-meta'];
