@@ -250,7 +250,10 @@ export class NetworkManager extends EventTarget {
     // Enlazar inmediatamente para que conn.peer esté disponible de inmediato
     this._trackLink(conn, isHot ? 'hot' : 'safe');
 
-    conn.on('open', () => {
+    let opened = false;
+    const handleOpen = () => {
+      if (opened) return;
+      opened = true;
       console.log(`[WebRTC] ✅ DataChannel ABIERTO [${label}] con peer:`, conn.peer);
       const link = this._trackLink(conn, isHot ? 'hot' : 'safe');
       if (isHot) {
@@ -260,10 +263,18 @@ export class NetworkManager extends EventTarget {
         }
         return;
       }
-      this.connections.push(conn);
+      if (!this.connections.includes(conn)) {
+        this.connections.push(conn);
+      }
       this.stats.setMode('HOST', this.connections.length);
       this.dispatchEvent(new CustomEvent('peer-joined', { detail: { conn } }));
-    });
+    };
+
+    if (conn.open) {
+      handleOpen();
+    } else {
+      conn.on('open', handleOpen);
+    }
     conn.on('data', (data) => this._handleIncoming(data, conn));
     conn.on('close', () => {
       console.log(`[WebRTC] 🔌 DataChannel CERRADO [${label}] con peer:`, conn?.peer);
@@ -344,7 +355,10 @@ export class NetworkManager extends EventTarget {
           console.warn('[WebRTC] ⚠️ Error en DataChannel hot (fallback a safe activo):', e);
         });
 
-        safe.on('open', () => {
+        let safeOpened = false;
+        const handleSafeOpen = () => {
+          if (safeOpened) return;
+          safeOpened = true;
           console.log('[WebRTC] ✅ DataChannel ABIERTO con el host (game-safe)');
           this.hostConn = safe;
           this._trackLink(safe, 'safe');
@@ -358,13 +372,28 @@ export class NetworkManager extends EventTarget {
           }, 1000);
 
           done(resolve);
-        });
+        };
 
-        hot.on('open', () => {
+        if (safe.open) {
+          handleSafeOpen();
+        } else {
+          safe.on('open', handleSafeOpen);
+        }
+
+        let hotOpened = false;
+        const handleHotOpen = () => {
+          if (hotOpened) return;
+          hotOpened = true;
           console.log('[WebRTC] ✅ DataChannel ABIERTO con el host (game-hot)');
           this.hostHotConn = hot;
           this._trackLink(hot, 'hot');
-        });
+        };
+
+        if (hot.open) {
+          handleHotOpen();
+        } else {
+          hot.on('open', handleHotOpen);
+        }
         hot.on('close', () => {
           console.log('[WebRTC] 🔌 DataChannel hot cerrado (fallback a safe)');
           if (this.hostHotConn === hot) this.hostHotConn = null;
