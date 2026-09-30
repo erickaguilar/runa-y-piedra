@@ -134,6 +134,7 @@ class VoxelSandboxGame {
     this.initGameLoop();
     this.initSettings();
     this.initUI();
+    if (typeof window !== 'undefined') window.__game = this;
   }
 
   initSettings() {
@@ -278,10 +279,10 @@ class VoxelSandboxGame {
 
   /** Abre o cierra el modal de configuración (tecla Escape). */
   toggleSettings() {
-    if (document.getElementById('modal-settings')) {
+    if (this.ui.isSettingsOpen || document.getElementById('modal-settings')) {
       this.ui.closeSettingsModal();
     } else if (this.mode) {
-      this.ui.showSettings();
+      this.ui.openSettingsModal();
     }
   }
 
@@ -439,11 +440,18 @@ class VoxelSandboxGame {
         }
       } else if (this.mode === 'client') {
         this.playerManager.updatePlayerMeta(playerId, name, colorIndex);
-        this.avatars.setMetadata(playerId, name, hero.hex, hero.id || null);
-        if (playerId === 0) {
-          this.ui.showNarrativeMessage(`🏰 Mazmorra de ${escapeHtml(name)} (${hero.name})`, 4000);
-        } else if (playerId !== this.playerManager.localPlayer.id) {
-          this.ui.showNarrativeMessage(`🛡️ ¡${escapeHtml(name)} (${hero.name}) se unió!`, 4000);
+        if (playerId !== this.playerManager.localPlayer.id) {
+          this.avatars.setMetadata(playerId, name, hero.hex, hero.id || null);
+          const av = this.avatars.avatars.get(playerId);
+          if (av) {
+            av.isLocal = false;
+            av.mesh.visible = true;
+          }
+          if (playerId === 0) {
+            this.ui.showNarrativeMessage(`🏰 Mazmorra de ${escapeHtml(name)} (${hero.name})`, 4000);
+          } else {
+            this.ui.showNarrativeMessage(`🛡️ ¡${escapeHtml(name)} (${hero.name}) se unió!`, 4000);
+          }
         }
         this.ui.updatePartyList(this.playerManager.getAllPlayers());
       }
@@ -473,6 +481,9 @@ class VoxelSandboxGame {
           const remoteAv = this.avatars.avatars.get(p.id);
           if (!remoteAv) {
             this.avatars.setTarget(p.id, p.x, p.y, p.z, p.yaw);
+          } else {
+            remoteAv.isLocal = false;
+            remoteAv.mesh.visible = true;
           }
         }
       }
@@ -524,12 +535,10 @@ class VoxelSandboxGame {
         local.visualPos.z = spawnZ;
       }
 
-      // El avatar 0 es el anfitrión: debe ser visible y no considerarse local
-      const hostAvatar = this.avatars.avatars.get(0);
-      if (hostAvatar) {
-        hostAvatar.isLocal = false;
-        hostAvatar.mesh.visible = true;
-      }
+      // El avatar 0 es el anfitrión: asegurar que exista y sea visible
+      const hostAvatar = this.avatars.ensure(0);
+      hostAvatar.isLocal = false;
+      hostAvatar.mesh.visible = true;
 
       // Enviar metadatos oficiales del jugador con su ID asignado al host
       this.network.sendToHost(Proto.serializePlayerMeta(local.id, local.colorIndex, local.name));

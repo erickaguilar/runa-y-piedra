@@ -181,6 +181,18 @@ export class UIManager {
     }
   }
 
+  toggleSettings() {
+    this.toggleSettingsModal();
+  }
+
+  openSettings() {
+    this.openSettingsModal();
+  }
+
+  showSettings() {
+    this.openSettingsModal();
+  }
+
   openSettingsModal() {
     this.isSettingsOpen = true;
     this.setCrosshairVisible(false);
@@ -240,7 +252,7 @@ export class UIManager {
     // (Selección de mazmorra eliminada: la progresión es lineal por escalinatas)
 
     this.uiEl.innerHTML = `
-      <div class="menu" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
+      <div id="modal-settings" class="menu" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
         <div class="settings-header">
           <h2 style="display:flex;align-items:center;gap:6px;">${renderIcon('settings', { size: 18, color: '#cbd5e1' })} CONFIGURACIÓN</h2>
           <button id="btn-close-settings" class="close-x-btn" title="Cerrar">${renderIcon('x', { size: 18, color: 'currentColor' })}</button>
@@ -490,6 +502,10 @@ export class UIManager {
     } else if (this.lastMenuParams) {
       this.showMenu(this.lastMenuParams);
     }
+  }
+
+  closeSettings() {
+    this.closeSettingsModal();
   }
 
   async shareLink(url, pin) {
