@@ -14,11 +14,26 @@ export class DescentManager {
     this.active = false;
     this.initiator = null;
     this.timer = null;
+    this.transitioning = false;
+  }
+
+  freezeAllPlayers() {
+    const all = this.game.playerManager.getAllPlayers();
+    for (const p of all) {
+      p.vel.x = 0;
+      p.vel.y = 0;
+      p.vel.z = 0;
+      p.inputForward = 0;
+      p.inputRight = 0;
+      p.clearKeys?.();
+      p.invulnTicks = Math.max(p.invulnTicks || 0, 90);
+    }
   }
 
   onStairTouch(p) {
     const game = this.game;
     if (game.mode !== 'host') return;
+    if (this.transitioning) return;
     if (!game.world.stairsOpen || game.interaction.isTransitioning()) return;
     if (!this.active) {
       this.startCountdown(p);
@@ -28,7 +43,7 @@ export class DescentManager {
   }
 
   startCountdown(initiator) {
-    if (this.active) return;
+    if (this.active || this.transitioning) return;
     this.active = true;
     this.initiator = initiator;
     const deadline = Date.now() + 8000;
@@ -42,16 +57,22 @@ export class DescentManager {
 
   /** Transición inmediata de toda la party: fade negro + siguiente nivel. */
   goNow() {
-    if (!this.active) return;
+    if (this.transitioning) return;
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
     this.active = false;
     this.initiator = null;
+    this.transitioning = true;
 
     const game = this.game;
     const levels = game.world.levelRegistry.getAllLevels();
     const curIdx = levels.findIndex(l => l.id === game.world.levelRegistry.getCurrentLevel()?.id);
     const next = levels[curIdx + 1] || null;
-    if (!next) return;
+    if (!next) {
+      this.transitioning = false;
+      return;
+    }
+
+    this.freezeAllPlayers();
     game.network.broadcast(Proto.serializeDescentGo(next.id, next.name));
     this.beginFade(next.name);
     if (game.mode === 'host') {
@@ -62,6 +83,8 @@ export class DescentManager {
   }
 
   beginFade(nextName = '') {
+    this.transitioning = true;
+    this.freezeAllPlayers();
     this.game.ui.hideDescent();
     this.game.ui.showLevelTransition(nextName || 'Descendiendo...', 'Descendiendo a las profundidades…');
     this.game.soundManager.playDescentEcho();
@@ -72,7 +95,7 @@ export class DescentManager {
     const game = this.game;
     if (game.mode === 'host') {
       // "Bajar ya" de un cliente: transición inmediata si hay cuenta atrás
-      if (detail.kind === Proto.DESCENT_KIND.NOW && this.active) {
+      if (detail.kind === Proto.DESCENT_KIND.NOW && (this.active || !this.transitioning)) {
         this.goNow();
       }
       return;
@@ -97,6 +120,7 @@ export class DescentManager {
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
     this.active = false;
     this.initiator = null;
+    this.transitioning = false;
     this.game.ui.hideDescent();
   }
 }

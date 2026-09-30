@@ -313,10 +313,10 @@ export class ClientReconciler {
     }
   }
 
-  reset() {
+  reset(minSimTime = 0) {
     this.pendingInputs.length = 0;
     this.remoteSnapshots.clear();
-    this.lastProcessedSimTime = 0;
+    this.lastProcessedSimTime = minSimTime || 0;
     this.predictionError = 0;
     this.softCorrectionsPerSec = 0;
     this.teleportsPerSec = 0;

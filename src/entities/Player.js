@@ -51,12 +51,12 @@ export class Player {
     this.visualPos.z += (this.pos.z - this.visualPos.z) * t;
   }
 
-  setCheckpoint(x, y, z, roomName = 'Punto de Control') {
-    this.checkpoint = { x, y, z, roomName };
+  setCheckpoint(x, y, z, roomName = 'Punto de Control', levelId = '') {
+    this.checkpoint = { x, y, z, roomName, levelId };
   }
 
-  respawn() {
-    const cp = this.checkpoint || {
+  respawn(fallbackSpawn = null) {
+    const cp = this.checkpoint || fallbackSpawn || {
       x: WORLD_CONFIG.SPAWN_X,
       y: 1.2,
       z: WORLD_CONFIG.SPAWN_Z,

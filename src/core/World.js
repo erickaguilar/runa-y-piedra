@@ -63,6 +63,9 @@ export class World {
   }
 
   loadLevel(levelData) {
+    if (levelData?.id && this.levelRegistry) {
+      this.levelRegistry.setCurrentLevel(levelData.id);
+    }
     return LevelLoader.applyLevelToWorld(this, levelData);
   }
 

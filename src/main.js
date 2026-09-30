@@ -84,6 +84,7 @@ class VoxelSandboxGame {
     this.playerManager = new PlayerManager();
     this.simulation = new SimulationEngine(this.world, {
       onStairTouch: (p) => this.descent.onStairTouch(p),
+      isTransitioning: () => !!(this.descent?.transitioning || this.interaction?.isTransitioning?.()),
       onPlayerRespawn: (p, cp, info = {}) => {        if (p !== this.playerManager.localPlayer) return;
         const { cause = 'void', lives = 3, maxLives = 3, gameOver = false, noPenalty = false } = info;
         if (noPenalty) {
@@ -278,17 +279,21 @@ class VoxelSandboxGame {
     for (const pl of allPlayers) {
       pl.clearKeys?.();
       const spawnZ = pl.id === 0 ? spawn.z : spawn.z + 3.0;
-      pl.setCheckpoint(spawn.x, spawn.y, spawnZ, levelData.name);
-      pl.respawn();
-      pl.resetLives();
-      pl.vel.x = 0;
-      pl.vel.y = 0;
-      pl.vel.z = 0;
+      pl.setCheckpoint(spawn.x, spawn.y, spawnZ, levelData.name, levelData.id);
+      pl.pos.x = spawn.x;
+      pl.pos.y = spawn.y;
+      pl.pos.z = spawnZ;
       if (pl.visualPos) {
         pl.visualPos.x = spawn.x;
         pl.visualPos.y = spawn.y;
         pl.visualPos.z = spawnZ;
       }
+      pl.vel.x = 0;
+      pl.vel.y = 0;
+      pl.vel.z = 0;
+      pl.onGround = true;
+      pl.invulnTicks = 90; // 3s de invulnerabilidad garantizada en el nuevo nivel
+      pl.resetLives();
     }
 
     // Reposicionar avatares visuales al nuevo punto de spawn
@@ -313,7 +318,7 @@ class VoxelSandboxGame {
     this.ui.hideLevelTransition();
 
     // Limpiar buffers de reconciliación y cola de inputs para evitar replay cruzado de niveles
-    this.reconciler.reset();
+    this.reconciler.reset(performance.now() + 150);
     this.inputQueue.clear();
 
     this.ui.showNarrativeMessage(`Mapa cargado: ${levelData.name}`, 3500);
@@ -703,19 +708,20 @@ class VoxelSandboxGame {
       onTick: (dt) => {
         const FIXED_DT = 1 / PHYSICS_CONFIG.TICK_HZ;
         const local = this.playerManager.localPlayer;
-        const move = this.input.getMovement();
+        const inTransition = !!(this.descent?.transitioning || this.interaction?.isTransitioning?.());
+        const move = inTransition ? { forward: 0, right: 0 } : this.input.getMovement();
         local.setInput(move.forward, move.right, this.input.yaw);
         local.pitch = this.input.pitch;
 
         // Salto con perdón: buffer 150ms (pulsa antes de aterrizar) + coyote 120ms
         // (salta justo después de dejar el borde). El sonido va en la ejecución.
         const nowMs = performance.now();
-        if (this.input.consumeJump()) this.jumpBufferTime = nowMs;
+        if (!inTransition && this.input.consumeJump()) this.jumpBufferTime = nowMs;
         if (local.onGround) this.lastGroundTime = nowMs;
         const hasBuffer = nowMs - (this.jumpBufferTime || -1e9) <= 150;
         const canCoyote = nowMs - (this.lastGroundTime || -1e9) <= 120;
         let jumpAction = 0;
-        if (hasBuffer && (local.onGround || canCoyote)) {
+        if (!inTransition && hasBuffer && (local.onGround || canCoyote)) {
           jumpAction = Proto.ACTION_FLAGS.JUMP;
           this.jumpBufferTime = 0;
           this.soundManager.playJump();

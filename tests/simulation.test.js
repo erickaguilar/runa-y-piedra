@@ -74,3 +74,46 @@ test('sensor de escalinata notifica sin quitar vidas', () => {
   assert.equal(touched.length, 1);
   assert.equal(p.lives, 3);
 });
+
+test('isTransitioning congela física, evita muertes y caídas al vacío durante transiciones', () => {
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('lobby_tutorial'));
+  let inTrans = true;
+  const events = [];
+  const sim = new SimulationEngine(world, {
+    isTransitioning: () => inTrans,
+    onPlayerRespawn: (p, cp, info) => events.push(info),
+  });
+  const p = new Player(1, 12, -9.0, 32);
+  p.vel.y = -20;
+  p.inputForward = 1;
+
+  // Con transición activa, no debe caer, no debe morir y velocidades se anulan
+  sim.integratePlayer(p, 1 / 30, 0);
+  assert.equal(p.vel.y, 0, 'vel.y debe anularse');
+  assert.equal(p.pos.y, -9.0, 'pos no debe alterarse por gravedad ni void');
+  assert.equal(events.length, 0, 'no debe disparar muerte');
+  assert.equal(p.lives, 3, 'no debe perder vidas');
+});
+
+test('killPlayer descarta checkpoints de niveles anteriores y usa el spawn del nivel actual', () => {
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('dungeon_classic'));
+  const events = [];
+  const sim = new SimulationEngine(world, {
+    onPlayerRespawn: (p, cp, info) => events.push(info),
+  });
+  const p = new Player(1, 12, 1.2, 19.5);
+  // Checkpoint obsoleto traído del tutorial
+  p.setCheckpoint(12.0, 1.2, 19.5, 'Sala B (Descenso)', 'lobby_tutorial');
+  p.invulnTicks = 0;
+
+  // Forzar muerte en dungeon_classic
+  sim.killPlayer(p, 'lava');
+  assert.equal(events.length, 1);
+  // Debe haber reaparecido en el spawn de dungeon_classic (x=12, z=4.5), NO en 19.5
+  assert.equal(p.pos.x, 12.0);
+  assert.equal(p.pos.z, 4.5, 'Debe reaparecer en spawn del nivel actual, nunca en z=19.5 del tutorial');
+  assert.equal(p.checkpoint.levelId, 'dungeon_classic');
+});
+
