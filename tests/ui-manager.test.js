@@ -13,6 +13,8 @@ describe('UIManager - Contratos de API de Configuración', () => {
     assert.equal(typeof UIManager.prototype.closeSettings, 'function');
     assert.equal(typeof UIManager.prototype.toggleSettings, 'function');
     assert.equal(typeof UIManager.prototype.showSettings, 'function');
+    assert.equal(typeof UIManager.prototype.showConfirmDialog, 'function');
+    assert.equal(typeof UIManager.prototype.closeConfirmDialog, 'function');
   });
 
   describe('comportamiento con DOM simulado', () => {
@@ -23,16 +25,31 @@ describe('UIManager - Contratos de API de Configuración', () => {
       originalDocument = globalThis.document;
       originalLocalStorage = globalThis.localStorage;
 
-      const mockEl = () => ({
+      const elementStore = new Map();
+      const mockEl = (tag = 'div') => ({
+        tagName: tag.toUpperCase(),
         style: {},
         classList: { add() {}, remove() {}, toggle() {} },
         innerHTML: '',
         value: '',
-        addEventListener() {},
+        children: [],
+        addEventListener(evt, fn) { this['on' + evt] = fn; },
+        appendChild(child) { this.children.push(child); return child; },
+        remove() {
+          for (const [k, v] of elementStore.entries()) {
+            if (v === this) elementStore.delete(k);
+          }
+        },
       });
 
       globalThis.document = {
-        getElementById: () => mockEl(),
+        getElementById: (id) => {
+          if (!elementStore.has(id)) {
+            elementStore.set(id, mockEl());
+          }
+          return elementStore.get(id);
+        },
+        createElement: (tag) => mockEl(tag),
         querySelectorAll: () => [],
         addEventListener: () => {},
         exitPointerLock: () => {},
@@ -112,6 +129,46 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.match(ui.uiEl.innerHTML, /settings-version-pill/);
       assert.match(ui.uiEl.innerHTML, /settings-footer-version/);
       assert.match(ui.uiEl.innerHTML, /Runa y Piedra/);
+    });
+
+    it('muestra y gestiona el diálogo temático de confirmación para salir al menú', () => {
+      const ui = new UIManager();
+      let confirmed = false;
+      let cancelled = false;
+
+      ui.showConfirmDialog({
+        title: '¿Abandonar Incursión?',
+        message: 'Regresarás al menú principal y se cancelará tu expedición actual.',
+        confirmText: 'Salir al Menú',
+        cancelText: 'Seguir Jugando',
+        onConfirm: () => { confirmed = true; },
+        onCancel: () => { cancelled = true; },
+      });
+
+      const acceptBtn = document.getElementById('btn-confirm-accept');
+      const cancelBtn = document.getElementById('btn-confirm-cancel');
+      assert.equal(typeof acceptBtn.onclick, 'function');
+      assert.equal(typeof cancelBtn.onclick, 'function');
+
+      // Test cancelar
+      cancelBtn.onclick();
+      assert.equal(cancelled, true);
+      assert.equal(confirmed, false);
+
+      // Reabrir y test confirmar
+      cancelled = false;
+      ui.showConfirmDialog({
+        onConfirm: () => { confirmed = true; },
+        onCancel: () => { cancelled = true; },
+      });
+      acceptBtn.onclick();
+      assert.equal(confirmed, true);
+
+      // Verificar que closeConfirmDialog limpia el elemento
+      ui.showConfirmDialog();
+      const modalEl = document.getElementById('modal-confirm-dialog');
+      assert.ok(modalEl);
+      ui.closeConfirmDialog();
     });
   });
 });

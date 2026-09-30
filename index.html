@@ -279,6 +279,90 @@
       -webkit-user-select: text;
     }
 
+    /* Modal de Confirmación Personalizado (In-Game Alert / Confirm Dialog) */
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 7, 13, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+      animation: hintFadeIn 0.18s ease-out;
+      pointer-events: auto;
+    }
+    .confirm-modal {
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      padding: 22px 20px;
+      width: 90vw;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), 0 0 24px rgba(245, 158, 11, 0.15);
+      box-sizing: border-box;
+      animation: springPopIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .confirm-icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
+    }
+    .confirm-icon-box.danger {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.35);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+    }
+    .confirm-title {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: 0.5px;
+    }
+    .confirm-message {
+      margin: 0 0 18px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+    .confirm-actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+    .btn-secondary {
+      flex: 1;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: #1e293b;
+      color: #cbd5e1;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      transition: background 0.15s, color 0.15s, transform 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .btn-secondary:active {
+      transform: scale(0.96);
+    }
+
     .crosshair{position:fixed;top:50%;left:50%;width:8px;height:8px;margin:-4px 0 0 -4px;
       border-radius:50%;background:rgba(255,255,255,.7);box-shadow:0 0 4px #000;pointer-events:none;z-index:15;display:none}
     .action-btn{position:fixed;width:84px;height:84px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.25);

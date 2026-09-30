@@ -479,10 +479,19 @@ export class UIManager {
     // Salir al menú
     document.getElementById('btn-leave-game')?.addEventListener('click', () => {
       soundManager.playClick();
-      if (confirm('¿Deseas salir al menú principal? Se abandonará la partida actual.')) {
-        this.closeSettingsModal();
-        this.settingsCallbacks?.onLeaveGame?.();
-      }
+      this.showConfirmDialog({
+        title: '¿Abandonar Incursión?',
+        message: 'Regresarás al menú principal y se cancelará tu expedición actual.',
+        confirmText: 'Salir al Menú',
+        cancelText: 'Seguir Jugando',
+        icon: 'warning',
+        iconColor: '#f59e0b',
+        danger: true,
+        onConfirm: () => {
+          this.closeSettingsModal();
+          this.settingsCallbacks?.onLeaveGame?.();
+        },
+      });
     });
 
     // Guardar cambios
@@ -498,6 +507,7 @@ export class UIManager {
   }
 
   closeSettingsModal() {
+    this.closeConfirmDialog();
     this.isSettingsOpen = false;
     if (this.settingsBtn) {
       this.settingsBtn.style.borderColor = 'rgba(255, 255, 255, 0.16)';
@@ -516,6 +526,76 @@ export class UIManager {
 
   closeSettings() {
     this.closeSettingsModal();
+  }
+
+  /**
+   * Muestra un diálogo de confirmación temático (reemplazo in-game de confirm)
+   */
+  showConfirmDialog({
+    title = '¿Abandonar Incursión?',
+    message = 'Regresarás al menú principal y se cancelará tu expedición actual.',
+    confirmText = 'Salir al Menú',
+    cancelText = 'Seguir Jugando',
+    icon = 'warning',
+    iconColor = '#f59e0b',
+    danger = true,
+    onConfirm = () => {},
+    onCancel = () => {},
+  } = {}) {
+    this.closeConfirmDialog();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'modal-confirm-dialog';
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+      <div class="confirm-modal" role="dialog" aria-modal="true">
+        <div class="confirm-icon-box ${danger ? 'danger' : ''}">
+          ${renderIcon(icon, { size: 28, color: iconColor })}
+        </div>
+        <h3 class="confirm-title">${escapeHtml(title)}</h3>
+        <p class="confirm-message">${escapeHtml(message)}</p>
+        <div class="confirm-actions">
+          <button id="btn-confirm-cancel" class="btn-secondary">${escapeHtml(cancelText)}</button>
+          <button id="btn-confirm-accept" class="btn-danger">${escapeHtml(confirmText)}</button>
+        </div>
+      </div>
+    `;
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        soundManager.playClick();
+        this.closeConfirmDialog();
+        onCancel?.();
+      }
+    });
+
+    this.uiEl.appendChild(overlay);
+
+    const btnCancel = document.getElementById('btn-confirm-cancel');
+    const btnAccept = document.getElementById('btn-confirm-accept');
+
+    if (btnCancel) {
+      btnCancel.onclick = () => {
+        soundManager.playClick();
+        this.closeConfirmDialog();
+        onCancel?.();
+      };
+    }
+
+    if (btnAccept) {
+      btnAccept.onclick = () => {
+        soundManager.playClick();
+        this.closeConfirmDialog();
+        onConfirm?.();
+      };
+    }
+  }
+
+  closeConfirmDialog() {
+    const el = document.getElementById('modal-confirm-dialog');
+    if (el) {
+      el.remove();
+    }
   }
 
   async shareLink(url, pin) {

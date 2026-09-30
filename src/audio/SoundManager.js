@@ -51,6 +51,7 @@ export class SoundManager {
 
   _initContext() {
     if (this._initialized) return;
+    if (typeof window === 'undefined') return;
 
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) return;
