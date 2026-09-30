@@ -88,3 +88,69 @@ test('addRemotePlayer no duplica jugadores para la misma conexión o peer', () =
   assert.equal(p2.name, 'Aventurero Renombrado');
 });
 
+test('límite estricto de 5 jugadores simultáneos y rechazo al exceder aforo', () => {
+  const pm = new PlayerManager(5);
+  pm.setLocalId(0); // Host (jugador 1)
+  assert.equal(pm.isFull(), false);
+
+  const c1 = { peer: 'peer-1' };
+  const c2 = { peer: 'peer-2' };
+  const c3 = { peer: 'peer-3' };
+  const c4 = { peer: 'peer-4' };
+  const c5 = { peer: 'peer-5' }; // Intentará ser el 6º jugador
+
+  assert.ok(pm.addRemotePlayer(c1)); // Jugador 2
+  assert.ok(pm.addRemotePlayer(c2)); // Jugador 3
+  assert.ok(pm.addRemotePlayer(c3)); // Jugador 4
+  assert.ok(pm.addRemotePlayer(c4)); // Jugador 5
+  assert.equal(pm.getAllPlayers().length, 5);
+  assert.equal(pm.isFull(), true, 'la sala debe marcar aforo completo con 5 jugadores');
+
+  // El 6º jugador debe ser rechazado (devuelve null)
+  const rejected = pm.addRemotePlayer(c5);
+  assert.equal(rejected, null, 'no se debe permitir agregar un 6º jugador');
+  assert.equal(pm.getAllPlayers().length, 5);
+
+  // Si un jugador se va, se libera cupo
+  pm.removeByConnection(c1);
+  assert.equal(pm.getAllPlayers().length, 4);
+  assert.equal(pm.isFull(), false, 'tras la desconexión el cupo debe liberarse');
+  assert.ok(pm.addRemotePlayer(c5), 'ahora sí debe permitirse el ingreso');
+  assert.equal(pm.getAllPlayers().length, 5);
+});
+
+test('unicidad absoluta de razas/héroes: no permite clases duplicadas en el equipo', () => {
+  const pm = new PlayerManager(5);
+  pm.setLocalId(0);
+  pm.setLocalProfile('Anfitrión Aventurero', 0); // Ocupa Aventurero (0)
+
+  // Cliente 1 intenta unirse también como Aventurero (0)
+  const c1 = { peer: 'peer-alpha' };
+  const p1 = pm.addRemotePlayer(c1, 'Cliente Uno', 0);
+  assert.notEqual(p1.colorIndex, 0, 'no debe duplicar la clase Aventurero (0)');
+  assert.equal(p1.colorIndex, 1, 'debe asignar la siguiente clase libre (Paladín - 1)');
+
+  // Cliente 2 también pide Aventurero (0)
+  const c2 = { peer: 'peer-beta' };
+  const p2 = pm.addRemotePlayer(c2, 'Cliente Dos', 0);
+  assert.notEqual(p2.colorIndex, 0);
+  assert.notEqual(p2.colorIndex, 1);
+  assert.equal(p2.colorIndex, 2, 'debe asignar Explorador (2)');
+
+  // Comprobar getTakenColorIndices
+  const taken = pm.getTakenColorIndices();
+  assert.equal(taken.has(0), true);
+  assert.equal(taken.has(1), true);
+  assert.equal(taken.has(2), true);
+  assert.equal(taken.size, 3);
+
+  // Cliente 3 pide clase libre Hechicero (3)
+  const c3 = { peer: 'peer-gamma' };
+  const p3 = pm.addRemotePlayer(c3, 'Cliente Tres', 3);
+  assert.equal(p3.colorIndex, 3, 'si la clase solicitada está libre, se le concede');
+
+  // getAvailableColorIndex excluyendo al propio jugador
+  const availForP1 = pm.getAvailableColorIndex(1, p1.id, 5);
+  assert.equal(availForP1, 1, 'debe permitirle mantener su clase asignada');
+});
+

@@ -363,6 +363,33 @@ export class UIManager {
         </div>`;
     }
 
+    const myId = state.localPlayer?.id ?? (state.isHost ? 0 : -1);
+    const takenHeroes = new Map();
+    if (inGame && Array.isArray(playersList)) {
+      for (const p of playersList) {
+        if (p.id !== myId && p.colorIndex !== undefined && p.colorIndex !== null) {
+          takenHeroes.set(p.colorIndex, p.name || 'Compañero');
+        }
+      }
+    }
+
+    const settingsHeroesHtml = PLAYER_HEROES.map((h, i) => {
+      const isSelected = i === this.selectedColorIndex;
+      const isOccupied = takenHeroes.has(i);
+      const occupant = takenHeroes.get(i);
+      const titleAttr = isOccupied
+        ? `${h.name} (En uso por ${escapeHtml(occupant)})`
+        : `${h.name} (${h.title || ''})`;
+      return `
+        <div class="hero-chip ${isSelected ? 'selected' : ''} ${isOccupied ? 'occupied' : ''}" 
+             data-index="${i}" 
+             style="background:${h.color}; --hero-color:${h.color}" 
+             title="${titleAttr}"></div>
+      `;
+    }).join('');
+
+    const currentHero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
+
     // (Selección de mazmorra eliminada: la progresión es lineal por escalinatas)
     this.closeInventoryModal();
 
@@ -381,6 +408,22 @@ export class UIManager {
           <label class="lobby-label">Tu Aventurero</label>
           <input id="settings-name-input" class="name-input" maxlength="12" 
                  placeholder="Nombre o Apodo" value="${escapeHtml(this.playerName)}" autocomplete="off" />
+        </div>
+
+        <div class="settings-group" style="margin-top:10px;">
+          <label class="lobby-label" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Clase y Raza (Única por Aventurero)</span>
+            <span style="font-size:10px;color:#94a3b8;font-weight:normal;">1 por equipo</span>
+          </label>
+          <div class="heroes-row" id="settings-heroes-row">
+            ${settingsHeroesHtml}
+          </div>
+          <div id="settings-hero-badge" class="hero-badge" style="color:${currentHero.color}">
+            ${renderIcon(currentHero.icon || 'shield', { size: 15, color: currentHero.color })} <span>${currentHero.name}</span>
+          </div>
+          <div id="settings-hero-trait-container">
+            ${this.renderHeroTraitCard(currentHero)}
+          </div>
         </div>
 
         <div class="divider" style="margin:10px 0"></div>
@@ -464,7 +507,12 @@ export class UIManager {
             <div style="font-size:10px;color:#94a3b8;margin-top:2px;margin-bottom:8px">O escanea el código con la cámara</div>
 
             <div class="party-box" style="margin-top:12px;text-align:left">
-              <div class="party-title">Compañeros en la Mazmorra</div>
+              <div class="party-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>Compañeros en la Mazmorra</span>
+                <span class="party-count-pill" style="font-size:11px;color:${playersList.length >= 5 ? '#f59e0b' : '#38bdf8'};font-weight:700;">
+                  ${playersList.length >= 5 ? `${renderIcon('lock', { size: 11, color: '#f59e0b' })} 5/5 Llena` : `${playersList.length}/5 Jugadores`}
+                </span>
+              </div>
               <div id="settings-party-list">
                 ${partyHtml}
               </div>
@@ -487,6 +535,37 @@ export class UIManager {
       soundManager.playClick();
       this.closeSettingsModal();
     };
+
+    // Selector de clases únicas en configuración
+    const settingsChips = (this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('#settings-heroes-row .hero-chip') : document.querySelectorAll('#settings-heroes-row .hero-chip')) || [];
+    settingsChips.forEach(chip => {
+      chip.onclick = () => {
+        const idx = parseInt(chip.dataset.index, 10);
+        if (chip.classList.contains('occupied')) {
+          soundManager.playHurt();
+          const occupant = takenHeroes.get(idx) || 'otro jugador';
+          const hero = PLAYER_HEROES[idx];
+          this.showNarrativeMessage(`⚠️ La clase ${hero.name} ya está en uso por ${occupant}.`, 3500);
+          return;
+        }
+        soundManager.playClick();
+        settingsChips.forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        this.selectedColorIndex = idx;
+        localStorage.setItem('dungeon_player_color', idx.toString());
+
+        const hero = PLAYER_HEROES[idx];
+        const badge = document.getElementById('settings-hero-badge');
+        if (badge) {
+          badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
+          badge.style.color = hero.color;
+        }
+        const traitContainer = document.getElementById('settings-hero-trait-container');
+        if (traitContainer) {
+          traitContainer.innerHTML = this.renderHeroTraitCard(hero);
+        }
+      };
+    });
 
     // Slider de sensibilidad
     const sensSlider = document.getElementById('settings-sens-slider');
@@ -946,6 +1025,19 @@ export class UIManager {
   }
 
   updatePartyList(players) {
+    const countPills = document.querySelectorAll('.party-count-pill');
+    if (countPills && countPills.length > 0) {
+      countPills.forEach(pill => {
+        if (players.length >= 5) {
+          pill.style.color = '#f59e0b';
+          pill.innerHTML = `${renderIcon('lock', { size: 11, color: '#f59e0b' })} 5/5 Llena`;
+        } else {
+          pill.style.color = '#38bdf8';
+          pill.textContent = `${players.length}/5 Jugadores`;
+        }
+      });
+    }
+
     const partyLists = document.querySelectorAll('#settings-party-list, #party-list');
     if (!partyLists || partyLists.length === 0) return;
 

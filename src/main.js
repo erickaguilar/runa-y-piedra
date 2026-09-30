@@ -190,14 +190,18 @@ class VoxelSandboxGame {
       onProfileSave: ({ name, colorIndex }) => {
         const local = this.playerManager.localPlayer;
         local.name = name;
-        local.colorIndex = colorIndex;
 
-        // Si estamos conectados en red, propagar metadatos a los demás
+        // Si estamos conectados en red, validar unicidad y propagar metadatos
         if (this.mode === 'host') {
-          this.network.broadcast(Proto.serializePlayerMeta(local.id, colorIndex, name));
+          const uniqueColor = this.playerManager.getAvailableColorIndex(colorIndex, local.id, PLAYER_HEROES.length);
+          local.colorIndex = uniqueColor;
+          const hero = PLAYER_HEROES[uniqueColor] || PLAYER_HEROES[0];
+          this.avatars.setMetadata(local.id, name, hero.hex, hero.id || null);
+          this.network.broadcast(Proto.serializePlayerMeta(local.id, uniqueColor, name));
         } else if (this.mode === 'client') {
           this.network.sendToHost(Proto.serializePlayerMeta(local.id, colorIndex, name));
         }
+        this.ui.updatePartyList(this.playerManager.getAllPlayers());
       },
       onQualityChange: (dpr) => {
         this.sceneManager.setQuality(dpr);
@@ -217,6 +221,7 @@ class VoxelSandboxGame {
         roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
         joinUrl: this.currentJoinUrl,
         players: this.playerManager.getAllPlayers(),
+        localPlayer: this.playerManager.localPlayer,
       }),
       onToggleDebug: (enable) => {
         this.network.stats.setEnabled(enable);
@@ -499,7 +504,22 @@ class VoxelSandboxGame {
   initNetworkEvents() {
     this.network.addEventListener('peer-joined', (e) => {
       const conn = e.detail.conn;
+
+      // 0. Control de aforo autoritativo: máximo 5 jugadores por partida
+      if (this.playerManager.isFull(NET_CONFIG.MAX_PLAYERS || 5)) {
+        console.warn(`[Network] 🚫 Rechazando conexión de ${conn?.peer}: Sala llena (máximo ${NET_CONFIG.MAX_PLAYERS || 5} aventureros).`);
+        this.network.sendTo(conn, Proto.serializeHostClosing(NET_CONFIG.CLOSE_REASON?.ROOM_FULL ?? 1));
+        setTimeout(() => {
+          try { conn.close(); } catch {}
+        }, 200);
+        return;
+      }
+
       const remotePlayer = this.playerManager.addRemotePlayer(conn);
+      if (!remotePlayer) {
+        console.warn(`[Network] 🚫 No se pudo registrar jugador remoto (aforo completo).`);
+        return;
+      }
 
       // 1. Enviar INIT con el mapa y el ID asignado
       this.network.sendTo(conn, Proto.serializeInit(this.world.blocks, remotePlayer.id));
@@ -566,7 +586,19 @@ class VoxelSandboxGame {
       window.location.href = window.location.origin + window.location.pathname;
     });
 
-    this.network.addEventListener('host-closing', () => {
+    this.network.addEventListener('host-closing', (e) => {
+      const reason = e?.detail?.reason;
+      if (reason === (NET_CONFIG.CLOSE_REASON?.ROOM_FULL ?? 1)) {
+        this.ui.setStatus('La sala está llena (máximo 5 aventureros)');
+        this.ui.showNarrativeMessage('🚫 La sala está llena (máximo 5 jugadores). No se admiten más aventureros.', 6000);
+        this.soundManager.playHurt();
+        setTimeout(() => {
+          this.mode = null;
+          this.network.disconnect();
+          this.ui.showMenu(this.ui.lastMenuParams || {});
+        }, 2500);
+        return;
+      }
       this.ui.showNarrativeMessage('🏰 El anfitrión ha abandonado o cerrado la partida.', 5000);
       setTimeout(() => {
         window.location.href = window.location.origin + window.location.pathname;
@@ -582,18 +614,26 @@ class VoxelSandboxGame {
 
     this.network.addEventListener('player-meta', (e) => {
       const { playerId, colorIndex, name, conn } = e.detail;
-      const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
 
       if (this.mode === 'host') {
         const player = this.playerManager.getPlayerByConnection(conn);
         if (player) {
+          // Árbitro autoritativo de raza/héroe único:
+          // Si la clase solicitada ya está tomada por otro jugador, asignar la primera disponible
+          const uniqueColor = this.playerManager.getAvailableColorIndex(colorIndex, player.id, PLAYER_HEROES.length);
+          if (uniqueColor !== colorIndex) {
+            const reqHero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+            const assignedHero = PLAYER_HEROES[uniqueColor] || PLAYER_HEROES[0];
+            console.log(`[Host] ℹ️ Clase ${reqHero.name} duplicada. Reasignada a ${assignedHero.name} para ${name}.`);
+          }
           player.name = name;
-          player.colorIndex = colorIndex;
+          player.colorIndex = uniqueColor;
+          const hero = PLAYER_HEROES[uniqueColor] || PLAYER_HEROES[0];
           this.avatars.setMetadata(player.id, name, hero.hex, hero.id || null);
           this.ui.showNarrativeMessage(`🛡️ ¡${escapeHtml(name)} (${hero.name}) se unió a la partida!`, 4500);
 
-          // Transmitir metadatos oficiales del jugador a todos los clientes
-          this.network.broadcast(Proto.serializePlayerMeta(player.id, colorIndex, name));
+          // Transmitir metadatos oficiales del jugador a todos los clientes (incluyendo al emisor)
+          this.network.broadcast(Proto.serializePlayerMeta(player.id, uniqueColor, name));
           this.ui.updatePartyList(this.playerManager.getAllPlayers());
         }
       } else if (this.mode === 'client') {
@@ -601,8 +641,21 @@ class VoxelSandboxGame {
         if (this.playerManager.localPlayer.id === -1 && playerId !== 0) {
           return;
         }
+        const local = this.playerManager.localPlayer;
+        const isLocal = playerId === local.id;
+        const oldColor = isLocal ? local.colorIndex : null;
+
         this.playerManager.updatePlayerMeta(playerId, name, colorIndex);
-        if (playerId !== this.playerManager.localPlayer.id) {
+        const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+
+        if (isLocal) {
+          // Si el Host reasignó la clase por colisión de raza
+          if (oldColor !== null && oldColor !== colorIndex) {
+            this.ui.selectedColorIndex = colorIndex;
+            localStorage.setItem('dungeon_player_color', colorIndex.toString());
+            this.ui.showNarrativeMessage(`⚠️ Tu clase elegida ya estaba en uso. El anfitrión te asignó: ${hero.name}.`, 5000);
+          }
+        } else {
           this.avatars.setMetadata(playerId, name, hero.hex, hero.id || null);
           const av = this.avatars.avatars.get(playerId);
           if (av) {

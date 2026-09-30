@@ -1,6 +1,10 @@
 export const APP_CONFIG = {
   NAME: 'Runa y Piedra',
-  VERSION: '1.24.0',
+  VERSION: '1.25.0',
+};
+
+export const GAME_CONFIG = {
+  MAX_PLAYERS: 5,
 };
 
 export const WORLD_CONFIG = {
@@ -34,6 +38,11 @@ export const NET_CONFIG = {
   ROOM_PREFIX: 'VOXELSALA-',
   JOIN_TIMEOUT_MS: 12000,
   JOIN_RETRIES: 2,
+  MAX_PLAYERS: 5,
+  CLOSE_REASON: {
+    NORMAL: 0,
+    ROOM_FULL: 1,
+  },
   // Canales WebRTC: hot (INPUT/SNAPSHOT/PING, unreliable) vs safe (eventos, reliable).
   CHANNEL_SAFE: 'game-safe',
   CHANNEL_HOT: 'game-hot',

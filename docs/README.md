@@ -118,5 +118,12 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Modal interactivo de botín con desglose de tesoros y herramientas de desarrollo exclusivas (`#modal-dev`).
     - Diálogo temático de confirmación para salir al menú, scrollbars dark fantasy y orientación inicial a 180°.
 
+19. [**19. Capacidad de Jugadores Simultáneos, Límite de 5 Jugadores y Unicidad de Razas/Clases**](./19-limite-jugadores-y-clases-unicas.md)
+    - Justificación técnica del aforo máximo: presupuestos de ancho de banda WebRTC Listen-Server (~10 KB/s @ 20 Hz para 5 jugadores) y arquitectura espacial de pasillos de 2 metros.
+    - Unicidad absoluta de razas/clases: catálogo de los 5 arquetipos oficiales (Aventurero, Paladín, Explorador, Hechicero y Guardián) con prohibición estricta de duplicados.
+    - Árbitro autoritativo en el Host: `PlayerManager.getAvailableColorIndex` para reasignación determinista de clases en caso de colisión.
+    - Protocolo de sala llena: rechazo de conexiones entrantes con `HOST_CLOSING` código 1 (`ROOM_FULL`) y retorno limpio al menú en el cliente rechazado.
+    - Experiencia de usuario (UI): selector de clase en Configuración con estado `.occupied`, bloqueo visual con cruz roja y pill de aforo reactivo (`5/5 Llena`).
+
 
 

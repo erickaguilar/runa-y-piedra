@@ -5,6 +5,26 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.25.0] - 2026-09-30
+
+### Added
+- **Control de Aforo Estricto y Límite de 5 Jugadores ([`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js), [`PlayerManager.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/PlayerManager.js), [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**:
+  - Constantes `GAME_CONFIG.MAX_PLAYERS = 5` y `NET_CONFIG.MAX_PLAYERS = 5` con motivo de cierre `NET_CONFIG.CLOSE_REASON.ROOM_FULL = 1`.
+  - Método `PlayerManager.prototype.isFull(max)`: evalúa el límite de capacidad de la expedición y rechaza el registro de un 6º jugador devolviendo `null`.
+  - Rechazo autoritativo en el Host: al exceder 5 jugadores, emite paquete binario `HOST_CLOSING` con código `1` (`ROOM_FULL`) y cierra el canal WebRTC de inmediato.
+  - Manejo amigable en cliente rechazado: muestra el estado `"La sala está llena (máximo 5 aventureros)"` y alerta narrativa `"🚫 La sala está llena (máximo 5 jugadores). No se admiten más aventureros."` retornando al menú sin cuelgues ni recargas forzadas.
+  - Liberación dinámica de cupos: al desconectarse un jugador (`peer-left`), `PlayerManager.removeByConnection` libera el cupo y reactiva la admisión.
+- **Unicidad Absoluta de Razas y Clases de Héroes ([`PlayerManager.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/PlayerManager.js), [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js), [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), [`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html))**:
+  - Métodos autoritativos `PlayerManager.prototype.getTakenColorIndices(excludePlayerId)` y `getAvailableColorIndex(preferredIndex, excludePlayerId, maxHeroes)`.
+  - Resolución y arbitraje en el Host: si un jugador solicita una clase ya ocupada por un compañero (e.g. *Aventurero*), el Host reasigna determinísticamente la primera clase libre disponible (*Paladín*, *Explorador*, *Hechicero*, *Guardián*) y difunde los metadatos oficiales a la party.
+  - Notificación en cliente reasignado: al recibir la clase reasignada por el Host, actualiza su perfil local y emite el mensaje `"⚠️ Tu clase elegida ya estaba en uso. El anfitrión te asignó: [Clase]"`.
+  - Selector de clase interactivo en modal de ⚙️ Configuración (`#settings-heroes-row`): muestra las 5 clases con sus tarjetas de rasgos y estadísticas.
+  - Bloqueo visual de clases ocupadas (`.hero-chip.occupied`): desaturadas al 85%, opacidad 35%, cruz roja superpuesta `✕`, cursor `not-allowed` y tooltip explicativo `"En uso por [Compañero]"`.
+  - Bloqueo interactivo: intentar pulsar una clase ocupada bloquea la selección, reproduce sonido de advertencia y muestra `"⚠️ La clase [Nombre] ya está en uso por [Compañero]"`.
+  - Insignia reactiva de aforo en la lista de compañeros: indicador elástico `[N]/5 Jugadores` en cian (#38bdf8) y candado dorado `🔒 5/5 Llena` (#f59e0b) al completarse la party.
+- **Documentación Técnica de Aforo y Clases ([`docs/19-limite-jugadores-y-clases-unicas.md`](file:///data/data/com.termux/files/home/develop/game/docs/19-limite-jugadores-y-clases-unicas.md), [`docs/README.md`](file:///data/data/com.termux/files/home/develop/game/docs/README.md))**:
+  - Compendio integral sobre presupuestos de ancho de banda WebRTC (~10 KB/s @ 20 Hz para 5 jugadores), arquitectura espacial de 2 metros en pasillos, matriz de las 5 razas y protocolos de cierre.
+
 ## [1.24.0] - 2026-09-30
 
 ### Added

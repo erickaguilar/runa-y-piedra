@@ -1,14 +1,41 @@
 import { Player } from './Player.js';
-import { WORLD_CONFIG } from '../config/constants.js';
+import { WORLD_CONFIG, GAME_CONFIG } from '../config/constants.js';
 
 export class PlayerManager {
-  constructor() {
+  constructor(maxPlayers = (GAME_CONFIG?.MAX_PLAYERS ?? 5)) {
+    this.maxPlayers = maxPlayers;
     this.localPlayer = new Player(-1, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, WORLD_CONFIG.SPAWN_Z);
     this.players = new Map();
     this.players.set(-1, this.localPlayer);
 
     this.connToPlayerId = new Map();
     this.nextPlayerId = 1;
+  }
+
+  isFull(max = this.maxPlayers) {
+    return this.getAllPlayers().length >= max;
+  }
+
+  getTakenColorIndices(excludePlayerId = null) {
+    const taken = new Set();
+    for (const p of this.players.values()) {
+      if (excludePlayerId !== null && p.id === excludePlayerId) continue;
+      if (typeof p.colorIndex === 'number' && !isNaN(p.colorIndex)) {
+        taken.add(p.colorIndex);
+      }
+    }
+    return taken;
+  }
+
+  getAvailableColorIndex(preferredIndex = 0, excludePlayerId = null, maxHeroes = 5) {
+    const taken = this.getTakenColorIndices(excludePlayerId);
+    if (preferredIndex !== undefined && preferredIndex !== null && !taken.has(preferredIndex)) {
+      return preferredIndex;
+    }
+    for (let i = 0; i < maxHeroes; i++) {
+      if (!taken.has(i)) return i;
+    }
+    return preferredIndex ?? 0;
   }
 
   setLocalProfile(name, colorIndex) {
@@ -27,13 +54,18 @@ export class PlayerManager {
     if (existing) {
       this.connToPlayerId.set(conn, existing.id);
       if (name) existing.name = name;
-      if (colorIndex !== undefined) existing.setColorIndex(colorIndex);
+      if (colorIndex !== undefined && colorIndex !== null) existing.setColorIndex(colorIndex);
       return existing;
+    }
+
+    if (this.isFull()) {
+      return null;
     }
 
     const pid = this.nextPlayerId++;
     const spawnZ = WORLD_CONFIG.SPAWN_Z + 3.0;
-    const player = new Player(pid, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, spawnZ, name, colorIndex);
+    const resolvedColor = this.getAvailableColorIndex(colorIndex ?? 1, null, 5);
+    const player = new Player(pid, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, spawnZ, name, resolvedColor);
     player.yaw = Math.PI;
 
     this.connToPlayerId.set(conn, pid);
