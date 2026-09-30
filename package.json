@@ -1,6 +1,6 @@
 {
   "name": "runa-y-piedra",
-  "version": "1.23.0",
+  "version": "1.24.0",
   "type": "module",
   "scripts": {
     "dev": "node node_modules/vite/bin/vite.js --host",

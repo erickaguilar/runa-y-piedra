@@ -2,7 +2,7 @@
 
 > Mazmorra vóxel cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
-[![Version](https://img.shields.io/badge/version-1.23.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-1.24.0-blue.svg)](package.json)
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-Dual%20Channels-green.svg)](https://webrtc.org/)
 [![Vite](https://img.shields.io/badge/Bundler-Vite%205-purple.svg)](https://vitejs.dev/)
@@ -17,10 +17,20 @@
   * **Trono del Abismo**: Desafío final con altar ancestral y ceremonia de victoria cooperativa.
 * **Mecánicas Cooperativas e Interacción**:
   * **Puertas autoritativas de 2×2**: Apertura sincronizada accionable por proximidad o enfoque (con y sin requerimiento de llave).
-  * **Cofres del tesoro**: Cofres interactivos que otorgan llaves de mazmorra persistentes y sincronizadas entre pares.
+  * **Consumo de Objetos / Llaves**: Al abrir una puerta sellada, la llave requerida se consume autoritativamente de la entidad `Player` y del inventario en tiempo real.
+  * **Cofres del tesoro y Botín**: Cofres interactivos con animación 3D que otorgan llaves de mazmorra, gemas y reliquias míticas.
   * **Plataformas de Salto (*Jump Pads*)**: Losas de cantería oscura con glifo rúnico tallado que impulsan verticalmente al jugador.
   * **Escalinatas de descenso y Pedestales**: Descenso coordinado entre jugadores y ritual de victoria en el altar final.
-* **Sistema de Vidas, Peligros y Checkpoints**:
+* **HUD Expandido, Vidas y Botín**:
+  * **Vidas con Contorno (*Outline*)**: Corazones llenos en carmesí para vidas activas y contorno estilizado vectorial (`heartOutline`) para vidas perdidas, con animación de sacudida (*shake*).
+  * **Insignia de Llaves y Gemas en el HUD**: Insignia dorada de llave activa y contador numérico en vivo de gemas (`.gems-badge`), interactivos al clic/toque.
+  * **Botón de Inventario Compacto (`#hud-inventory`)**: Icono botón a la izquierda de las vidas con contador badge dinámico y modal interactivo de botín (atajo tecla `B`).
+* **Herramientas de Desarrollo y UX Pulida**:
+  * **Modal Dev (`#modal-dev`)**: Herramientas exclusivas en modo local (`npm run dev`) con reinicio rápido (F5 táctil) y monitor de telemetría WebRTC.
+  * **Diálogo Temático de Confirmación**: Sustitución de `confirm()` por modales oscuros con bordes rúnicos y audio procedural para salir al menú.
+  * **Orientación Inicial a 180°**: El héroe inicia mirando hacia el pasillo de la mazmorra (`Math.PI`), evitando encarar la pared de spawn.
+  * **Scrollbars Dark Fantasy**: Barras de desplazamiento estilizadas en obsidiana y ámbar.
+* **Sistema de Peligros y Checkpoints**:
   * 3 vidas por héroe con indicador HUD reactivo.
   * Peligros letales: fosa de lava y caída al vacío con penalización de vida y reaparición en el último checkpoint seguro.
   * Período de invulnerabilidad post-reaparición y Game Over sincronizado.
@@ -42,8 +52,8 @@
   * **Físicas Desacopladas a 30 Hz**: Motor de colisiones AABB propio sin sobrecarga en la CPU del teléfono.
 * **Controles Táctiles y de Escritorio**:
   * **Móvil**: Joystick dinámico Nipple.js (mitad izquierda), Touch Look pasivo a 60–120 Hz (mitad derecha) y botones flotantes (*ACCION*, *SALTAR*).
-  * **PC**: Teclado WASD, Barra espaciadora (`SALTAR`) y teclas `E` / `F` / Clic izquierdo (`INTERACTUAR`).
-* **Suite de Pruebas Unitarias Integrada**: 58 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas y niveles.
+  * **PC**: Teclado WASD, Barra espaciadora (`SALTAR`), tecla `B` (`INVENTARIO`) y teclas `E` / `F` / Clic izquierdo (`INTERACTUAR`).
+* **Suite de Pruebas Unitarias Integrada**: 84 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas, inventario y niveles.
 
 ---
 
@@ -153,6 +163,7 @@ npm run build
 | **Mirar / Girar** | Arrastrar en la mitad derecha | Mover ratón (clic en pantalla para Pointer Lock) |
 | **Saltar** | Botón flotante `SALTAR` | Barra `Espaciadora` |
 | **Interactuar / Acción** | Botón flotante `ACTION` | Teclas `E`, `F` o Clic izquierdo |
+| **Inventario / Botín** | Botón cofre (`#hud-inventory`) | Tecla `B` o Clic en cofre/gemas |
 
 ---
 
@@ -176,6 +187,8 @@ La carpeta [`docs/`](docs/) contiene el desglose técnico y las decisiones de di
 * [**13. Canales Duales WebRTC y Endurecimiento de Conexión P0**](docs/13-canales-duales-webrtc-endurecimiento-p0.md)
 * [**14. Subsistemas de Audio Procedural, Vidas, Resortes y Suite de Tests**](docs/14-subsistemas-audio-procedural-vidas-y-resortes.md)
 * [**15. Flujo de Trabajo Git y Creación de Nuevos Niveles de Mazmorra**](docs/15-flujo-de-trabajo-git-y-creacion-de-niveles.md)
+* [**17. Arquitectura de Capítulos y Escalado de Mazmorras (10 Capítulos × 3 Niveles)**](docs/17-arquitectura-de-capitulos-y-escalado-de-mazmorras.md)
+* [**18. Sistema de Inventario, HUD Expandido y Herramientas de Desarrollo**](docs/18-inventario-hud-y-herramientas-desarrollo.md)
 
 ---
 

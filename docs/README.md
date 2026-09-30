@@ -110,5 +110,13 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Taxonomía de los 10 biomas temáticos y peligros ambientales exclusivos (hielo, ácido, pistones, teletransporte).
     - Hub de selección en el Lobby, persistencia en `localStorage` y estrategia de generación modular.
 
+18. [**18. Sistema de Inventario, HUD Expandido y Herramientas de Desarrollo**](./18-inventario-hud-y-herramientas-desarrollo.md)
+    - HUD superior elástico: botón de inventario (`#hud-inventory`) con badge reactivo y HUD de estado (`#hud-lives`).
+    - Representación de vidas: corazones llenos frente a contorno de corazones perdidos (`heartOutline` SVG).
+    - Insignia persistente de llaves y contador en vivo de gemas integrados en el HUD de vidas.
+    - Consumo autoritativo de llaves al abrir puertas selladas (`Player.removeKey`, `removeInventoryKey`).
+    - Modal interactivo de botín con desglose de tesoros y herramientas de desarrollo exclusivas (`#modal-dev`).
+    - Diálogo temático de confirmación para salir al menú, scrollbars dark fantasy y orientación inicial a 180°.
+
 
 

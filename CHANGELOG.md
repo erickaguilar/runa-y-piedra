@@ -5,6 +5,39 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.24.0] - 2026-09-30
+
+### Added
+- **HUD de Estado Expandido e Interactivo ([`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), [`Icons.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js), [`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html))**:
+  - **Contorno de Corazones para Vidas Perdidas (`heartOutline`)**: Representación geométrica idéntica al corazón activo pero con `fill="none"` y `stroke="currentColor" stroke-width="2"` en tono `#64748b` con animación `@keyframes heartShake` al recibir daño.
+  - **Insignia de Llaves de Mazmorra (`.key-badge`)**: Mantiene visible la llave activa en el HUD con icono dorado `#fbbf24` y borde divisorio vertical.
+  - **Contador Numérico de Gemas en Tiempo Real (`.gems-badge`)**: Muestra el icono de gema azul cielo (`#38bdf8`) junto a la cantidad acumulada, reactivo a la recolección en cofres y reseteos.
+  - **Delegación de Clic en el HUD**: Al pulsar las insignias de llave o gemas se abre directamente el modal de inventario.
+  - **Botón Icono de Inventario (`#hud-inventory`)**: Botón cuadrado de $38\times 38\text{ px}$ con borde translúcido a la izquierda de las vidas, indicador badge numérico de botín y atajo de teclado tecla `B`.
+- **Consumo y Eliminación de Llaves al Abrir Puertas ([`Player.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/Player.js), [`InteractionController.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/InteractionController.js), [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**:
+  - Método `Player.prototype.removeKey(keyId)` para retirar llaves consumidas.
+  - Métodos `VoxelSandboxGame.prototype.removeInventoryKey(keyId)` y `removeInventoryRelic(relicId)`.
+  - Apertura autoritativa: `InteractionController.prototype.openDoor(doorId, opener)` consume `door.requiresKey` tanto en el jugador como en el inventario, oculta la insignia si no restan llaves y emite el mensaje narrativo `"🗝️ ¡Llave consumida!"`.
+  - Sincronización en red WebRTC en clientes al recibir confirmación de apertura de puerta.
+- **Herramientas de Desarrollo y Diagnóstico (`#modal-dev`)**:
+  - Botón `#btn-dev` visible exclusivamente en desarrollo (`import.meta.env.DEV` o `localhost`).
+  - Modal con botón "Reiniciar Partida (F5)" para navegadores móviles sin teclado y panel de telemetría WebRTC en tiempo real.
+- **Diálogo Temático de Confirmación para Salir**:
+  - Reemplazo de `window.confirm()` por modal oscuro *dark fantasy* con botones estilizados y efectos sonoros (`playClick()`, `playMenuClose()`).
+- **Personalización de Barras de Desplazamiento y Versión de Proyecto**:
+  - Scrollbars WebKit/Firefox en tonos obsidiana y ámbar.
+  - Versión del proyecto expuesta dinámicamente en el modal de configuración leyendo `APP_CONFIG.VERSION`.
+- **Orientación Inicial a 180° (`Math.PI`)**:
+  - El jugador inicia mirando hacia el pasillo de la mazmorra (`player.yaw = Math.PI`), eliminando el spawn mirando contra la pared trasera.
+- **Resiliencia de Red Multijugador y Corrección de Avatares**:
+  - Reconexión automática con servidor de señalización PeerJS ante eventos `disconnected`.
+  - Eliminación de avatar fantasma (ID -1) al iniciar partida.
+  - Spawn offset seguro de invitados (+3 en Z) para evitar caídas a la lava o vacío en descensos de nivel.
+- **Suite de Pruebas Unitarias Ampliada ([`tests/`](file:///data/data/com.termux/files/home/develop/game/tests/))**:
+  - 84 tests automatizados con `node:test` cubriendo consumo de llaves, contorno de corazones, HUD de gemas y herramientas dev.
+
+---
+
 ## [1.23.0] - 2026-09-29
 
 ### Added
