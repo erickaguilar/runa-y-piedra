@@ -15,7 +15,7 @@ export class InputManager {
     this.moveJoystick = { x: 0, y: 0 };
     this.pendingJump = false;
 
-    this.yaw = 0;
+    this.yaw = Math.PI;
     this.pitch = 0;
 
     this.pointerLocked = false;

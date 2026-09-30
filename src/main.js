@@ -252,6 +252,8 @@ class VoxelSandboxGame {
       const lvl = this.world.levelRegistry.getCurrentLevel();
       this.ui.setTutorialControlsVisible(lvl?.id === 'lobby_tutorial');
       const localInit = this.playerManager.localPlayer;
+      this.input.yaw = Math.PI;
+      localInit.yaw = Math.PI;
       localInit.resetLives();
       this.ui.updateLives(localInit.lives, localInit.maxLives);
       this.ui.setHasKey(false);
@@ -663,6 +665,8 @@ class VoxelSandboxGame {
         local.visualPos.y = WORLD_CONFIG.SPAWN_Y;
         local.visualPos.z = spawnZ;
       }
+      local.yaw = Math.PI;
+      this.input.yaw = Math.PI;
 
       // El avatar 0 es el anfitrión: asegurar que exista, sea visible y esté en el spawn del anfitrión
       const hostAvatar = this.avatars.ensure(0);

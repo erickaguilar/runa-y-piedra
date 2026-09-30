@@ -10,6 +10,11 @@ test('vidas iniciales e invulnerabilidad post-respawn', () => {
   assert.ok(p.invulnTicks > 0);
 });
 
+test('orientación inicial a 180 grados (Math.PI) para mirar al frente de la mazmorra', () => {
+  const p = new Player(0, 12, 1.2, 4.5);
+  assert.equal(p.yaw, Math.PI);
+});
+
 test('loseLife decrementa y detecta game over', () => {
   const p = new Player(0, 12, 1.2, 4.5);
   assert.deepEqual(p.loseLife(), { lives: 2, gameOver: false, ignored: false });

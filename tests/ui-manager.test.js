@@ -132,6 +132,8 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.match(ui.uiEl.innerHTML, /settings-version-pill/);
       assert.match(ui.uiEl.innerHTML, /settings-footer-version/);
       assert.match(ui.uiEl.innerHTML, /Runa y Piedra/);
+      assert.match(ui.uiEl.innerHTML, /btn-reload-page/);
+      assert.match(ui.uiEl.innerHTML, /Recargar \(F5\)/);
     });
 
     it('muestra y gestiona el diálogo temático de confirmación para salir al menú', () => {

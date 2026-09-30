@@ -388,8 +388,11 @@ export class UIManager {
           </div>
         ` : ''}
 
-        <div style="display:flex;gap:8px;margin-top:14px;">
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
           ${inGame ? `<button id="btn-leave-game" class="btn-danger" style="flex:1">Salir al Menú</button>` : ''}
+          <button id="btn-reload-page" class="btn-secondary" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;" title="Recargar juego (F5)">
+            ${renderIcon('sparkles', { size: 14, color: '#38bdf8' })} Recargar (F5)
+          </button>
           <button id="btn-save-settings" class="btn-primary" style="flex:1">Aceptar</button>
         </div>
 
@@ -500,6 +503,14 @@ export class UIManager {
           this.settingsCallbacks?.onLeaveGame?.();
         },
       });
+    });
+
+    // Recargar juego (F5 para móvil y PC)
+    document.getElementById('btn-reload-page')?.addEventListener('click', () => {
+      soundManager.playClick();
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
     });
 
     // Guardar cambios

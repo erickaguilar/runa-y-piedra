@@ -13,7 +13,7 @@ export class Player {
     this.visualPos = { x, y, z };
 
     this.vel = { x: 0, y: 0, z: 0 };
-    this.yaw = 0;
+    this.yaw = Math.PI;
     this.pitch = 0;
     this.onGround = false;
     this.inputForward = 0;
