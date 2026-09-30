@@ -216,6 +216,36 @@ export const ICONS = {
     body: `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
   },
 
+  gamepad: {
+    name: 'gamepad',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#a855f7',
+    body: `<rect x="2" y="6" width="20" height="12" rx="4" stroke-linecap="round" stroke-linejoin="round"/><line x1="6" y1="12" x2="10" y2="12" stroke-linecap="round"/><line x1="8" y1="10" x2="8" y2="14" stroke-linecap="round"/><circle cx="15" cy="13" r="1" fill="currentColor"/><circle cx="18" cy="11" r="1" fill="currentColor"/>`,
+  },
+
+  joystick: {
+    name: 'joystick',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<path d="M5 19a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2H5v-2z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="6" r="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="17" stroke-linecap="round"/>`,
+  },
+
+  target: {
+    name: 'target',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#ef4444',
+    body: `<circle cx="12" cy="12" r="10" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="2" fill="currentColor"/>`,
+  },
+
   action: {
     name: 'action',
     viewBox: '0 0 24 24',
@@ -421,6 +451,9 @@ export const EMOJI_TO_ICON_MAP = [
   { regex: /⬆\uFE0F?/g, icon: 'arrowUp', defaultColor: '#fff' },
   { regex: /✦/g,         icon: 'star', defaultColor: '#fde68a' },
   { regex: /📷\uFE0F?/g, icon: 'camera', defaultColor: '#38bdf8' },
+  { regex: /🎮\uFE0F?/g, icon: 'gamepad', defaultColor: '#a855f7' },
+  { regex: /🕹\uFE0F?/g, icon: 'joystick', defaultColor: '#38bdf8' },
+  { regex: /🎯\uFE0F?/g, icon: 'target', defaultColor: '#ef4444' },
   { regex: /✕/g,        icon: 'x',     defaultColor: '#94a3b8' },
 ];
 

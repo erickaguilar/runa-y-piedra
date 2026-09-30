@@ -24,9 +24,10 @@ test('llaves y cofres se convierten a SVG', () => {
 });
 
 test('nuevos iconos de gameplay convierten', () => {
-  for (const e of ['🔒', '🌀', '🪨', '💀', '🔊', '🔇', '❤️', '🖤', '🤍', '⬆️', '✦', '📷']) {
+  for (const e of ['🔒', '🌀', '🪨', '💀', '🔊', '🔇', '❤️', '🖤', '🤍', '⬆️', '✦', '📷', '🎮', '🎯', '🕹️']) {
     const out = replaceEmojisWithSvg(`x ${e} y`);
     assert.ok(out.includes('<svg'), `emoji sin convertir: ${e}`);
+    assert.ok(!out.includes(e), `emoji residual detectado: ${e}`);
   }
 });
 
@@ -34,10 +35,16 @@ test('emojis desconocidos se dejan tal cual', () => {
   assert.equal(replaceEmojisWithSvg('hola 🛸 mundo').includes('🛸'), true);
 });
 
-test('resolveIcon cae a castle con desconocidos', () => {
+test('resolveIcon cae a castle con desconocidos y resuelve iconos vectoriales', () => {
   assert.equal(resolveIcon('no-existe').name, 'castle');
   assert.equal(resolveIcon('door').name, 'door');
   assert.equal(resolveIcon('heartOutline').name, 'heartOutline');
+  assert.equal(resolveIcon('gamepad').name, 'gamepad');
+  assert.equal(resolveIcon('joystick').name, 'joystick');
+  assert.equal(resolveIcon('target').name, 'target');
+  assert.equal(resolveIcon('🎮').name, 'gamepad');
+  assert.equal(resolveIcon('🕹️').name, 'joystick');
+  assert.equal(resolveIcon('🎯').name, 'target');
 });
 
 test('renderIcon genera svg válido con tamaño y color', () => {
@@ -49,4 +56,9 @@ test('renderIcon genera svg válido con tamaño y color', () => {
   assert.ok(outlineSvg.startsWith('<svg '));
   assert.ok(outlineSvg.includes('fill="none"'));
   assert.ok(outlineSvg.includes('stroke="#64748b"'));
+
+  const gamepadSvg = renderIcon('gamepad', { size: 16, color: '#a855f7' });
+  assert.ok(gamepadSvg.startsWith('<svg '));
+  assert.ok(gamepadSvg.includes('width="16"'));
+  assert.ok(gamepadSvg.includes('stroke="#a855f7"'));
 });

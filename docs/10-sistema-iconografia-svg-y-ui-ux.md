@@ -35,6 +35,9 @@ Para garantizar una estética medieval-voxel profesional y nítida en pantallas 
 | `copy` | 📋 | `currentColor` | Botón copiar link al portapapeles |
 | `action` | ⚡ | `#f59e0b` | Botón de acción táctil / estadística de velocidad |
 | `jump` | ⬆️ | `#94a3b8` | Botón de salto táctil / estadística de salto |
+| `gamepad` | 🎮 | `#a855f7` | Título del HUD de controles y avisos de esquema de botones |
+| `joystick` | 🕹️ | `#38bdf8` | Indicador táctil de joystick virtual móvil |
+| `target` | 🎯 | `#ef4444` | Avisos de práctica, diana de entrenamiento y objetivos |
 
 ---
 
