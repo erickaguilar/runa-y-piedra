@@ -5,6 +5,22 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.26.0] - 2026-09-30
+
+### Added
+- **Bloque de Respawn y Losa Rúnica de Aparición (`RESPAWN_PAD`) ([`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js), [`TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js), [`VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js), [`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js))**:
+  - Constante `BLOCK_TYPES.RESPAWN_PAD = 11` y mapeo de color neutro `BLOCK_COLORS[11] = 0xffffff`.
+  - Arte vectorial procedural en el **Tile 11** del Texture Atlas: base de sillar de basalto oscuro (`#0b0f19`, `#131b2e`), esquineros de aleación y forja celestial con remaches de zafiro (`#38bdf8`), círculos concéntricos de invocación en bajorrelieve y rosa de los vientos sagrada de 4 puntas con núcleo radiante de almas (`#f0f9ff`).
+  - Mapeo en `VoxelMap.selectTile`: vincula determinísticamente el tipo `RESPAWN_PAD` al Tile 11 del atlas.
+  - Colocación automática en mazmorras (`LevelLoader._placeRespawnPads`): instala plataformas sagradas de `2x2` losas a nivel de suelo (`y = 0`) exactamente bajo las coordenadas de spawn de cada nivel (`spawnPoint`) y en cada uno de los puntos de control intermedios (`checkpoints`).
+  - Identificación visual unificada: tanto el Anfitrión como los invitados pueden reconocer a simple vista el punto exacto de entrada y reaparición en el vestíbulo y salas subsiguientes.
+- **Mecánica de Santuario y Resonancia Celestial ([`SoundManager.js`](file:///data/data/com.termux/files/home/develop/game/src/audio/SoundManager.js), [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**:
+  - Efecto de sonido procedural `SoundManager.prototype.playRespawn`: sintetiza un arpegio ascendente de campanillas y armónicos cristalinos en frecuencias puras (Do5: 523.25 Hz, Mi5: 659.25 Hz, Sol5: 783.99 Hz, Do6: 1046.50 Hz) mediante Web Audio API con cero descarga de ficheros externos.
+  - Activación en el ciclo de vida: al reaparecer tras caer en lava o en el abismo, se reproduce el arpegio celestial y se emite la notificación narrativa `✨ Reapareciendo en la Losa Rúnica...`.
+  - Mantenimiento del escudo de invulnerabilidad temporal (2 s, `invulnTicks = 60`) al rematerializarse sobre la losa.
+- **Documentación Técnica ([`docs/20-bloques-respawn-y-aparicion-runica.md`](file:///data/data/com.termux/files/home/develop/game/docs/20-bloques-respawn-y-aparicion-runica.md), [`docs/README.md`](file:///data/data/com.termux/files/home/develop/game/docs/README.md))**:
+  - Especificación exhaustiva del bloque, arte SVG en el Texture Atlas, algoritmo de centrado de plataformas 2x2, integración con Web Audio API y pruebas unitarias.
+
 ## [1.25.0] - 2026-09-30
 
 ### Added

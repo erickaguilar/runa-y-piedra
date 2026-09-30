@@ -125,5 +125,12 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Protocolo de sala llena: rechazo de conexiones entrantes con `HOST_CLOSING` código 1 (`ROOM_FULL`) y retorno limpio al menú en el cliente rechazado.
     - Experiencia de usuario (UI): selector de clase en Configuración con estado `.occupied`, bloqueo visual con cruz roja y pill de aforo reactivo (`5/5 Llena`).
 
+20. [**20. Bloques de Respawn y Losas de Aparición Rúnica**](./20-bloques-respawn-y-aparicion-runica.md)
+    - Definición del bloque especializado `BLOCK_TYPES.RESPAWN_PAD = 11` y su arte vectorial en el **Tile 11** del Texture Atlas.
+    - Diseño visual del glifo rúnico azul cian (`#38bdf8`), estrella sagrada de 4 puntas y remaches de forja celestial.
+    - Colocación automática en plataformas 2x2 bajo el spawn principal y puntos de control intermedios (`LevelLoader._placeRespawnPads`).
+    - Mecánica de Santuario de Reaparición Segura con protección e invulnerabilidad temporal (2 s).
+    - Síntesis de audio procedural `playRespawn()` mediante arpegio armónico de campanillas celestiales en Web Audio API.
+
 
 

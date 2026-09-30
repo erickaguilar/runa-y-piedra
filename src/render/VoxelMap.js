@@ -251,6 +251,8 @@ varying vec2 vAtlasOffset;`
         // Sprite unificado de columna monolítica continua: fuste oscuro, desgastado y sin costuras horizontales
         return 10;
       }
+      case BLOCK_TYPES.RESPAWN_PAD:
+        return 11; // Losa rúnica de aparición / reaparición con glifo cian celestial
       case BLOCK_TYPES.JUMP_PAD:
         return 14; // Losa de cantería con runa ámbar de salto y refuerzos de forja
       case BLOCK_TYPES.PEDESTAL:

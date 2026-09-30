@@ -631,6 +631,39 @@ export class SoundManager {
     osc.start(t);
     osc.stop(t + 1.45);
   }
+
+  /**
+   * Resonancia de reaparición celestial: arpegio de campanillas/cristal místico
+   * con armónicos senoidales ascendentes (C5-E5-G5-C6) y decaimiento suave sobre la losa de respawn.
+   */
+  playRespawn() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    const t = this.ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, i) => {
+      const start = t + i * 0.08;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, start);
+
+      gain.gain.setValueAtTime(0.001, start);
+      gain.gain.linearRampToValueAtTime(0.2, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.42);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(start);
+      osc.stop(start + 0.45);
+    });
+  }
 }
 
 // Instancia singleton para fácil reutilización

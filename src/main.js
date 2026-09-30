@@ -94,7 +94,8 @@ class VoxelSandboxGame {
         if (p !== this.playerManager.localPlayer) return;
         const { cause = 'void', lives = 3, maxLives = 3, gameOver = false, noPenalty = false } = info;
         if (noPenalty) {
-          this.ui.showNarrativeMessage('⚠️ ¡Zona restringida! Vuelves al checkpoint.', 2500);
+          this.soundManager.playRespawn();
+          this.ui.showNarrativeMessage('⚠️ ¡Zona restringida! Reapareces en la Losa de Respawn.', 2500);
           return;
         }
         this.ui.updateLives(lives, maxLives);
@@ -109,11 +110,12 @@ class VoxelSandboxGame {
           }
         } else {
           this.soundManager.playHurt();
+          setTimeout(() => this.soundManager.playRespawn(), 300);
           const roomMsg = cp?.roomName ? ` en ${cp.roomName}` : '';
           if (cause === 'lava') {
-            this.ui.showNarrativeMessage(`🔥 ¡Te consumió la lava! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo${roomMsg}...`, 3200);
+            this.ui.showNarrativeMessage(`🔥 ¡Te consumió la lava! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
           } else {
-            this.ui.showNarrativeMessage(`⚠️ ¡Caíste al abismo! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo${roomMsg}...`, 3200);
+            this.ui.showNarrativeMessage(`⚠️ ¡Caíste al abismo! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
           }
         }
       },

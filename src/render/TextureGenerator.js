@@ -356,22 +356,70 @@ export class TextureGenerator {
         </g>
       `,
 
-      // Tiles 11 y 12: Réplicas del pilar monolítico (el tile 13 ahora es LAVA)
+      // ==================== TILE 11: RESPAWN_PAD (Losa Rúnica de Aparición / Reaparición de Aventureros) ====================
       `
-        <rect width="${S}" height="${S}" fill="#1c2027"/>
-        <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
-        <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
-        <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
-        <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
-        <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-        <line x1="32" y1="0" x2="32" y2="${S}" stroke="#080a0d" stroke-width="2"/>
-        <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
-        <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-        <line x1="64" y1="0" x2="64" y2="${S}" stroke="#080a0d" stroke-width="2"/>
-        <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
-        <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-        <line x1="96" y1="0" x2="96" y2="${S}" stroke="#080a0d" stroke-width="2"/>
-        <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+        <!-- Base de sillar oscuro de piedra mística -->
+        <rect width="${S}" height="${S}" fill="#0b0f19"/>
+        <rect x="2" y="2" width="${S - 4}" height="${S - 4}" fill="#131b2e"/>
+
+        <!-- Bisel de iluminación: luz cian/plateada arriba-izquierda, sombra profunda abajo-derecha -->
+        <path d="M2 2 L${S - 2} 2 L${S - 2} 6 L6 6 L6 ${S - 2} L2 ${S - 2} Z" fill="#38bdf8" opacity="0.35"/>
+        <path d="M2 ${S - 2} L${S - 2} ${S - 2} L${S - 2} 2 L${S - 6} 2 L${S - 6} ${S - 6} L2 ${S - 6} Z" fill="#030712" opacity="0.9"/>
+
+        <!-- Esquineros de aleación rúnica y forja celestial -->
+        <g fill="#1e293b" stroke="#0284c7" stroke-width="1.2">
+          <rect x="5" y="5" width="24" height="5"/>
+          <rect x="5" y="5" width="5" height="24"/>
+          <rect x="99" y="5" width="24" height="5"/>
+          <rect x="118" y="5" width="5" height="24"/>
+          <rect x="5" y="118" width="24" height="5"/>
+          <rect x="5" y="99" width="5" height="24"/>
+          <rect x="99" y="118" width="24" height="5"/>
+          <rect x="118" y="99" width="5" height="24"/>
+        </g>
+
+        <!-- Remaches rúnicos de zafiro -->
+        <g fill="#38bdf8">
+          <circle cx="10" cy="10" r="2"/>
+          <circle cx="24" cy="10" r="1.8"/>
+          <circle cx="10" cy="24" r="1.8"/>
+          <circle cx="118" cy="10" r="2"/>
+          <circle cx="104" cy="10" r="1.8"/>
+          <circle cx="118" cy="24" r="1.8"/>
+          <circle cx="10" cy="118" r="2"/>
+          <circle cx="24" cy="118" r="1.8"/>
+          <circle cx="10" cy="104" r="1.8"/>
+          <circle cx="118" cy="118" r="2"/>
+          <circle cx="104" cy="118" r="1.8"/>
+          <circle cx="118" cy="104" r="1.8"/>
+        </g>
+
+        <!-- Halo místico de invocación / resonancia -->
+        <circle cx="64" cy="64" r="44" fill="#0284c7" opacity="0.12"/>
+        <circle cx="64" cy="64" r="34" fill="#38bdf8" opacity="0.18"/>
+
+        <!-- Círculos concéntricos de invocación tallados en bajorrelieve -->
+        <circle cx="64" cy="64" r="48" fill="none" stroke="#075985" stroke-width="2.5"/>
+        <circle cx="64" cy="64" r="48" fill="none" stroke="#38bdf8" stroke-width="1.2" opacity="0.8"/>
+        <circle cx="64" cy="64" r="32" fill="none" stroke="#0284c7" stroke-width="2"/>
+        <circle cx="64" cy="64" r="32" fill="none" stroke="#7dd3fc" stroke-width="1" opacity="0.9"/>
+
+        <!-- Glifos cardinales rúnicos en los 4 extremos -->
+        <g fill="#38bdf8" opacity="0.95">
+          <circle cx="64" cy="20" r="3.5"/>
+          <circle cx="64" cy="108" r="3.5"/>
+          <circle cx="20" cy="64" r="3.5"/>
+          <circle cx="108" cy="64" r="3.5"/>
+        </g>
+
+        <!-- Estrella rúnica de 4 puntas de reaparición / rosa de los vientos sagrada -->
+        <polygon points="64,24 72,56 104,64 72,72 64,104 56,72 24,64 56,56" fill="#0284c7" stroke="#0369a1" stroke-width="2"/>
+        <polygon points="64,28 70,58 100,64 70,70 64,100 58,70 28,64 58,58" fill="#38bdf8" opacity="0.8"/>
+        <polygon points="64,36 68,60 92,64 68,68 64,92 60,68 36,64 60,60" fill="#e0f2fe" opacity="0.95"/>
+
+        <!-- Núcleo de energía de almas -->
+        <circle cx="64" cy="64" r="9" fill="#0284c7" stroke="#38bdf8" stroke-width="2"/>
+        <circle cx="64" cy="64" r="5" fill="#f0f9ff"/>
       `,
 
       `

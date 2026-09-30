@@ -70,7 +70,46 @@ export class LevelLoader {
       }
     }
 
+    // 5. Instalar losas de respawn rúnicas (RESPAWN_PAD) bajo el spawn principal y puntos de control
+    this._placeRespawnPads(world, levelData);
+
     return world;
+  }
+
+  /**
+   * Coloca una losa rúnica de aparición (2x2) centrada en las coordenadas de reaparición.
+   */
+  static _placeRespawnPad(world, pt) {
+    if (!pt) return;
+    const cx = pt.x ?? WORLD_CONFIG.SPAWN_X;
+    const cz = pt.z ?? WORLD_CONFIG.SPAWN_Z;
+    const cy = Math.max(0, Math.floor((pt.y ?? 1.2) - 0.5));
+    const x1 = Math.round(cx - 1);
+    const x2 = Math.round(cx);
+    const z1 = Math.round(cz - 1);
+    const z2 = Math.round(cz);
+    for (let x = x1; x <= x2; x++) {
+      for (let z = z1; z <= z2; z++) {
+        if (world.inBounds(x, cy, z)) {
+          world.set(x, cy, z, BLOCK_TYPES.RESPAWN_PAD);
+        }
+      }
+    }
+  }
+
+  static _placeRespawnPads(world, levelData) {
+    // 1. Spawn principal del nivel
+    if (world.spawnPoint) {
+      this._placeRespawnPad(world, world.spawnPoint);
+    }
+    // 2. Checkpoints de salas intermedias si están definidos
+    if (Array.isArray(levelData?.checkpoints)) {
+      for (const cp of levelData.checkpoints) {
+        if (cp?.respawn) {
+          this._placeRespawnPad(world, cp.respawn);
+        }
+      }
+    }
   }
 
   static _buildRegion(world, region, sizeX, sizeY, sizeZ) {
