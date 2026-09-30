@@ -233,6 +233,7 @@ class VoxelSandboxGame {
       const pin = await this.network.host();
       this.mode = 'host';
       this.playerManager.setLocalId(0);
+      this.avatars.remove(-1);
 
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const hostAddr = isLocal ? (localStorage.getItem('dungeon_lan_ip') || '192.168.100.28:5173') : window.location.host;
@@ -273,21 +274,40 @@ class VoxelSandboxGame {
     this.descent.reset();
 
     const spawn = levelData.spawn || { x: 12.0, y: 1.2, z: 4.5 };
+    const allPlayers = this.playerManager.getAllPlayers();
+    for (const pl of allPlayers) {
+      pl.clearKeys?.();
+      const spawnZ = pl.id === 0 ? spawn.z : spawn.z + 3.0;
+      pl.setCheckpoint(spawn.x, spawn.y, spawnZ, levelData.name);
+      pl.respawn();
+      pl.resetLives();
+      pl.vel.x = 0;
+      pl.vel.y = 0;
+      pl.vel.z = 0;
+      if (pl.visualPos) {
+        pl.visualPos.x = spawn.x;
+        pl.visualPos.y = spawn.y;
+        pl.visualPos.z = spawnZ;
+      }
+    }
+
+    // Reposicionar avatares visuales al nuevo punto de spawn
+    for (const [id, a] of this.avatars.avatars.entries()) {
+      const targetZ = id === 0 ? spawn.z : spawn.z + 3.0;
+      a.target.x = spawn.x;
+      a.target.y = spawn.y;
+      a.target.z = targetZ;
+      a.current.x = spawn.x;
+      a.current.y = spawn.y;
+      a.current.z = targetZ;
+      a.mesh.position.set(spawn.x, spawn.y, targetZ);
+    }
+
     const local = this.playerManager.localPlayer;
-    local.setCheckpoint(spawn.x, spawn.y, spawn.z, levelData.name);
-    local.respawn();
-    local.resetLives();
-    local.vel.x = 0;
-    local.vel.y = 0;
-    local.vel.z = 0;
     this.resetInventory({ keepGems: true, keepRelics: true });
     this.ui.setLivesVisible(true);
     this.ui.updateLives(local.lives, local.maxLives);
     this.ui.setTutorialControlsVisible(levelData.id === 'lobby_tutorial');
-    // Nueva mazmorra, nuevas llaves: los cofres reaparecen cerrados
-    for (const pl of this.playerManager.getAllPlayers()) {
-      pl.clearKeys?.();
-    }
     this.ui.setHasKey(false);
     // Fin de la transición del portal (el velo se retira sobre el nuevo mapa)
     this.ui.hideLevelTransition();
@@ -422,9 +442,6 @@ class VoxelSandboxGame {
     this.ui.updateLives(localCli.lives, localCli.maxLives);
     this.ui.setHasKey(false);
     this.ui.showNarrativeMessage(`Conectado como ${escapeHtml(name)}. Explorad juntos.`, 5000);
-
-    // Enviar metadatos locales (nombre y color de clase) al Host (canal fiable)
-    this.network.sendToHost(Proto.serializePlayerMeta(0, colorIndex, name));
   }
 
 
@@ -529,6 +546,10 @@ class VoxelSandboxGame {
           this.ui.updatePartyList(this.playerManager.getAllPlayers());
         }
       } else if (this.mode === 'client') {
+        // Evitar procesar metadatos de otros jugadores antes de recibir INIT (cuando localPlayer.id sigue en -1)
+        if (this.playerManager.localPlayer.id === -1 && playerId !== 0) {
+          return;
+        }
         this.playerManager.updatePlayerMeta(playerId, name, colorIndex);
         if (playerId !== this.playerManager.localPlayer.id) {
           this.avatars.setMetadata(playerId, name, hero.hex, hero.id || null);
@@ -615,6 +636,12 @@ class VoxelSandboxGame {
       }
       this.playerManager.setLocalId(e.detail.playerId);
       const local = this.playerManager.localPlayer;
+      this.avatars.remove(-1);
+      const myAv = this.avatars.avatars.get(local.id);
+      if (myAv) {
+        myAv.isLocal = true;
+        myAv.mesh.visible = (this.cameraMode === 'third');
+      }
 
       // Colocar al jugador invitado en el punto de spawn de invitado (offset +3 en Z)
       const spawnZ = WORLD_CONFIG.SPAWN_Z + 3.0;
@@ -627,10 +654,17 @@ class VoxelSandboxGame {
         local.visualPos.z = spawnZ;
       }
 
-      // El avatar 0 es el anfitrión: asegurar que exista y sea visible
+      // El avatar 0 es el anfitrión: asegurar que exista, sea visible y esté en el spawn del anfitrión
       const hostAvatar = this.avatars.ensure(0);
       hostAvatar.isLocal = false;
       hostAvatar.mesh.visible = true;
+      hostAvatar.target.x = WORLD_CONFIG.SPAWN_X;
+      hostAvatar.target.y = 1.2;
+      hostAvatar.target.z = WORLD_CONFIG.SPAWN_Z;
+      hostAvatar.current.x = WORLD_CONFIG.SPAWN_X;
+      hostAvatar.current.y = 1.2;
+      hostAvatar.current.z = WORLD_CONFIG.SPAWN_Z;
+      hostAvatar.mesh.position.set(WORLD_CONFIG.SPAWN_X, 1.2, WORLD_CONFIG.SPAWN_Z);
 
       // Enviar metadatos oficiales del jugador con su ID asignado al host
       this.network.sendToHost(Proto.serializePlayerMeta(local.id, local.colorIndex, local.name));

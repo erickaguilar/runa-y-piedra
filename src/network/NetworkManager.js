@@ -261,6 +261,8 @@ export class NetworkManager extends EventTarget {
   }
 
   _isHotChannel(conn) {
+    if (conn?.reliable === false) return true;
+    if (conn?.dataChannel && conn.dataChannel.ordered === false) return true;
     const label = conn?.label || conn?.metadata?.channel || '';
     return /hot/i.test(label);
   }
@@ -331,9 +333,12 @@ export class NetworkManager extends EventTarget {
         }
         return;
       }
-      if (!this.connections.includes(conn)) {
-        this.connections.push(conn);
+      const alreadyConnected = this.connections.some(c => c.peer === conn.peer);
+      if (alreadyConnected) {
+        console.log(`[WebRTC] ℹ️ Peer ${conn.peer} ya tiene un canal safe registrado. Ignorando evento duplicado.`);
+        return;
       }
+      this.connections.push(conn);
       this.stats.setMode('HOST', this.connections.length);
       this.dispatchEvent(new CustomEvent('peer-joined', { detail: { conn } }));
     };
@@ -397,6 +402,7 @@ export class NetworkManager extends EventTarget {
         // Canal fiable para eventos (INIT, DOOR, CHEST, ...)
         const safe = this.peer.connect(room, {
           label: 'game-safe',
+          metadata: { channel: 'safe' },
           reliable: true,
           serialization: 'binary',
         });
@@ -404,6 +410,7 @@ export class NetworkManager extends EventTarget {
         // un paquete perdido lo reemplaza el siguiente tick (30/20 Hz).
         const hot = this.peer.connect(room, {
           label: 'game-hot',
+          metadata: { channel: 'hot' },
           reliable: false,
           serialization: 'binary',
         });

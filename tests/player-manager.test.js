@@ -76,3 +76,15 @@ test('getPlayerByConnection y removeByConnection resuelven por conn.peer', () =>
   assert.equal(pm.getPlayerByConnection(safeConn), null);
 });
 
+test('addRemotePlayer no duplica jugadores para la misma conexión o peer', () => {
+  const pm = new PlayerManager();
+  const connSafe = { peer: 'peer-unique', label: 'game-safe' };
+  const connHot = { peer: 'peer-unique', label: 'game-hot' };
+
+  const p1 = pm.addRemotePlayer(connSafe, 'Aventurero', 1);
+  const p2 = pm.addRemotePlayer(connHot, 'Aventurero Renombrado', 2);
+  assert.equal(p1.id, p2.id, 'debe ser el mismo id');
+  assert.equal(pm.getAllPlayers().filter(p => p.id === p1.id).length, 1, 'solo debe haber una instancia del jugador');
+  assert.equal(p2.name, 'Aventurero Renombrado');
+});
+

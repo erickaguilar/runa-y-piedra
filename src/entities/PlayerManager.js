@@ -23,6 +23,14 @@ export class PlayerManager {
   }
 
   addRemotePlayer(conn, name = 'Aventurero', colorIndex = 1) {
+    const existing = this.getPlayerByConnection(conn);
+    if (existing) {
+      this.connToPlayerId.set(conn, existing.id);
+      if (name) existing.name = name;
+      if (colorIndex !== undefined) existing.setColorIndex(colorIndex);
+      return existing;
+    }
+
     const pid = this.nextPlayerId++;
     const spawnZ = WORLD_CONFIG.SPAWN_Z + 3.0;
     const player = new Player(pid, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, spawnZ, name, colorIndex);
