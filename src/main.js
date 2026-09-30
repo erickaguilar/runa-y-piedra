@@ -333,7 +333,7 @@ class VoxelSandboxGame {
     this.ui.hideNarrativeMessage();
 
     // Limpiar buffers de reconciliación y cola de inputs para evitar replay cruzado de niveles
-    this.reconciler.reset(performance.now() + 150);
+    this.reconciler.reset(this.reconciler.lastProcessedSimTime);
     this.inputQueue.clear();
 
     if (levelData.id === 'lobby_tutorial') {
