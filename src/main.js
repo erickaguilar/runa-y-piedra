@@ -388,6 +388,22 @@ class VoxelSandboxGame {
     }
   }
 
+  /**
+   * Elimina una llave del inventario (al ser consumida abriendo una puerta)
+   * y actualiza el HUD y el modal de inventario en tiempo real.
+   */
+  removeInventoryKey(keyId) {
+    if (!keyId || !Array.isArray(this.inventory?.keys)) return false;
+    const targetId = typeof keyId === 'object' ? (keyId.id || keyId.name) : keyId;
+    const idx = this.inventory.keys.findIndex(k => (typeof k === 'string' ? k : (k.id || k.name)) === targetId);
+    if (idx !== -1) {
+      this.inventory.keys.splice(idx, 1);
+      this.ui.updateInventory(this.inventory);
+      return true;
+    }
+    return false;
+  }
+
   addInventoryGems(amount) {
     const n = parseInt(amount, 10);
     if (!isNaN(n) && n > 0) {
@@ -403,6 +419,21 @@ class VoxelSandboxGame {
       this.inventory.relics.push(relicObj);
       this.ui.updateInventory(this.inventory);
     }
+  }
+
+  /**
+   * Elimina una reliquia del inventario (para altares, sacrificios o usos míticos)
+   */
+  removeInventoryRelic(relicId) {
+    if (!relicId || !Array.isArray(this.inventory?.relics)) return false;
+    const targetId = typeof relicId === 'object' ? (relicId.id || relicId.name) : relicId;
+    const idx = this.inventory.relics.findIndex(r => (typeof r === 'string' ? r : (r.id || r.name)) === targetId);
+    if (idx !== -1) {
+      this.inventory.relics.splice(idx, 1);
+      this.ui.updateInventory(this.inventory);
+      return true;
+    }
+    return false;
   }
 
   resetInventory({ keepGems = false, keepRelics = false } = {}) {

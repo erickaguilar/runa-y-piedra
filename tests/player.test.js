@@ -51,6 +51,19 @@ test('llaves: otorgar una vez, consultar y limpiar', () => {
   assert.equal(p.hasKey('llave_santuario'), false);
 });
 
+test('llaves: remover/consumir llave', () => {
+  const p = new Player(0, 12, 1.2, 4.5);
+  p.addKey('llave_aprendiz');
+  p.addKey('llave_santuario');
+  assert.equal(p.removeKey('llave_desconocida'), false);
+  assert.equal(p.removeKey('llave_aprendiz'), true);
+  assert.equal(p.hasKey('llave_aprendiz'), false);
+  assert.equal(p.hasKey('llave_santuario'), true);
+  assert.equal(p.removeKey('llave_santuario'), true);
+  assert.equal(p.hasKey('llave_santuario'), false);
+  assert.equal(p.removeKey('llave_santuario'), false);
+});
+
 test('snapshot incluye vidas', () => {
   const p = new Player(0, 1, 2, 3);
   p.lives = 1;

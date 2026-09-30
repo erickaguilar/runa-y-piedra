@@ -151,6 +151,17 @@ export class Player {
     return !!keyId && this.keys.includes(keyId);
   }
 
+  /** Elimina una llave (al consumirse); retorna true si fue eliminada. */
+  removeKey(keyId) {
+    if (!keyId) return false;
+    const idx = this.keys.indexOf(keyId);
+    if (idx !== -1) {
+      this.keys.splice(idx, 1);
+      return true;
+    }
+    return false;
+  }
+
   clearKeys() {
     this.keys.length = 0;
   }

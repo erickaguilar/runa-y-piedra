@@ -223,11 +223,11 @@ export class InteractionController {
       return false;
     }
 
-    this.openDoor(doorId);
+    this.openDoor(doorId, player);
     return true;
   }
 
-  openDoor(doorId = 1) {
+  openDoor(doorId = 1, opener = null) {
     const game = this.game;
     const isOpen = doorId === 1 ? game.world.isDoor1Open : game.world.isDoor2Open;
     if (isOpen) return;
@@ -238,16 +238,36 @@ export class InteractionController {
 
     const door = game.world.doors?.find(d => d.id === doorId);
     const doorZ = door?.z ?? (doorId === 1 ? 11 : 24);
-    const local = game.playerManager.localPlayer;
+    const local = game.playerManager?.localPlayer;
     if (local) {
       game.soundManager.playDoorOpen({ x: 12.0, y: 2.0, z: doorZ + 0.5 }, local.pos);
     } else {
       game.soundManager.playDoorOpen();
     }
 
-    const msg = door?.openMessage || (doorId === 1
+    // Si la puerta requería una llave, consumirla del jugador y del inventario
+    let keyConsumed = false;
+    if (door?.requiresKey) {
+      const keyId = door.requiresKey;
+      if (opener?.removeKey) {
+        opener.removeKey(keyId);
+      }
+      if (local && local !== opener && local.hasKey?.(keyId)) {
+        local.removeKey(keyId);
+      }
+      if (game.removeInventoryKey) {
+        keyConsumed = game.removeInventoryKey(keyId);
+      }
+      if (local && (!local.keys || local.keys.length === 0)) {
+        game.ui?.setHasKey(false);
+      }
+    }
+
+    const defaultMsg = doorId === 1
       ? '🚪 ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!'
-      : '🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.');
+      : '🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.';
+    const consumedSuffix = keyConsumed ? ' 🗝️ ¡Llave consumida!' : '';
+    const msg = (door?.openMessage || defaultMsg) + consumedSuffix;
     game.ui.showNarrativeMessage(msg, 6000);
 
     if (game.mode === 'host') {
