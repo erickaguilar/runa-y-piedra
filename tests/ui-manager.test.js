@@ -13,6 +13,13 @@ describe('UIManager - Contratos de API de Configuración', () => {
     assert.equal(typeof UIManager.prototype.closeSettings, 'function');
     assert.equal(typeof UIManager.prototype.toggleSettings, 'function');
     assert.equal(typeof UIManager.prototype.showSettings, 'function');
+    assert.equal(typeof UIManager.prototype.openDevModal, 'function');
+    assert.equal(typeof UIManager.prototype.closeDevModal, 'function');
+    assert.equal(typeof UIManager.prototype.toggleDevModal, 'function');
+    assert.equal(typeof UIManager.prototype.openDev, 'function');
+    assert.equal(typeof UIManager.prototype.closeDev, 'function');
+    assert.equal(typeof UIManager.prototype.toggleDev, 'function');
+    assert.equal(typeof UIManager.prototype.showDev, 'function');
     assert.equal(typeof UIManager.prototype.showConfirmDialog, 'function');
     assert.equal(typeof UIManager.prototype.closeConfirmDialog, 'function');
     assert.equal(typeof UIManager.prototype.openInventoryModal, 'function');
@@ -132,8 +139,62 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.match(ui.uiEl.innerHTML, /settings-version-pill/);
       assert.match(ui.uiEl.innerHTML, /settings-footer-version/);
       assert.match(ui.uiEl.innerHTML, /Runa y Piedra/);
-      assert.match(ui.uiEl.innerHTML, /btn-reload-page/);
-      assert.match(ui.uiEl.innerHTML, /Recargar \(F5\)/);
+      // La telemetría y el reload se movieron a herramientas dev exclusivas
+      assert.doesNotMatch(ui.uiEl.innerHTML, /Telemetría de Red/);
+    });
+
+    it('gestiona el modal de herramientas dev (reload y telemetría) solo en desarrollo', () => {
+      const uiDev = new UIManager({ isDev: true });
+      assert.equal(uiDev.isDevMode, true);
+      assert.equal(uiDev.devBtn.style.display, 'flex');
+      assert.equal(uiDev.isDevOpen, false);
+
+      const uiProd = new UIManager({ isDev: false });
+      assert.equal(uiProd.isDevMode, false);
+      assert.equal(uiProd.devBtn.style.display, 'none');
+
+      uiDev.openDevModal();
+      assert.equal(uiDev.isDevOpen, true);
+      assert.match(uiDev.uiEl.innerHTML, /HERRAMIENTAS DEV/);
+      assert.match(uiDev.uiEl.innerHTML, /btn-reload-page/);
+      assert.match(uiDev.uiEl.innerHTML, /Recargar Página Ahora/);
+      assert.match(uiDev.uiEl.innerHTML, /Telemetría de Red WebRTC/);
+      assert.match(uiDev.uiEl.innerHTML, /btn-net-debug-on/);
+      assert.match(uiDev.uiEl.innerHTML, /btn-dev-audit/);
+      assert.match(uiDev.uiEl.innerHTML, /btn-dev-copy-state/);
+
+      uiDev.closeDevModal();
+      assert.equal(uiDev.isDevOpen, false);
+
+      uiDev.toggleDev();
+      assert.equal(uiDev.isDevOpen, true);
+      uiDev.toggleDev();
+      assert.equal(uiDev.isDevOpen, false);
+    });
+
+    it('el HUD de botín es interactivo y abre el modal al hacer clic o touch', () => {
+      const ui = new UIManager();
+      assert.equal(ui.isInventoryOpen, false);
+
+      // Simular click en el botón de botín
+      ui.inventoryHud.onclick();
+      assert.equal(ui.isInventoryOpen, true);
+
+      ui.closeInventoryModal();
+      assert.equal(ui.isInventoryOpen, false);
+
+      // Simular evento touch (touchend) en móvil
+      let preventDefaultCalled = false;
+      let stopPropagationCalled = false;
+      const fakeTouchEvent = {
+        cancelable: true,
+        preventDefault() { preventDefaultCalled = true; },
+        stopPropagation() { stopPropagationCalled = true; },
+      };
+      ui.inventoryHud['ontouchend'](fakeTouchEvent);
+      assert.equal(ui.isInventoryOpen, true);
+      assert.equal(preventDefaultCalled, true);
+      assert.equal(stopPropagationCalled, true);
     });
 
     it('muestra y gestiona el diálogo temático de confirmación para salir al menú', () => {
