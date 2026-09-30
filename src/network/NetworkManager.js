@@ -45,8 +45,14 @@ export class NetworkManager extends EventTarget {
     // Monitor y telemetría de red (?debug=1)
     this.stats = new NetworkStats({ protocolVersion: Proto.PROTOCOL_VERSION });
     this._pingInterval = null;
+    this._signalingHeartbeat = null;
+    this._reconnectTimer = null;
 
-    // Notificar cierre ordenado a peers cuando el anfitrión cierra la ventana o sale de la app
+    if (typeof window !== 'undefined') {
+      window.network = this;
+    }
+
+    // Notificar cierre ordenado a peers cuando el anfitrión cierra la ventana o sale definitivamente de la app
     let closingSent = false;
     const sendHostClosing = () => {
       if (this.isHost && this.connections.length > 0 && !closingSent) {
@@ -57,15 +63,14 @@ export class NetworkManager extends EventTarget {
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeunload', sendHostClosing);
       window.addEventListener('pagehide', sendHostClosing);
+      window.addEventListener('online', () => {
+        this._checkSignalingHealth();
+      });
     }
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden' && this.isHost) {
-          setTimeout(() => {
-            if (document.visibilityState === 'hidden') {
-              sendHostClosing();
-            }
-          }, 2500);
+        if (document.visibilityState === 'visible') {
+          this._checkSignalingHealth();
         }
       });
     }
@@ -91,20 +96,20 @@ export class NetworkManager extends EventTarget {
   }
 
   static translatePeerError(e) {
-    const type = e?.type || e?.message || '';
-    if (type === 'peer-unavailable' || /peer-unavailable|taken|unavailable/i.test(String(type))) {
-      return 'Sala no encontrada o PIN en uso. Revisa el PIN e inténtalo de nuevo.';
+    const raw = String(e?.message || e?.type || e || '');
+    if (e?.type === 'peer-unavailable' || /peer-unavailable|Could not connect to peer/i.test(raw)) {
+      return 'No se pudo contactar al anfitrión (sala no encontrada). Causas comunes: el anfitrión cerró la partida, cambió de app en móvil (pantalla apagada o en segundo plano), o el PIN es incorrecto. Vuelve a intentarlo.';
     }
-    if (type === 'unavailable-id' || /unavailable-id/i.test(String(type))) {
-      return 'PIN en uso, genera una sala nueva.';
+    if (e?.type === 'unavailable-id' || /unavailable-id|taken/i.test(raw)) {
+      return 'El PIN ya está en uso. Genera una sala nueva.';
     }
-    if (type === 'network' || /network/i.test(String(type))) {
-      return 'Error de conexión de red o NAT restrictivo. Si están en la misma red Wi-Fi, inténtalo de nuevo.';
+    if (e?.type === 'network' || /network/i.test(raw)) {
+      return 'Error de conexión de red o NAT restrictivo. Comprueba la conexión Wi-Fi/datos e inténtalo de nuevo.';
     }
-    if (type === 'server-error' || /server/i.test(String(type))) {
-      return 'Servidor de señalización no disponible. Reintenta en unos segundos.';
+    if (e?.type === 'server-error' || /server/i.test(raw)) {
+      return 'Servidor de señalización no disponible temporalmente. Reintenta en unos segundos.';
     }
-    return e?.message || String(e);
+    return raw;
   }
 
   _newPeer(roomIdOrOpts, opts = {}) {
@@ -157,12 +162,16 @@ export class NetworkManager extends EventTarget {
       this.roomId = 'VOXELSALA-' + pin;
       if (this.peer) { try { this.peer.destroy(); } catch {} this.peer = null; }
       this.peer = this._newPeer(this.roomId);
-      if (typeof window !== 'undefined') window.__peer = this.peer;
+      if (typeof window !== 'undefined') {
+        window.__peer = this.peer;
+        window.network = this;
+      }
 
       const onOpen = () => {
         this.peer?.off?.('open', onOpen);
         this.peer?.off?.('error', onError);
         console.log(`[WebRTC] 🏰 Host listo en sala ${this.roomId}. Escuchando conexiones entrantes...`);
+        this._setupHostSignalingLifecycle();
         resolve(pin);
       };
       const onError = (e) => {
@@ -190,6 +199,65 @@ export class NetworkManager extends EventTarget {
     });
 
     return tryPin(1);
+  }
+
+  _setupHostSignalingLifecycle() {
+    if (!this.peer) return;
+
+    this.peer.on('disconnected', () => {
+      console.warn(`[PeerJS] ⚠️ Host desconectado del servidor de señalización (${this.roomId}). Intentando reconectar...`);
+      this.dispatchEvent(new CustomEvent('signaling-disconnected', { detail: { roomId: this.roomId } }));
+      this._reconnectSignaling();
+    });
+
+    this.peer.on('close', () => {
+      console.warn('[PeerJS] 🔌 Host Peer cerrado definitivamente.');
+      this.dispatchEvent(new CustomEvent('host-offline', { detail: { roomId: this.roomId } }));
+    });
+
+    this.peer.on('error', (err) => {
+      console.warn('[PeerJS] ⚠️ Error en Host Peer:', err?.type || err?.message || err);
+      if (err?.type === 'network' || err?.type === 'server-error' || /disconnected/i.test(err?.message || '')) {
+        this._reconnectSignaling();
+      }
+    });
+
+    this.peer.on('open', (id) => {
+      console.log(`[PeerJS] ✅ Host registrado en servidor de señalización. Sala ID: ${id}`);
+      this.dispatchEvent(new CustomEvent('signaling-connected', { detail: { id } }));
+    });
+
+    if (this._signalingHeartbeat) clearInterval(this._signalingHeartbeat);
+    this._signalingHeartbeat = setInterval(() => {
+      if (this.isHost && this.peer && !this.peer.destroyed && this.peer.disconnected) {
+        console.log('[PeerJS] 💓 Heartbeat: Host desconectado de señalización. Reconectando...');
+        this._reconnectSignaling();
+      }
+    }, 6000);
+  }
+
+  _reconnectSignaling() {
+    if (!this.peer || this.peer.destroyed || !this.peer.disconnected) return;
+    if (this._reconnectTimer) return;
+    this._reconnectTimer = setTimeout(() => {
+      this._reconnectTimer = null;
+      if (this.peer && !this.peer.destroyed && this.peer.disconnected) {
+        try {
+          console.log(`[PeerJS] 🔄 Reconectando sala ${this.roomId || this.peer.id} a 0.peerjs.com...`);
+          this.peer.reconnect();
+        } catch (e) {
+          console.warn('[PeerJS] Fallo al invocar reconnect():', e);
+        }
+      }
+    }, 800);
+  }
+
+  _checkSignalingHealth() {
+    if (!this.peer || this.peer.destroyed) return;
+    if (this.peer.disconnected) {
+      console.warn(`[WebRTC] 🔄 Peer desconectado de señalización (${this.roomId || this.peer.id || 'cliente'}). Reconectando...`);
+      this._reconnectSignaling();
+    }
   }
 
   _isHotChannel(conn) {
@@ -302,7 +370,10 @@ export class NetworkManager extends EventTarget {
     this._links = new Map();
     if (this.peer) { try { this.peer.destroy(); } catch {} }
     this.peer = this._newPeer({});
-    if (typeof window !== 'undefined') window.__peer = this.peer;
+    if (typeof window !== 'undefined') {
+      window.__peer = this.peer;
+      window.network = this;
+    }
     this.hostHotConn = null;
 
     return new Promise((resolve, reject) => {
@@ -310,7 +381,7 @@ export class NetworkManager extends EventTarget {
       const timer = setTimeout(() => {
         if (!settled) {
           settled = true;
-          reject(new Error(`Tiempo de espera agotado (${timeoutMs / 1000}s). Revisa PIN y Wi-Fi.`));
+          reject(new Error(`Tiempo de espera agotado (${timeoutMs / 1000}s) sin respuesta del anfitrión. Revisa que el host tenga el juego en pantalla y prueba de nuevo.`));
         }
       }, timeoutMs);
       const done = (fn, val) => {
@@ -656,6 +727,14 @@ export class NetworkManager extends EventTarget {
   }
 
   disconnect() {
+    if (this._signalingHeartbeat) {
+      clearInterval(this._signalingHeartbeat);
+      this._signalingHeartbeat = null;
+    }
+    if (this._reconnectTimer) {
+      clearTimeout(this._reconnectTimer);
+      this._reconnectTimer = null;
+    }
     if (this._pingInterval) {
       clearInterval(this._pingInterval);
       this._pingInterval = null;
@@ -679,7 +758,7 @@ export class NetworkManager extends EventTarget {
     this.connections = [];
     this._links = new Map();
     if (this.peer) {
-      this.peer.destroy();
+      try { this.peer.destroy?.(); } catch {}
       this.peer = null;
     }
     this.stats.setMode('OFFLINE', 0);
