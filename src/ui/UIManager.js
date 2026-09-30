@@ -1350,18 +1350,42 @@ export class UIManager {
   }
 
   /** Velo de transición entre mazmorras (fade negro estilo Dark Souls con nombre del destino). */
-  showLevelTransition(title = '', subtitle = '', { victory = false, autoHideMs = 0 } = {}) {
+  showLevelTransition(title = '', subtitle = '', { victory = false, autoHideMs = 0, onClose = null } = {}) {
     if (!this.transitionEl) return;
     if (this._transitionTimer) { clearTimeout(this._transitionTimer); this._transitionTimer = null; }
     this.transitionEl.className = victory ? 'visible victory' : 'visible';
     this.transitionEl.style.display = 'flex';
     // Forzar reflow para que la transición de opacidad se reproduzca
     void this.transitionEl.offsetWidth;
-    this.transitionEl.innerHTML = `
+
+    let html = `
       <div class="portal-title">${replaceEmojisWithSvg(title, { className: 'narrative-icon pop-in' })}</div>
       ${subtitle ? `<div class="portal-sub">${replaceEmojisWithSvg(subtitle, { className: 'narrative-icon' })}</div>` : ''}`;
+
+    if (victory) {
+      html += `
+        <button id="btn-close-victory" class="btn-primary" style="margin-top:22px;padding:12px 28px;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:8px;cursor:pointer;pointer-events:auto;border-radius:12px;background:linear-gradient(135deg,#fbbf24,#d97706);color:#0f172a;border:none;box-shadow:0 0 20px rgba(251,191,36,0.35);">
+          ${renderIcon('check', { size: 16, color: '#0f172a' })} Continuar Explorando
+        </button>`;
+    }
+
+    this.transitionEl.innerHTML = html;
+
+    if (victory) {
+      const btn = document.getElementById('btn-close-victory');
+      if (btn) {
+        btn.onclick = () => {
+          this.hideLevelTransition();
+          if (onClose) onClose();
+        };
+      }
+    }
+
     if (autoHideMs > 0) {
-      this._transitionTimer = setTimeout(() => this.hideLevelTransition(), autoHideMs);
+      this._transitionTimer = setTimeout(() => {
+        this.hideLevelTransition();
+        if (onClose) onClose();
+      }, autoHideMs);
     }
   }
 

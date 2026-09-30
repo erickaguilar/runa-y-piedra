@@ -462,9 +462,12 @@ export class InteractionController {
       game.ui.showLevelTransition(
         '🏆 ¡Mazmorras Conquistadas!',
         'Habéis bendecido todos los altares. ¡Leyendas de la mazmorra cooperativa!',
-        { victory: true, autoHideMs: 6000 }
+        {
+          victory: true,
+          autoHideMs: 12000,
+          onClose: () => { this.transitioning = false; },
+        }
       );
-      setTimeout(() => { this.transitioning = false; }, 6000);
       return;
     }
 

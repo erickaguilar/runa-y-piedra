@@ -51,8 +51,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - **Caída Lenta y Viscosidad**: Descenso amortiguado a velocidad constante (`PHYSICS_CONFIG.LAVA_SINK_SPEED = -1.0 m/s`) y reducción horizontal al 20%, simulando la densidad del magma.
   - **Temporizador de Animación de Muerte (`LAVA_SINK_TICKS = 36`, ~1.2 s a 30 Hz)**: Proporciona una transición visual continua donde el cuerpo y la cámara del héroe se hunden en el magma incandescente antes de aplicar el daño de -1 vida y reaparecer en el punto de control.
   - **Feedback Audiovisual Instantáneo**: El evento `onPlayerLavaSink` dispara de inmediato el audio de quemadura (`SoundManager.playHurt()`) y la notificación de advertencia en pantalla al primer contacto.
+- **Botón Interactivo de Descarte en Pantalla de Victoria del Altar Final ([`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), [`InteractionController.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/InteractionController.js), [`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html))**:
+  - Incorporación del botón interactivo `#btn-close-victory` ("Continuar Explorando") sobre el velo de victoria de la última mazmorra (`abyss_throne`).
+  - Habilitación de `pointer-events: auto` y fondo degradado radial que permite interactuar con el botón en cualquier momento sin obligar a esperar una pantalla fija.
+  - Al pulsar el botón (o cumplirse el tiempo de cortesía de 12 segundos), se invoca el callback `onClose` que descongelar de inmediato el movimiento del jugador para continuar explorando la cámara final libremente.
 - **Suite de Pruebas Unitarias Ampliada ([`tests/`](file:///data/data/com.termux/files/home/develop/game/tests/))**:
-  - 90 tests automatizados con `node:test` cubriendo la animación de hundimiento en lava, bloqueo de salto, velocidad lenta de fluido, consumo de llaves, contorno de corazones, HUD de gemas, herramientas dev, unificación de alertas de cofres, parser estructurado, descenso sincronizado a 5 segundos y movimiento libre en apertura de losa.
+  - 91 tests automatizados con `node:test` cubriendo el botón de descarte de victoria, la animación de hundimiento en lava, bloqueo de salto, velocidad lenta de fluido, consumo de llaves, contorno de corazones, HUD de gemas, herramientas dev, unificación de alertas de cofres, parser estructurado, descenso sincronizado a 5 segundos y movimiento libre en apertura de losa.
 
 ---
 

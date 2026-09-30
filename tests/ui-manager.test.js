@@ -350,6 +350,32 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(ui.descentCard, null);
       assert.equal(ui.descentBtn, null);
     });
+
+    it('showLevelTransition renderiza botón de cerrar en victoria y ejecuta onClose al pulsar', () => {
+      const ui = new UIManager();
+      assert.ok(ui.transitionEl);
+
+      let closed = false;
+      ui.showLevelTransition(
+        '🏆 ¡Mazmorras Conquistadas!',
+        'Habéis bendecido todos los altares.',
+        {
+          victory: true,
+          autoHideMs: 0,
+          onClose: () => { closed = true; },
+        }
+      );
+
+      assert.match(ui.transitionEl.innerHTML, /Mazmorras Conquistadas/);
+      assert.match(ui.transitionEl.innerHTML, /btn-close-victory/);
+      assert.match(ui.transitionEl.innerHTML, /Continuar Explorando/);
+
+      // Simular clic en botón de cerrar victoria
+      const btn = document.getElementById('btn-close-victory');
+      assert.ok(btn);
+      btn.onclick();
+      assert.equal(closed, true);
+    });
   });
 });
 
