@@ -106,7 +106,7 @@ class VoxelSandboxGame {
           // Game Over = vuelta al lobby con todo reseteado (hub de la party)
           if (this.mode === 'host') {
             const lobbyId = this.world.levelRegistry.getAllLevels()[0]?.id || 'lobby_tutorial';
-            this.switchLevel(lobbyId, true);
+            this.switchLevel(lobbyId, true, { isGameOver: true });
           }
         } else {
           this.soundManager.playHurt();
@@ -277,7 +277,7 @@ class VoxelSandboxGame {
     }
   }
 
-  switchLevel(levelId, broadcast = true) {
+  switchLevel(levelId, broadcast = true, { isGameOver = false } = {}) {
     const levelData = this.world.levelRegistry.getLevel(levelId);
     if (!levelData) return;
     this.world.levelRegistry.setCurrentLevel(levelId);
@@ -309,7 +309,11 @@ class VoxelSandboxGame {
       pl.vel.z = 0;
       pl.onGround = true;
       pl.invulnTicks = 90; // 3s de invulnerabilidad garantizada en el nuevo nivel
-      pl.resetLives();
+      // Las vidas se mantienen entre mazmorras a lo largo de todo el capítulo/nivel.
+      // Únicamente se restauran si ocurre Game Over (muerte total) y reinicio o retorno al lobby hub.
+      if (isGameOver || levelData.id === 'lobby_tutorial') {
+        pl.resetLives();
+      }
     }
 
     // Reposicionar avatares visuales al nuevo punto de spawn
@@ -352,7 +356,7 @@ class VoxelSandboxGame {
     }
 
     if (broadcast && this.mode === 'host') {
-      this.network.broadcast(Proto.serializeLevelChange(levelId));
+      this.network.broadcast(Proto.serializeLevelChange(levelId, isGameOver));
     }
   }
 
@@ -609,8 +613,9 @@ class VoxelSandboxGame {
 
     this.network.addEventListener('level-change', (e) => {
       const lvlId = e.detail?.levelId;
+      const isGameOver = !!e.detail?.isGameOver;
       if (lvlId) {
-        this.switchLevel(lvlId, false);
+        this.switchLevel(lvlId, false, { isGameOver });
       }
     });
 

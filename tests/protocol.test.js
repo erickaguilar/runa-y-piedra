@@ -77,3 +77,29 @@ test('pedestal request/event roundtrip', () => {
   assert.equal(de.nextLevelId, 'crypt_inferno');
   assert.equal(de.isLast, false);
 });
+
+test('level-change roundtrip conserva levelId e isGameOver', () => {
+  const bufNormal = Proto.serializeLevelChange('crypt_inferno', false);
+  const resNormal = Proto.deserializeLevelChange(bufNormal);
+  assert.equal(resNormal.levelId, 'crypt_inferno');
+  assert.equal(resNormal.isGameOver, false);
+
+  const bufGameOver = Proto.serializeLevelChange('lobby_tutorial', true);
+  const resGameOver = Proto.deserializeLevelChange(bufGameOver);
+  assert.equal(resGameOver.levelId, 'lobby_tutorial');
+  assert.equal(resGameOver.isGameOver, true);
+
+  // Formato legacy sin byte isGameOver (2 bytes cabecera: [MSG.LEVEL_CHANGE, len, ...bytes])
+  const textEncoder = new TextEncoder();
+  const idBytes = textEncoder.encode('dungeon_classic');
+  const legacyBuf = new ArrayBuffer(2 + idBytes.length);
+  const v = new DataView(legacyBuf);
+  v.setUint8(0, Proto.MSG.LEVEL_CHANGE);
+  v.setUint8(1, idBytes.length);
+  new Uint8Array(legacyBuf, 2).set(idBytes);
+
+  const resLegacy = Proto.deserializeLevelChange(legacyBuf);
+  assert.equal(resLegacy.levelId, 'dungeon_classic');
+  assert.equal(resLegacy.isGameOver, false);
+});
+

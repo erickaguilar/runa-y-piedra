@@ -294,3 +294,53 @@ test('openStairsCeremony abre la escalinata sin congelar al jugador (isTransitio
   assert.equal(ctrl.isTransitioning(), false);
 });
 
+test('las vidas perdidas persisten al transicionar entre diferentes mazmorras y solo se restauran en Game Over', () => {
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('dungeon_classic'));
+  const events = [];
+  const sim = new SimulationEngine(world, {
+    onPlayerRespawn: (p, cp, info) => events.push(info),
+  });
+
+  // 1. Jugador arranca con 3 vidas y pierde 1 en lava en dungeon_classic
+  const p = new Player(0, 5, 0.0, 15);
+  p.setCheckpoint(12, 1.2, 4.5, 'Sala 1');
+  p.vel.y = 0;
+  while (p.lives === 3) {
+    sim.integratePlayer(p, 1 / 30, 0);
+  }
+  assert.equal(p.lives, 2, 'Debe quedar con 2 vidas tras la primera muerte');
+
+  // 2. Transición a nueva mazmorra (crypt_inferno, isGameOver = false)
+  const isGameOver = false;
+  const nextLevel = world.levelRegistry.getLevel('crypt_inferno');
+  world.loadLevel(nextLevel);
+  // La lógica de switchLevel preserva vidas si no es Game Over ni lobby
+  if (isGameOver || nextLevel.id === 'lobby_tutorial') {
+    p.resetLives();
+  }
+  assert.equal(p.lives, 2, 'Las 2 vidas deben mantenerse al descender a la siguiente mazmorra');
+
+  // 3. Segunda muerte en la nueva mazmorra
+  p.invulnTicks = 0;
+  p.pos.y = -9.0; // cae al vacío
+  sim.integratePlayer(p, 1 / 30, 0);
+  assert.equal(p.lives, 1, 'Debe quedar con 1 vida');
+
+  // 4. Transición a tercera mazmorra (abyss_throne, isGameOver = false)
+  const thirdLevel = world.levelRegistry.getLevel('abyss_throne');
+  world.loadLevel(thirdLevel);
+  if (isGameOver || thirdLevel.id === 'lobby_tutorial') {
+    p.resetLives();
+  }
+  assert.equal(p.lives, 1, 'La última vida debe mantenerse en el capítulo final');
+
+  // 5. Muerte final -> Game Over
+  p.invulnTicks = 0;
+  p.pos.y = -9.0;
+  const res = sim.killPlayer(p, 'void');
+  assert.equal(res.gameOver, true, 'Debe activar Game Over');
+  assert.equal(p.lives, p.maxLives, 'Las vidas se restauran a 3 únicamente tras Game Over y reinicio');
+});
+
+

@@ -332,21 +332,25 @@ export function deserializeHostClosing(buf) {
   return { reason: v.getUint8(1) };
 }
 
-export function serializeLevelChange(levelId = 'dungeon_classic') {
+export function serializeLevelChange(levelId = 'dungeon_classic', isGameOver = false) {
   const bytes = textEncoder.encode(levelId);
-  const buf = new ArrayBuffer(2 + bytes.length);
+  const buf = new ArrayBuffer(3 + bytes.length);
   const v = new DataView(buf);
   v.setUint8(0, MSG.LEVEL_CHANGE);
   v.setUint8(1, bytes.length);
-  new Uint8Array(buf, 2).set(bytes);
+  v.setUint8(2, isGameOver ? 1 : 0);
+  new Uint8Array(buf, 3).set(bytes);
   return buf;
 }
 
 export function deserializeLevelChange(buf) {
   const v = buf instanceof DataView ? buf : new DataView(buf);
   const len = v.getUint8(1);
-  const idBytes = new Uint8Array(buf, 2, len);
-  return { levelId: textDecoder.decode(idBytes) };
+  const hasGameOverFlag = v.byteLength >= 3 + len;
+  const isGameOver = hasGameOverFlag ? (v.getUint8(2) === 1) : false;
+  const offset = hasGameOverFlag ? 3 : 2;
+  const idBytes = new Uint8Array(v.buffer, v.byteOffset + offset, len);
+  return { levelId: textDecoder.decode(idBytes), isGameOver };
 }
 
 // ==========================================

@@ -43,11 +43,12 @@ loseLife(now = performance.now()) {
 }
 ```
 
-### Protocolo de Red
+### Protocolo de Red y Persistencia entre Mazmorras
 El contador de vidas se transmite en el hot path del `MSG.SNAPSHOT` (byte número 24 de cada jugador). Cuando un jugador pierde una vida en el Host o en local:
 1. El HUD actualiza los corazones mediante la animación elástica de [`Spring.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Spring.js).
 2. El avatar 3D parpadea en pantalla durante el lapso de invulnerabilidad (alternancia de opacidad en [`AvatarRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/AvatarRenderer.js)).
-3. Al alcanzar $0$ vidas, se dispara el evento de **Game Over**, notificando la derrota en el HUD y reiniciando la expedición en el vestíbulo seguro.
+3. **Persistencia en la Expedición**: Al descender a una nueva mazmorra a través de la escalinata de transición, las vidas perdidas **se mantienen intactas** en todos los jugadores. Las vidas no se recargan al superar una mazmorra.
+4. **Restauración por Game Over**: Al alcanzar $0$ vidas, se dispara el evento de **Game Over**, notificando la derrota en el HUD, restaurando las vidas al máximo ($3$) y reiniciando la expedición en el vestíbulo seguro del lobby.
 
 ---
 

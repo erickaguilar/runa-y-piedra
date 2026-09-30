@@ -76,7 +76,9 @@ flowchart TD
 
 ### Ciclo de Vidas y Reaparición
 - Cada jugador cuenta con **3 vidas**.
-- **Invulnerabilidad Post-Respawn**: Tras reaparecer en el último checkpoint seguro, el jugador recibe **2.5 segundos de invulnerabilidad** (indicada mediante parpadeo translúcido del avatar 3D), evitando muertes consecutivas inmediatas.
+- **Persistencia de Vidas en Todo el Capítulo**: Las vidas perdidas se conservan entre las diferentes mazmorras de la expedición. Al descender o avanzar a una nueva mazmorra mediante la escalinata ritual, el jugador mantiene exactamente sus vidas restantes (no se rellenan automáticamente al superar una estancia).
+- **Restauración Exclusiva por Muerte / Game Over**: Las vidas se rellenan al máximo ($3$) únicamente si la party o el aventurero sufre un **Game Over** (alcanzar $0$ vidas) y se reinicia el nivel / expedición regresando al *Lobby / Tutorial*.
+- **Invulnerabilidad Post-Respawn**: Tras reaparecer en la losa rúnica del spawn, el jugador recibe **2 segundos de invulnerabilidad** (`invulnTicks = 60`), indicada mediante el filtro y brillo del HUD y el parpadeo del avatar, evitando muertes consecutivas inmediatas.
 - **Game Over Cooperativo**: Al agotarse las 3 vidas, se muestra la pantalla de Game Over y se regresa al *Lobby / Tutorial* con vidas restauradas para reiniciar la expedición.
 
 ### Registro Dinámico de Puntos de Control (Checkpoints)
