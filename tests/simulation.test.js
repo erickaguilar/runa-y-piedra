@@ -4,6 +4,7 @@ import { World } from '../src/core/World.js';
 import { Player } from '../src/entities/Player.js';
 import { SimulationEngine } from '../src/simulation/SimulationEngine.js';
 import { DescentManager } from '../src/controllers/DescentManager.js';
+import { InteractionController } from '../src/controllers/InteractionController.js';
 
 function setup() {
   const world = new World();
@@ -176,5 +177,48 @@ test('DescentManager orquesta descenso sincronizado a 5 segundos con notificaci√
 
   descent.reset();
   assert.equal(descent.active, false);
+});
+
+test('openStairsCeremony abre la escalinata sin congelar al jugador (isTransitioning es false)', () => {
+  let narrativeMsg = '';
+  let stairsOpened = false;
+
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('lobby_tutorial'));
+  world.stairsOpen = false;
+
+  const mockGame = {
+    mode: 'host',
+    world,
+    voxelMap: {
+      removeBlock: () => {},
+      addBlock: () => {},
+      setColor: () => {},
+      setTint: () => {},
+    },
+    stairsRenderer: {
+      open: () => { stairsOpened = true; },
+    },
+    soundManager: {
+      playSlabGrind: () => {},
+    },
+    ui: {
+      showNarrativeMessage: (msg) => { narrativeMsg = msg; },
+    },
+  };
+
+  const ctrl = new InteractionController(mockGame);
+  assert.equal(ctrl.isTransitioning(), false);
+
+  ctrl.openStairsCeremony();
+
+  // La losa y fosa quedan abiertas
+  assert.equal(mockGame.world.stairsOpen, true);
+  assert.equal(mockGame.world.stairwells[0].open, true);
+  assert.equal(stairsOpened, true);
+  assert.ok(narrativeMsg.includes('losa cede'));
+
+  // CR√çTICO: el jugador NO se congela (isTransitioning permanece false para movimiento libre)
+  assert.equal(ctrl.isTransitioning(), false);
 });
 

@@ -350,10 +350,9 @@ export class InteractionController {
     return true;
   }
 
-  /** Ceremonia local de apertura: fosa real, losa animada, sonido y mensaje. */
+  /** Ceremonia local de apertura: fosa real, losa animada, sonido y mensaje (movimiento fluido sin congelar al jugador). */
   openStairsCeremony() {
-    if (this.transitioning) return;
-    this.transitioning = true;
+    if (this.game.world.stairsOpen) return;
     const rect = this.stairPitRect();
     if (rect) {
       this.applyStairPit(rect);
@@ -363,8 +362,7 @@ export class InteractionController {
     }
     this.game.stairsRenderer.open();
     this.game.soundManager.playSlabGrind();
-    this.game.ui.showNarrativeMessage('🪨 ¡La losa cede! Una escalinata desciende a la oscuridad. ¡Bajad!', 6000);
-    setTimeout(() => { this.transitioning = false; }, 2600);
+    this.game.ui.showNarrativeMessage('🪨 ¡La losa cede! Una escalinata desciende a la oscuridad. ¡Bajad!', 4500);
   }
 
   /** Oscurece el pozo (serpentina en degradado + fondo y muros casi negros). */

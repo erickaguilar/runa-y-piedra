@@ -79,6 +79,9 @@ El contenedor `#hud-lives` integra en un único módulo visual tres elementos es
   - **Supresión de tarjeta narrativa redundante**: Anteriormente se emitían simultáneamente una tarjeta `#descent-card` con el número y otra tarjeta narrativa `#hud-message` con el texto `"🌀 ¡... desciende! 8s para bajar juntos..."`. Se eliminó la llamada narrativa duplicada para mantener una única interfaz visual limpia.
   - **Prioridad Visual en Capas**: `#descent-card` se posiciona en `top: max(16px, env(safe-area-inset-top))` con `z-index: 9998` y `#btn-descend-now` con `z-index: 9999`, garantizando visibilidad absoluta y respuesta táctil inmediata.
   - **Purga de Alertas Obsoletas**: Al pisar la escalinata (`startCountdown`) o entrar en transición de nivel (`beginFade` / `switchLevel`), se invoca `hideNarrativeMessage()` para limpiar avisos anteriores (como el de apertura de losa o llaves) y presentar una bienvenida limpia al nuevo mapa (`🏰 Has descendido a: [Nivel]`).
+- **Movimiento Libre al Abrir la Losa (`openStairsCeremony`)**:
+  - Anteriormente, la apertura de la losa activaba artificialmente `this.transitioning = true` durante 2.6 segundos, congelando las entradas del jugador (`input = 0`) y anulando sus velocidades físicas (`vel = 0`), lo cual transmitía la sensación de que los controles no respondían o se habían colgado.
+  - Se eliminó dicho bloqueo en [`InteractionController.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/InteractionController.js), garantizando que el personaje pueda seguir corriendo, saltando o retrocediendo con absoluta fluidez mientras la losa rechina y se desliza hacia atrás.
 
 ---
 
