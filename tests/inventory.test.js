@@ -196,5 +196,105 @@ describe('Inventario y botín de cofres', () => {
     assert.equal(hasKeyFlag, false);
     assert.ok(narrativeMsg.includes('🗝️ ¡Llave consumida!'));
   });
+
+  it('openChest unifica el botín, la llave y el desbloqueo de puertas en una única notificación narrativa', () => {
+    const inventory = { keys: [], gems: 0, relics: [] };
+    const narrativeMessages = [];
+    let hasKeyFlag = false;
+
+    const mockPlayer = {
+      id: 0,
+      pos: { x: 10, y: 1.2, z: 10 },
+      keys: [],
+      addKey(id) {
+        if (!this.keys.includes(id)) {
+          this.keys.push(id);
+          return true;
+        }
+        return false;
+      },
+      hasKey(id) {
+        return this.keys.includes(id);
+      },
+    };
+
+    const mockGame = {
+      mode: 'host',
+      world: {
+        chests: [
+          {
+            id: 1,
+            name: 'Cofre del Vestíbulo',
+            givesKey: 'llave_santuario',
+            keyName: 'Llave Antigua del Santuario',
+            message: '📦 ¡Has abierto el Cofre del Vestíbulo! Has obtenido: 🗝️ Llave Antigua del Santuario y 💎 100 Gemas.',
+            x: 10,
+            y: 1,
+            z: 10,
+          },
+        ],
+        doors: [
+          { id: 2, name: 'Puerta del Santuario', requiresKey: 'llave_santuario' },
+        ],
+        levelRegistry: {
+          getCurrentLevel: () => ({ id: 'dungeon_classic' }),
+        },
+      },
+      chestRenderer: {
+        isChestOpen: () => false,
+        openChest: () => true,
+      },
+      soundManager: {
+        playChestOpen() {},
+        playKeyPickup() {},
+      },
+      network: {
+        broadcast() {},
+      },
+      playerManager: {
+        localPlayer: mockPlayer,
+      },
+      inventory,
+      openedChestKeys: new Set(),
+      addInventoryKey(key) {
+        const keyId = typeof key === 'string' ? key : (key.id || key.name);
+        if (!inventory.keys.some(k => (typeof k === 'string' ? k : (k.id || k.name)) === keyId)) {
+          inventory.keys.push(key);
+        }
+      },
+      addInventoryGems(amount) {
+        inventory.gems += amount;
+      },
+      ui: {
+        setHasKey(val) {
+          hasKeyFlag = val;
+        },
+        showNarrativeMessage(msg) {
+          narrativeMessages.push(msg);
+        },
+      },
+    };
+
+    const controller = new InteractionController(mockGame);
+
+    // Abrir cofre que otorga llave y gemas
+    controller.openChest(1, mockPlayer);
+
+    // EXACTAMENTE una única notificación narrativa emitida
+    assert.equal(narrativeMessages.length, 1);
+    const unifiedMsg = narrativeMessages[0];
+
+    // Contiene el cofre, las recompensas y la puerta desbloqueada
+    assert.ok(unifiedMsg.includes('📦 ¡Has abierto el Cofre del Vestíbulo!'));
+    assert.ok(unifiedMsg.includes('Llave Antigua del Santuario'));
+    assert.ok(unifiedMsg.includes('100 Gemas'));
+    assert.ok(unifiedMsg.includes('Ahora puedes abrir: Puerta del Santuario'));
+
+    // Estado del juego actualizado correctamente
+    assert.equal(mockPlayer.hasKey('llave_santuario'), true);
+    assert.equal(inventory.keys.length, 1);
+    assert.equal(inventory.gems, 100);
+    assert.equal(hasKeyFlag, true);
+  });
 });
 

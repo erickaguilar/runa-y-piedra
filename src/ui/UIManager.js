@@ -1441,11 +1441,21 @@ export class UIManager {
     if (/Has obtenido:|Recompensa:/i.test(text)) {
       const match = text.split(/Has obtenido:|Recompensa:/i);
       const title = match[0].trim();
-      const rawItems = match[1] ? match[1].trim() : '';
+      let rawItems = match[1] ? match[1].trim() : '';
+      let extraInstruction = '';
+      if (/Ahora puedes abrir:/i.test(rawItems)) {
+        const parts = rawItems.split(/(?=Ahora puedes abrir:)/i);
+        rawItems = parts[0].trim();
+        extraInstruction = parts[1] ? parts[1].trim().replace(/\.*$/, '') : '';
+      }
       const items = rawItems
         .split(/\s+y\s+|,\s*/)
         .map(i => i.trim().replace(/^\.*|\.*$/g, ''))
         .filter(Boolean);
+      if (extraInstruction) {
+        const prefix = /^🚪/.test(extraInstruction) ? '' : '🚪 ';
+        items.push(`${prefix}${extraInstruction}`);
+      }
       return { title, items };
     }
 

@@ -62,7 +62,6 @@ export class InteractionController {
         this.openChest(chestId, local);
       } else {
         game.network.sendToHost(Proto.serializeChestOpen(chestId));
-        game.ui.showNarrativeMessage('Abriendo cofre...', 1500);
       }
     } else if (interaction.type === 'stairs') {
       if (game.world.stairsOpen) return;
@@ -107,7 +106,8 @@ export class InteractionController {
         if (opener.addKey(chestData.givesKey)) {
           game.network.broadcast(Proto.serializeKeyUpdate(opener.id, chestData.givesKey));
           if (opener === local) {
-            this.onLocalKeyReceived(chestData);
+            // Actualizar HUD e inventario sin duplicar la notificación narrativa
+            this.onLocalKeyReceived(chestData, false);
           }
         }
       }
@@ -116,8 +116,18 @@ export class InteractionController {
     // Registrar y acumular botín del cofre en el inventario local
     this.collectChestLoot(chestData, opener);
 
-    const msg = chestData?.message || `📦 ¡Has abierto el ${chestData?.name || 'Cofre'}! Recompensa: ${chestData?.reward || 'Tesoros de la Mazmorra'}`;
-    game.ui.showNarrativeMessage(msg, 5000);
+    // Unificación de la notificación del cofre:
+    // Presenta una única tarjeta narrativa estructurada con el cofre abierto,
+    // el botín obtenido y la puerta que ahora se puede abrir si incluía llave.
+    let msg = chestData?.message || `📦 ¡Has abierto el ${chestData?.name || 'Cofre'}! Recompensa: ${chestData?.reward || 'Tesoros de la Mazmorra'}`;
+    if (chestData?.givesKey) {
+      const door = game.world.doors?.find(d => d.requiresKey === chestData.givesKey);
+      if (door?.name && !msg.includes(door.name)) {
+        const trimmed = msg.trim().replace(/\.*$/, '');
+        msg = `${trimmed}. Ahora puedes abrir: ${door.name}.`;
+      }
+    }
+    game.ui.showNarrativeMessage(msg, 5500);
   }
 
   /**
@@ -182,8 +192,8 @@ export class InteractionController {
     }
   }
 
-  /** Feedback local al recibir una llave: insignia del HUD + sonido. */
-  onLocalKeyReceived(chestData = {}) {
+  /** Feedback local al recibir una llave: insignia del HUD + sonido (opcionalmente notificación si no proviene de un cofre). */
+  onLocalKeyReceived(chestData = {}, showNotification = true) {
     const game = this.game;
     game.ui.setHasKey(true);
     game.soundManager.playKeyPickup();
@@ -191,9 +201,11 @@ export class InteractionController {
     if (chestData.givesKey && game.addInventoryKey) {
       game.addInventoryKey({ id: chestData.givesKey, name: keyName });
     }
-    const door = game.world.doors?.find(d => d.requiresKey === chestData.givesKey);
-    const doorMsg = door?.name ? ` Ahora puedes abrir: ${door.name}.` : '';
-    game.ui.showNarrativeMessage(`🗝️ ¡${keyName} conseguida!${doorMsg}`, 4500);
+    if (showNotification) {
+      const door = game.world.doors?.find(d => d.requiresKey === chestData.givesKey);
+      const doorMsg = door?.name ? ` Ahora puedes abrir: ${door.name}.` : '';
+      game.ui.showNarrativeMessage(`🗝️ ¡${keyName} conseguida!${doorMsg}`, 4500);
+    }
   }
 
   /** Puerta bloqueada por falta de llave: mensaje + sonido metálico (solo jugador local). */
@@ -583,7 +595,8 @@ export class InteractionController {
       if (!player) return;
       if (player.addKey(keyId) && player === game.playerManager.localPlayer) {
         const chestData = game.world.chests?.find(c => c.givesKey === keyId);
-        this.onLocalKeyReceived(chestData || {});
+        // Si la llave proviene de un cofre, openChest ya emite la notificación narrativa unificada
+        this.onLocalKeyReceived(chestData || {}, !chestData);
       }
     });
   }

@@ -307,6 +307,16 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.match(ui.livesHud.innerHTML, /<span class="gems-count">100<\/span>/);
       assert.match(ui.livesHud.innerHTML, /heart lost/);
     });
+
+    it('parseMessageToList unifica el botín de cofre y el desbloqueo de puertas en una lista estructurada', () => {
+      const ui = new UIManager();
+      const res = ui.parseMessageToList('📦 ¡Has abierto el Cofre del Vestíbulo! Has obtenido: 🗝️ Llave Antigua del Santuario y 💎 100 Gemas. Ahora puedes abrir: Puerta del Santuario.');
+      assert.equal(res.title, '📦 ¡Has abierto el Cofre del Vestíbulo!');
+      assert.equal(res.items.length, 3);
+      assert.equal(res.items[0], '🗝️ Llave Antigua del Santuario');
+      assert.equal(res.items[1], '💎 100 Gemas');
+      assert.equal(res.items[2], '🚪 Ahora puedes abrir: Puerta del Santuario');
+    });
   });
 });
 

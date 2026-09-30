@@ -62,6 +62,14 @@ El contenedor `#hud-lives` integra en un único módulo visual tres elementos es
 - **Prioridad Visual Absoluta (`z-index: 9999`)**: Ubicado al final del árbol DOM y con el valor de capa más alto de la aplicación, garantizando que ninguna ventana modal, velo de transición (`#level-transition`) ni interfaz tape los avisos.
 - **Descarte Rápido Interactivo**: Las tarjetas de alerta (`.hud-alert-card`) pueden ser descartadas instantáneamente tocándolas o haciendo clic sobre ellas, sin tener que esperar a que expire el temporizador automático.
 - **Mensaje de Bienvenida Depurado**: Se eliminó la indicación obsoleta de "cambiar mapa" en el anfitrión (`🏰 [Nivel] (PIN: [XXXX]). Toca ⚙️ para invitar amigos.`), alineando la narrativa con la progresión ceremonial y cooperativa por descenso.
+- **Unificación de Alertas de Cofres y Desbloqueo de Puertas**:
+  - **Eliminación de tarjetas duplicadas**: Anteriormente, abrir un cofre que contenía una llave emitía dos alertas simultáneas superpuestas (`🗝️ ¡Llave conseguida! Ahora puedes abrir: ...` y `📦 ¡Has abierto el Cofre...! Has obtenido: ...`).
+  - **Estructura unificada en una sola tarjeta**: Ahora se presenta una única tarjeta narrativa. El parser `parseMessageToList()` separa limpiamente:
+    - Encabezado: `📦 ¡Has abierto el [Nombre del Cofre]!`
+    - Filas de botín: `🗝️ [Llave]`, `💎 [Gemas]` o `🏆 / 🌋 / 👑 [Reliquia]`.
+    - Fila de avance de mazmorra: `🚪 Ahora puedes abrir: [Nombre de la Puerta]`.
+  - **Fluidez en Clientes WebRTC**: Se removió el texto transitorio preliminar `"Abriendo cofre..."` al pulsar interactuar como cliente, desplegando directamente la tarjeta unificada en cuanto el Host confirma la apertura.
+  - **Control de emisión en `onLocalKeyReceived`**: El método admite `showNotification = false` al ser llamado desde `openChest()` o recepción de paquetes de red, sincronizando el icono del HUD (`setHasKey(true)`), sonido de recogida e inventario sin generar alertas redundantes.
 
 ---
 
