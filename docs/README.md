@@ -132,5 +132,8 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Mecánica de Santuario de Reaparición Segura con protección e invulnerabilidad temporal (2 s).
     - Síntesis de audio procedural `playRespawn()` mediante arpegio armónico de campanillas celestiales en Web Audio API.
 
-
-
+21. [**21. Sprite de Lava y Renderizado Ígneo Procedural**](./21-sprite-lava-y-renderizado-igneo.md)
+    - Rediseño integral del **Tile 13** en el Texture Atlas procedural de 512x512 para el bloque de peligro `BLOCK_TYPES.LAVA = 7`.
+    - Arquitectura de renderizado multicapa en SVG: lecho incandescente de 7 paradas térmicas, 4 pasadas de corrientes de magma, placas tectónicas de basalto/obsidiana biseladas con microfisuras, domos de gas hirviente con brillos especulares 3D y ascuas flotantes con halos térmicos.
+    - Continuidad y mosaico sin costuras (*seamless tiling*) en los bordes del bloque de 128x128 píxeles.
+    - Compatibilidad total con Three.js `MeshLambertMaterial` y modulación de color blanco puro (`0xffffff`).

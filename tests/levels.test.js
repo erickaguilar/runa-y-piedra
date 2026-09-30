@@ -71,6 +71,10 @@ test('VoxelMap asigna el Tile 11 al bloque RESPAWN_PAD', () => {
   assert.equal(VoxelMap.selectTile(11, 0, 4, BLOCK_TYPES.RESPAWN_PAD), 11);
 });
 
+test('VoxelMap asigna el Tile 13 al bloque LAVA', () => {
+  assert.equal(VoxelMap.selectTile(5, -1, 15, BLOCK_TYPES.LAVA), 13);
+});
+
 test('abyss_throne Sala 1 contiene el cofre con la poción de vida para recuperar 1 corazón', () => {
   const world = new World();
   const abyssData = world.levelRegistry.getLevel('abyss_throne');
