@@ -148,7 +148,7 @@ export class NetworkStats {
     el.style.cssText = `
       position: fixed;
       top: 14px;
-      left: 14px;
+      right: 54px;
       background: rgba(15, 23, 42, 0.88);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
@@ -178,6 +178,8 @@ export class NetworkStats {
     const softColor = this.softCorrectionsPerSec > 2 ? '#ef4444' : (this.softCorrectionsPerSec > 0 ? '#f59e0b' : '#94a3b8');
     const teleColor = this.teleportsPerSec > 0 ? '#ef4444' : '#94a3b8';
 
+    const audit = (typeof window !== 'undefined' && window.__netEventCounts) ? window.__netEventCounts : null;
+
     this.domElement.innerHTML = `
       <div style="font-weight:bold;color:#f8fafc;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:2px;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;">
         <span>NET DEBUG · P2P</span>
@@ -197,6 +199,16 @@ export class NetworkStats {
         <div style="margin-top:4px;border-top:1px dashed rgba(255,255,255,0.15);padding-top:3px;font-size:10px;">
           <div>Pred Err: <strong style="color:${predErrColor}">${(this.predError || 0).toFixed(3)} m</strong></div>
           <div>In Flight: <strong>${this.inputsInFlight || 0}</strong> | Soft: <strong style="color:${softColor}">${this.softCorrectionsPerSec || 0}/s</strong> | Tele: <strong style="color:${teleColor}">${this.teleportsPerSec || 0}/s</strong></div>
+        </div>
+      ` : ''}
+      ${audit ? `
+        <div style="margin-top:4px;border-top:1px dashed rgba(56,189,248,0.3);padding-top:3px;font-size:10px;color:#cbd5e1;">
+          <div>Audit: 
+            ${audit['init'] ? '<span style="color:#4ade80">INIT:✔</span> ' : ''}
+            ${audit['peer-joined'] ? '<span style="color:#4ade80">JOIN:✔</span> ' : ''}
+            ${audit['input'] ? `<span style="color:#38bdf8">IN:${audit['input']}</span> ` : ''}
+            ${audit['snapshot'] ? `<span style="color:#fbbf24">SNAP:${audit['snapshot']}</span> ` : ''}
+          </div>
         </div>
       ` : ''}
     `;
