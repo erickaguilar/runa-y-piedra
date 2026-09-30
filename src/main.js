@@ -258,7 +258,7 @@ class VoxelSandboxGame {
       this.ui.updateLives(localInit.lives, localInit.maxLives);
       this.ui.setHasKey(false);
 
-      this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}). Toca ⚙️ para invitar amigos o cambiar mapa.`, 5500);
+      this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}). Toca ⚙️ para invitar amigos.`, 5500);
     } catch (e) {
       this.ui.setStatus('Error al crear sala: ' + (e?.message || e));
     }

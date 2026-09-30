@@ -66,7 +66,7 @@ Garantiza alineación vertical milimétrica (`vertical-align: -2px`) y consisten
 - **Flujo Anterior**: Al pulsar "Crear Mazmorra", se abría un segundo modal ("Sala de Expedición") que obligaba al anfitrión a pulsar "Comenzar Aventura" antes de poder moverse.
 - **Flujo Actual (v1.8.0+)**:
   1. Al pulsar **"Crear Mazmorra"**, el anfitrión entra **directamente al juego** (`in_game`) con controles listos y cruceta activa.
-  2. Un aviso narrativo superior notifica: `🏰 [Nivel] (PIN: [XXXX]). Toca ⚙️ para invitar amigos o cambiar mapa.`
+  2. Un aviso narrativo superior notifica: `🏰 [Nivel] (PIN: [XXXX]). Toca ⚙️ para invitar amigos.`
   3. Toda la suite de la Sala de Expedición reside de forma permanente dentro del modal de ⚙️ **Configuración**:
      - Visualización del PIN en tipografía destacada de 32px.
      - Botón "Compartir en Mensajería" (WhatsApp, Telegram vía Web Share API).

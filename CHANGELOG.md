@@ -19,6 +19,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Métodos `VoxelSandboxGame.prototype.removeInventoryKey(keyId)` y `removeInventoryRelic(relicId)`.
   - Apertura autoritativa: `InteractionController.prototype.openDoor(doorId, opener)` consume `door.requiresKey` tanto en el jugador como en el inventario, oculta la insignia si no restan llaves y emite el mensaje narrativo `"🗝️ ¡Llave consumida!"`.
   - Sincronización en red WebRTC en clientes al recibir confirmación de apertura de puerta.
+- **Prioridad Visual Absoluta de Notificaciones (`#hud-message`, `z-index: 9999`) e Interacción ([`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html), [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js))**:
+  - Reubicación de la pila de alertas narrativas al final del árbol DOM con `z-index: 9999`, garantizando que ninguna ventana modal, menú ni velo de transición oculte los avisos del juego.
+  - Soporte de descarte rápido: las alertas pueden cerrarse instantáneamente al tocarlas o hacer clic sobre ellas.
+  - Corrección del texto de la notificación inicial del anfitrión en [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js): eliminación de la indicación obsoleta de "cambiar mapa" (`"Toca ⚙️ para invitar amigos."`).
 - **Herramientas de Desarrollo y Diagnóstico (`#modal-dev`)**:
   - Botón `#btn-dev` visible exclusivamente en desarrollo (`import.meta.env.DEV` o `localhost`).
   - Modal con botón "Reiniciar Partida (F5)" para navegadores móviles sin teclado y panel de telemetría WebRTC en tiempo real.

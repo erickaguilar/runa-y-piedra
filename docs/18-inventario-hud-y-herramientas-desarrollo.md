@@ -58,6 +58,11 @@ El contenedor `#hud-lives` integra en un único módulo visual tres elementos es
 - Sincronizado automáticamente por `updateInventory()` cada vez que se recolectan gemas en un cofre o se reinicia la partida.
 - Interactiva: al tocarla o hacerle clic, abre el modal de inventario para ver el historial y desglose.
 
+### 2.3 Pila de Notificaciones y Alertas Narrativas (`#hud-message`)
+- **Prioridad Visual Absoluta (`z-index: 9999`)**: Ubicado al final del árbol DOM y con el valor de capa más alto de la aplicación, garantizando que ninguna ventana modal, velo de transición (`#level-transition`) ni interfaz tape los avisos.
+- **Descarte Rápido Interactivo**: Las tarjetas de alerta (`.hud-alert-card`) pueden ser descartadas instantáneamente tocándolas o haciendo clic sobre ellas, sin tener que esperar a que expire el temporizador automático.
+- **Mensaje de Bienvenida Depurado**: Se eliminó la indicación obsoleta de "cambiar mapa" en el anfitrión (`🏰 [Nivel] (PIN: [XXXX]). Toca ⚙️ para invitar amigos.`), alineando la narrativa con la progresión ceremonial y cooperativa por descenso.
+
 ---
 
 ## 3. Ciclo de Vida y Consumo de Llaves

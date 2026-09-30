@@ -1502,6 +1502,19 @@ export class UIManager {
 
     card.innerHTML = html;
 
+    // Permitir descartar la alerta tocando o haciendo clic sobre ella
+    card.onclick = () => {
+      card.classList.add('fade-out');
+      setTimeout(() => {
+        if (card.parentNode === this.hudMessage) {
+          this.hudMessage.removeChild(card);
+          if (this.hudMessage.children.length === 0) {
+            this.hudMessage.style.display = 'none';
+          }
+        }
+      }, 200);
+    };
+
     // Mantener como máximo 3 alertas activas simultáneas en la lista vertical
     while (this.hudMessage.children.length >= 3) {
       this.hudMessage.removeChild(this.hudMessage.firstElementChild);
