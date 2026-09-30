@@ -1,10 +1,11 @@
 import QRCode from 'qrcode';
-import { PLAYER_HEROES } from '../config/constants.js';
+import { PLAYER_HEROES, APP_CONFIG } from '../config/constants.js';
 import { renderIcon, replaceEmojisWithSvg, escapeHtml } from './Icons.js';
 import { soundManager } from '../audio/SoundManager.js';
 
 export class UIManager {
   constructor({ uiContainerId = 'ui', crosshairId = 'crosshair', hudMessageId = 'hud-message', settingsBtnId = 'btn-settings', livesHudId = 'hud-lives', transitionId = 'level-transition', inventoryHudId = 'hud-inventory' } = {}) {
+    this.version = APP_CONFIG.VERSION;
     this.uiEl = document.getElementById(uiContainerId);
     this.crosshair = document.getElementById(crosshairId);
     this.hudMessage = document.getElementById(hudMessageId);
@@ -256,7 +257,10 @@ export class UIManager {
     this.uiEl.innerHTML = `
       <div id="modal-settings" class="menu" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
         <div class="settings-header">
-          <h2 style="display:flex;align-items:center;gap:6px;">${renderIcon('settings', { size: 18, color: '#cbd5e1' })} CONFIGURACIÓN</h2>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <h2 style="display:flex;align-items:center;gap:6px;">${renderIcon('settings', { size: 18, color: '#cbd5e1' })} CONFIGURACIÓN</h2>
+            <span class="settings-version-pill">v${APP_CONFIG.VERSION}</span>
+          </div>
           <button id="btn-close-settings" class="close-x-btn" title="Cerrar">${renderIcon('x', { size: 18, color: 'currentColor' })}</button>
         </div>
 
@@ -379,6 +383,10 @@ export class UIManager {
         <div style="display:flex;gap:8px;margin-top:14px;">
           ${inGame ? `<button id="btn-leave-game" class="btn-danger" style="flex:1">Salir al Menú</button>` : ''}
           <button id="btn-save-settings" class="btn-primary" style="flex:1">Aceptar</button>
+        </div>
+
+        <div class="settings-footer-version">
+          <span>${APP_CONFIG.NAME} • v${APP_CONFIG.VERSION}</span>
         </div>
       </div>`;
 

@@ -1,3 +1,8 @@
+export const APP_CONFIG = {
+  NAME: 'Runa y Piedra',
+  VERSION: '1.23.0',
+};
+
 export const WORLD_CONFIG = {
   SIZE_X: 24,
   SIZE_Y: 16,

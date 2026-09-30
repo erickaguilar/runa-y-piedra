@@ -1,6 +1,8 @@
 import { test, describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { UIManager } from '../src/ui/UIManager.js';
+import { APP_CONFIG } from '../src/config/constants.js';
 
 describe('UIManager - Contratos de API de Configuración', () => {
   it('expone métodos de settings en el prototipo', () => {
@@ -96,6 +98,20 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(ui.inventory.gems, 250);
       assert.equal(ui.inventory.keys.length, 1);
       assert.equal(ui.inventory.relics.length, 1);
+    });
+
+    it('muestra la versión del proyecto en el modal de configuración', () => {
+      const packageJson = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+      assert.equal(APP_CONFIG.VERSION, packageJson.version);
+
+      const ui = new UIManager();
+      assert.equal(ui.version, packageJson.version);
+
+      ui.openSettingsModal();
+      assert.match(ui.uiEl.innerHTML, new RegExp(`v${packageJson.version}`));
+      assert.match(ui.uiEl.innerHTML, /settings-version-pill/);
+      assert.match(ui.uiEl.innerHTML, /settings-footer-version/);
+      assert.match(ui.uiEl.innerHTML, /Runa y Piedra/);
     });
   });
 });
