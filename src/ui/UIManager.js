@@ -14,6 +14,13 @@ export class UIManager {
     this.settingsBtn = document.getElementById(settingsBtnId);
     this.inventoryHud = document.getElementById(inventoryHudId);
     this.inventory = { keys: [], gems: 0, relics: [] };
+    this.isInventoryOpen = false;
+    if (this.inventoryHud) {
+      this.inventoryHud.onclick = () => {
+        soundManager.playClick();
+        this.toggleInventoryModal();
+      };
+    }
     this.messageTimeout = null;
     this._lastLives = -1;
     this._lastMaxLives = 3;
@@ -253,6 +260,7 @@ export class UIManager {
     }
 
     // (Selección de mazmorra eliminada: la progresión es lineal por escalinatas)
+    this.closeInventoryModal();
 
     this.uiEl.innerHTML = `
       <div id="modal-settings" class="menu" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
@@ -508,6 +516,7 @@ export class UIManager {
 
   closeSettingsModal() {
     this.closeConfirmDialog();
+    this.closeInventoryModal();
     this.isSettingsOpen = false;
     if (this.settingsBtn) {
       this.settingsBtn.style.borderColor = 'rgba(255, 255, 255, 0.16)';
@@ -754,6 +763,9 @@ export class UIManager {
     if (this.inventoryHud) {
       this.inventoryHud.style.display = visible ? 'flex' : 'none';
     }
+    if (!visible) {
+      this.closeInventoryModal();
+    }
   }
 
   /**
@@ -764,11 +776,17 @@ export class UIManager {
     if (!this.inventoryHud) return;
 
     const hasAny = (keys && keys.length > 0) || (gems && gems > 0) || (relics && relics.length > 0);
+    this.inventoryHud.classList.toggle('has-loot', hasAny);
+    this.inventoryHud.title = hasAny ? 'Haz clic para abrir el botín recolectado' : 'Botín de cofres vacío';
+
     if (!hasAny) {
       this.inventoryHud.innerHTML = `
         <span class="inv-header">${renderIcon('chest', { size: 14, color: '#94a3b8' })} BOTÍN</span>
         <span class="inv-empty">Vacío</span>
       `;
+      if (this.isInventoryOpen) {
+        this.renderInventoryModalContent();
+      }
       return;
     }
 
@@ -809,7 +827,197 @@ export class UIManager {
       }
     }
 
+    html += `<span class="inv-open-pill" title="Ver todo">${renderIcon('sparkles', { size: 11, color: '#fbbf24' })}</span>`;
+
     this.inventoryHud.innerHTML = html;
+
+    if (this.isInventoryOpen) {
+      this.renderInventoryModalContent();
+    }
+  }
+
+  /**
+   * Abre el modal interactivo de botín recolectado
+   */
+  openInventoryModal() {
+    this.closeConfirmDialog();
+    if (this.isSettingsOpen) {
+      this.closeSettingsModal();
+    }
+
+    this.isInventoryOpen = true;
+
+    // Liberar pointer lock para interacción con cursor
+    if (document.exitPointerLock) {
+      try { document.exitPointerLock(); } catch {}
+    }
+
+    let overlay = document.getElementById('modal-inventory-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'modal-inventory-overlay';
+      overlay.className = 'confirm-overlay';
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          soundManager.playClick();
+          this.closeInventoryModal();
+        }
+      });
+      this.uiEl.appendChild(overlay);
+    }
+
+    this.renderInventoryModalContent();
+  }
+
+  renderInventoryModalContent() {
+    const overlay = document.getElementById('modal-inventory-overlay');
+    if (!overlay) return;
+
+    const { keys = [], gems = 0, relics = [] } = this.inventory || {};
+    const totalItems = (keys?.length || 0) + (gems > 0 ? 1 : 0) + (relics?.length || 0);
+    const hasAny = totalItems > 0;
+
+    let bodyHtml = '';
+
+    if (!hasAny) {
+      bodyHtml = `
+        <div class="inv-modal-empty">
+          <div class="inv-modal-empty-icon">
+            ${renderIcon('chest', { size: 32, color: '#64748b' })}
+          </div>
+          <h3 style="color:#f8fafc;font-size:15px;margin:6px 0 4px;text-align:center;">Cofre de Aventurero Vacío</h3>
+          <p style="color:#94a3b8;font-size:12px;line-height:1.5;text-align:center;margin:0;">
+            Aún no has recolectado botín en esta mazmorra. Explora las cámaras para encontrar cofres antiguos con llaves, gemas y reliquias míticas.
+          </p>
+        </div>
+      `;
+    } else {
+      let keysHtml = '';
+      if (keys.length > 0) {
+        keysHtml = `
+          <div class="inv-section">
+            <div class="inv-section-title">
+              ${renderIcon('key', { size: 14, color: '#fbbf24' })} LLAVES DE MAZMORRA (${keys.length})
+            </div>
+            <div class="inv-items-list">
+              ${keys.map(k => {
+                const name = typeof k === 'string' ? k : (k?.name || 'Llave');
+                return `
+                  <div class="inv-detail-card">
+                    <div class="inv-detail-icon key-bg">${renderIcon('key', { size: 20, color: '#fbbf24' })}</div>
+                    <div class="inv-detail-info">
+                      <div class="inv-detail-name">${escapeHtml(name)}</div>
+                      <div class="inv-detail-desc">Llave de paso • Abre puertas selladas</div>
+                    </div>
+                    <span class="inv-status-pill key">Activa</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      let gemsHtml = '';
+      if (gems > 0) {
+        gemsHtml = `
+          <div class="inv-section" style="${keys.length > 0 ? 'margin-top:14px;' : ''}">
+            <div class="inv-section-title">
+              ${renderIcon('gem', { size: 14, color: '#38bdf8' })} TESORO EN GEMAS
+            </div>
+            <div class="inv-detail-card">
+              <div class="inv-detail-icon gem-bg">${renderIcon('gem', { size: 22, color: '#38bdf8' })}</div>
+              <div class="inv-detail-info">
+                <div class="inv-detail-name" style="color:#38bdf8;font-size:15px;font-weight:800;">${gems} Gemas</div>
+                <div class="inv-detail-desc">Riquezas extraídas de cofres antiguos</div>
+              </div>
+              <span class="inv-status-pill gem">Acumulado</span>
+            </div>
+          </div>
+        `;
+      }
+
+      let relicsHtml = '';
+      if (relics.length > 0) {
+        relicsHtml = `
+          <div class="inv-section" style="${(keys.length > 0 || gems > 0) ? 'margin-top:14px;' : ''}">
+            <div class="inv-section-title">
+              ${renderIcon('trophy', { size: 14, color: '#eab308' })} RELIQUIAS MÍTICAS (${relics.length})
+            </div>
+            <div class="inv-items-list">
+              ${relics.map(r => {
+                const name = r.name || 'Reliquia';
+                const icon = r.icon || 'trophy';
+                const color = r.color || '#eab308';
+                return `
+                  <div class="inv-detail-card">
+                    <div class="inv-detail-icon relic-bg">${renderIcon(icon, { size: 20, color })}</div>
+                    <div class="inv-detail-info">
+                      <div class="inv-detail-name" style="color:#fef08a;">${escapeHtml(name)}</div>
+                      <div class="inv-detail-desc">Artefacto arcano de inmenso poder</div>
+                    </div>
+                    <span class="inv-status-pill relic">Mítico</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      bodyHtml = keysHtml + gemsHtml + relicsHtml;
+    }
+
+    overlay.innerHTML = `
+      <div id="modal-inventory-panel" class="menu inventory-modal" style="max-height:86vh;overflow-y:auto;width:92vw;max-width:380px;text-align:left;padding:18px 20px;">
+        <div class="settings-header" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <h2 style="display:flex;align-items:center;gap:6px;font-size:15px;">
+              ${renderIcon('chest', { size: 18, color: '#f59e0b' })} BOTÍN DE EXPEDICIÓN
+            </h2>
+            <span class="settings-version-pill" style="color:#fbbf24;background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.3);">
+              ${totalItems} ${totalItems === 1 ? 'tesoro' : 'tesoros'}
+            </span>
+          </div>
+          <button id="btn-close-inventory" class="close-x-btn" title="Cerrar">${renderIcon('x', { size: 18, color: 'currentColor' })}</button>
+        </div>
+
+        <div class="inventory-modal-body">
+          ${bodyHtml}
+        </div>
+
+        <div style="margin-top:16px;">
+          <button id="btn-close-inv-modal" class="btn-primary" style="width:100%;padding:11px;">Cerrar Botín</button>
+        </div>
+      </div>
+    `;
+
+    const closeBtn = document.getElementById('btn-close-inventory');
+    const closeFooterBtn = document.getElementById('btn-close-inv-modal');
+
+    const handleClose = () => {
+      soundManager.playClick();
+      this.closeInventoryModal();
+    };
+
+    if (closeBtn) closeBtn.onclick = handleClose;
+    if (closeFooterBtn) closeFooterBtn.onclick = handleClose;
+  }
+
+  closeInventoryModal() {
+    this.isInventoryOpen = false;
+    const overlay = document.getElementById('modal-inventory-overlay');
+    if (overlay) {
+      overlay.remove();
+    }
+  }
+
+  toggleInventoryModal() {
+    if (this.isInventoryOpen) {
+      this.closeInventoryModal();
+    } else {
+      this.openInventoryModal();
+    }
   }
 
   setTutorialControlsVisible(visible) {

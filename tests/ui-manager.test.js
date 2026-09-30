@@ -15,6 +15,9 @@ describe('UIManager - Contratos de API de Configuración', () => {
     assert.equal(typeof UIManager.prototype.showSettings, 'function');
     assert.equal(typeof UIManager.prototype.showConfirmDialog, 'function');
     assert.equal(typeof UIManager.prototype.closeConfirmDialog, 'function');
+    assert.equal(typeof UIManager.prototype.openInventoryModal, 'function');
+    assert.equal(typeof UIManager.prototype.closeInventoryModal, 'function');
+    assert.equal(typeof UIManager.prototype.toggleInventoryModal, 'function');
   });
 
   describe('comportamiento con DOM simulado', () => {
@@ -169,6 +172,38 @@ describe('UIManager - Contratos de API de Configuración', () => {
       const modalEl = document.getElementById('modal-confirm-dialog');
       assert.ok(modalEl);
       ui.closeConfirmDialog();
+    });
+
+    it('abre y cierra el modal interactivo de botín con el desglose de tesoros', () => {
+      const ui = new UIManager();
+      assert.equal(ui.isInventoryOpen, false);
+
+      // Cargar botín y abrir modal
+      ui.updateInventory({
+        keys: [{ id: 'llave_santuario', name: 'Llave del Santuario' }],
+        gems: 150,
+        relics: [{ id: 'corona_vacio', name: 'Corona del Vacío', icon: 'crown', color: '#a855f7' }],
+      });
+
+      ui.openInventoryModal();
+      assert.equal(ui.isInventoryOpen, true);
+
+      const overlay = document.getElementById('modal-inventory-overlay');
+      assert.ok(overlay);
+      assert.match(overlay.innerHTML, /BOTÍN DE EXPEDICIÓN/);
+      assert.match(overlay.innerHTML, /Llave del Santuario/);
+      assert.match(overlay.innerHTML, /150 Gemas/);
+      assert.match(overlay.innerHTML, /Corona del Vacío/);
+
+      // Cerrar modal
+      ui.closeInventoryModal();
+      assert.equal(ui.isInventoryOpen, false);
+
+      // Toggle modal
+      ui.toggleInventoryModal();
+      assert.equal(ui.isInventoryOpen, true);
+      ui.toggleInventoryModal();
+      assert.equal(ui.isInventoryOpen, false);
     });
   });
 });

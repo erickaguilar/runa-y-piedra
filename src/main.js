@@ -134,6 +134,7 @@ class VoxelSandboxGame {
       onInteract: () => this.interaction.handleInteract(),
       onCameraToggle: () => this.toggleCameraMode(),
       onSettingsToggle: () => this.toggleSettings(),
+      onInventoryToggle: () => this.ui.toggleInventoryModal(),
     });
     this.cameraMode = localStorage.getItem('dungeon_camera') || 'first';
 
@@ -346,6 +347,10 @@ class VoxelSandboxGame {
 
   /** Abre o cierra el modal de configuración (tecla Escape). */
   toggleSettings() {
+    if (this.ui.isInventoryOpen || document.getElementById('modal-inventory-overlay')) {
+      this.ui.closeInventoryModal();
+      return;
+    }
     if (this.ui.isSettingsOpen || document.getElementById('modal-settings')) {
       this.ui.closeSettingsModal();
     } else if (this.mode) {

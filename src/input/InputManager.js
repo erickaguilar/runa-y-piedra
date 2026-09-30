@@ -1,7 +1,7 @@
 import nipplejs from 'nipplejs';
 
 export class InputManager {
-  constructor({ canvas, inputMode = null, isGameActive = null, onJump, onInteract, onCameraToggle, onSettingsToggle }) {
+  constructor({ canvas, inputMode = null, isGameActive = null, onJump, onInteract, onCameraToggle, onSettingsToggle, onInventoryToggle }) {
     this.canvas = canvas;
     this.inputMode = inputMode;
     this.isGameActive = isGameActive;
@@ -9,6 +9,7 @@ export class InputManager {
     this.onInteract = onInteract;
     this.onCameraToggle = onCameraToggle;
     this.onSettingsToggle = onSettingsToggle;
+    this.onInventoryToggle = onInventoryToggle;
 
     this.keys = {};
     this.moveJoystick = { x: 0, y: 0 };
@@ -59,6 +60,12 @@ export class InputManager {
       if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'Enter') {
         e.preventDefault();
         this.onInteract?.();
+        return;
+      }
+
+      if (e.code === 'KeyB' || e.code === 'KeyI') {
+        e.preventDefault();
+        this.onInventoryToggle?.();
         return;
       }
 
