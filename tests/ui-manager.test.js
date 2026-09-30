@@ -268,6 +268,45 @@ describe('UIManager - Contratos de API de Configuración', () => {
       ui.toggleInventoryModal();
       assert.equal(ui.isInventoryOpen, false);
     });
+
+    it('renderiza contorno en corazones perdidos, conserva la llave y muestra las gemas en el HUD de vidas', () => {
+      const ui = new UIManager();
+      assert.ok(ui.livesHud);
+
+      // Estado inicial: 3 vidas llenas, sin llaves, 0 gemas
+      ui.updateLives(3, 3);
+      assert.match(ui.livesHud.innerHTML, /gems-badge/);
+      assert.match(ui.livesHud.innerHTML, /<span class="gems-count">0<\/span>/);
+      assert.doesNotMatch(ui.livesHud.innerHTML, /heart lost/);
+      assert.doesNotMatch(ui.livesHud.innerHTML, /key-badge/);
+
+      // Pierde 1 vida: 2 corazones vivos y 1 contorno perdido
+      ui.updateLives(2, 3);
+      assert.match(ui.livesHud.innerHTML, /heart lost hurt/);
+      // El SVG del corazón perdido debe tener fill="none" (outline)
+      assert.match(ui.livesHud.innerHTML, /fill="none"/);
+
+      // Obtiene llave del santuario
+      ui.setHasKey(true);
+      assert.match(ui.livesHud.innerHTML, /key-badge/);
+      assert.match(ui.livesHud.innerHTML, /title="Llave de la Mazmorra"/);
+
+      // Recolecta gemas: actualiza automáticamente el contador en el HUD
+      ui.updateInventory({
+        keys: [{ id: 'llave_santuario', name: 'Llave del Santuario' }],
+        gems: 100,
+        relics: [],
+      });
+      assert.match(ui.livesHud.innerHTML, /<span class="gems-count">100<\/span>/);
+      assert.match(ui.livesHud.innerHTML, /key-badge/);
+
+      // Consume la llave (puerta abierta)
+      ui.setHasKey(false);
+      assert.doesNotMatch(ui.livesHud.innerHTML, /key-badge/);
+      // Las gemas y corazones se conservan
+      assert.match(ui.livesHud.innerHTML, /<span class="gems-count">100<\/span>/);
+      assert.match(ui.livesHud.innerHTML, /heart lost/);
+    });
   });
 });
 

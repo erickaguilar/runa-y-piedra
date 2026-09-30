@@ -55,6 +55,22 @@ export class UIManager {
       this.devBtn.addEventListener('touchend', handleDevClick, { passive: false });
     }
 
+    if (this.livesHud) {
+      const handleLivesHudClick = (e) => {
+        const target = e?.target;
+        if (target && (target.closest?.('.gems-badge') || target.closest?.('.key-badge'))) {
+          if (e) {
+            e.stopPropagation();
+            if (e.cancelable) e.preventDefault();
+          }
+          soundManager.playClick();
+          this.toggleInventoryModal();
+        }
+      };
+      this.livesHud.onclick = handleLivesHudClick;
+      this.livesHud.addEventListener('touchend', handleLivesHudClick, { passive: false });
+    }
+
     this.updateDevButtonVisibility();
 
     this.messageTimeout = null;
@@ -1072,6 +1088,11 @@ export class UIManager {
 
     this.inventoryHud.innerHTML = html;
 
+    // Mantener sincronizado el contador de gemas del HUD de vidas en tiempo real
+    if (this._lastLives >= 0) {
+      this.updateLives(this._lastLives, this._lastMaxLives);
+    }
+
     if (this.isInventoryOpen) {
       this.renderInventoryModalContent();
     }
@@ -1282,10 +1303,11 @@ export class UIManager {
   }
 
   /**
-   * Actualiza el HUD de corazones. lives: vidas restantes, maxLives: total.
-   * Si hubo pérdida, anima el corazón perdido con shake.
+   * Actualiza el HUD de estado (vidas con contorno para corazones perdidos, llave y gemas).
+   * lives: vidas restantes, maxLives: total.
+   * Si hubo pérdida, anima el corazón perdido con shake y contorno vacío.
    */
-  updateLives(lives = 3, maxLives = 3, { invulnerable = false } = {}) {
+  updateLives(lives = 3, maxLives = 3, { invulnerable = false, gems = null } = {}) {
     if (!this.livesHud) return;
     const lost = this._lastLives !== -1 && lives < this._lastLives;
     this._lastLives = lives;
@@ -1294,12 +1316,15 @@ export class UIManager {
     for (let i = 0; i < maxLives; i++) {
       const alive = i < lives;
       const cls = alive ? 'heart' : 'heart lost';
-      const color = alive ? '#ef4444' : '#475569';
-      html += `<span class="${cls}${lost && !alive ? ' hurt' : ''}">${renderIcon('heart', { size: 18, color })}</span>`;
+      const iconName = alive ? 'heart' : 'heartOutline';
+      const color = alive ? '#ef4444' : '#64748b';
+      html += `<span class="${cls}${lost && !alive ? ' hurt' : ''}">${renderIcon(iconName, { size: 18, color })}</span>`;
     }
     if (this._hasKey) {
-      html += `<span class="key-badge" title="Llave del Santuario">${renderIcon('key', { size: 18, color: '#fbbf24' })}</span>`;
+      html += `<span class="key-badge" title="Llave de la Mazmorra">${renderIcon('key', { size: 18, color: '#fbbf24' })}</span>`;
     }
+    const currentGems = gems !== null ? gems : (this.inventory?.gems ?? 0);
+    html += `<span class="gems-badge" title="${currentGems} Gemas recolectadas">${renderIcon('gem', { size: 16, color: '#38bdf8' })}<span class="gems-count">${currentGems}</span></span>`;
     this.livesHud.innerHTML = html;
     this.livesHud.classList.toggle('invuln', !!invulnerable);
   }

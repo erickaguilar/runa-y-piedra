@@ -24,7 +24,7 @@ test('llaves y cofres se convierten a SVG', () => {
 });
 
 test('nuevos iconos de gameplay convierten', () => {
-  for (const e of ['🔒', '🌀', '🪨', '💀', '🔊', '🔇', '❤️', '🖤', '⬆️', '✦', '📷']) {
+  for (const e of ['🔒', '🌀', '🪨', '💀', '🔊', '🔇', '❤️', '🖤', '🤍', '⬆️', '✦', '📷']) {
     const out = replaceEmojisWithSvg(`x ${e} y`);
     assert.ok(out.includes('<svg'), `emoji sin convertir: ${e}`);
   }
@@ -37,10 +37,16 @@ test('emojis desconocidos se dejan tal cual', () => {
 test('resolveIcon cae a castle con desconocidos', () => {
   assert.equal(resolveIcon('no-existe').name, 'castle');
   assert.equal(resolveIcon('door').name, 'door');
+  assert.equal(resolveIcon('heartOutline').name, 'heartOutline');
 });
 
 test('renderIcon genera svg válido con tamaño y color', () => {
   const svg = renderIcon('heart', { size: 18, color: '#ef4444' });
   assert.ok(svg.startsWith('<svg '));
   assert.ok(svg.includes('width="18"'));
+
+  const outlineSvg = renderIcon('heartOutline', { size: 18, color: '#64748b' });
+  assert.ok(outlineSvg.startsWith('<svg '));
+  assert.ok(outlineSvg.includes('fill="none"'));
+  assert.ok(outlineSvg.includes('stroke="#64748b"'));
 });

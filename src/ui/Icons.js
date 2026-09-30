@@ -342,7 +342,17 @@ export const ICONS = {
     fill: 'currentColor',
     stroke: 'none',
     defaultColor: '#ef4444',
-    body: `<path d="M12 21s-7.5-4.9-10-9.3C.4 8.6 2.3 5 5.7 5c2 0 3.4 1.1 4.3 2.4h4c.9-1.3 2.3-2.4 4.3-2.4 3.4 0 5.3 3.6 3.7 6.7C19.5 16.1 12 21 12 21z"/>`,
+    body: `<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>`,
+  },
+
+  heartOutline: {
+    name: 'heartOutline',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#64748b',
+    body: `<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-linecap="round" stroke-linejoin="round"/>`,
   },
 
   arrowUp: {
@@ -406,7 +416,8 @@ export const EMOJI_TO_ICON_MAP = [
   { regex: /🔊\uFE0F?/g, icon: 'soundOn', defaultColor: '#fbbf24' },
   { regex: /🔇\uFE0F?/g, icon: 'soundOff', defaultColor: '#94a3b8' },
   { regex: /❤\uFE0F?/g, icon: 'heart', defaultColor: '#ef4444' },
-  { regex: /🖤\uFE0F?/g, icon: 'heart', defaultColor: '#475569' },
+  { regex: /🖤\uFE0F?/g, icon: 'heartOutline', defaultColor: '#64748b' },
+  { regex: /🤍\uFE0F?/g, icon: 'heartOutline', defaultColor: '#94a3b8' },
   { regex: /⬆\uFE0F?/g, icon: 'arrowUp', defaultColor: '#fff' },
   { regex: /✦/g,         icon: 'star', defaultColor: '#fde68a' },
   { regex: /📷\uFE0F?/g, icon: 'camera', defaultColor: '#38bdf8' },
