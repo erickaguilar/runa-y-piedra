@@ -164,7 +164,7 @@ export class InteractionController {
       game.addInventoryGems(gems);
     }
 
-    // 3. Poción de Vida (+1 Corazón)
+    // 3. Poción de Vida (se guarda en el inventario para uso manual cuando el jugador decida)
     const textForPotion = `${chestData.message || ''} ${chestData.reward || ''}`;
     const potionDef = chestData.potion || chestData.givesPotion;
     if (potionDef || /Poci[oó]n/i.test(textForPotion)) {
@@ -178,14 +178,6 @@ export class InteractionController {
       if (game.addInventoryPotion) {
         game.addInventoryPotion(potionData);
       }
-      const targetPlayer = opener || game.playerManager?.localPlayer;
-      if (targetPlayer?.recoverHeart) {
-        targetPlayer.recoverHeart(potionData.healAmount || 1);
-        if (targetPlayer === game.playerManager?.localPlayer) {
-          game.ui?.updateLives(targetPlayer.lives, targetPlayer.maxLives);
-        }
-      }
-      game.soundManager?.playPotion?.();
     }
 
     // 4. Reliquias míticas (Cáliz Sagrado, Corazón del Volcán, Corona del Vacío)

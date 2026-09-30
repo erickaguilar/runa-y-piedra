@@ -36,6 +36,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       originalLocalStorage = globalThis.localStorage;
 
       const elementStore = new Map();
+      let lastMockButton = null;
       const mockEl = (tag = 'div') => {
         const el = {
           tagName: tag.toUpperCase(),
@@ -43,10 +44,24 @@ describe('UIManager - Contratos de API de Configuración', () => {
           classList: { add() {}, remove() {}, toggle() {} },
           innerHTML: '',
           value: '',
+          dataset: { potionIndex: '0', index: '0' },
           children: [],
           addEventListener(evt, fn) { this['on' + evt] = fn; },
           appendChild(child) { this.children.push(child); return child; },
-          querySelector() { return mockEl('span'); },
+          querySelector(sel) {
+            if (sel?.includes('btn-use-potion')) {
+              if (!lastMockButton) lastMockButton = mockEl('button');
+              return lastMockButton;
+            }
+            return mockEl('span');
+          },
+          querySelectorAll(sel) {
+            if (sel?.includes('btn-use-potion')) {
+              if (!lastMockButton) lastMockButton = mockEl('button');
+              return [lastMockButton];
+            }
+            return [];
+          },
           remove() {
             for (const [k, v] of elementStore.entries()) {
               if (v === this) elementStore.delete(k);
@@ -272,6 +287,42 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(ui.isInventoryOpen, true);
       ui.toggleInventoryModal();
       assert.equal(ui.isInventoryOpen, false);
+    });
+
+    it('renderiza la sección de pociones con el botón Beber y dispara onUsePotion al pulsar', () => {
+      const ui = new UIManager();
+      let usedPotion = null;
+      let usedIndex = -1;
+
+      ui.bindInventory({
+        onUsePotion: (potion, idx) => {
+          usedPotion = potion;
+          usedIndex = idx;
+        },
+      });
+
+      ui.updateInventory({
+        keys: [],
+        gems: 0,
+        relics: [],
+        potions: [{ id: 'pocion_vida', name: 'Poción de Vida', healAmount: 1 }],
+      });
+
+      ui.openInventoryModal();
+      const overlay = document.getElementById('modal-inventory-overlay');
+      assert.ok(overlay);
+      assert.match(overlay.innerHTML, /POCIONES Y ELIXIRES/);
+      assert.match(overlay.innerHTML, /Poción de Vida/);
+
+      const useBtn = overlay.querySelector('.btn-use-potion');
+      assert.ok(useBtn, 'Debe existir el botón .btn-use-potion');
+      assert.equal(typeof useBtn.onclick, 'function');
+
+      useBtn.onclick();
+      assert.equal(usedPotion?.id, 'pocion_vida');
+      assert.equal(usedIndex, 0);
+
+      ui.closeInventoryModal();
     });
 
     it('renderiza contorno en corazones perdidos, conserva la llave y muestra las gemas en el HUD de vidas', () => {

@@ -105,7 +105,7 @@ describe('Inventario y botín de cofres', () => {
     assert.equal(inventory.relics[1].id, 'corona_vacio');
   });
 
-  it('extrae la poción de vida del cofre del umbral en abyss_throne y recupera un corazón al jugador', () => {
+  it('extrae la poción de vida al cofre del umbral sin consumirla automáticamente', () => {
     let potionSoundPlayed = false;
     let uiLivesUpdated = null;
     const inventory = { keys: [], gems: 0, relics: [], potions: [] };
@@ -175,17 +175,91 @@ describe('Inventario y botín de cofres', () => {
     controller.collectChestLoot(chest1Abyss, mockPlayer);
 
     // Verificaciones:
-    // 1. Salud recuperada de 2 a 3 vidas
-    assert.equal(mockPlayer.lives, 3, 'El jugador debe haber recuperado 1 corazón');
-    // 2. Poción agregada al inventario
+    // 1. Salud NO consumida automáticamente: el jugador sigue en 2 vidas
+    assert.equal(mockPlayer.lives, 2, 'La poción NO debe consumirse de forma automática al abrir el cofre');
+    // 2. Poción guardada en el inventario para decisión manual del aventurero
     assert.equal(inventory.potions.length, 1);
     assert.equal(inventory.potions[0].name, 'Poción de Vida');
-    // 3. Llave y gemas también extraídas
+    // 3. Llave y gemas también extraídas normalmente
     assert.equal(inventory.keys.length, 1);
     assert.equal(inventory.gems, 200);
-    // 4. Sonido y HUD activados
+    // 4. El sonido curativo y la actualización de vidas no deben haberse disparado aún
+    assert.equal(potionSoundPlayed, false);
+    assert.equal(uiLivesUpdated, null);
+  });
+
+  it('permite usar la poción manualmente para recuperar 1 corazón y no la desperdicia si la vida está llena', () => {
+    let potionSoundPlayed = false;
+    let uiLivesUpdated = null;
+    let narrativeMessage = null;
+    const inventory = {
+      keys: [],
+      gems: 0,
+      relics: [],
+      potions: [{ id: 'pocion_vida', name: 'Poción de Vida', healAmount: 1 }],
+    };
+
+    const mockPlayer = {
+      id: 0,
+      lives: 2,
+      maxLives: 3,
+      recoverHeart(amount = 1) {
+        const old = this.lives;
+        this.lives = Math.min(this.maxLives, this.lives + amount);
+        return { recovered: this.lives - old, lives: this.lives };
+      },
+    };
+
+    const mockGame = {
+      inventory,
+      playerManager: { localPlayer: mockPlayer },
+      soundManager: {
+        playPotion() { potionSoundPlayed = true; },
+        playClick() {},
+      },
+      ui: {
+        updateLives(lives, maxLives) { uiLivesUpdated = { lives, maxLives }; },
+        updateInventory() {},
+        showNarrativeMessage(msg) { narrativeMessage = msg; },
+      },
+      usePotion(potion = null, idx = -1) {
+        if (!this.inventory?.potions || this.inventory.potions.length === 0) return false;
+        const local = this.playerManager?.localPlayer;
+        if (!local) return false;
+        if (local.lives >= (local.maxLives ?? 3)) {
+          this.ui.showNarrativeMessage('❤️ ¡Tu salud ya está al máximo!');
+          return false;
+        }
+        let potionObj = null;
+        if (idx >= 0 && idx < this.inventory.potions.length) {
+          potionObj = this.inventory.potions.splice(idx, 1)[0];
+        } else {
+          potionObj = this.inventory.potions.pop();
+        }
+        const healResult = local.recoverHeart(potionObj?.healAmount || 1);
+        this.soundManager.playPotion();
+        this.ui.updateLives(local.lives, local.maxLives ?? 3);
+        this.ui.showNarrativeMessage(`🧪 ¡Has bebido ${potionObj?.name}!`);
+        return true;
+      },
+    };
+
+    // 1. Uso manual con vidas < maxLives (2 -> 3)
+    const used = mockGame.usePotion();
+    assert.equal(used, true);
+    assert.equal(mockPlayer.lives, 3, 'Debe haber recuperado a 3 vidas');
+    assert.equal(inventory.potions.length, 0, 'La poción debe haberse consumido del inventario');
     assert.equal(potionSoundPlayed, true);
     assert.deepEqual(uiLivesUpdated, { lives: 3, maxLives: 3 });
+
+    // 2. Intentar usar de nuevo con vidas llenas (3/3)
+    // Agregar otra poción al inventario
+    inventory.potions.push({ id: 'pocion_vida_2', name: 'Poción de Vida', healAmount: 1 });
+    const usedFull = mockGame.usePotion();
+    assert.equal(usedFull, false, 'No debe permitir usar la poción si la vida ya está llena');
+    assert.equal(inventory.potions.length, 1, 'No debe descontar la poción del inventario');
+    assert.equal(mockPlayer.lives, 3);
+    assert.match(narrativeMessage, /máximo/);
   });
 
   it('openDoor consume la llave del jugador y del inventario al abrir puerta sellada', () => {

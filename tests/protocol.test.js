@@ -103,3 +103,10 @@ test('level-change roundtrip conserva levelId e isGameOver', () => {
   assert.equal(resLegacy.isGameOver, false);
 });
 
+test('potion-use roundtrip conserva playerId y healAmount', () => {
+  const buf = Proto.serializePotionUse(3, 1);
+  const res = Proto.deserializePotionUse(buf);
+  assert.equal(res.playerId, 3);
+  assert.equal(res.healAmount, 1);
+});
+

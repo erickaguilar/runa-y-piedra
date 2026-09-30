@@ -143,6 +143,7 @@ class VoxelSandboxGame {
       onCameraToggle: () => this.toggleCameraMode(),
       onSettingsToggle: () => this.toggleSettings(),
       onInventoryToggle: () => this.ui.toggleInventoryModal(),
+      onUsePotion: () => this.usePotion(),
     });
     this.cameraMode = localStorage.getItem('dungeon_camera') || 'first';
 
@@ -232,6 +233,9 @@ class VoxelSandboxGame {
   }
 
   initUI() {
+    this.ui.bindInventory({
+      onUsePotion: (potion, idx) => this.usePotion(potion, idx),
+    });
     this.ui.showMenu({
       onHost: (profile) => this.startHost(profile),
       onJoin: (pin, profile) => this.joinRoom(pin, profile),
@@ -457,12 +461,55 @@ class VoxelSandboxGame {
 
   addInventoryPotion(potion) {
     const potionObj = typeof potion === 'string' ? { id: potion, name: potion, icon: 'potion', color: '#f43f5e' } : (potion || {});
-    const potionId = potionObj.id || potionObj.name;
     if (!this.inventory.potions) this.inventory.potions = [];
-    if (!this.inventory.potions.some(p => (p.id || p.name) === potionId)) {
-      this.inventory.potions.push(potionObj);
-      this.ui.updateInventory(this.inventory);
+    this.inventory.potions.push(potionObj);
+    this.ui.updateInventory(this.inventory);
+  }
+
+  usePotion(potion = null, idx = -1) {
+    if (!this.inventory?.potions || this.inventory.potions.length === 0) {
+      this.ui.showNarrativeMessage('No tienes ninguna poción en tu inventario.', 2500);
+      return false;
     }
+
+    const local = this.playerManager?.localPlayer;
+    if (!local) return false;
+
+    // Si ya tiene todas las vidas, no desperdiciar la poción
+    if (local.lives >= (local.maxLives ?? 3)) {
+      this.soundManager.playClick?.();
+      this.ui.showNarrativeMessage('❤️ ¡Tu salud ya está al máximo (3/3 corazones)!', 3000);
+      return false;
+    }
+
+    // Retirar 1 poción del inventario
+    let potionObj = null;
+    if (idx >= 0 && idx < this.inventory.potions.length) {
+      potionObj = this.inventory.potions.splice(idx, 1)[0];
+    } else {
+      const pIdx = potion ? this.inventory.potions.findIndex(p => (p.id || p.name) === (potion.id || potion.name)) : -1;
+      potionObj = pIdx >= 0 ? this.inventory.potions.splice(pIdx, 1)[0] : this.inventory.potions.pop();
+    }
+
+    const healAmount = potionObj?.healAmount || 1;
+    const healResult = local.recoverHeart(healAmount);
+
+    // Audio y retroalimentación en HUD
+    this.soundManager.playPotion?.();
+    this.ui.updateLives(local.lives, local.maxLives ?? 3);
+    this.ui.showNarrativeMessage(`🧪 ¡Has bebido ${potionObj?.name || 'la Poción de Vida'}! +${healResult.recovered} ❤️ corazón restaurado.`, 3500);
+
+    this.ui.updateInventory(this.inventory);
+    if (this.ui.isInventoryOpen) {
+      this.ui.renderInventoryModalContent();
+    }
+
+    // Sincronización multijugador autoritativa: notificar al host si somos cliente
+    if (this.mode === 'client') {
+      this.network.sendToHost(Proto.serializePotionUse(local.id, healAmount));
+    }
+
+    return true;
   }
 
   resetInventory({ keepGems = false, keepRelics = false, keepPotions = false } = {}) {
@@ -699,6 +746,16 @@ class VoxelSandboxGame {
 
     this.network.addEventListener('descent', (e) => {
       this.descent.onDescendEvent(e.detail || {});
+    });
+
+    this.network.addEventListener('potion-use', (e) => {
+      const { playerId, healAmount = 1 } = e.detail || {};
+      if (this.mode === 'host') {
+        const player = this.playerManager.getPlayer(playerId);
+        if (player && player.recoverHeart) {
+          player.recoverHeart(healAmount);
+        }
+      }
     });
 
     this.network.addEventListener('snapshot', (e) => {

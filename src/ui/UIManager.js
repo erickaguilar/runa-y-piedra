@@ -24,7 +24,8 @@ export class UIManager {
     this.settingsBtn = document.getElementById(settingsBtnId);
     this.devBtn = document.getElementById(devBtnId);
     this.inventoryHud = document.getElementById(inventoryHudId);
-    this.inventory = { keys: [], gems: 0, relics: [] };
+    this.inventory = { keys: [], gems: 0, relics: [], potions: [] };
+    this.inventoryCallbacks = {};
     this.isInventoryOpen = false;
     this.isDevOpen = false;
     this.isDevMode = typeof isDev === 'boolean' ? isDev : this.checkDevMode();
@@ -149,6 +150,10 @@ export class UIManager {
 
   bindDev(callbacks = {}) {
     this.devCallbacks = callbacks;
+  }
+
+  bindInventory(callbacks = {}) {
+    this.inventoryCallbacks = callbacks;
   }
 
   renderHeroTraitCard(hero) {
@@ -1166,11 +1171,11 @@ export class UIManager {
    * Actualiza el icon botón de inventario (a la izquierda de los corazones)
    * con su estado visual y contador badge de tesoros recolectados.
    */
-  updateInventory({ keys = [], gems = 0, relics = [] } = {}) {
-    this.inventory = { keys, gems, relics };
+  updateInventory({ keys = [], gems = 0, relics = [], potions = [] } = {}) {
+    this.inventory = { keys, gems, relics, potions };
     if (!this.inventoryHud) return;
 
-    const totalItems = (keys?.length || 0) + (gems > 0 ? 1 : 0) + (relics?.length || 0);
+    const totalItems = (keys?.length || 0) + (gems > 0 ? 1 : 0) + (relics?.length || 0) + (potions?.length || 0);
     const hasAny = totalItems > 0;
     this.inventoryHud.classList.toggle('has-loot', hasAny);
     this.inventoryHud.title = hasAny
@@ -1339,18 +1344,22 @@ export class UIManager {
               ${renderIcon('potion', { size: 14, color: '#f43f5e' })} POCIONES Y ELIXIRES (${potions.length})
             </div>
             <div class="inv-items-list">
-              ${potions.map(p => {
+              ${potions.map((p, idx) => {
                 const name = typeof p === 'string' ? p : (p?.name || 'Poción de Vida');
                 const icon = (typeof p === 'object' && p?.icon) || 'potion';
                 const color = (typeof p === 'object' && p?.color) || '#f43f5e';
                 return `
-                  <div class="inv-detail-card">
-                    <div class="inv-detail-icon potion-bg" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.3);display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;">${renderIcon(icon, { size: 20, color })}</div>
-                    <div class="inv-detail-info">
-                      <div class="inv-detail-name" style="color:#fda4af;">${escapeHtml(name)}</div>
-                      <div class="inv-detail-desc">Restaura 1 ❤️ corazón de vida</div>
+                  <div class="inv-detail-card" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+                      <div class="inv-detail-icon potion-bg" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.3);display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;flex-shrink:0;">${renderIcon(icon, { size: 20, color })}</div>
+                      <div class="inv-detail-info" style="min-width:0;">
+                        <div class="inv-detail-name" style="color:#fda4af;">${escapeHtml(name)}</div>
+                        <div class="inv-detail-desc">Restaura 1 ❤️ corazón de vida</div>
+                      </div>
                     </div>
-                    <span class="inv-status-pill potion" style="background:rgba(244,63,94,0.15);color:#f43f5e;border:1px solid rgba(244,63,94,0.4);font-size:11px;padding:2px 8px;border-radius:6px;font-weight:700;">Curación</span>
+                    <button class="btn-use-potion" data-potion-index="${idx}" title="Beber Poción de Vida" style="background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(244,63,94,0.35);flex-shrink:0;transition:transform 0.1s,background 0.2s;">
+                      ${renderIcon('potion', { size: 14, color: '#fff' })} Beber
+                    </button>
                   </div>
                 `;
               }).join('')}
@@ -1406,6 +1415,24 @@ export class UIManager {
       closeFooterBtn.onclick = handleClose;
       closeFooterBtn.addEventListener('touchend', handleClose, { passive: false });
     }
+
+    // Botones de acción manual para beber pociones
+    const potionBtns = (overlay.querySelectorAll ? overlay.querySelectorAll('.btn-use-potion') : (typeof document !== 'undefined' && document.querySelectorAll ? document.querySelectorAll('.btn-use-potion') : [])) || [];
+    potionBtns.forEach(btn => {
+      const handlePotionClick = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
+        const idx = parseInt(btn.dataset.potionIndex, 10);
+        const potion = this.inventory?.potions?.[idx] || this.inventory?.potions?.[0];
+        if (this.inventoryCallbacks?.onUsePotion) {
+          this.inventoryCallbacks.onUsePotion(potion, idx);
+        }
+      };
+      btn.onclick = handlePotionClick;
+      btn.addEventListener('touchend', handlePotionClick, { passive: false });
+    });
   }
 
   closeInventoryModal() {

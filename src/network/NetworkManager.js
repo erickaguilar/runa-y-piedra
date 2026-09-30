@@ -660,6 +660,15 @@ export class NetworkManager extends EventTarget {
         this.dispatchEvent(new CustomEvent('key-update', { detail: k }));
         break;
       }
+
+      case Proto.MSG.POTION: {
+        // Solo el Host procesa peticiones de poción de clientes para sincronizar la salud autoritativa
+        if (!this.isHost) break;
+        const potionData = Proto.deserializePotionUse(buf);
+        potionData.conn = logicalConn;
+        this.dispatchEvent(new CustomEvent('potion-use', { detail: potionData }));
+        break;
+      }
     }
   }
 

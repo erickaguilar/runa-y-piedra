@@ -25,6 +25,7 @@ export const MSG = {
   PEDESTAL:     0x0D, // Portal altar: request (client->host) & ceremony (host->all)
   DESCENT:      0x0E, // Synced descent: NOW (client->host), START/GO (host->all)
   STAIRS:       0x0F, // Sealed slab: REQ (client->host) & OPEN (host->all)
+  POTION:       0x10, // Consumable potion use (client->host)
 };
 
 export const ACTION_FLAGS = {
@@ -505,4 +506,24 @@ export function deserializePedestal(buf) {
   const nameLen = v.getUint8(4 + idLen);
   const nextName = textDecoder.decode(new Uint8Array(buf, 5 + idLen, nameLen));
   return { index, isRequest: false, isLast, nextLevelId, nextName };
+}
+
+// ==========================================
+// 13. POCIONES Y CONSUMIBLES
+// Uso de poción (3 bytes): [type:1][u8 playerId:1][u8 healAmount:1] (cliente -> host)
+// ==========================================
+export function serializePotionUse(playerId = 0, healAmount = 1) {
+  const buf = new ArrayBuffer(3);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.POTION);
+  v.setUint8(1, playerId & 0xFF);
+  v.setUint8(2, healAmount & 0xFF);
+  return buf;
+}
+
+export function deserializePotionUse(buf) {
+  const v = buf instanceof DataView ? buf : new DataView(buf);
+  const playerId = v.byteLength > 1 ? v.getUint8(1) : 0;
+  const healAmount = v.byteLength > 2 ? v.getUint8(2) : 1;
+  return { playerId, healAmount };
 }

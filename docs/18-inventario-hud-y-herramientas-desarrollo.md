@@ -140,13 +140,17 @@ Al interactuar con `#hud-inventory` o pulsar `B`:
 2. **Secciones de Contenido**:
    - **Llaves de Mazmorra**: Lista de llaves con insignia de estado `Activa` e indicación de puerta a la que corresponden.
    - **Tesoro en Gemas**: Tarjeta destacada con contador numérico azul cielo y denominación de tesoro.
-   - **Pociones y Elixires**: Frascos alquímicos consumibles (`🧪 Poción de Vida`) identificados con icono vectorial `potion` (`#f43f5e`), insignia `Curación` y detalle del efecto (`Restaura 1 ❤️ corazón de vida`).
+   - **Pociones y Elixires**: Frascos alquímicos consumibles (`🧪 Poción de Vida`) identificados con icono vectorial `potion` (`#f43f5e`), insignia `Curación`, detalle del efecto (`Restaura 1 ❤️ corazón de vida`) y botón interactivo `[🧪 Beber]`.
    - **Reliquias Míticas**: Reliquias legendarias recolectadas (*Cáliz Sagrado*, *Corazón del Volcán*, *Corona del Vacío*) con icono temático y descripción ancestral.
-3. **Mecánica de Poción de Vida (`recoverHeart`)**:
-   - **Ubicación en el Juego**: Se encuentra en el **Cofre del Umbral** (Cofre 1) de la primera sala (*Sala 1 - Umbral del Vacío*) de la tercera mazmorra (*Trono del Abismo* / `abyss_throne`).
-   - **Efecto de Curación**: Al abrir el cofre, el aventurero recupera instantáneamente un corazón (`+1 ❤️`, limitado al tope de `maxLives = 3`), transformando el contorno gris (`heartOutline`) nuevamente en un corazón lleno carmesí en el HUD.
-   - **Síntesis Acústica**: Dispara el efecto procedural Web Audio `playPotion()` (arpegio cristalino ascendente en ondas senoidales puras: Fa#5, La5, Do#6, Fa#6).
-   - **Persistencia**: La poción queda registrada en `inventory.potions` y se preserva entre niveles junto con las gemas y reliquias en `switchLevel({ keepPotions: true })`.
+3. **Mecánica de Poción de Vida y Uso Manual (`usePotion`)**:
+   - **Obtención sin Consumo Automático**: Al abrir el **Cofre del Umbral** (Cofre 1 de *Trono del Abismo* / `abyss_throne`), la poción se añade al inventario del aventurero **sin consumirse de manera automática**, permitiendo al jugador decidir tácticamente cuándo emplearla.
+   - **Consumo Manual**:
+     - **Vía Modal de Inventario**: Al pulsar el botón `[🧪 Beber]` en la tarjeta de la poción.
+     - **Atajo Rápido de Teclado**: Teclas `H` (Health) o `P` (Potion) en PC.
+   - **Protección Antidesperdicio (Over-heal Guard)**: Si el jugador ya tiene la salud al máximo ($3/3$ corazones), el sistema emite el aviso informativo `❤️ ¡Tu salud ya está al máximo (3/3 corazones)!` y **no consume la poción**, preservándola intacta en el inventario.
+   - **Efecto de Curación y Audio**: Si faltan vidas, restaura un corazón (`+1 ❤️`), actualiza el HUD dinámicamente y dispara el arpegio cristalino Web Audio `playPotion()` (Fa#5, La5, Do#6, Fa#6).
+   - **Sincronización Multijugador WebRTC**: Si un cliente bebe una poción, envía el paquete `MSG.POTION` (`0x10`) al Host. El Host actualiza la salud autoritativa de la entidad del cliente y la transmite en el siguiente snapshot, garantizando coherencia absoluta entre todos los aventureros.
+   - **Persistencia**: Las pociones no consumidas se preservan al descender de mazmorra (`switchLevel({ keepPotions: true })`).
 4. **Estado Vacío**: Si el aventurero aún no ha abierto cofres, se muestra una ilustración temática con icono de cofre atenuado y un mensaje de exploración.
 5. **Cierre Amigable**: Botón de cierre en la cabecera, tecla `Escape`, tecla `B` o clic fuera del modal.
 
@@ -211,11 +215,13 @@ Toda la funcionalidad está respaldada por la suite de pruebas unitarias (`node:
    - Validación del marcado SVG: `fill="none"` y `stroke="#64748b"`.
 2. **`tests/inventory.test.js`**:
    - Extracción de botín en cofres (llaves, gemas, reliquias y pociones).
-   - Detección de la Poción de Vida en el Cofre del Umbral y recuperación de +1 ❤️ en el jugador local.
+   - Comprobación de que la Poción de Vida se guarda en el inventario sin consumirse de forma automática al abrir el cofre.
+   - Uso manual de la poción (`usePotion`), recuperación de +1 ❤️ en el jugador local y prevención de consumo con salud llena (3/3).
    - Consumo de llaves al abrir puertas selladas (`requestOpenDoor`).
    - Sincronización de flags y mensaje narrativo `🗝️ ¡Llave consumida!`.
 3. **`tests/ui-manager.test.js`**:
    - Renderizado de contorno en corazones perdidos (`heartOutline`).
+   - Renderizado del botón `[Beber]` en la sección de pociones del modal de inventario y ejecución de callbacks `onUsePotion`.
    - Retención de la insignia de llave en `#hud-lives`.
    - Contador de gemas reactivo en tiempo real.
    - Control de visibilidad del botón de desarrollo `#btn-dev`.
