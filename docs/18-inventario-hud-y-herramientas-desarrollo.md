@@ -140,9 +140,15 @@ Al interactuar con `#hud-inventory` o pulsar `B`:
 2. **Secciones de Contenido**:
    - **Llaves de Mazmorra**: Lista de llaves con insignia de estado `Activa` e indicación de puerta a la que corresponden.
    - **Tesoro en Gemas**: Tarjeta destacada con contador numérico azul cielo y denominación de tesoro.
+   - **Pociones y Elixires**: Frascos alquímicos consumibles (`🧪 Poción de Vida`) identificados con icono vectorial `potion` (`#f43f5e`), insignia `Curación` y detalle del efecto (`Restaura 1 ❤️ corazón de vida`).
    - **Reliquias Míticas**: Reliquias legendarias recolectadas (*Cáliz Sagrado*, *Corazón del Volcán*, *Corona del Vacío*) con icono temático y descripción ancestral.
-3. **Estado Vacío**: Si el aventurero aún no ha abierto cofres, se muestra una ilustración temática con icono de cofre atenuado y un mensaje de exploración.
-4. **Cierre Amigable**: Botón de cierre en la cabecera, tecla `Escape`, tecla `B` o clic fuera del modal.
+3. **Mecánica de Poción de Vida (`recoverHeart`)**:
+   - **Ubicación en el Juego**: Se encuentra en el **Cofre del Umbral** (Cofre 1) de la primera sala (*Sala 1 - Umbral del Vacío*) de la tercera mazmorra (*Trono del Abismo* / `abyss_throne`).
+   - **Efecto de Curación**: Al abrir el cofre, el aventurero recupera instantáneamente un corazón (`+1 ❤️`, limitado al tope de `maxLives = 3`), transformando el contorno gris (`heartOutline`) nuevamente en un corazón lleno carmesí en el HUD.
+   - **Síntesis Acústica**: Dispara el efecto procedural Web Audio `playPotion()` (arpegio cristalino ascendente en ondas senoidales puras: Fa#5, La5, Do#6, Fa#6).
+   - **Persistencia**: La poción queda registrada en `inventory.potions` y se preserva entre niveles junto con las gemas y reliquias en `switchLevel({ keepPotions: true })`.
+4. **Estado Vacío**: Si el aventurero aún no ha abierto cofres, se muestra una ilustración temática con icono de cofre atenuado y un mensaje de exploración.
+5. **Cierre Amigable**: Botón de cierre en la cabecera, tecla `Escape`, tecla `B` o clic fuera del modal.
 
 ---
 
@@ -204,7 +210,8 @@ Toda la funcionalidad está respaldada por la suite de pruebas unitarias (`node:
    - Conversión de emojis `🤍` y `🖤` al icono vectorial `heartOutline`.
    - Validación del marcado SVG: `fill="none"` y `stroke="#64748b"`.
 2. **`tests/inventory.test.js`**:
-   - Extracción de botín en cofres.
+   - Extracción de botín en cofres (llaves, gemas, reliquias y pociones).
+   - Detección de la Poción de Vida en el Cofre del Umbral y recuperación de +1 ❤️ en el jugador local.
    - Consumo de llaves al abrir puertas selladas (`requestOpenDoor`).
    - Sincronización de flags y mensaje narrativo `🗝️ ¡Llave consumida!`.
 3. **`tests/ui-manager.test.js`**:
@@ -216,3 +223,6 @@ Toda la funcionalidad está respaldada por la suite de pruebas unitarias (`node:
 4. **`tests/player.test.js`**:
    - Orientación inicial a 180° (`p.yaw === Math.PI`).
    - Métodos de gestión de llaves: `addKey`, `hasKey`, `removeKey`, `clearKeys`.
+   - Curación con `recoverHeart`: restauración incremental de corazones respetando el tope de 3 vidas.
+5. **`tests/levels.test.js`**:
+   - Verificación de integridad de `abyss_throne`: existencia del Cofre 1 con `pocion_vida`, curación de 1 corazón y texto narrativo con emoji `🧪`.

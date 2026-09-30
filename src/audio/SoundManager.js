@@ -446,6 +446,32 @@ export class SoundManager {
   }
 
   /**
+   * Poción de Vida consumida: melodía burbujeante ascendente y resplandor curativo.
+   */
+  playPotion() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    const t = this.ctx.currentTime;
+    // Arpegio curativo ascendente: Fa#5, La5, Do#6, Fa#6
+    [739.99, 880.0, 1108.73, 1479.98].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t + idx * 0.07);
+      gain.gain.setValueAtTime(0.001, t + idx * 0.07);
+      gain.gain.linearRampToValueAtTime(0.22, t + idx * 0.07 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.07 + 0.38);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t + idx * 0.07);
+      osc.stop(t + idx * 0.07 + 0.42);
+    });
+  }
+
+  /**
    * Puerta bloqueada: golpe metálico sordo de cerradura.
    */
   playLocked() {

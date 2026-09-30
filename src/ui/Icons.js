@@ -216,6 +216,16 @@ export const ICONS = {
     body: `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
   },
 
+  potion: {
+    name: 'potion',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#f43f5e',
+    body: `<path d="M9 2h6M10 2v3a4 4 0 0 1-.8 2.4L5 14.5A5 5 0 0 0 9.4 22h5.2a5 5 0 0 0 4.4-7.5l-4.2-7.1A4 4 0 0 1 14 5V2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 16c2 1 4-1 6 0s3 0 5-1" stroke-linecap="round"/>`,
+  },
+
   gamepad: {
     name: 'gamepad',
     viewBox: '0 0 24 24',
@@ -428,6 +438,7 @@ export const EMOJI_TO_ICON_MAP = [
   { regex: /🔥\uFE0F?/g, icon: 'flame', defaultColor: '#ef4444' },
   { regex: /📦\uFE0F?/g, icon: 'chest', defaultColor: '#f59e0b' },
   { regex: /🗝\uFE0F?/g, icon: 'key', defaultColor: '#fbbf24' },
+  { regex: /🧪\uFE0F?/g, icon: 'potion', defaultColor: '#f43f5e' },
   { regex: /💎\uFE0F?/g, icon: 'gem', defaultColor: '#38bdf8' },
   { regex: /🏆\uFE0F?/g, icon: 'trophy', defaultColor: '#eab308' },
   { regex: /✨\uFE0F?/g, icon: 'sparkles', defaultColor: '#facc15' },

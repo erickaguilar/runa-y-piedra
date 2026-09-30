@@ -111,6 +111,20 @@ export class Player {
     return { lives: this.lives, gameOver, ignored: false };
   }
 
+  /**
+   * Recupera corazones/vidas hasta el máximo (maxLives = 3).
+   * Retorna { recovered: number, lives: number }.
+   */
+  recoverHeart(amount = 1) {
+    if (this.lives >= this.maxLives) {
+      return { recovered: 0, lives: this.lives };
+    }
+    const oldLives = this.lives;
+    this.lives = Math.min(this.maxLives, this.lives + Math.max(1, amount));
+    const recovered = this.lives - oldLives;
+    return { recovered, lives: this.lives };
+  }
+
   get isInvulnerable() {
     return this.invulnTicks > 0;
   }

@@ -128,7 +128,7 @@ class VoxelSandboxGame {
     this.network = new NetworkManager();
     this.ui = new UIManager();
     this.soundManager = soundManager;
-    this.inventory = { keys: [], gems: 0, relics: [] };
+    this.inventory = { keys: [], gems: 0, relics: [], potions: [] };
     this.openedChestKeys = new Set();
     this.network.stats.setRenderer(this.sceneManager.renderer);
     this.inputMode = new InputMode();
@@ -329,7 +329,7 @@ class VoxelSandboxGame {
     }
 
     const local = this.playerManager.localPlayer;
-    this.resetInventory({ keepGems: true, keepRelics: true });
+    this.resetInventory({ keepGems: true, keepRelics: true, keepPotions: true });
     this.ui.setLivesVisible(true);
     this.ui.updateLives(local.lives, local.maxLives);
     this.ui.setTutorialControlsVisible(levelData.id === 'lobby_tutorial');
@@ -455,13 +455,24 @@ class VoxelSandboxGame {
     return false;
   }
 
-  resetInventory({ keepGems = false, keepRelics = false } = {}) {
+  addInventoryPotion(potion) {
+    const potionObj = typeof potion === 'string' ? { id: potion, name: potion, icon: 'potion', color: '#f43f5e' } : (potion || {});
+    const potionId = potionObj.id || potionObj.name;
+    if (!this.inventory.potions) this.inventory.potions = [];
+    if (!this.inventory.potions.some(p => (p.id || p.name) === potionId)) {
+      this.inventory.potions.push(potionObj);
+      this.ui.updateInventory(this.inventory);
+    }
+  }
+
+  resetInventory({ keepGems = false, keepRelics = false, keepPotions = false } = {}) {
     this.inventory = {
       keys: [],
       gems: keepGems ? (this.inventory?.gems || 0) : 0,
       relics: keepRelics ? [...(this.inventory?.relics || [])] : [],
+      potions: keepPotions ? [...(this.inventory?.potions || [])] : [],
     };
-    if (!keepGems && !keepRelics) {
+    if (!keepGems && !keepRelics && !keepPotions) {
       this.openedChestKeys?.clear();
     }
     this.ui.updateInventory(this.inventory);

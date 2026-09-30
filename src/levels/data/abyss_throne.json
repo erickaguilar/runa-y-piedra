@@ -94,10 +94,17 @@
       "x": 5.5,
       "y": 1.0,
       "z": 8.5,
-      "reward": "🗝️ Llave del Santuario y 💎 Gemas Abisales",
-      "message": "📦 ¡Has abierto el Cofre del Umbral! Has obtenido: 🗝️ Llave del Santuario y 💎 200 Gemas Abisales.",
+      "reward": "🗝️ Llave del Santuario, 🧪 Poción de Vida y 💎 Gemas Abisales",
+      "message": "📦 ¡Has abierto el Cofre del Umbral! Has obtenido: 🗝️ Llave del Santuario, 🧪 Poción de Vida (+1 ❤️) y 💎 200 Gemas Abisales.",
       "givesKey": "llave_santuario",
-      "keyName": "Llave del Santuario"
+      "keyName": "Llave del Santuario",
+      "potion": {
+        "id": "pocion_vida",
+        "name": "Poción de Vida",
+        "healAmount": 1,
+        "icon": "potion",
+        "color": "#f43f5e"
+      }
     },
     {
       "id": 2,

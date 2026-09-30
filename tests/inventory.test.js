@@ -105,6 +105,89 @@ describe('Inventario y botín de cofres', () => {
     assert.equal(inventory.relics[1].id, 'corona_vacio');
   });
 
+  it('extrae la poción de vida del cofre del umbral en abyss_throne y recupera un corazón al jugador', () => {
+    let potionSoundPlayed = false;
+    let uiLivesUpdated = null;
+    const inventory = { keys: [], gems: 0, relics: [], potions: [] };
+
+    const mockPlayer = {
+      id: 0,
+      lives: 2,
+      maxLives: 3,
+      recoverHeart(amount = 1) {
+        const old = this.lives;
+        this.lives = Math.min(this.maxLives, this.lives + amount);
+        return { recovered: this.lives - old, lives: this.lives };
+      },
+    };
+
+    const mockGame = {
+      world: {
+        levelRegistry: {
+          getCurrentLevel: () => ({ id: 'abyss_throne' }),
+        },
+      },
+      playerManager: {
+        localPlayer: mockPlayer,
+      },
+      inventory,
+      openedChestKeys: new Set(),
+      addInventoryKey(key) {
+        inventory.keys.push(key);
+      },
+      addInventoryGems(amount) {
+        inventory.gems += amount;
+      },
+      addInventoryPotion(potion) {
+        inventory.potions.push(potion);
+      },
+      soundManager: {
+        playPotion() {
+          potionSoundPlayed = true;
+        },
+      },
+      ui: {
+        updateLives(lives, maxLives) {
+          uiLivesUpdated = { lives, maxLives };
+        },
+        updateInventory() {},
+      },
+    };
+
+    const controller = new InteractionController(mockGame);
+
+    const chest1Abyss = {
+      id: 1,
+      name: 'Cofre del Umbral',
+      x: 5.5,
+      y: 1.0,
+      z: 8.5,
+      reward: '🗝️ Llave del Santuario, 🧪 Poción de Vida y 💎 Gemas Abisales',
+      message: '📦 ¡Has abierto el Cofre del Umbral! Has obtenido: 🗝️ Llave del Santuario, 🧪 Poción de Vida (+1 ❤️) y 💎 200 Gemas Abisales.',
+      givesKey: 'llave_santuario',
+      potion: {
+        id: 'pocion_vida',
+        name: 'Poción de Vida',
+        healAmount: 1,
+      },
+    };
+
+    controller.collectChestLoot(chest1Abyss, mockPlayer);
+
+    // Verificaciones:
+    // 1. Salud recuperada de 2 a 3 vidas
+    assert.equal(mockPlayer.lives, 3, 'El jugador debe haber recuperado 1 corazón');
+    // 2. Poción agregada al inventario
+    assert.equal(inventory.potions.length, 1);
+    assert.equal(inventory.potions[0].name, 'Poción de Vida');
+    // 3. Llave y gemas también extraídas
+    assert.equal(inventory.keys.length, 1);
+    assert.equal(inventory.gems, 200);
+    // 4. Sonido y HUD activados
+    assert.equal(potionSoundPlayed, true);
+    assert.deepEqual(uiLivesUpdated, { lives: 3, maxLives: 3 });
+  });
+
   it('openDoor consume la llave del jugador y del inventario al abrir puerta sellada', () => {
     const inventory = {
       keys: [{ id: 'llave_santuario', name: 'Llave del Santuario' }],

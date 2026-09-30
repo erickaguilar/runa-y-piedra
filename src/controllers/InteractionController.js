@@ -164,7 +164,31 @@ export class InteractionController {
       game.addInventoryGems(gems);
     }
 
-    // 3. Reliquias míticas (Cáliz Sagrado, Corazón del Volcán, Corona del Vacío)
+    // 3. Poción de Vida (+1 Corazón)
+    const textForPotion = `${chestData.message || ''} ${chestData.reward || ''}`;
+    const potionDef = chestData.potion || chestData.givesPotion;
+    if (potionDef || /Poci[oó]n/i.test(textForPotion)) {
+      const potionData = potionDef || {
+        id: 'pocion_vida',
+        name: 'Poción de Vida',
+        healAmount: 1,
+        icon: 'potion',
+        color: '#f43f5e',
+      };
+      if (game.addInventoryPotion) {
+        game.addInventoryPotion(potionData);
+      }
+      const targetPlayer = opener || game.playerManager?.localPlayer;
+      if (targetPlayer?.recoverHeart) {
+        targetPlayer.recoverHeart(potionData.healAmount || 1);
+        if (targetPlayer === game.playerManager?.localPlayer) {
+          game.ui?.updateLives(targetPlayer.lives, targetPlayer.maxLives);
+        }
+      }
+      game.soundManager?.playPotion?.();
+    }
+
+    // 4. Reliquias míticas (Cáliz Sagrado, Corazón del Volcán, Corona del Vacío)
     const textForRelic = `${chestData.message || ''} ${chestData.reward || ''}`;
     if (chestData.relic && game.addInventoryRelic) {
       game.addInventoryRelic(chestData.relic);

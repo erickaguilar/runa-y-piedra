@@ -71,3 +71,16 @@ test('VoxelMap asigna el Tile 11 al bloque RESPAWN_PAD', () => {
   assert.equal(VoxelMap.selectTile(11, 0, 4, BLOCK_TYPES.RESPAWN_PAD), 11);
 });
 
+test('abyss_throne Sala 1 contiene el cofre con la poción de vida para recuperar 1 corazón', () => {
+  const world = new World();
+  const abyssData = world.levelRegistry.getLevel('abyss_throne');
+  assert.ok(abyssData, 'El nivel abyss_throne debe existir');
+  const chest1 = abyssData.chests?.find(c => c.id === 1);
+  assert.ok(chest1, 'El cofre 1 debe existir en abyss_throne');
+  assert.ok(chest1.potion, 'El cofre 1 debe otorgar una poción');
+  assert.equal(chest1.potion.id, 'pocion_vida');
+  assert.equal(chest1.potion.healAmount, 1);
+  assert.ok(chest1.reward.includes('Poción de Vida'));
+  assert.ok(chest1.message.includes('+1 ❤️'));
+});
+

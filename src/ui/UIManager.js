@@ -1239,8 +1239,8 @@ export class UIManager {
     const overlay = document.getElementById('modal-inventory-overlay');
     if (!overlay) return;
 
-    const { keys = [], gems = 0, relics = [] } = this.inventory || {};
-    const totalItems = (keys?.length || 0) + (gems > 0 ? 1 : 0) + (relics?.length || 0);
+    const { keys = [], gems = 0, relics = [], potions = [] } = this.inventory || {};
+    const totalItems = (keys?.length || 0) + (gems > 0 ? 1 : 0) + (relics?.length || 0) + (potions?.length || 0);
     const hasAny = totalItems > 0;
 
     let bodyHtml = '';
@@ -1253,7 +1253,7 @@ export class UIManager {
           </div>
           <h3 style="color:#f8fafc;font-size:15px;margin:6px 0 4px;text-align:center;">Cofre de Aventurero Vacío</h3>
           <p style="color:#94a3b8;font-size:12px;line-height:1.5;text-align:center;margin:0;">
-            Aún no has recolectado botín en esta mazmorra. Explora las cámaras para encontrar cofres antiguos con llaves, gemas y reliquias míticas.
+            Aún no has recolectado botín en esta mazmorra. Explora las cámaras para encontrar cofres antiguos con llaves, gemas, pociones y reliquias míticas.
           </p>
         </div>
       `;
@@ -1331,7 +1331,35 @@ export class UIManager {
         `;
       }
 
-      bodyHtml = keysHtml + gemsHtml + relicsHtml;
+      let potionsHtml = '';
+      if (potions.length > 0) {
+        potionsHtml = `
+          <div class="inv-section" style="${(keys.length > 0 || gems > 0 || relics.length > 0) ? 'margin-top:14px;' : ''}">
+            <div class="inv-section-title">
+              ${renderIcon('potion', { size: 14, color: '#f43f5e' })} POCIONES Y ELIXIRES (${potions.length})
+            </div>
+            <div class="inv-items-list">
+              ${potions.map(p => {
+                const name = typeof p === 'string' ? p : (p?.name || 'Poción de Vida');
+                const icon = (typeof p === 'object' && p?.icon) || 'potion';
+                const color = (typeof p === 'object' && p?.color) || '#f43f5e';
+                return `
+                  <div class="inv-detail-card">
+                    <div class="inv-detail-icon potion-bg" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.3);display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;">${renderIcon(icon, { size: 20, color })}</div>
+                    <div class="inv-detail-info">
+                      <div class="inv-detail-name" style="color:#fda4af;">${escapeHtml(name)}</div>
+                      <div class="inv-detail-desc">Restaura 1 ❤️ corazón de vida</div>
+                    </div>
+                    <span class="inv-status-pill potion" style="background:rgba(244,63,94,0.15);color:#f43f5e;border:1px solid rgba(244,63,94,0.4);font-size:11px;padding:2px 8px;border-radius:6px;font-weight:700;">Curación</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      bodyHtml = keysHtml + gemsHtml + relicsHtml + potionsHtml;
     }
 
     overlay.innerHTML = `

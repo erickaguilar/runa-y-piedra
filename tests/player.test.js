@@ -32,6 +32,30 @@ test('loseLife se ignora durante invulnerabilidad', () => {
   assert.equal(p.lives, 3);
 });
 
+test('recoverHeart restaura un corazón de vida hasta el máximo', () => {
+  const p = new Player(0, 12, 1.2, 4.5);
+  p.loseLife(); // Quedan 2 vidas
+  assert.equal(p.lives, 2);
+
+  const heal1 = p.recoverHeart(1);
+  assert.equal(heal1.recovered, 1);
+  assert.equal(heal1.lives, 3);
+  assert.equal(p.lives, 3);
+
+  // Intentar curar cuando ya está lleno
+  const healMax = p.recoverHeart(1);
+  assert.equal(healMax.recovered, 0);
+  assert.equal(healMax.lives, 3);
+  assert.equal(p.lives, 3);
+
+  // Perder 2 vidas y recuperar 1
+  p.loseLife();
+  p.loseLife();
+  assert.equal(p.lives, 1);
+  p.recoverHeart(1);
+  assert.equal(p.lives, 2);
+});
+
 test('fullResetToSpawn restaura vidas y checkpoint', () => {
   const p = new Player(0, 12, 1.2, 4.5);
   p.lives = 0;
