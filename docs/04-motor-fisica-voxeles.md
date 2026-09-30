@@ -46,3 +46,27 @@ En cada paso, el algoritmo únicamente consulta los índices del grid entre:
 - $Z \in [\lfloor z - 0.3 \rfloor, \lfloor z + 0.3 \rfloor]$
 
 Esto requiere como máximo entre 8 y 18 accesos directos al `Uint8Array`, consumiendo menos del 1% del tiempo de un núcleo de CPU en procesadores móviles.
+
+---
+
+## 4. Dinámica de Fluidos y Animación de Muerte en Lava
+
+La lava (`BLOCK_TYPES.LAVA = 7`) está diseñada como un obstáculo de entorno con física de fluido viscoso y animación de muerte orgánica:
+
+1. **Permeabilidad del Bloque (No Sólido)**:
+   - En [`PhysicsAABB.js`](file:///data/data/com.termux/files/home/develop/game/src/core/PhysicsAABB.js), la función `isSolid(world, bx, by, bz)` excluye explícitamente tanto `BLOCK_TYPES.AIR (0)` como `BLOCK_TYPES.LAVA (7)`.
+   - El jugador no choca contra la superficie de la lava como un suelo duro; su cuerpo penetra y se sumerge en ella.
+
+2. **Viscosidad y Caída Lenta**:
+   - Al entrar en contacto con la lava (`SimulationEngine.isTouchingLava(p)`), la inercia de caída libre se amortigua de inmediato.
+   - La gravedad acelerada se sustituye por una velocidad de hundimiento constante (`PHYSICS_CONFIG.LAVA_SINK_SPEED = -1.0 m/s`).
+   - La velocidad horizontal se amortigua al 20% (`speedMult *= 0.2`), reflejando la alta densidad del magma.
+
+3. **Bloqueo Autoritativo del Salto**:
+   - Se ignora la acción `ACTION_FLAGS.JUMP` mientras el jugador esté en contacto con lava o en estado `isSinkingInLava`. El personaje no puede saltar para escapar.
+
+4. **Ciclo y Temporizador de Muerte Cinemática**:
+   - Al tocar la lava, se activa `p.startLavaSinking(PHYSICS_CONFIG.LAVA_SINK_TICKS = 36)` (~1.2 segundos a 30 Hz).
+   - Inmediatamente se reproduce el efecto de sonido de quemadura (`SoundManager.playHurt()`) y la notificación de peligro.
+   - Durante esos 36 ticks, el avatar se sumerge visiblemente en la fosa de lava tanto en primera como en tercera persona y se sincroniza en red para los demás jugadores.
+   - Al expirar el contador de ticks, se invoca `SimulationEngine.killPlayer(p, 'lava')`, descontando 1 corazón y reapareciendo en el punto de control con 60 ticks de invulnerabilidad.

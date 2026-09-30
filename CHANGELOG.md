@@ -41,8 +41,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Reconexión automática con servidor de señalización PeerJS ante eventos `disconnected`.
   - Eliminación de avatar fantasma (ID -1) al iniciar partida.
   - Spawn offset seguro de invitados (+3 en Z) para evitar caídas a la lava o vacío en descensos de nivel.
+- **Animación de Hundimiento y Muerte Cinemática en Lava ([`PhysicsAABB.js`](file:///data/data/com.termux/files/home/develop/game/src/core/PhysicsAABB.js), [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js), [`Player.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/Player.js), [`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js), [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**:
+  - **Permeabilidad de Fluidos**: La lava (`BLOCK_TYPES.LAVA = 7`) deja de ser un bloque sólido impermeable en `PhysicsAABB.js`, permitiendo que el jugador penetre y se sumerja físicamente a través de su superficie.
+  - **Bloqueo Autoritativo del Salto**: Se inhabilita por completo la acción de salto (`ACTION_FLAGS.JUMP`) al tocar lava o durante el estado `isSinkingInLava`.
+  - **Caída Lenta y Viscosidad**: Descenso amortiguado a velocidad constante (`PHYSICS_CONFIG.LAVA_SINK_SPEED = -1.0 m/s`) y reducción horizontal al 20%, simulando la densidad del magma.
+  - **Temporizador de Animación de Muerte (`LAVA_SINK_TICKS = 36`, ~1.2 s a 30 Hz)**: Proporciona una transición visual continua donde el cuerpo y la cámara del héroe se hunden en el magma incandescente antes de aplicar el daño de -1 vida y reaparecer en el punto de control.
+  - **Feedback Audiovisual Instantáneo**: El evento `onPlayerLavaSink` dispara de inmediato el audio de quemadura (`SoundManager.playHurt()`) y la notificación de advertencia en pantalla al primer contacto.
 - **Suite de Pruebas Unitarias Ampliada ([`tests/`](file:///data/data/com.termux/files/home/develop/game/tests/))**:
-  - 89 tests automatizados con `node:test` cubriendo consumo de llaves, contorno de corazones, HUD de gemas, herramientas dev, unificación de alertas de cofres, parser estructurado, descenso sincronizado a 5 segundos y movimiento libre en apertura de losa.
+  - 90 tests automatizados con `node:test` cubriendo la animación de hundimiento en lava, bloqueo de salto, velocidad lenta de fluido, consumo de llaves, contorno de corazones, HUD de gemas, herramientas dev, unificación de alertas de cofres, parser estructurado, descenso sincronizado a 5 segundos y movimiento libre en apertura de losa.
 
 ---
 

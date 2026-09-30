@@ -24,6 +24,8 @@ export const PHYSICS_CONFIG = {
   PLAYER_W: 0.6,
   PLAYER_H: 1.8,
   TICK_HZ: 30,
+  LAVA_SINK_TICKS: 36, // ~1.2s a 30 ticks/s de animación de hundimiento/caída lenta
+  LAVA_SINK_SPEED: -1.0, // Velocidad vertical lenta dentro del magma viscoso
 };
 
 export const NET_CONFIG = {

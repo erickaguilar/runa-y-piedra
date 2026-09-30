@@ -6,11 +6,13 @@ const HALF_W = (PHYSICS_CONFIG.PLAYER_W || 0.6) / 2;
 const PLAYER_H = PHYSICS_CONFIG.PLAYER_H || 1.8;
 
 export class SimulationEngine {
-  constructor(world, { onPlayerRespawn, onStairTouch, isTransitioning } = {}) {
+  constructor(world, { onPlayerRespawn, onPlayerLavaSink, onStairTouch, isTransitioning, lavaSinkTicks } = {}) {
     this.world = world;
     this.onPlayerRespawn = onPlayerRespawn || null;
+    this.onPlayerLavaSink = onPlayerLavaSink || null;
     this.onStairTouch = onStairTouch || null;
     this.isTransitioning = isTransitioning || null;
+    this.lavaSinkTicks = lavaSinkTicks !== undefined ? lavaSinkTicks : (PHYSICS_CONFIG.LAVA_SINK_TICKS ?? 36);
   }
 
   isTouchingLava(p) {
@@ -44,6 +46,8 @@ export class SimulationEngine {
   killPlayer(p, cause) {
     const inTransition = typeof this.isTransitioning === 'function' ? this.isTransitioning() : !!this.isTransitioning;
     if (inTransition || p.isFrozen) return null; // No matar jugadores durante transiciones de nivel
+
+    if (p.cancelLavaSinking) p.cancelLavaSinking();
 
     const res = p.loseLife ? p.loseLife() : { lives: 0, gameOver: false, ignored: false };
     if (res.ignored) return null; // invulnerable: ignorar
@@ -83,9 +87,23 @@ export class SimulationEngine {
       return;
     }
 
+    // Comprobación de contacto con lava y arranque del hundimiento (caída lenta)
+    const inLava = !p.isInvulnerable && this.isTouchingLava(p);
+    if (inLava && !p.isSinkingInLava) {
+      if (this.lavaSinkTicks <= 0) {
+        this.killPlayer(p, 'lava');
+        return;
+      }
+      p.startLavaSinking(this.lavaSinkTicks);
+      if (this.onPlayerLavaSink) {
+        this.onPlayerLavaSink(p);
+      }
+    }
+
     // 0. Aplicar acciones edge-triggered deterministas (Salto autoritativo)
+    // Se deshabilita por completo el salto si está en lava o hundiéndose en ella
     if (actions & ACTION_FLAGS.JUMP) {
-      if (p.onGround) {
+      if (p.onGround && !p.isSinkingInLava && !inLava) {
         const jumpMult = p.hero?.jumpMultiplier || 1.0;
         p.vel.y = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult;
         p.onGround = false;
@@ -93,23 +111,33 @@ export class SimulationEngine {
     }
 
     // 1. Cálculo de velocidad según yaw, input y características del héroe
-    const speedMult = p.hero?.speedMultiplier || 1.0;
+    let speedMult = p.hero?.speedMultiplier || 1.0;
+    if (p.isSinkingInLava || inLava) {
+      // Viscosidad densa del magma: reduce drásticamente la movilidad horizontal
+      speedMult *= 0.2;
+    }
     const currentSpeed = PHYSICS_CONFIG.SPEED * speedMult;
     const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
     const rx =  Math.cos(p.yaw), rz = -Math.sin(p.yaw);
     p.vel.x = (fx * p.inputForward + rx * p.inputRight) * currentSpeed;
     p.vel.z = (fz * p.inputForward + rz * p.inputRight) * currentSpeed;
 
-    p.vel.y += PHYSICS_CONFIG.GRAVITY * dt;
-    if (p.vel.y < PHYSICS_CONFIG.TERMINAL_VELOCITY) {
-      p.vel.y = PHYSICS_CONFIG.TERMINAL_VELOCITY;
+    if (p.isSinkingInLava || inLava) {
+      // Caída lenta / hundimiento amortiguado en la lava viscosa
+      const sinkSpeed = PHYSICS_CONFIG.LAVA_SINK_SPEED ?? -1.0;
+      p.vel.y = sinkSpeed;
+    } else {
+      p.vel.y += PHYSICS_CONFIG.GRAVITY * dt;
+      if (p.vel.y < PHYSICS_CONFIG.TERMINAL_VELOCITY) {
+        p.vel.y = PHYSICS_CONFIG.TERMINAL_VELOCITY;
+      }
     }
 
     const r = tryMove(this.world, p.pos, p.vel.x * dt, p.vel.y * dt, p.vel.z * dt);
     if (r.hitY && p.vel.y > 0) {
       p.vel.y = 0; // Impulso detenido al chocar con techo o dintel
     }
-    if (r.onGround) {
+    if (r.onGround && !p.isSinkingInLava && !inLava) {
       p.onGround = true;
       if (p.vel.y < 0) p.vel.y = 0;
     } else {
@@ -117,8 +145,8 @@ export class SimulationEngine {
     }
 
     // 2. Registro dinámico de Puntos de Reaparición (Checkpoints por nivel)
-    // Se registran únicamente cuando el jugador pisa suelo firme (pos.y >= 0.95)
-    if (p.onGround && p.pos.y >= 0.95) {
+    // Se registran únicamente cuando el jugador pisa suelo firme (pos.y >= 0.95) y no está en lava
+    if (p.onGround && p.pos.y >= 0.95 && !p.isSinkingInLava && !inLava) {
       const currentLevelId = this.world.levelRegistry?.getCurrentLevel()?.id || '';
       if (Array.isArray(this.world.checkpoints) && this.world.checkpoints.length > 0) {
         for (const cp of this.world.checkpoints) {
@@ -146,16 +174,18 @@ export class SimulationEngine {
       }
     }
 
-    // 3. Muerte por Lava (muerte instantánea, -1 vida). Se comprueba antes del vacío
-    // para que el mensaje sea "lava" aunque el bloque esté al fondo del abismo.
-    if (!p.isInvulnerable && this.isTouchingLava(p)) {
-      this.killPlayer(p, 'lava');
-      return;
+    // 3. Muerte por Lava: progresión de la animación de hundimiento lento (-1 vida)
+    if (p.isSinkingInLava) {
+      if (p.tickLavaSinking) p.tickLavaSinking();
+      if (p.lavaSinkingTicks <= 0) {
+        this.killPlayer(p, 'lava');
+        return;
+      }
     }
 
     // 4. Rescate y pérdida de vida al Caer al Abismo / Vacío (bajo el fondo del mundo)
-    if (p.pos.y < (WORLD_CONFIG.VOID_RESCUE_Y ?? -4.5)) {
-      this.killPlayer(p, 'void');
+    if (p.pos.y < (WORLD_CONFIG.VOID_RESCUE_Y ?? -8.5)) {
+      this.killPlayer(p, p.isSinkingInLava ? 'lava' : 'void');
       return;
     }
 

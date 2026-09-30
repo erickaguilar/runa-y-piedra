@@ -25,6 +25,7 @@ export class Player {
     this.maxLives = 3;
     this.lives = 3;
     this.invulnTicks = 0; // Protección anti-muerte-en-bucle tras reaparecer (~2s)
+    this.lavaSinkingTicks = 0; // Animación de hundimiento/caída lenta en lava (~1.2s antes de reaparecer)
 
     // Inventario de llaves (ids de llave, p. ej. "llave_santuario"). Persiste ante muertes.
     this.keys = [];
@@ -55,7 +56,29 @@ export class Player {
     this.checkpoint = { x, y, z, roomName, levelId };
   }
 
+  startLavaSinking(ticks = 36) {
+    this.lavaSinkingTicks = Math.max(1, ticks);
+    this.onGround = false;
+  }
+
+  cancelLavaSinking() {
+    this.lavaSinkingTicks = 0;
+  }
+
+  get isSinkingInLava() {
+    return this.lavaSinkingTicks > 0;
+  }
+
+  tickLavaSinking() {
+    if (this.lavaSinkingTicks > 0) {
+      this.lavaSinkingTicks--;
+      return this.lavaSinkingTicks;
+    }
+    return 0;
+  }
+
   respawn(fallbackSpawn = null) {
+    this.cancelLavaSinking();
     const cp = this.checkpoint || fallbackSpawn || {
       x: WORLD_CONFIG.SPAWN_X,
       y: 1.2,
@@ -97,6 +120,7 @@ export class Player {
   }
 
   resetLives() {
+    this.cancelLavaSinking();
     this.lives = this.maxLives;
     this.invulnTicks = 60;
   }

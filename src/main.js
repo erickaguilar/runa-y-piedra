@@ -85,7 +85,13 @@ class VoxelSandboxGame {
     this.simulation = new SimulationEngine(this.world, {
       onStairTouch: (p) => this.descent.onStairTouch(p),
       isTransitioning: () => !!(this.descent?.transitioning || this.interaction?.isTransitioning?.()),
-      onPlayerRespawn: (p, cp, info = {}) => {        if (p !== this.playerManager.localPlayer) return;
+      onPlayerLavaSink: (p) => {
+        if (p !== this.playerManager.localPlayer) return;
+        this.soundManager.playHurt();
+        this.ui.showNarrativeMessage('🔥 ¡Caíste en la lava! Hundiéndote en el magma incandescente...', 1800);
+      },
+      onPlayerRespawn: (p, cp, info = {}) => {
+        if (p !== this.playerManager.localPlayer) return;
         const { cause = 'void', lives = 3, maxLives = 3, gameOver = false, noPenalty = false } = info;
         if (noPenalty) {
           this.ui.showNarrativeMessage('⚠️ ¡Zona restringida! Vuelves al checkpoint.', 2500);
@@ -105,7 +111,7 @@ class VoxelSandboxGame {
           this.soundManager.playHurt();
           const roomMsg = cp?.roomName ? ` en ${cp.roomName}` : '';
           if (cause === 'lava') {
-            this.ui.showNarrativeMessage(`🔥 ¡Te quemó la lava! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo${roomMsg}...`, 3200);
+            this.ui.showNarrativeMessage(`🔥 ¡Te consumió la lava! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo${roomMsg}...`, 3200);
           } else {
             this.ui.showNarrativeMessage(`⚠️ ¡Caíste al abismo! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo${roomMsg}...`, 3200);
           }

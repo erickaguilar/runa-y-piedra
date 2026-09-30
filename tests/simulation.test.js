@@ -5,28 +5,63 @@ import { Player } from '../src/entities/Player.js';
 import { SimulationEngine } from '../src/simulation/SimulationEngine.js';
 import { DescentManager } from '../src/controllers/DescentManager.js';
 import { InteractionController } from '../src/controllers/InteractionController.js';
+import { ACTION_FLAGS } from '../src/network/Protocol.js';
+import { isSolid, tryMove } from '../src/core/PhysicsAABB.js';
+import { PHYSICS_CONFIG, BLOCK_TYPES } from '../src/config/constants.js';
 
-function setup() {
+function setup(opts = {}) {
   const world = new World();
   world.loadLevel(world.levelRegistry.getLevel('dungeon_classic'));
   const events = [];
+  const lavaSinkEvents = [];
   const sim = new SimulationEngine(world, {
     onPlayerRespawn: (p, cp, info) => events.push(info),
+    onPlayerLavaSink: (p) => lavaSinkEvents.push(p),
+    ...opts,
   });
-  return { world, sim, events };
+  return { world, sim, events, lavaSinkEvents };
 }
 
-test('tocar lava quita 1 vida y reaparece en checkpoint', () => {
-  const { sim, events } = setup();
+test('tocar lava activa hundimiento, bloquea salto, cae lento y reaparece al expirar', () => {
+  const { sim, events, lavaSinkEvents } = setup();
   const p = new Player(0, 5, 0.0, 15);
   p.setCheckpoint(12, 1.2, 4.5, 'Sala 1');
   p.vel.y = 0;
+
+  // Tick 1: entra en contacto con la lava
   sim.integratePlayer(p, 1 / 30, 0);
-  assert.equal(p.lives, 2);
+  assert.equal(p.isSinkingInLava, true, 'debe entrar en estado de hundimiento');
+  assert.equal(lavaSinkEvents.length, 1, 'debe disparar evento onPlayerLavaSink');
+  assert.equal(events.length, 0, 'no debe reaparecer inmediatamente en el primer tick');
+  assert.equal(p.vel.y, PHYSICS_CONFIG.LAVA_SINK_SPEED, 'debe aplicar velocidad de caída lenta');
+
+  // Intento de salto dentro de la lava: debe bloquearse
+  sim.integratePlayer(p, 1 / 30, ACTION_FLAGS.JUMP);
+  assert.notEqual(p.vel.y, PHYSICS_CONFIG.JUMP_VELOCITY, 'el salto no debe permitirse en lava');
+  assert.equal(p.vel.y, PHYSICS_CONFIG.LAVA_SINK_SPEED, 'mantiene velocidad de hundimiento lento');
+
+  // Completar los ticks de la animación de hundimiento
+  while (p.isSinkingInLava) {
+    sim.integratePlayer(p, 1 / 30, 0);
+  }
+
+  // Al terminar la animación se aplica la muerte y respawn en checkpoint
+  assert.equal(p.lives, 2, 'debe restar 1 vida');
   assert.equal(events.length, 1);
   assert.equal(events[0].cause, 'lava');
   assert.equal(p.pos.x, 12);
-  assert.ok(p.isInvulnerable);
+  assert.ok(p.isInvulnerable, 'debe quedar invulnerable');
+});
+
+test('la lava no es sólida y permite sumergirse a través de ella', () => {
+  const { world } = setup();
+  assert.equal(world.get(5, -1, 15), BLOCK_TYPES.LAVA);
+  assert.equal(isSolid(world, 5, -1, 15), false, 'bloque de lava no debe ser sólido');
+
+  const pos = { x: 5, y: 0.1, z: 15 };
+  const r = tryMove(world, pos, 0, -0.2, 0);
+  assert.equal(pos.y, -0.1, 'debe descender penetrando la capa de lava sin colisionar como suelo duro');
+  assert.equal(r.onGround, false, 'no debe marcar onGround sobre lava');
 });
 
 test('muerte ignorada durante invulnerabilidad', () => {
@@ -34,11 +69,18 @@ test('muerte ignorada durante invulnerabilidad', () => {
   const p = new Player(0, 5, 0.0, 15);
   p.setCheckpoint(12, 1.2, 4.5, 'Sala 1');
   sim.integratePlayer(p, 1 / 30, 0);
+  // Completar hundimiento hasta respawn
+  while (p.isSinkingInLava) {
+    sim.integratePlayer(p, 1 / 30, 0);
+  }
   assert.equal(p.lives, 2);
-  // Seguir en lava pero invulnerable: sin más muertes
+  assert.equal(events.length, 1);
+
+  // Seguir en lava pero invulnerable: sin más muertes ni re-hundimiento
   p.pos.x = 5; p.pos.y = 0.0; p.pos.z = 15;
   sim.integratePlayer(p, 1 / 30, 0);
   assert.equal(p.lives, 2);
+  assert.equal(p.isSinkingInLava, false);
   assert.equal(events.length, 1);
 });
 
@@ -59,6 +101,9 @@ test('tercera muerte = game over con vidas restauradas', () => {
   p.lives = 1;
   p.invulnTicks = 0;
   sim.integratePlayer(p, 1 / 30, 0);
+  while (p.isSinkingInLava) {
+    sim.integratePlayer(p, 1 / 30, 0);
+  }
   assert.equal(events[events.length - 1].gameOver, true);
   assert.equal(p.lives, p.maxLives);
 });

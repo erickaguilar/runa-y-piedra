@@ -1,9 +1,14 @@
-import { WORLD_CONFIG, PHYSICS_CONFIG } from '../config/constants.js';
+import { WORLD_CONFIG, PHYSICS_CONFIG, BLOCK_TYPES } from '../config/constants.js';
 
 export const PLAYER_W = PHYSICS_CONFIG.PLAYER_W;
 export const PLAYER_H = PHYSICS_CONFIG.PLAYER_H;
 const HALF_W = PLAYER_W / 2;
 const MIN_Y = WORLD_CONFIG.MIN_Y ?? 0;
+
+export function isSolid(world, bx, by, bz) {
+  const block = world.get(bx, by, bz);
+  return block !== BLOCK_TYPES.AIR && block !== BLOCK_TYPES.LAVA;
+}
 
 function overlaps(world, x, y, z) {
   const minX = Math.floor(x - HALF_W);
@@ -29,7 +34,7 @@ function overlaps(world, x, y, z) {
   for (let bx = minX; bx <= maxX; bx++) {
     for (let by = checkMinY; by <= checkMaxY; by++) {
       for (let bz = minZ; bz <= maxZ; bz++) {
-        if (world.get(bx, by, bz) !== 0) return true;
+        if (isSolid(world, bx, by, bz)) return true;
       }
     }
   }
@@ -79,7 +84,7 @@ export function tryMove(world, pos, dx, dy, dz) {
             // Buscamos bloques sólidos inmediatamente debajo o al nivel de los pies previos
             const maxBy = Math.min(WORLD_CONFIG.SIZE_Y - 1, Math.floor(oldY + 0.1));
             for (let by = maxBy; by >= MIN_Y; by--) {
-              if (world.get(bx, by, bz) !== 0) {
+              if (isSolid(world, bx, by, bz)) {
                 const top = by + 1.0;
                 // Solo aterriza si el jugador venía desde arriba de la superficie (evita subir a muros/bardas)
                 if (top <= oldY + 0.2 && top > floorTop) {
@@ -118,7 +123,7 @@ export function tryMove(world, pos, dx, dy, dz) {
     if (checkBy >= MIN_Y && checkBy < WORLD_CONFIG.SIZE_Y) {
       for (let bx = minX; bx <= maxX; bx++) {
         for (let bz = minZ; bz <= maxZ; bz++) {
-          if (world.get(bx, checkBy, bz) !== 0) {
+          if (isSolid(world, bx, checkBy, bz)) {
             onGround = true;
             break;
           }
