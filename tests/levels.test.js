@@ -46,15 +46,25 @@ test('LevelLoader instala losas de respawn rúnicas (RESPAWN_PAD) bajo el spawn 
   assert.equal(world.get(12, 0, 5), BLOCK_TYPES.RESPAWN_PAD);
 });
 
-test('LevelLoader instala losas de respawn rúnicas en mazmorras clásicas y checkpoints', () => {
+test('LevelLoader instala una única losa de respawn rúnica por mazmorra en la entrada', () => {
   const world = new World();
   world.loadLevel(world.levelRegistry.getLevel('dungeon_classic'));
-  // Spawn principal
+  // Spawn único principal en la entrada (2x2)
   assert.equal(world.get(11, 0, 4), BLOCK_TYPES.RESPAWN_PAD);
   assert.equal(world.get(12, 0, 4), BLOCK_TYPES.RESPAWN_PAD);
-  // Checkpoint de Sala 2 (x=11.5, z=12.0 -> y=0, x in [11, 12], z in [11, 12])
-  assert.equal(world.get(11, 0, 12), BLOCK_TYPES.RESPAWN_PAD);
-  assert.equal(world.get(12, 0, 12), BLOCK_TYPES.RESPAWN_PAD);
+  assert.equal(world.get(11, 0, 5), BLOCK_TYPES.RESPAWN_PAD);
+  assert.equal(world.get(12, 0, 5), BLOCK_TYPES.RESPAWN_PAD);
+
+  // Las salas intermedias y checkpoints NO tienen losa de respawn
+  assert.notEqual(world.get(11, 0, 12), BLOCK_TYPES.RESPAWN_PAD);
+  assert.notEqual(world.get(12, 0, 12), BLOCK_TYPES.RESPAWN_PAD);
+
+  // Conteo exhaustivo: exactamente 4 bloques de RESPAWN_PAD en todo el mapa
+  let padCount = 0;
+  for (let i = 0; i < world.blocks.length; i++) {
+    if (world.blocks[i] === BLOCK_TYPES.RESPAWN_PAD) padCount++;
+  }
+  assert.equal(padCount, 4, 'Solo debe existir una única plataforma de respawn (4 bloques) por mazmorra');
 });
 
 test('VoxelMap asigna el Tile 11 al bloque RESPAWN_PAD', () => {

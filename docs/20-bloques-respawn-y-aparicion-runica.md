@@ -70,17 +70,19 @@ El sprite del bloque se genera proceduralmente dentro del Texture Atlas de 512x5
 
 ---
 
-## 4. Colocación Automática en Niveles y Checkpoints
+## 4. Regla de Spawn Único por Mazmorra (Entrada Rúnica Centralizada)
 
-El generador de mundos [`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js) implementa el método estático `_placeRespawnPads(world, levelData)`:
+Para garantizar la máxima legibilidad espacial y evitar la dispersión de jugadores en expediciones cooperativas, el diseño establece que **únicamente existe un solo punto de spawn por mazmorra**:
 
-1. **Spawn Principal de la Mazmorra:**
-   - Calcula el punto central del spawn (`x: spawnPoint.x, z: spawnPoint.z`).
+El generador de mundos [`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js) implementa el método estático `_placeRespawnPads(world, levelData)` bajo esta regla estricta:
+
+1. **Plataforma Sagrada de la Entrada:**
+   - Calcula las coordenadas del spawn principal (`x: spawnPoint.x, z: spawnPoint.z`).
    - Sustituye los 4 bloques de suelo en el rango `[x1..x2, z1..z2]` a nivel de suelo (`y = 0`) por `BLOCK_TYPES.RESPAWN_PAD`.
-   - Garantiza que al iniciar el juego o descender a una nueva mazmorra, la party aparezca agrupada sobre la plataforma sagrada.
-2. **Puntos de Control Intermedios (Checkpoints):**
-   - Recorre cada checkpoint registrado en `levelData.checkpoints` (por ejemplo, el acceso a la Sala 2 tras la Puerta 1 en `dungeon_classic` o la Sala B en `lobby_tutorial`).
-   - Coloca automáticamente una plataforma de respawn gemela en las coordenadas de reaparición de cada sala.
+   - Garantiza que al iniciar la partida, descender a una nueva mazmorra o reaparecer tras una muerte, todos los aventureros aparezcan reunidos en el mismo santuario rúnico visible.
+2. **Salas Intermedias y Checkpoints:**
+   - Las salas avanzadas registran progreso narrativo en el HUD (p. ej., 'Sala 2 (El Abismo)', 'Sala 3 (Santuario Ancestral)'), pero **NO colocan losas de respawn secundarias**.
+   - Si un jugador cae en lava o al abismo en salas intermedias, [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js) reubica siempre al jugador en la losa rúnica de la entrada con su respectivo escudo de invulnerabilidad.
 
 ---
 
@@ -101,19 +103,31 @@ Se sintetiza un arpegio ascendente de campanillas de cristal en frecuencias arm�
 
 ## 6. Verificación Automatizada
 
-La suite de pruebas [`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js) valida la correcta colocación y asignación del bloque:
+La suite de pruebas automatizadas valida la existencia de exactamente una plataforma rúnica por mazmorra y el respawn estricto en la entrada:
 
 ```javascript
-test('LevelLoader instala losas de respawn rúnicas (RESPAWN_PAD) bajo el spawn principal', () => {
+// tests/levels.test.js
+test('LevelLoader instala una única losa de respawn rúnica por mazmorra en la entrada', () => {
   const world = new World();
-  world.loadLevel(world.levelRegistry.getLevel('lobby_tutorial'));
+  world.loadLevel(world.levelRegistry.getLevel('dungeon_classic'));
+  // Spawn único principal en la entrada (2x2)
   assert.equal(world.get(11, 0, 4), BLOCK_TYPES.RESPAWN_PAD);
   assert.equal(world.get(12, 0, 4), BLOCK_TYPES.RESPAWN_PAD);
   assert.equal(world.get(11, 0, 5), BLOCK_TYPES.RESPAWN_PAD);
   assert.equal(world.get(12, 0, 5), BLOCK_TYPES.RESPAWN_PAD);
+
+  // Las salas intermedias y checkpoints NO tienen losa de respawn
+  assert.notEqual(world.get(11, 0, 12), BLOCK_TYPES.RESPAWN_PAD);
+  assert.notEqual(world.get(12, 0, 12), BLOCK_TYPES.RESPAWN_PAD);
+
+  // Conteo exhaustivo: exactamente 4 bloques de RESPAWN_PAD en todo el mapa
+  let padCount = 0;
+  for (let i = 0; i < world.blocks.length; i++) {
+    if (world.blocks[i] === BLOCK_TYPES.RESPAWN_PAD) padCount++;
+  }
+  assert.equal(padCount, 4, 'Solo debe existir una única plataforma de respawn (4 bloques) por mazmorra');
 });
 
-test('VoxelMap asigna el Tile 11 al bloque RESPAWN_PAD', () => {
-  assert.equal(VoxelMap.selectTile(11, 0, 4, BLOCK_TYPES.RESPAWN_PAD), 11);
-});
+// tests/simulation.test.js
+test('la muerte en cualquier sala intermedia o avanzada siempre reaparece en el spawn único de la mazmorra', () => { ... });
 ```

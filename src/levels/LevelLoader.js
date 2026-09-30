@@ -70,7 +70,7 @@ export class LevelLoader {
       }
     }
 
-    // 5. Instalar losas de respawn rúnicas (RESPAWN_PAD) bajo el spawn principal y puntos de control
+    // 5. Instalar losa de respawn rúnica única (RESPAWN_PAD) en la entrada de la mazmorra
     this._placeRespawnPads(world, levelData);
 
     return world;
@@ -98,17 +98,9 @@ export class LevelLoader {
   }
 
   static _placeRespawnPads(world, levelData) {
-    // 1. Spawn principal del nivel
+    // Spawn único principal por mazmorra (ubicado en la entrada)
     if (world.spawnPoint) {
       this._placeRespawnPad(world, world.spawnPoint);
-    }
-    // 2. Checkpoints de salas intermedias si están definidos
-    if (Array.isArray(levelData?.checkpoints)) {
-      for (const cp of levelData.checkpoints) {
-        if (cp?.respawn) {
-          this._placeRespawnPad(world, cp.respawn);
-        }
-      }
     }
   }
 

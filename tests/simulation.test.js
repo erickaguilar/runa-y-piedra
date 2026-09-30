@@ -164,6 +164,33 @@ test('killPlayer descarta checkpoints de niveles anteriores y usa el spawn del n
   assert.equal(p.checkpoint.levelId, 'dungeon_classic');
 });
 
+test('la muerte en cualquier sala intermedia o avanzada siempre reaparece en el spawn único de la mazmorra', () => {
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('dungeon_classic'));
+  const events = [];
+  const sim = new SimulationEngine(world, {
+    onPlayerRespawn: (p, cp, info) => events.push(info),
+  });
+  // Jugador caminando sobre el suelo de la Sala 3 (Santuario Ancestral)
+  const p = new Player(0, 12, 1.0, 26.0);
+  p.invulnTicks = 0;
+  // Simular pisar suelo firme en Sala 3
+  sim.integratePlayer(p, 1 / 30, 0);
+  assert.equal(p.checkpoint.roomName, 'Sala 3 (Santuario Ancestral)');
+  // Coordenadas deben apuntar al spawn único de la entrada (x=12, z=4.5)
+  assert.equal(p.checkpoint.x, 12.0);
+  assert.equal(p.checkpoint.z, 4.5);
+
+  // Forzar muerte en el abismo/vacío
+  p.pos.y = -9.0;
+  sim.integratePlayer(p, 1 / 30, 0);
+
+  assert.equal(events.length, 1);
+  assert.equal(p.pos.x, 12.0);
+  assert.equal(p.pos.y, 1.2);
+  assert.equal(p.pos.z, 4.5, 'El respawn debe materializarse siempre en el spawn único de la mazmorra');
+});
+
 test('DescentManager orquesta descenso sincronizado a 5 segundos con notificación unificada', () => {
   const countdowns = [];
   let narrativeCleared = false;
