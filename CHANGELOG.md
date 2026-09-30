@@ -21,6 +21,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Selector de clase interactivo en modal de ⚙️ Configuración (`#settings-heroes-row`): muestra las 5 clases con sus tarjetas de rasgos y estadísticas.
   - Bloqueo visual de clases ocupadas (`.hero-chip.occupied`): desaturadas al 85%, opacidad 35%, cruz roja superpuesta `✕`, cursor `not-allowed` y tooltip explicativo `"En uso por [Compañero]"`.
   - Bloqueo interactivo: intentar pulsar una clase ocupada bloquea la selección, reproduce sonido de advertencia y muestra `"⚠️ La clase [Nombre] ya está en uso por [Compañero]"`.
+  - **Emblemas e Iconografía Vectorial en Fichas de Clase ([`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), [`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html))**:
+    - Sustitución de círculos de color lisos por insignias circulares que integran en su centro el **logotipo vectorial SVG exclusivo de cada clase**: brújula (`compass` para Aventurero), escudo (`shield` para Paladín), pluma (`feather` para Explorador), varita (`wand` para Hechicero) y corona (`crown` para Guardián).
+    - Color inherente a la clase: eliminación de la selección independiente de color; el color característico pertenece al arquetipo y conforma el fondo y resplandor de la insignia.
+    - Actualización de textos en UI: reemplazo del encabezado `"Clase y Color"` por `"Clase de Héroe"`.
+    - Maquetación CSS de 36px con display flex centrado, sombreado proyectado `drop-shadow` en los iconos SVG y transiciones elásticas al pasar el cursor (`:hover`) y al pulsar.
   - Insignia reactiva de aforo en la lista de compañeros: indicador elástico `[N]/5 Jugadores` en cian (#38bdf8) y candado dorado `🔒 5/5 Llena` (#f59e0b) al completarse la party.
 - **Documentación Técnica de Aforo y Clases ([`docs/19-limite-jugadores-y-clases-unicas.md`](file:///data/data/com.termux/files/home/develop/game/docs/19-limite-jugadores-y-clases-unicas.md), [`docs/README.md`](file:///data/data/com.termux/files/home/develop/game/docs/README.md))**:
   - Compendio integral sobre presupuestos de ancho de banda WebRTC (~10 KB/s @ 20 Hz para 5 jugadores), arquitectura espacial de 2 metros en pasillos, matriz de las 5 razas y protocolos de cierre.

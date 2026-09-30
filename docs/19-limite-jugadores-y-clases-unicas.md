@@ -174,6 +174,18 @@ En la cabecera de la lista de compañeros:
 - Al alcanzar los 5 jugadores:
   `🔒 5/5 Llena` con insignia dorada/ámbar (#f59e0b).
 
+### 5.3 Emblemas Vectoriales SVG e Identidad Cromática Inherente
+- **Eliminación del concepto "Clase y Color":** Anteriormente el menú exhibía el rótulo *"Clase y Color"*, sugiriendo erróneamente que el color era un parámetro estético independiente. Ahora el encabezado oficial es **"Clase de Héroe"**, ya que cada arquetipo posee su propia identidad cromática y rol inmutables.
+- **Logotipos Vectoriales en Cada Círculo (`.hero-chip`):**
+  - Cada botón circular de 36px aloja en su centro el gráfico SVG vectorial correspondiente:
+    - 🧭 **Aventurero:** Brújula rúnica (`compass`) sobre fondo cian `#38bdf8`.
+    - 🛡️ **Paladín:** Escudo blindado (`shield`) sobre fondo carmesí `#f43f5e`.
+    - 🪶 **Explorador:** Pluma silvestre (`feather`) sobre fondo esmeralda `#10b981`.
+    - 🪄 **Hechicero:** Varita arcana (`wand`) sobre fondo púrpura místico `#a855f7`.
+    - 👑 **Guardián:** Corona monolítica (`crown`) sobre fondo dorado `#fbbf24`.
+  - Los iconos vectoriales se renderizan en blanco puro (`#ffffff`) con filtro de sombreado proyectado (`drop-shadow(0 1px 2px rgba(0,0,0,0.5))`), garantizando máxima legibilidad y contraste.
+  - Al seleccionarse, la insignia se eleva con una escala de $1.18\times$ y proyecta un halo luminoso de su color característico (`box-shadow: 0 0 14px var(--hero-color)`).
+
 ---
 
 ## 6. Verificación Automatizada

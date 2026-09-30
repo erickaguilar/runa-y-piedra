@@ -183,7 +183,9 @@ export class UIManager {
       <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
            data-index="${i}" 
            style="background:${h.color}; --hero-color:${h.color}" 
-           title="${h.name} (${h.title || ''})"></div>
+           title="${h.name} (${h.title || ''})">
+        ${renderIcon(h.icon || 'shield', { size: 18, color: '#ffffff' })}
+      </div>
     `).join('');
 
     const currentHero = PLAYER_HEROES[this.selectedColorIndex];
@@ -199,7 +201,7 @@ export class UIManager {
         </div>
 
         <div class="lobby-section">
-          <label class="lobby-label">Clase y Color</label>
+          <label class="lobby-label">Clase de Héroe</label>
           <div class="heroes-row" id="heroes-row">
             ${heroesHtml}
           </div>
@@ -223,10 +225,11 @@ export class UIManager {
         <div class="status" id="status"></div>
       </div>`;
 
-    // 1. Selector de clases/colores
+    // 1. Selector de clases de héroe
     const chips = this.uiEl.querySelectorAll('.hero-chip');
     chips.forEach(chip => {
       chip.onclick = () => {
+        soundManager.playClick();
         chips.forEach(c => c.classList.remove('selected'));
         chip.classList.add('selected');
         const idx = parseInt(chip.dataset.index, 10);
@@ -384,7 +387,9 @@ export class UIManager {
         <div class="hero-chip ${isSelected ? 'selected' : ''} ${isOccupied ? 'occupied' : ''}" 
              data-index="${i}" 
              style="background:${h.color}; --hero-color:${h.color}" 
-             title="${titleAttr}"></div>
+             title="${titleAttr}">
+          ${renderIcon(h.icon || 'shield', { size: 18, color: '#ffffff' })}
+        </div>
       `;
     }).join('');
 
@@ -412,7 +417,7 @@ export class UIManager {
 
         <div class="settings-group" style="margin-top:10px;">
           <label class="lobby-label" style="display:flex;justify-content:space-between;align-items:center;">
-            <span>Clase y Raza (Única por Aventurero)</span>
+            <span>Clase de Héroe (Única por Aventurero)</span>
             <span style="font-size:10px;color:#94a3b8;font-weight:normal;">1 por equipo</span>
           </label>
           <div class="heroes-row" id="settings-heroes-row">

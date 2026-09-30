@@ -57,12 +57,16 @@
       border:1px solid #334155;background:#0b1120;color:#fff;text-align:center;font-weight:600;outline:none;transition:border-color .2s}
     .name-input:focus{border-color:#38bdf8;box-shadow:0 0 0 2px rgba(56,189,248,.25)}
     .heroes-row{display:flex;justify-content:center;gap:10px;margin:8px 0 6px}
-    .hero-chip{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;
-      transition:transform .15s,border-color .15s;box-shadow:0 2px 8px rgba(0,0,0,.4);position:relative}
-    .hero-chip.selected{border-color:#fff;transform:scale(1.2);box-shadow:0 0 12px var(--hero-color)}
+    .hero-chip{width:36px;height:36px;border-radius:50%;border:2px solid transparent;cursor:pointer;
+      transition:transform .15s,border-color .15s,box-shadow .15s;box-shadow:0 2px 8px rgba(0,0,0,.4);
+      position:relative;display:inline-flex;align-items:center;justify-content:center}
+    .hero-chip svg{pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+    .hero-chip.selected{border-color:#fff;transform:scale(1.18);box-shadow:0 0 14px var(--hero-color),inset 0 0 4px rgba(255,255,255,.3)}
+    .hero-chip:hover:not(.occupied){transform:scale(1.08)}
+    .hero-chip.selected:hover{transform:scale(1.2)}
     .hero-chip.occupied{opacity:0.35;filter:grayscale(0.85);cursor:not-allowed}
     .hero-chip.occupied::after{content:'✕';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-      font-size:13px;color:#ef4444;font-weight:900;text-shadow:0 0 4px #000}
+      font-size:15px;color:#ef4444;font-weight:900;text-shadow:0 0 4px #000}
     .hero-chip:active:not(.occupied){transform:scale(0.95)}
     .party-count-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.08)}
     .hero-badge{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700;color:#38bdf8;margin-bottom:4px}
