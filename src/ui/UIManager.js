@@ -1046,65 +1046,29 @@ export class UIManager {
   }
 
   /**
-   * Actualiza el HUD del inventario con llaves, gemas y reliquias recolectadas de cofres.
+   * Actualiza el icon botón de inventario (a la izquierda de los corazones)
+   * con su estado visual y contador badge de tesoros recolectados.
    */
   updateInventory({ keys = [], gems = 0, relics = [] } = {}) {
     this.inventory = { keys, gems, relics };
     if (!this.inventoryHud) return;
 
-    const hasAny = (keys && keys.length > 0) || (gems && gems > 0) || (relics && relics.length > 0);
+    const totalItems = (keys?.length || 0) + (gems > 0 ? 1 : 0) + (relics?.length || 0);
+    const hasAny = totalItems > 0;
     this.inventoryHud.classList.toggle('has-loot', hasAny);
-    this.inventoryHud.title = hasAny ? 'Haz clic para abrir el botín recolectado' : 'Botín de cofres vacío';
+    this.inventoryHud.title = hasAny
+      ? `Inventario (${totalItems} ${totalItems === 1 ? 'tesoro' : 'tesoros'}) - Clic para abrir (B)`
+      : 'Inventario vacío - Clic para abrir (B)';
 
-    if (!hasAny) {
-      this.inventoryHud.innerHTML = `
-        <span class="inv-header">${renderIcon('chest', { size: 14, color: '#94a3b8' })} BOTÍN</span>
-        <span class="inv-empty">Vacío</span>
-      `;
-      if (this.isInventoryOpen) {
-        this.renderInventoryModalContent();
-      }
-      return;
+    let html = `
+      <span class="inv-btn-icon">
+        ${renderIcon('chest', { size: 20, color: hasAny ? '#fbbf24' : '#94a3b8' })}
+      </span>
+    `;
+
+    if (hasAny) {
+      html += `<span class="inv-btn-badge">${totalItems}</span>`;
     }
-
-    let html = `<span class="inv-header">${renderIcon('chest', { size: 14, color: '#f59e0b' })} BOTÍN</span>`;
-
-    if (Array.isArray(keys)) {
-      for (const k of keys) {
-        const name = typeof k === 'string' ? k : (k?.name || 'Llave');
-        html += `
-          <span class="inv-slot key" title="${escapeHtml(name)}">
-            ${renderIcon('key', { size: 13, color: '#fbbf24' })}
-            <span>${escapeHtml(name)}</span>
-          </span>
-        `;
-      }
-    }
-
-    if (gems > 0) {
-      html += `
-        <span class="inv-slot gem" title="${gems} Gemas acumuladas">
-          ${renderIcon('gem', { size: 13, color: '#38bdf8' })}
-          <span>${gems}</span>
-        </span>
-      `;
-    }
-
-    if (Array.isArray(relics)) {
-      for (const r of relics) {
-        const name = r.name || 'Reliquia';
-        const icon = r.icon || 'trophy';
-        const color = r.color || '#eab308';
-        html += `
-          <span class="inv-slot relic" title="${escapeHtml(name)}">
-            ${renderIcon(icon, { size: 13, color })}
-            <span>${escapeHtml(name)}</span>
-          </span>
-        `;
-      }
-    }
-
-    html += `<span class="inv-open-pill" title="Ver todo">${renderIcon('sparkles', { size: 11, color: '#fbbf24' })}</span>`;
 
     this.inventoryHud.innerHTML = html;
 

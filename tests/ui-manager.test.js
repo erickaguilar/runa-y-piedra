@@ -96,7 +96,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(ui.isSettingsOpen, true);
     });
 
-    it('gestiona la visibilidad y actualización del HUD de inventario', () => {
+    it('gestiona la visibilidad y actualización del icon botón de inventario', () => {
       const ui = new UIManager();
       assert.equal(typeof ui.setInventoryVisible, 'function');
       assert.equal(typeof ui.updateInventory, 'function');
@@ -109,8 +109,8 @@ describe('UIManager - Contratos de API de Configuración', () => {
 
       // Inventario vacío inicial
       ui.updateInventory({ keys: [], gems: 0, relics: [] });
-      assert.match(ui.inventoryHud.innerHTML, /BOTÍN/);
-      assert.match(ui.inventoryHud.innerHTML, /Vacío/);
+      assert.match(ui.inventoryHud.innerHTML, /inv-btn-icon/);
+      assert.match(ui.inventoryHud.title, /vacío/i);
 
       // Botín recolectado de cofres
       ui.updateInventory({
@@ -119,9 +119,9 @@ describe('UIManager - Contratos de API de Configuración', () => {
         relics: [{ id: 'caliz_sagrado', name: 'Cáliz Sagrado', icon: 'trophy', color: '#eab308' }],
       });
 
-      assert.match(ui.inventoryHud.innerHTML, /Llave del Santuario/);
-      assert.match(ui.inventoryHud.innerHTML, /250/);
-      assert.match(ui.inventoryHud.innerHTML, /Cáliz Sagrado/);
+      assert.match(ui.inventoryHud.innerHTML, /inv-btn-badge/);
+      assert.match(ui.inventoryHud.innerHTML, /3/);
+      assert.match(ui.inventoryHud.title, /3 tesoros/i);
       assert.equal(ui.inventory.gems, 250);
       assert.equal(ui.inventory.keys.length, 1);
       assert.equal(ui.inventory.relics.length, 1);
