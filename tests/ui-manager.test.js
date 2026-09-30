@@ -36,23 +36,28 @@ describe('UIManager - Contratos de API de Configuración', () => {
       originalLocalStorage = globalThis.localStorage;
 
       const elementStore = new Map();
-      const mockEl = (tag = 'div') => ({
-        tagName: tag.toUpperCase(),
-        style: {},
-        classList: { add() {}, remove() {}, toggle() {} },
-        innerHTML: '',
-        value: '',
-        children: [],
-        addEventListener(evt, fn) { this['on' + evt] = fn; },
-        appendChild(child) { this.children.push(child); return child; },
-        remove() {
-          for (const [k, v] of elementStore.entries()) {
-            if (v === this) elementStore.delete(k);
-          }
-        },
-      });
+      const mockEl = (tag = 'div') => {
+        const el = {
+          tagName: tag.toUpperCase(),
+          style: {},
+          classList: { add() {}, remove() {}, toggle() {} },
+          innerHTML: '',
+          value: '',
+          children: [],
+          addEventListener(evt, fn) { this['on' + evt] = fn; },
+          appendChild(child) { this.children.push(child); return child; },
+          querySelector() { return mockEl('span'); },
+          remove() {
+            for (const [k, v] of elementStore.entries()) {
+              if (v === this) elementStore.delete(k);
+            }
+          },
+        };
+        return el;
+      };
 
       globalThis.document = {
+        body: mockEl('body'),
         getElementById: (id) => {
           if (!elementStore.has(id)) {
             elementStore.set(id, mockEl());
@@ -317,6 +322,35 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(res.items[1], '💎 100 Gemas');
       assert.equal(res.items[2], '🚪 Ahora puedes abrir: Puerta del Santuario');
     });
+
+    it('gestiona la tarjeta de descenso unificada con temporizador de 5 segundos', () => {
+      const ui = new UIManager();
+      assert.equal(ui.descentCard, null);
+      assert.equal(ui.descentBtn, null);
+
+      let nowClicked = false;
+      ui.showDescentCountdown({
+        byName: 'Explorador',
+        endsAtMs: Date.now() + 5000,
+        onNow: () => { nowClicked = true; },
+      });
+
+      assert.ok(ui.descentCard);
+      assert.ok(ui.descentBtn);
+      assert.match(ui.descentCard.innerHTML, /descent-timer/);
+      assert.match(ui.descentCard.innerHTML, /5/);
+      assert.match(ui.descentCard.innerHTML, /Explorador desciende/);
+
+      // Botón Bajar Ya interactivo
+      ui.descentBtn.onclick();
+      assert.equal(nowClicked, true);
+
+      // Limpieza completa
+      ui.hideDescent();
+      assert.equal(ui.descentCard, null);
+      assert.equal(ui.descentBtn, null);
+    });
   });
 });
+
 

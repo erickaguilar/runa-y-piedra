@@ -319,12 +319,12 @@ class VoxelSandboxGame {
     this.ui.setHasKey(false);
     // Fin de la transición del portal (el velo se retira sobre el nuevo mapa)
     this.ui.hideLevelTransition();
+    this.ui.hideNarrativeMessage();
 
     // Limpiar buffers de reconciliación y cola de inputs para evitar replay cruzado de niveles
     this.reconciler.reset(performance.now() + 150);
     this.inputQueue.clear();
 
-    this.ui.showNarrativeMessage(`Mapa cargado: ${levelData.name}`, 3500);
     if (levelData.id === 'lobby_tutorial') {
       const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
         ? window.matchMedia('(pointer: coarse)').matches
@@ -334,6 +334,8 @@ class VoxelSandboxGame {
       } else {
         this.ui.showNarrativeMessage('🎯 Practica: salta las losas ámbar, abre el 📦 cofre, usa la 🗝️ llave en la 🚪 puerta, empuja la 🪨 losa y baja.', 6500);
       }
+    } else {
+      this.ui.showNarrativeMessage(`🏰 Has descendido a: ${levelData.name}`, 3500);
     }
 
     if (broadcast && this.mode === 'host') {

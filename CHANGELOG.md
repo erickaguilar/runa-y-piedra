@@ -19,10 +19,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Métodos `VoxelSandboxGame.prototype.removeInventoryKey(keyId)` y `removeInventoryRelic(relicId)`.
   - Apertura autoritativa: `InteractionController.prototype.openDoor(doorId, opener)` consume `door.requiresKey` tanto en el jugador como en el inventario, oculta la insignia si no restan llaves y emite el mensaje narrativo `"🗝️ ¡Llave consumida!"`.
   - Sincronización en red WebRTC en clientes al recibir confirmación de apertura de puerta.
-- **Prioridad Visual Absoluta de Notificaciones (`#hud-message`, `z-index: 9999`) y Unificación de Alertas ([`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html), [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), [`InteractionController.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/InteractionController.js))**:
+- **Prioridad Visual Absoluta de Notificaciones (`#hud-message`, `z-index: 9999`) y Unificación de Alertas ([`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html), [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), [`InteractionController.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/InteractionController.js), [`DescentManager.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/DescentManager.js))**:
   - Reubicación de la pila de alertas narrativas al final del árbol DOM con `z-index: 9999`, garantizando que ninguna ventana modal, menú ni velo de transición oculte los avisos del juego.
   - Soporte de descarte rápido: las alertas pueden cerrarse instantáneamente al tocarlas o hacer clic sobre ellas.
   - **Unificación de Alertas de Cofres**: Al abrir un cofre que contiene llave se emitía una doble notificación superpuesta. Ahora se consolida en una única tarjeta narrativa que desglosa el cofre, el botín (`🗝️ Llave`, `💎 Gemas`, `🏆 Reliquias`) y añade la fila de progresión con icono de puerta (`🚪 Ahora puedes abrir: [Puerta]`).
+  - **Unificación de Notificaciones y Reducción del Descenso a 5 Segundos**: El tiempo de espera sincronizado de la escalinata bajó de 8s a 5s para mayor dinamismo. Se eliminó la notificación narrativa redundante simultánea a la tarjeta de descenso, purga las alertas viejas de la pantalla (`hideNarrativeMessage()`) y ubica la tarjeta en `top: max(16px, env(safe-area-inset-top))` con `z-index: 9998` y botón con `z-index: 9999`.
   - Eliminación del mensaje preliminar `"Abriendo cofre..."` en clientes WebRTC para evitar parpadeos visuales previos a la confirmación autoritativa.
   - Corrección del texto de la notificación inicial del anfitrión en [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js): eliminación de la indicación obsoleta de "cambiar mapa" (`"Toca ⚙️ para invitar amigos."`).
 - **Herramientas de Desarrollo y Diagnóstico (`#modal-dev`)**:
@@ -40,7 +41,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Eliminación de avatar fantasma (ID -1) al iniciar partida.
   - Spawn offset seguro de invitados (+3 en Z) para evitar caídas a la lava o vacío en descensos de nivel.
 - **Suite de Pruebas Unitarias Ampliada ([`tests/`](file:///data/data/com.termux/files/home/develop/game/tests/))**:
-  - 86 tests automatizados con `node:test` cubriendo consumo de llaves, contorno de corazones, HUD de gemas, herramientas dev, unificación de alertas de cofres y parser estructurado.
+  - 88 tests automatizados con `node:test` cubriendo consumo de llaves, contorno de corazones, HUD de gemas, herramientas dev, unificación de alertas de cofres, parser estructurado y descenso sincronizado a 5 segundos.
 
 ---
 

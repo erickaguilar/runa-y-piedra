@@ -85,6 +85,10 @@ export class UIManager {
     this.isSettingsOpen = false;
     this.settingsCallbacks = null;
     this.devCallbacks = null;
+    this.descentCard = null;
+    this.descentBtn = null;
+    this.descentOnNow = null;
+    this._descentInterval = null;
 
     // Cargar perfil guardado del jugador
     this.selectedColorIndex = parseInt(localStorage.getItem('dungeon_player_color') || '0', 10);
@@ -1370,7 +1374,7 @@ export class UIManager {
   }
 
   /**
-   * Tarjeta de descenso sincronizado: cuenta atrás de 8s + botón BAJAR YA.
+   * Tarjeta de descenso sincronizado: cuenta atrás de 5s + botón BAJAR YA.
    * endsAtMs: timestamp (reloj del Host) del descenso automático.
    */
   showDescentCountdown({ byName = 'Un compañero', endsAtMs = 0, onNow = null } = {}) {
@@ -1383,8 +1387,8 @@ export class UIManager {
     card.id = 'descent-card';
     card.innerHTML = `
       <div class="descent-title">${renderIcon('vortex', { size: 18, color: '#38bdf8' })} ¡${escapeHtml(byName)} desciende!</div>
-      <div class="descent-timer">8</div>
-      <div class="descent-sub">${isTouch ? 'Baja a la escalinata para ir ya' : 'Pulsa [E / CLICK] o baja a la escalinata para ir ya'}</div>`;
+      <div class="descent-timer">5</div>
+      <div class="descent-sub">${isTouch ? 'Toca BAJAR YA o baja a la escalinata para ir ya' : 'Pulsa [E / CLICK] o baja a la escalinata para ir ya'}</div>`;
     document.body.appendChild(card);
     this.descentCard = card;
 

@@ -65,13 +65,13 @@ flowchart TD
     Hub["Lobby / Hub de Entrenamiento\n(Selección de Capítulo por el Anfitrión)"]
     
     subgraph Cap1["Capítulo 1: El Descenso Ancestral"]
-        C1D1["M1: Mazmorra Ancestral\n(Tutorial de foso y salto)"] -->|Escalinata 8s| C1D2["M2: Cripta del Fuego\n(Río de lava en zig-zag)"]
-        C1D2 -->|Escalinata 8s| C1D3["M3: Trono del Abismo\n(Altar Ceremonial / Fin Cap 1)"]
+        C1D1["M1: Mazmorra Ancestral\n(Tutorial de foso y salto)"] -->|Escalinata 5s| C1D2["M2: Cripta del Fuego\n(Río de lava en zig-zag)"]
+        C1D2 -->|Escalinata 5s| C1D3["M3: Trono del Abismo\n(Altar Ceremonial / Fin Cap 1)"]
     end
 
     subgraph Cap2["Capítulo 2: La Forja Olvidada"]
-        C2D1["M1: Vestíbulo de Yunque"] -->|Escalinata 8s| C2D2["M2: Canal de Escoria"]
-        C2D2 -->|Escalinata 8s| C2D3["M3: Crisol del Titán\n(Fin Cap 2)"]
+        C2D1["M1: Vestíbulo de Yunque"] -->|Escalinata 5s| C2D2["M2: Canal de Escoria"]
+        C2D2 -->|Escalinata 5s| C2D3["M3: Crisol del Titán\n(Fin Cap 2)"]
     end
 
     Hub -->|Iniciar Expedición| C1D1

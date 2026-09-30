@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { World } from '../src/core/World.js';
 import { Player } from '../src/entities/Player.js';
 import { SimulationEngine } from '../src/simulation/SimulationEngine.js';
+import { DescentManager } from '../src/controllers/DescentManager.js';
 
 function setup() {
   const world = new World();
@@ -115,5 +116,65 @@ test('killPlayer descarta checkpoints de niveles anteriores y usa el spawn del n
   assert.equal(p.pos.x, 12.0);
   assert.equal(p.pos.z, 4.5, 'Debe reaparecer en spawn del nivel actual, nunca en z=19.5 del tutorial');
   assert.equal(p.checkpoint.levelId, 'dungeon_classic');
+});
+
+test('DescentManager orquesta descenso sincronizado a 5 segundos con notificación unificada', () => {
+  const countdowns = [];
+  let narrativeCleared = false;
+  const narrativeMessages = [];
+  const broadcasts = [];
+  const mockPlayer = new Player(0, 11.5, 0.5, 32);
+  mockPlayer.name = 'Guerrero';
+
+  const mockGame = {
+    mode: 'host',
+    playerManager: {
+      getAllPlayers: () => [mockPlayer],
+    },
+    world: {
+      stairsOpen: true,
+      levelRegistry: {
+        getAllLevels: () => [
+          { id: 'lobby_tutorial', name: 'Lobby' },
+          { id: 'dungeon_classic', name: 'Mazmorra Clásica' },
+        ],
+        getCurrentLevel: () => ({ id: 'lobby_tutorial' }),
+      },
+    },
+    interaction: {
+      isTransitioning: () => false,
+    },
+    network: {
+      broadcast: (buf) => broadcasts.push(buf),
+    },
+    ui: {
+      hideNarrativeMessage: () => { narrativeCleared = true; },
+      showDescentCountdown: (cfg) => { countdowns.push(cfg); },
+      showNarrativeMessage: (msg) => { narrativeMessages.push(msg); },
+      hideDescent: () => {},
+      showLevelTransition: () => {},
+    },
+    soundManager: {
+      playDescentEcho: () => {},
+    },
+    switchLevel: () => {},
+  };
+
+  const descent = new DescentManager(mockGame);
+  assert.equal(descent.active, false);
+
+  descent.startCountdown(mockPlayer);
+  assert.equal(descent.active, true);
+  assert.equal(narrativeCleared, true);
+  // Unificado: NO emite tarjetas narrativas redundantes
+  assert.equal(narrativeMessages.length, 0);
+  assert.equal(countdowns.length, 1);
+  assert.equal(countdowns[0].byName, 'Guerrero');
+  // Cuenta atrás configurada a exactamente 5000ms
+  const diff = countdowns[0].endsAtMs - Date.now();
+  assert.ok(diff >= 4700 && diff <= 5100, `Debe durar ~5000ms (obtenido ${diff}ms)`);
+
+  descent.reset();
+  assert.equal(descent.active, false);
 });
 

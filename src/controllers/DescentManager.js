@@ -3,7 +3,7 @@ import * as Proto from '../network/Protocol.js';
 import { escapeHtml } from '../ui/Icons.js';
 
 /**
- * DescentManager - Descenso sincronizado por la escalinata (8s, estilo Deep Rock).
+ * DescentManager - Descenso sincronizado por la escalinata (5s, estilo Deep Rock).
  *
  * Extraído del game principal: posee el estado de la cuenta atrás
  * (active/initiator/timer) y orquesta START/GO/fade entre host y clientes.
@@ -46,13 +46,14 @@ export class DescentManager {
     if (this.active || this.transitioning) return;
     this.active = true;
     this.initiator = initiator;
-    const deadline = Date.now() + 8000;
+    const deadline = Date.now() + 5000;
     this.game.network.broadcast(Proto.serializeDescentStart(initiator.id, initiator.name, deadline));
+    // Unificar notificaciones: limpiar alertas de losa/interacción previas para centrar la atención en el descenso
+    this.game.ui.hideNarrativeMessage?.();
     this.game.ui.showDescentCountdown({
       byName: initiator.name, endsAtMs: deadline, onNow: () => this.goNow(),
     });
-    this.game.ui.showNarrativeMessage(`🌀 ¡${escapeHtml(initiator.name)} desciende! 8s para bajar juntos...`, 4000);
-    this.timer = setTimeout(() => this.goNow(), 8000);
+    this.timer = setTimeout(() => this.goNow(), 5000);
   }
 
   /** Transición inmediata de toda la party: fade negro + siguiente nivel. */
@@ -86,6 +87,7 @@ export class DescentManager {
     this.transitioning = true;
     this.freezeAllPlayers();
     this.game.ui.hideDescent();
+    this.game.ui.hideNarrativeMessage?.();
     this.game.ui.showLevelTransition(nextName || 'Descendiendo...', 'Descendiendo a las profundidades…');
     this.game.soundManager.playDescentEcho();
   }
@@ -103,12 +105,13 @@ export class DescentManager {
     if (game.mode !== 'client') return;
     if (detail.kind === Proto.DESCENT_KIND.START) {
       this.active = true;
+      const deadline = detail.deadline || (Date.now() + 5000);
+      game.ui.hideNarrativeMessage?.();
       game.ui.showDescentCountdown({
         byName: detail.byName || 'Un compañero',
-        endsAtMs: detail.deadline || (Date.now() + 8000),
+        endsAtMs: deadline,
         onNow: () => game.network.sendToHost(Proto.serializeDescentNow()),
       });
-      game.ui.showNarrativeMessage(`🌀 ¡${escapeHtml(detail.byName || 'Un compañero')} desciende! 8s para bajar juntos...`, 4000);
     } else if (detail.kind === Proto.DESCENT_KIND.GO) {
       this.active = false;
       this.beginFade(detail.nextName || '');
