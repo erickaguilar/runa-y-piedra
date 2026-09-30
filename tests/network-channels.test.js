@@ -28,4 +28,21 @@ describe('P0: enrutado de canales duales WebRTC', () => {
     assert.ok(NET_CONFIG.JOIN_TIMEOUT_MS >= 5000, 'timeout mínimo 5s para móvil');
     assert.ok(NET_CONFIG.JOIN_RETRIES >= 2, 'al menos 1 reintento');
   });
+
+  it('host() mantiene el listener connection activo tras resolver', async () => {
+    const { NetworkManager } = await import('../src/network/NetworkManager.js');
+    const { EventEmitter } = await import('node:events');
+
+    const net = new NetworkManager();
+    const fakePeer = new EventEmitter();
+    fakePeer.destroy = () => {};
+    net._newPeer = () => fakePeer;
+
+    const hostPromise = net.host();
+    fakePeer.emit('open');
+    const pin = await hostPromise;
+
+    assert.ok(pin >= 1000 && pin <= 9999);
+    assert.equal(fakePeer.listenerCount('connection'), 1, 'El listener de conexión entrante DEBE permanecer activo');
+  });
 });

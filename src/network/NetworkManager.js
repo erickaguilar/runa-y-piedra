@@ -160,7 +160,9 @@ export class NetworkManager extends EventTarget {
       if (typeof window !== 'undefined') window.__peer = this.peer;
 
       const onOpen = () => {
-        cleanup();
+        this.peer?.off?.('open', onOpen);
+        this.peer?.off?.('error', onError);
+        console.log(`[WebRTC] 🏰 Host listo en sala ${this.roomId}. Escuchando conexiones entrantes...`);
         resolve(pin);
       };
       const onError = (e) => {
@@ -173,7 +175,10 @@ export class NetworkManager extends EventTarget {
         cleanup();
         reject(new Error(NetworkManager.translatePeerError(e)));
       };
-      const onConn = (conn) => this._setupHostChannel(conn);
+      const onConn = (conn) => {
+        console.log(`[WebRTC] 📥 Host recibió conexión entrante:`, conn?.peer, conn?.label);
+        this._setupHostChannel(conn);
+      };
       const cleanup = () => {
         this.peer?.off?.('open', onOpen);
         this.peer?.off?.('error', onError);
