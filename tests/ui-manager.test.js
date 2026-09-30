@@ -66,5 +66,37 @@ describe('UIManager - Contratos de API de Configuración', () => {
       ui.toggleSettings();
       assert.equal(ui.isSettingsOpen, true);
     });
+
+    it('gestiona la visibilidad y actualización del HUD de inventario', () => {
+      const ui = new UIManager();
+      assert.equal(typeof ui.setInventoryVisible, 'function');
+      assert.equal(typeof ui.updateInventory, 'function');
+
+      ui.setInventoryVisible(true);
+      assert.equal(ui.inventoryHud.style.display, 'flex');
+
+      ui.setInventoryVisible(false);
+      assert.equal(ui.inventoryHud.style.display, 'none');
+
+      // Inventario vacío inicial
+      ui.updateInventory({ keys: [], gems: 0, relics: [] });
+      assert.match(ui.inventoryHud.innerHTML, /BOTÍN/);
+      assert.match(ui.inventoryHud.innerHTML, /Vacío/);
+
+      // Botín recolectado de cofres
+      ui.updateInventory({
+        keys: [{ id: 'llave_santuario', name: 'Llave del Santuario' }],
+        gems: 250,
+        relics: [{ id: 'caliz_sagrado', name: 'Cáliz Sagrado', icon: 'trophy', color: '#eab308' }],
+      });
+
+      assert.match(ui.inventoryHud.innerHTML, /Llave del Santuario/);
+      assert.match(ui.inventoryHud.innerHTML, /250/);
+      assert.match(ui.inventoryHud.innerHTML, /Cáliz Sagrado/);
+      assert.equal(ui.inventory.gems, 250);
+      assert.equal(ui.inventory.keys.length, 1);
+      assert.equal(ui.inventory.relics.length, 1);
+    });
   });
 });
+

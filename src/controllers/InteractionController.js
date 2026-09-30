@@ -113,8 +113,73 @@ export class InteractionController {
       }
     }
 
+    // Registrar y acumular botín del cofre en el inventario local
+    this.collectChestLoot(chestData, opener);
+
     const msg = chestData?.message || `📦 ¡Has abierto el ${chestData?.name || 'Cofre'}! Recompensa: ${chestData?.reward || 'Tesoros de la Mazmorra'}`;
     game.ui.showNarrativeMessage(msg, 5000);
+  }
+
+  /**
+   * Extrae y añade al inventario del juego el botín del cofre:
+   * llaves, gemas numéricas y reliquias míticas.
+   */
+  collectChestLoot(chestData, opener = null) {
+    if (!chestData) return;
+    const game = this.game;
+    const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
+    const chestKey = `${currentLevelId}_chest_${chestData.id ?? 1}`;
+
+    if (game.openedChestKeys?.has(chestKey)) {
+      return;
+    }
+    game.openedChestKeys?.add(chestKey);
+
+    // 1. Llaves
+    if (chestData.givesKey && game.addInventoryKey) {
+      const keyName = chestData.keyName || 'Llave del Santuario';
+      game.addInventoryKey({ id: chestData.givesKey, name: keyName });
+    }
+
+    // 2. Gemas (propiedad directa o parseo numérico de reward / message)
+    let gems = chestData.gems ?? 0;
+    if (!gems) {
+      const textToSearch = `${chestData.message || ''} ${chestData.reward || ''}`;
+      const match = textToSearch.match(/(\d+)\s*Gemas/i);
+      if (match) {
+        gems = parseInt(match[1], 10);
+      }
+    }
+    if (gems > 0 && game.addInventoryGems) {
+      game.addInventoryGems(gems);
+    }
+
+    // 3. Reliquias míticas (Cáliz Sagrado, Corazón del Volcán, Corona del Vacío)
+    const textForRelic = `${chestData.message || ''} ${chestData.reward || ''}`;
+    if (chestData.relic && game.addInventoryRelic) {
+      game.addInventoryRelic(chestData.relic);
+    } else if (/C[aá]liz|Reliquia Dorada/i.test(textForRelic)) {
+      game.addInventoryRelic?.({
+        id: 'caliz_sagrado',
+        name: 'Cáliz Sagrado',
+        icon: 'trophy',
+        color: '#eab308'
+      });
+    } else if (/Coraz[oó]n|Volc[aá]n/i.test(textForRelic)) {
+      game.addInventoryRelic?.({
+        id: 'corazon_volcan',
+        name: 'Corazón del Volcán',
+        icon: 'flame',
+        color: '#f97316'
+      });
+    } else if (/Corona|Vac[ií]o/i.test(textForRelic)) {
+      game.addInventoryRelic?.({
+        id: 'corona_vacio',
+        name: 'Corona del Vacío',
+        icon: 'crown',
+        color: '#c084fc'
+      });
+    }
   }
 
   /** Feedback local al recibir una llave: insignia del HUD + sonido. */
@@ -123,6 +188,9 @@ export class InteractionController {
     game.ui.setHasKey(true);
     game.soundManager.playKeyPickup();
     const keyName = chestData.keyName || 'Llave del Santuario';
+    if (chestData.givesKey && game.addInventoryKey) {
+      game.addInventoryKey({ id: chestData.givesKey, name: keyName });
+    }
     const door = game.world.doors?.find(d => d.requiresKey === chestData.givesKey);
     const doorMsg = door?.name ? ` Ahora puedes abrir: ${door.name}.` : '';
     game.ui.showNarrativeMessage(`🗝️ ¡${keyName} conseguida!${doorMsg}`, 4500);

@@ -292,11 +292,30 @@
       from { opacity: 0; transform: translate(-50%, 12px); }
       to { opacity: 1; transform: translate(-50%, 0); }
     }
+    /* Contenedor HUD Superior Izquierdo: Vidas + Inventario + Guía */
+    .hud-top-left {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: max(12px, env(safe-area-inset-left));
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 25;
+      pointer-events: none;
+      align-items: flex-start;
+    }
     /* HUD de vidas (corazones) */
-    #hud-lives{position:fixed;top:max(12px, env(safe-area-inset-top));left:max(12px, env(safe-area-inset-left));
-      display:none;align-items:center;gap:4px;z-index:25;pointer-events:none;
-      background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.12);
-      border-radius:12px;padding:7px 10px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    #hud-lives {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      background: rgba(15,23,42,0.85);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 7px 10px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
     #hud-lives .heart{font-size:18px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));
       transition:transform .18s cubic-bezier(0.34,1.56,0.64,1), opacity .18s, filter .18s}
     #hud-lives .heart.lost{opacity:.28;filter:grayscale(1)}
@@ -307,15 +326,79 @@
     @keyframes heartShake{0%{transform:scale(1)}30%{transform:scale(1.5) rotate(-8deg)}60%{transform:scale(0.9)}100%{transform:scale(1)}}
     #hud-lives.invuln{border-color:rgba(56,189,248,.6);box-shadow:0 0 12px rgba(56,189,248,.35)}
 
-    /* Guía de controles bajo los corazones en la mazmorra tutorial */
+    /* HUD de inventario (botín de cofres recolectado) */
+    #hud-inventory {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 5px 8px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      max-width: 290px;
+      flex-wrap: wrap;
+      animation: hintFadeIn 0.25s ease-out;
+    }
+    .inv-header {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 2px;
+      text-transform: uppercase;
+    }
+    .inv-empty {
+      font-size: 10px;
+      color: #64748b;
+      font-style: italic;
+    }
+    .inv-slot {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #f1f5f9;
+      animation: invItemPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .inv-slot.key {
+      border-color: rgba(251, 191, 36, 0.5);
+      background: rgba(245, 158, 11, 0.16);
+      color: #fbbf24;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.2);
+    }
+    .inv-slot.gem {
+      border-color: rgba(56, 189, 248, 0.5);
+      background: rgba(56, 189, 248, 0.16);
+      color: #38bdf8;
+      box-shadow: 0 0 6px rgba(56, 189, 248, 0.2);
+    }
+    .inv-slot.relic {
+      border-color: rgba(234, 179, 8, 0.6);
+      background: rgba(234, 179, 8, 0.2);
+      color: #fef08a;
+      box-shadow: 0 0 8px rgba(234, 179, 8, 0.3);
+    }
+    @keyframes invItemPop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Guía de controles bajo el inventario en la mazmorra tutorial */
     #tutorial-controls-hud {
-      position: fixed;
-      top: calc(max(12px, env(safe-area-inset-top)) + 46px);
-      left: max(12px, env(safe-area-inset-left));
       display: none;
       flex-direction: column;
       gap: 5px;
-      z-index: 25;
       pointer-events: none;
       background: rgba(15, 23, 42, 0.88);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -562,39 +645,42 @@
     </svg>
   </button>
   <div class="crosshair" id="crosshair"></div>
-  <div id="hud-lives" title="Vidas"></div>
-  <div id="tutorial-controls-hud" class="tutorial-controls-hud">
-    <div class="hud-controls-title">🎮 CONTROLES</div>
-    <!-- Versión PC -->
-    <div class="hud-pc-controls">
-      <div class="hud-control-row">
-        <span class="hud-kbd-group">
-          <span class="hud-kbd">W</span><span class="hud-kbd">A</span><span class="hud-kbd">S</span><span class="hud-kbd">D</span>
-        </span>
-        <span class="hud-control-desc">Moverse</span>
+  <div id="hud-top-left" class="hud-top-left">
+    <div id="hud-lives" title="Vidas"></div>
+    <div id="hud-inventory" class="hud-inventory" title="Botín de cofres recolectado"></div>
+    <div id="tutorial-controls-hud" class="tutorial-controls-hud">
+      <div class="hud-controls-title">🎮 CONTROLES</div>
+      <!-- Versión PC -->
+      <div class="hud-pc-controls">
+        <div class="hud-control-row">
+          <span class="hud-kbd-group">
+            <span class="hud-kbd">W</span><span class="hud-kbd">A</span><span class="hud-kbd">S</span><span class="hud-kbd">D</span>
+          </span>
+          <span class="hud-control-desc">Moverse</span>
+        </div>
+        <div class="hud-control-row">
+          <span class="hud-kbd hud-kbd-space">Espacio</span>
+          <span class="hud-control-desc">Saltar</span>
+        </div>
+        <div class="hud-control-row">
+          <span class="hud-kbd">E</span><span style="opacity:0.5;font-size:9px;">/</span><span class="hud-kbd">F</span>
+          <span class="hud-control-desc">Acción / Bajar</span>
+        </div>
       </div>
-      <div class="hud-control-row">
-        <span class="hud-kbd hud-kbd-space">Espacio</span>
-        <span class="hud-control-desc">Saltar</span>
-      </div>
-      <div class="hud-control-row">
-        <span class="hud-kbd">E</span><span style="opacity:0.5;font-size:9px;">/</span><span class="hud-kbd">F</span>
-        <span class="hud-control-desc">Acción / Bajar</span>
-      </div>
-    </div>
-    <!-- Versión Táctil (Móvil / Tablet) -->
-    <div class="hud-touch-controls">
-      <div class="hud-control-row">
-        <span class="hud-touch-pill">🕹️ Joystick</span>
-        <span class="hud-control-desc">Moverse</span>
-      </div>
-      <div class="hud-control-row">
-        <span class="hud-touch-pill">SALTAR</span>
-        <span class="hud-control-desc">Brincar</span>
-      </div>
-      <div class="hud-control-row">
-        <span class="hud-touch-pill hud-pill-action">USAR</span>
-        <span class="hud-control-desc">Acción / Bajar</span>
+      <!-- Versión Táctil (Móvil / Tablet) -->
+      <div class="hud-touch-controls">
+        <div class="hud-control-row">
+          <span class="hud-touch-pill">🕹️ Joystick</span>
+          <span class="hud-control-desc">Moverse</span>
+        </div>
+        <div class="hud-control-row">
+          <span class="hud-touch-pill">SALTAR</span>
+          <span class="hud-control-desc">Brincar</span>
+        </div>
+        <div class="hud-control-row">
+          <span class="hud-touch-pill hud-pill-action">USAR</span>
+          <span class="hud-control-desc">Acción / Bajar</span>
+        </div>
       </div>
     </div>
   </div>

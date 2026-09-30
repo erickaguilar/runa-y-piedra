@@ -57,6 +57,7 @@ class VoxelSandboxGame {
         if (gameOver) {
           this.soundManager.playGameOver();
           this.ui.showGameOver(lives, maxLives);
+          this.resetInventory({ keepGems: false, keepRelics: false });
           // Game Over = vuelta al lobby con todo reseteado (hub de la party)
           if (this.mode === 'host') {
             const lobbyId = this.world.levelRegistry.getAllLevels()[0]?.id || 'lobby_tutorial';
@@ -81,6 +82,8 @@ class VoxelSandboxGame {
     this.network = new NetworkManager();
     this.ui = new UIManager();
     this.soundManager = soundManager;
+    this.inventory = { keys: [], gems: 0, relics: [] };
+    this.openedChestKeys = new Set();
     this.network.stats.setRenderer(this.sceneManager.renderer);
     this.inputMode = new InputMode();
 
@@ -205,6 +208,7 @@ class VoxelSandboxGame {
       this.ui.setCrosshairVisible(true);
       this.ui.setActionButtonsVisible(true);
       this.ui.setLivesVisible(true);
+      this.resetInventory({ keepGems: false, keepRelics: false });
       const lvl = this.world.levelRegistry.getCurrentLevel();
       this.ui.setTutorialControlsVisible(lvl?.id === 'lobby_tutorial');
       const localInit = this.playerManager.localPlayer;
@@ -239,6 +243,7 @@ class VoxelSandboxGame {
     local.vel.x = 0;
     local.vel.y = 0;
     local.vel.z = 0;
+    this.resetInventory({ keepGems: true, keepRelics: true });
     this.ui.setLivesVisible(true);
     this.ui.updateLives(local.lives, local.maxLives);
     this.ui.setTutorialControlsVisible(levelData.id === 'lobby_tutorial');
@@ -304,6 +309,44 @@ class VoxelSandboxGame {
     return 'classic';
   }
 
+  /** Gestión del inventario de botín recolectado de cofres */
+  addInventoryKey(key) {
+    const keyObj = typeof key === 'string' ? { id: key, name: key } : (key || {});
+    const keyId = keyObj.id || keyObj.name;
+    if (!this.inventory.keys.some(k => (typeof k === 'string' ? k : (k.id || k.name)) === keyId)) {
+      this.inventory.keys.push(keyObj);
+      this.ui.updateInventory(this.inventory);
+    }
+  }
+
+  addInventoryGems(amount) {
+    const n = parseInt(amount, 10);
+    if (!isNaN(n) && n > 0) {
+      this.inventory.gems = (this.inventory.gems || 0) + n;
+      this.ui.updateInventory(this.inventory);
+    }
+  }
+
+  addInventoryRelic(relic) {
+    const relicObj = typeof relic === 'string' ? { id: relic, name: relic } : (relic || {});
+    const relicId = relicObj.id || relicObj.name;
+    if (!this.inventory.relics.some(r => (r.id || r.name) === relicId)) {
+      this.inventory.relics.push(relicObj);
+      this.ui.updateInventory(this.inventory);
+    }
+  }
+
+  resetInventory({ keepGems = false, keepRelics = false } = {}) {
+    this.inventory = {
+      keys: [],
+      gems: keepGems ? (this.inventory?.gems || 0) : 0,
+      relics: keepRelics ? [...(this.inventory?.relics || [])] : [],
+    };
+    if (!keepGems && !keepRelics) {
+      this.openedChestKeys?.clear();
+    }
+    this.ui.updateInventory(this.inventory);
+  }
 
   async joinRoom(pin, profile = {}, attempts = 2) {
     if (!/^\d{4}$/.test(pin)) {
@@ -333,6 +376,7 @@ class VoxelSandboxGame {
     this.ui.setCrosshairVisible(true);
     this.ui.setActionButtonsVisible(true);
     this.ui.hideMenu();
+    this.resetInventory({ keepGems: false, keepRelics: false });
     this.ui.setLivesVisible(true);
     const curLevel = this.world.levelRegistry.getCurrentLevel();
     this.ui.setTutorialControlsVisible(curLevel?.id === 'lobby_tutorial');
@@ -377,6 +421,15 @@ class VoxelSandboxGame {
         if (Array.isArray(p.keys)) {
           for (const keyId of p.keys) {
             this.network.sendTo(conn, Proto.serializeKeyUpdate(p.id, keyId));
+          }
+        }
+      }
+
+      // 5. Sincronizar cofres ya abiertos
+      if (Array.isArray(this.world.chests)) {
+        for (const c of this.world.chests) {
+          if (c.isOpen) {
+            this.network.sendTo(conn, Proto.serializeChestOpen(c.id));
           }
         }
       }
@@ -497,6 +550,7 @@ class VoxelSandboxGame {
         if (wasGameOver) {
           this.soundManager.playGameOver();
           this.ui.showGameOver(local.lives, local.maxLives ?? 3);
+          this.resetInventory({ keepGems: false, keepRelics: false });
         }
       }
     });
@@ -518,6 +572,7 @@ class VoxelSandboxGame {
         for (const c of this.world.chests) {
           if (c.isOpen) {
             this.chestRenderer.setOpenInstant(c.id);
+            this.interaction.collectChestLoot(c);
           }
         }
       }
