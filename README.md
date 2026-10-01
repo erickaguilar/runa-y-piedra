@@ -6,8 +6,8 @@
 
 > Mazmorra vóxel cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
-[![Version](https://img.shields.io/badge/version-1.33.0-blue.svg)](package.json)
-[![Tests](https://img.shields.io/badge/tests-146%20passed-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-1.34.0-blue.svg)](package.json)
+[![Tests](https://img.shields.io/badge/tests-160%20passed-brightgreen.svg)](tests/)
 
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-Dual%20Channels-green.svg)](https://webrtc.org/)

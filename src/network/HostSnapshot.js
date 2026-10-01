@@ -3,6 +3,7 @@ export const WORLD_SNAPSHOT_MAX_AGE_MS = 10 * 60 * 1000; // 10 min
 
 export function buildWorldSnapshot({
   levelId = 'lobby_tutorial',
+  chapterId = 'capitulo_1',
   doorsOpen = [],
   chestsOpen = [],
   stairsOpen = false,
@@ -12,6 +13,7 @@ export function buildWorldSnapshot({
   return {
     v: 1,
     levelId: String(levelId || 'lobby_tutorial'),
+    chapterId: String(chapterId || 'capitulo_1'),
     doorsOpen: norm(doorsOpen),
     chestsOpen: norm(chestsOpen),
     stairsOpen: !!stairsOpen,
@@ -23,6 +25,7 @@ export function isValidWorldSnapshot(snap) {
   if (!snap || typeof snap !== 'object') return false;
   if (snap.v !== 1) return false;
   if (typeof snap.levelId !== 'string' || snap.levelId.length === 0) return false;
+  if (snap.chapterId !== undefined && typeof snap.chapterId !== 'string') return false;
   if (!Array.isArray(snap.doorsOpen) || !Array.isArray(snap.chestsOpen)) return false;
   return true;
 }

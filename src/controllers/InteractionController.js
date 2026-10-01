@@ -320,16 +320,34 @@ export class InteractionController {
       }
     }
 
-    const levels = game.world.levelRegistry.getAllLevels();
-    const curIdx = levels.findIndex(l => l.id === game.world.levelRegistry.getCurrentLevel()?.id);
-    const next = levels[curIdx + 1] || null;
+    const curLevel = game.world.levelRegistry.getCurrentLevel();
+    const curLevelId = curLevel?.id;
+    let next = null;
+    let isLast = false;
+
+    if (game.chapterRegistry) {
+      const nextDungeon = game.chapterRegistry.getNextDungeonInChapter(curLevelId);
+      if (nextDungeon) {
+        next = game.world.levelRegistry.getLevel(nextDungeon.id);
+      } else if (game.chapterRegistry.isLastDungeonInChapter(curLevelId)) {
+        isLast = true;
+      }
+    }
+
+    if (!next && !isLast) {
+      const levels = game.world.levelRegistry.getAllLevels();
+      const curIdx = levels.findIndex(l => l.id === curLevelId);
+      next = levels[curIdx + 1] || null;
+      isLast = !next;
+    }
+
     if (game.world.stairsOpen) {
       game.ui.showNarrativeMessage('La escalinata ya desciende. ¡Bajad!', 3000);
       return true;
     }
     const evt = {
       index: objIndex,
-      isLast: !next,
+      isLast,
       nextLevelId: next?.id || '',
       nextName: next?.name || '',
     };
@@ -475,13 +493,33 @@ export class InteractionController {
     game.soundManager.playPedestal();
 
     if (isLast) {
+      const curLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id;
+      const curChapter = game.chapterRegistry?.getChapterForLevel(curLevelId)
+        || game.chapterRegistry?.getCurrentChapter();
+
+      let unlockMsg = '';
+      if (curChapter && game.chapterRegistry) {
+        const result = game.chapterRegistry.completeChapter(curChapter.id);
+        if (result?.nextChapter) {
+          unlockMsg = ` 🌟 ¡Capítulo ${result.nextChapter.number} desbloqueado: ${result.nextChapter.name}!`;
+        }
+      }
+
+      const title = curChapter ? `🏆 ¡${curChapter.name} Conquistado!` : '🏆 ¡Mazmorras Conquistadas!';
+      const subtitle = `Habéis bendecido todos los altares.${unlockMsg} Regresando al Campamento...`;
+
       game.ui.showLevelTransition(
-        '🏆 ¡Mazmorras Conquistadas!',
-        'Habéis bendecido todos los altares. ¡Leyendas de la mazmorra cooperativa!',
+        title,
+        subtitle,
         {
           victory: true,
           autoHideMs: 12000,
-          onClose: () => { this.transitioning = false; },
+          onClose: () => {
+            this.transitioning = false;
+            if (game.mode === 'host') {
+              game.switchLevel('lobby_tutorial', true);
+            }
+          },
         }
       );
       return;

@@ -65,9 +65,22 @@ export class DescentManager {
     this.transitioning = true;
 
     const game = this.game;
-    const levels = game.world.levelRegistry.getAllLevels();
-    const curIdx = levels.findIndex(l => l.id === game.world.levelRegistry.getCurrentLevel()?.id);
-    const next = levels[curIdx + 1] || null;
+    const curLevelId = game.world.levelRegistry.getCurrentLevel()?.id;
+    let next = null;
+
+    if (game.chapterRegistry) {
+      const nextDungeon = game.chapterRegistry.getNextDungeonInChapter(curLevelId);
+      if (nextDungeon) {
+        next = game.world.levelRegistry.getLevel(nextDungeon.id);
+      }
+    }
+
+    if (!next) {
+      const levels = game.world.levelRegistry.getAllLevels();
+      const curIdx = levels.findIndex(l => l.id === curLevelId);
+      next = levels[curIdx + 1] || null;
+    }
+
     if (!next) {
       this.transitioning = false;
       return;

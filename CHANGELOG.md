@@ -5,6 +5,26 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.34.0] - 2026-10-01
+
+### Added
+- **Arquitectura de Capítulos y Fundación Capitular (Paso 1: `src/levels/ChapterRegistry.js`, `src/levels/index.js`)**:
+  - Declaración del catálogo canónico `CHAPTER_CATALOG` con los 10 capítulos (30 mazmorras en total, 3 por capítulo: `intro`, `challenge`, `climax`) y metadatos temáticos (número, nombre, tema visual, lore, icono y mazmorras).
+  - Agrupación del contenido existente bajo el **Capítulo 1: El Descenso Ancestral** (`dungeon_classic` [intro] $\to$ `crypt_inferno` [challenge] $\to$ `abyss_throne` [climax]).
+  - Sistema de orquestación de progreso `ChapterRegistry` con navegación entre mazmorras (`getNextDungeonInChapter`, `isLastDungeonInChapter`, `getChapterForLevel`).
+  - Persistencia resiliente en `localStorage` (`runa_campaign_progress_v1`) con esquema de capítulos desbloqueados, completados, mejores tiempos, muertes y estrellas, y fallback automático en memoria para entornos Node.js / pruebas.
+- **Transición de Victoria y Regreso Triunfal al Campamento (`src/controllers/InteractionController.js`, `DescentManager.js`, `main.js`)**:
+  - Detección del altar final de capítulo en `InteractionController.js`: al consagrar el altar de `abyss_throne`, se invoca `completeChapter('capitulo_1')`, registrando el progreso y desbloqueando el Capítulo 2.
+  - Cartel de victoria enriquecido indicando la conquista del capítulo y el desbloqueo del Capítulo 2: *Cripta de las Sombras*, con retorno coordinado de la party al `lobby_tutorial` al cerrar el diálogo.
+  - Sincronización en `DescentManager.js` para respetar la secuencia interna del capítulo antes de conmutar mapas.
+- **Soporte de `chapterId` en Migración de Host (`src/network/HostSnapshot.js`, `src/main.js`)**:
+  - Campo `chapterId` integrado en `buildWorldSnapshot` y validado en `isValidWorldSnapshot`, preservando compatibilidad retroactiva.
+  - Captura y restauración del capítulo activo en `collectWorldSnapshot` y `applyWorldSnapshot`.
+  - Exposición de la telemetría de capítulo (`currentChapterId`, `currentChapterName`, `highestChapterUnlocked`) en `getGameState().chapter`.
+- **Suite de Pruebas Unitarias Ampliada (`tests/chapter-registry.test.js`, `tests/host-snapshot.test.js`)**:
+  - 14 nuevas pruebas unitarias cubriendo especificación de los 10 capítulos, roles de mazmorra, búsqueda por nivel, progresión de desbloqueos, récords y persistencia con storage real y simulado.
+  - Cobertura total del proyecto incrementada de 146 a **160 pruebas pasando al 100%**.
+
 ## [1.33.0] - 2026-10-01
 
 ### Added

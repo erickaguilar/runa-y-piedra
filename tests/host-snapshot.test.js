@@ -10,9 +10,10 @@ import {
 import * as Proto from '../src/network/Protocol.js';
 
 describe('HostSnapshot - foto de mazmorra para host-migration', () => {
-  it('normaliza puertas/cofres (dedup + orden)', () => {
-    const snap = buildWorldSnapshot({ levelId: 'dungeon_classic', doorsOpen: [2, 1, 1], chestsOpen: [3, 1], stairsOpen: true });
+  it('normaliza puertas/cofres (dedup + orden) e incluye chapterId', () => {
+    const snap = buildWorldSnapshot({ levelId: 'dungeon_classic', chapterId: 'capitulo_1', doorsOpen: [2, 1, 1], chestsOpen: [3, 1], stairsOpen: true });
     assert.equal(snap.v, 1);
+    assert.equal(snap.chapterId, 'capitulo_1');
     assert.deepEqual(snap.doorsOpen, [1, 2]);
     assert.deepEqual(snap.chestsOpen, [1, 3]);
     assert.equal(snap.stairsOpen, true);

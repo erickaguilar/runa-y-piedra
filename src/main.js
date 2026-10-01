@@ -75,6 +75,7 @@ class VoxelSandboxGame {
     // 1. Núcleo gráfico y simulación
     this.sceneManager = new SceneManager(this.canvas);
     this.world = new World();
+    this.chapterRegistry = this.world.chapterRegistry;
     this.voxelMap = new VoxelMap(this.sceneManager.scene, this.world);
     this.chestRenderer = new ChestRenderer(this.sceneManager.scene);
     this.chestRenderer.loadChests(this.world.chests);
@@ -241,6 +242,11 @@ class VoxelSandboxGame {
         inGame: this.mode !== null,
         isHost: this.mode === 'host',
         currentLevelId: this.world.levelRegistry.currentLevelId,
+        chapter: {
+          currentChapterId: this.chapterRegistry?.currentChapterId || 'capitulo_1',
+          currentChapterName: this.chapterRegistry?.getCurrentChapter()?.name || '',
+          highestChapterUnlocked: this.chapterRegistry?.progress?.highestChapterUnlocked || 1,
+        },
         roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
         joinUrl: this.currentJoinUrl,
         players: this.playerManager.getAllPlayers(),
@@ -276,6 +282,11 @@ class VoxelSandboxGame {
         inGame: this.mode !== null,
         isHost: this.mode === 'host',
         currentLevelId: this.world.levelRegistry.currentLevelId,
+        chapter: {
+          currentChapterId: this.chapterRegistry?.currentChapterId || 'capitulo_1',
+          currentChapterName: this.chapterRegistry?.getCurrentChapter()?.name || '',
+          highestChapterUnlocked: this.chapterRegistry?.progress?.highestChapterUnlocked || 1,
+        },
         roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
         joinUrl: this.currentJoinUrl,
         players: this.playerManager.getAllPlayers(),
@@ -462,6 +473,7 @@ class VoxelSandboxGame {
   /** Fase 2 MVP: foto de mazmorra para host-migration (nivel + puertas + cofres + losa). */
   collectWorldSnapshot() {
     const levelId = this.world.levelRegistry.currentLevelId || 'lobby_tutorial';
+    const chapterId = this.chapterRegistry?.currentChapterId || 'capitulo_1';
     const doorsOpen = [];
     if (this.world.isDoor1Open) doorsOpen.push(1);
     if (this.world.isDoor2Open) doorsOpen.push(2);
@@ -473,12 +485,15 @@ class VoxelSandboxGame {
     const chestsOpen = Array.isArray(this.world.chests)
       ? this.world.chests.filter((c) => c?.isOpen).map((c) => c.id)
       : [];
-    return buildWorldSnapshot({ levelId, doorsOpen, chestsOpen, stairsOpen: !!this.world.stairsOpen });
+    return buildWorldSnapshot({ levelId, chapterId, doorsOpen, chestsOpen, stairsOpen: !!this.world.stairsOpen });
   }
 
   applyWorldSnapshot(snap) {
     if (!snap) return false;
     const levelId = snap.levelId || 'lobby_tutorial';
+    if (snap.chapterId && this.chapterRegistry) {
+      this.chapterRegistry.setCurrentChapter(snap.chapterId);
+    }
     this.switchLevel(levelId, false);
     for (const doorId of snap.doorsOpen || []) {
       try {

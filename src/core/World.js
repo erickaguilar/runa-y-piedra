@@ -1,5 +1,5 @@
 import { WORLD_CONFIG, BLOCK_TYPES, BLOCK_FLOOR_STONE, BLOCK_FLOOR_WORN, BLOCK_FLOOR_MOSS } from '../config/constants.js';
-import { LevelLoader, LevelRegistry } from '../levels/index.js';
+import { LevelLoader, LevelRegistry, ChapterRegistry } from '../levels/index.js';
 
 export const WORLD_X = WORLD_CONFIG.SIZE_X;
 export const WORLD_Y = WORLD_CONFIG.SIZE_Y;
@@ -27,6 +27,7 @@ export class World {
     this.stairsOpen = false;
     this.spawnPoint = { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
     this.levelRegistry = new LevelRegistry();
+    this.chapterRegistry = new ChapterRegistry();
 
     const initialLevel = levelData || this.levelRegistry.getCurrentLevel();
     this.loadLevel(initialLevel);
@@ -63,8 +64,14 @@ export class World {
   }
 
   loadLevel(levelData) {
-    if (levelData?.id && this.levelRegistry) {
-      this.levelRegistry.setCurrentLevel(levelData.id);
+    if (levelData?.id) {
+      if (this.levelRegistry) {
+        this.levelRegistry.setCurrentLevel(levelData.id);
+      }
+      if (this.chapterRegistry) {
+        const ch = this.chapterRegistry.getChapterForLevel(levelData.id);
+        if (ch) this.chapterRegistry.setCurrentChapter(ch.id);
+      }
     }
     return LevelLoader.applyLevelToWorld(this, levelData);
   }
