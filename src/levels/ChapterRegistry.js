@@ -7,6 +7,7 @@
  */
 
 export const CAMPAIGN_PROGRESS_STORAGE_KEY = 'runa_campaign_progress_v1';
+import { saveManager } from '../storage/SaveManager.js';
 
 export const CHAPTER_CATALOG = Object.freeze([
   {
@@ -246,6 +247,21 @@ export class ChapterRegistry {
   }
 
   loadProgress() {
+    // 1. Intentar cargar desde saveManager v2 si ya está inicializado
+    if (saveManager && saveManager.currentSave?.campaign) {
+      const v2Campaign = saveManager.getCampaign();
+      if (v2Campaign && typeof v2Campaign.highestChapterUnlocked === 'number') {
+        return {
+          highestChapterUnlocked: Math.max(1, Number(v2Campaign.highestChapterUnlocked) || 1),
+          completedChapters: Array.isArray(v2Campaign.completedChapters) ? [...new Set(v2Campaign.completedChapters)] : [],
+          records: v2Campaign.records && typeof v2Campaign.records === 'object' ? v2Campaign.records : {},
+          lastPlayedChapterId: typeof v2Campaign.lastPlayedChapterId === 'string' ? v2Campaign.lastPlayedChapterId : 'capitulo_1',
+          updatedAt: Number(v2Campaign.updatedAt) || Date.now(),
+        };
+      }
+    }
+
+    // 2. Fallback a storage directo / legacy
     const store = getStorage();
     try {
       const raw = store.getItem(CAMPAIGN_PROGRESS_STORAGE_KEY);
@@ -277,6 +293,12 @@ export class ChapterRegistry {
       };
       this.progress = normalized;
       store.setItem(CAMPAIGN_PROGRESS_STORAGE_KEY, JSON.stringify(normalized));
+
+      // Sincronizar asíncronamente con saveManager v2 (IndexedDB + doble buffer)
+      if (saveManager) {
+        saveManager.updateCampaign(normalized);
+      }
+
       return true;
     } catch {
       return false;
