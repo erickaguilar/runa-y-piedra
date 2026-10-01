@@ -608,7 +608,11 @@ export const ModalMixin = {
             · Tris: <strong style="color:#f8fafc;">${state.perf?.tris ?? '—'}</strong>
             · DPR: <strong style="color:#f8fafc;">${state.perf?.dpr ? Number(state.perf.dpr).toFixed(2) : '—'}</strong> (≤1.5)
             · RTT: <strong style="color:#f8fafc;">${state.perf?.rttMs ?? '—'} ms</strong>
+            <br>
+            Verticalidad: <strong style="color:#38bdf8;">Y: ${state.gameplay?.altitude != null ? Number(state.gameplay.altitude).toFixed(1) : '—'}m (máx ${state.gameplay?.maxAltitude != null ? Number(state.gameplay.maxAltitude).toFixed(1) : '—'}m)</strong>
+            · Saltos: <strong style="color:#fbbf24;">${state.gameplay?.jumpCount ?? 0}</strong> (Losas rúnicas: <strong style="color:#fbbf24;">${state.gameplay?.jumpPadCount ?? 0}</strong>)
           </div>
+
           <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
             <button id="btn-dev-audit" class="btn-secondary" style="font-size:11px;padding:9px 10px;display:flex;align-items:center;justify-content:center;gap:6px;">
               ${renderIcon('terminal', { size: 14, color: '#10b981' })} Imprimir Auditoría en Consola (printNetAudit)

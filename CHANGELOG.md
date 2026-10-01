@@ -5,7 +5,27 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.33.0] - 2026-10-01
+
+### Added
+- **Code-Splitting y Optimización de Bundle (Fase 4: `vite.config.js`)**:
+  - `manualChunks` en Vite para segmentar dependencias: `vendor-three` (~480 kB), `vendor-net` (`peerjs` + `@msgpack`, ~89 kB) y `vendor-ui` (`qrcode` + `nipplejs`, ~43 kB).
+  - Eliminación total de advertencias de chunks >500 kB en producción. El bundle del juego (`index.js`) se reduce a ~320 kB (~83 kB gzip).
+- **Elección Determinista de Líder y Roster de Peers (`src/network/Protocol.js`, `LeaderElection.js`, `NetworkManager.js`, `PlayerManager.js`, `main.js`)**:
+  - Mensaje de protocolo `PEER_ROSTER (0x12)` serializado en JSON por canal seguro `game-safe`.
+  - El anfitrión difunde el censo de aventureros en `peer-joined`, `peer-left` y `player-meta`.
+  - Módulo `src/network/LeaderElection.js`: `electLeader` calcula deterministamente el nuevo anfitrión (criterio: menor `playerId` / mayor permanencia / tiebreaker lexicográfico).
+  - Generación determinista de salas migratorias (`deriveMigrationPin`, `deriveMigrationRoomId`, ej. `4821` $\to$ `4821-M`).
+  - El líder electo asume automáticamente como Host y restaura `HostSnapshot`; el resto de compañeros se reconecta de inmediato a la sala de migración sin dividir al equipo.
+- **Gameplay, Verticalidad y Polish Medible (`src/simulation/SimulationEngine.js`, `src/levels/data/abyss_throne.json`, `src/ui/ModalManager.js`, `main.js`)**:
+  - Mecánica de losas rúnicas `JUMP_PAD`: impulso vertical dinámico con multiplicador $1.35\times$, audio feedback y narrativa de impulso.
+  - Verticalidad tridimensional escalonada en el nivel final `abyss_throne`: ruta de parkour sobre el abismo ($y=0 \to y=1 \to y=2 \to y=1 \to y=0$) con columnas de apoyo de basalto.
+  - Métricas cuantificables de gameplay y verticalidad: seguimiento de altitud actual, cota máxima alcanzada (`maxAltitude`), conteo de saltos y losas rúnicas activadas, expuestas en `getGameState().gameplay` y en el bloque de diagnóstico del Modal Dev.
+- **Suite de Pruebas Unitarias Integrada (`tests/leader-election.test.js`, `tests/peer-roster-sync.test.js`, `tests/simulation-verticality.test.js`)**:
+  - 12 nuevas pruebas unitarias cubriendo elección de líder, sincronización de roster, derivación de salas, física de salto `JUMP_PAD` y verticalidad de mazmorras. Suite ampliada de 134 a 146 pruebas pasadas al 100%.
+
 ## [1.32.0] - 2026-10-01
+
 
 ### Added
 - **Rendimiento medible (Fase 3: `src/perf/PerfMonitor.js`, `NetworkStats.js`, `main.js`, `ModalManager.js`)**:

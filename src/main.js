@@ -24,7 +24,11 @@ import { soundManager } from './audio/SoundManager.js';
 import { InputMode } from './ui/InputMode.js';
 import { NET_CONFIG, PHYSICS_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from './config/constants.js';
 import { buildWorldSnapshot, loadWorldSnapshot, clearWorldSnapshot } from './network/HostSnapshot.js';
+import { electLeader, deriveMigrationPin } from './network/LeaderElection.js';
 import { PerfMonitor } from './perf/PerfMonitor.js';
+
+
+
 
 // Auditoría automática de eventos de red WebRTC para diagnóstico en tiempo real
 if (typeof window !== 'undefined') {
@@ -87,7 +91,13 @@ class VoxelSandboxGame {
     this.simulation = new SimulationEngine(this.world, {
       onStairTouch: (p) => this.descent.onStairTouch(p),
       isTransitioning: () => !!(this.descent?.transitioning || this.interaction?.isTransitioning?.()),
+      onJumpPad: (p) => {
+        if (p !== this.playerManager.localPlayer) return;
+        this.soundManager.playJump();
+        this.ui.showNarrativeMessage('⚡ ¡Impulso rúnico vertical!', 1000);
+      },
       onPlayerLavaSink: (p) => {
+
         if (p !== this.playerManager.localPlayer) return;
         this.soundManager.playHurt();
         this.ui.showNarrativeMessage('🔥 ¡Caíste en la lava! Hundiéndote en el magma incandescente...', 1800);
@@ -236,6 +246,13 @@ class VoxelSandboxGame {
         players: this.playerManager.getAllPlayers(),
         localPlayer: this.playerManager.localPlayer,
         perf: this.network.stats.getPerfSummary(),
+        gameplay: {
+          altitude: this.playerManager.localPlayer?.pos?.y || 0,
+          maxAltitude: this.playerManager.localPlayer?.maxAltitude || 0,
+          jumpCount: this.playerManager.localPlayer?.jumpCount || 0,
+          jumpPadCount: this.playerManager.localPlayer?.jumpPadCount || 0,
+          checkpoint: this.playerManager.localPlayer?.checkpoint?.roomName || 'Ninguno'
+        },
       }),
       onToggleDebug: (enable) => {
         this.network.stats.setEnabled(enable);
@@ -264,12 +281,20 @@ class VoxelSandboxGame {
         players: this.playerManager.getAllPlayers(),
         localPlayer: this.playerManager.localPlayer,
         perf: this.network.stats.getPerfSummary(),
+        gameplay: {
+          altitude: this.playerManager.localPlayer?.pos?.y || 0,
+          maxAltitude: this.playerManager.localPlayer?.maxAltitude || 0,
+          jumpCount: this.playerManager.localPlayer?.jumpCount || 0,
+          jumpPadCount: this.playerManager.localPlayer?.jumpPadCount || 0,
+          checkpoint: this.playerManager.localPlayer?.checkpoint?.roomName || 'Ninguno'
+        },
       }),
       onToggleDebug: (enable) => {
         this.network.stats.setEnabled(enable);
       },
     });
   }
+
 
   initUI() {
     this.ui.bindInventory({
@@ -297,6 +322,7 @@ class VoxelSandboxGame {
       const hostAddr = isLocal ? (localStorage.getItem('dungeon_lan_ip') || '192.168.100.28:5173') : window.location.host;
       const joinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
       this.currentJoinUrl = joinUrl;
+      this.lastConnectedPin = pin;
 
       // Entrar directamente a la partida sin segundo modal
       this.ui.currentScreen = 'in_game';
@@ -315,8 +341,10 @@ class VoxelSandboxGame {
       this.ui.setHasKey(false);
 
       this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}). Toca ⚙️ para invitar amigos.`, 5500);
+      this.broadcastRoster();
       this.network.startWorldSnapshot(() => this.collectWorldSnapshot());
     } catch (e) {
+
       this.ui.setStatus('Error al crear sala: ' + (e?.message || e));
     }
   }
@@ -469,12 +497,13 @@ class VoxelSandboxGame {
     return true;
   }
 
-  /** Reanuda la mazmorra como nuevo Host tras caída del anterior (nueva sala PIN). */
-  async resumeAsHostFromSnapshot(snap) {
+  /** Reanuda la mazmorra como nuevo Host tras caída del anterior (sala de migración PIN). */
+  async resumeAsHostFromSnapshot(snap, customPin = null) {
     try {
       this.network.disconnect();
-      const pin = await this.network.host();
+      const pin = await this.network.host(customPin);
       this.mode = 'host';
+      this.lastConnectedPin = pin;
       this.playerManager.setLocalId(0);
       this.avatars.remove(-1);
       const name = this.playerManager.localPlayer?.name || this.ui.playerName || 'Anfitrión';
@@ -497,14 +526,44 @@ class VoxelSandboxGame {
         this.ui.updateLives(local.lives, local.maxLives);
       }
       this.ui.setHasKey(false);
+      this.broadcastRoster();
       this.network.startWorldSnapshot(() => this.collectWorldSnapshot());
-      this.ui.showNarrativeMessage(`🏰 Mazmorra reanudada como Host (nueva sala PIN: ${pin}). Comparte el enlace desde ⚙️.`, 6000);
+      this.ui.showNarrativeMessage(`🏰 Mazmorra reanudada como Host (sala migrada: ${pin}). Comparte el enlace desde ⚙️.`, 6000);
     } catch (e) {
       this.ui.showNarrativeMessage('⚠️ No se pudo reanudar como Host: ' + (e?.message || e), 5000);
       this.mode = null;
       window.location.href = window.location.origin + window.location.pathname;
     }
   }
+
+  /** Reconecta automáticamente al nuevo anfitrión electo en la sala derivada de migración */
+  async reconnectToMigratedHost(migrationPin) {
+    try {
+      this.network.disconnect();
+      this.ui.showNarrativeMessage(`⏳ Reconectando con el nuevo líder en sala ${migrationPin}...`, 4000);
+      const profile = {
+        name: this.playerManager.localPlayer?.name || this.ui.playerName || 'Aventurero',
+        colorIndex: this.playerManager.localPlayer?.colorIndex ?? this.ui.selectedColorIndex ?? 1,
+      };
+      await this.joinRoom(migrationPin, profile, 4);
+    } catch (e) {
+      console.warn('[HostMigration] Fallo al reconectar con el nuevo líder:', e);
+      this.ui.showNarrativeMessage('⚠️ No se pudo reconectar con el nuevo anfitrión.', 5000);
+      this.ui.showMenu(this.ui.lastMenuParams || {});
+    }
+  }
+
+  /** Difunde el roster de peers autoritativo a todos los clientes */
+  broadcastRoster() {
+    if (this.mode !== 'host') return;
+    const roster = this.playerManager.getRoster();
+    const hostEntry = roster.find((p) => p.playerId === 0);
+    if (hostEntry && !hostEntry.peerId) {
+      hostEntry.peerId = this.network.peer?.id || this.network.roomId || 'host';
+    }
+    this.network.broadcastPeerRoster(roster);
+  }
+
 
 
   /** Alterna 1ª/3ª persona (tecla V o ajustes). Persiste la preferencia. */
@@ -668,7 +727,7 @@ class VoxelSandboxGame {
   }
 
   async joinRoom(pin, profile = {}, attempts = 2) {
-    if (!/^\d{4}$/.test(pin)) {
+    if (!/^\d{4}(-M\d*)?$/.test(String(pin))) {
       this.ui.setStatus('PIN inválido (debe contener 4 dígitos)');
       return;
     }
@@ -681,6 +740,7 @@ class VoxelSandboxGame {
       try {
         await this.network.join(pin, { timeoutMs: 12000 });
         this.mode = 'client';
+        this.lastConnectedPin = pin;
         break;
       } catch (e) {
         if (i === attempts) {
@@ -690,6 +750,7 @@ class VoxelSandboxGame {
         await new Promise((r) => setTimeout(r, 1200));
       }
     }
+
     this.currentJoinUrl = `${window.location.protocol}//${window.location.host}/?join=${pin}`;
     this.network.stopWorldSnapshot();
     this.ui.currentScreen = 'in_game';
@@ -786,6 +847,7 @@ class VoxelSandboxGame {
       );
 
       this.ui.updatePartyList(this.playerManager.getAllPlayers());
+      this.broadcastRoster();
     });
 
     this.network.addEventListener('peer-left', (e) => {
@@ -795,6 +857,14 @@ class VoxelSandboxGame {
         this.avatars.remove(removedPlayer.id);
         this.ui.showNarrativeMessage(`⚠️ ${escapeHtml(removedPlayer.name)} ha abandonado la partida.`, 4000);
         this.ui.updatePartyList(this.playerManager.getAllPlayers());
+        this.broadcastRoster();
+      }
+    });
+
+    this.network.addEventListener('peer-roster', (e) => {
+      const roster = e.detail?.roster;
+      if (Array.isArray(roster) && this.mode === 'client') {
+        this.ui.updatePartyList(roster.map((r) => ({ id: r.playerId, name: r.name, colorIndex: r.colorIndex })));
       }
     });
 
@@ -817,9 +887,32 @@ class VoxelSandboxGame {
         }, 2500);
         return;
       }
-      // Fase 2 MVP: si hay snapshot fresco, ofrecer reanudar como Host (nueva sala).
+
+      // Fase 4: Migración de host con elección determinista de líder y snapshot
       const snap = loadWorldSnapshot();
       if (snap && this.mode === 'client') {
+        const myPeerId = this.network.peer?.id || '';
+        const roster = this.network.peerRoster || [];
+        const election = electLeader(roster, myPeerId);
+
+        if (election.isLeader) {
+          const migrationPin = deriveMigrationPin(this.lastConnectedPin || this.ui.pinInput || '4821');
+          this.ui.showNarrativeMessage(`👑 Has sido elegido como nuevo Líder de la expedición. Reanudando sala ${migrationPin}...`, 6000);
+          this.soundManager.playVictory?.();
+          this.resumeAsHostFromSnapshot(snap, migrationPin);
+          return;
+        } else if (election.leader) {
+          const leaderName = election.leader.name || 'el nuevo anfitrión';
+          const migrationPin = deriveMigrationPin(this.lastConnectedPin || this.ui.pinInput || '4821');
+          this.ui.showNarrativeMessage(`👑 ${escapeHtml(leaderName)} es el nuevo anfitrión. Reconectando a ${migrationPin}...`, 6000);
+          this.soundManager.playHurt();
+          setTimeout(() => {
+            this.reconnectToMigratedHost(migrationPin);
+          }, 1200);
+          return;
+        }
+
+        // Si no hay otros compañeros en el roster: ofrecer reanudación manual como anfitrión
         this.ui.showNarrativeMessage('🏰 El anfitrión ha abandonado. Puedes reanudar la mazmorra como Host.', 5000);
         this.soundManager.playHurt();
         this.ui.showConfirmDialog({
@@ -877,7 +970,9 @@ class VoxelSandboxGame {
           // Transmitir metadatos oficiales del jugador a todos los clientes (incluyendo al emisor)
           this.network.broadcast(Proto.serializePlayerMeta(player.id, uniqueColor, name));
           this.ui.updatePartyList(this.playerManager.getAllPlayers());
+          this.broadcastRoster();
         }
+
       } else if (this.mode === 'client') {
         // Evitar procesar metadatos de otros jugadores antes de recibir INIT (cuando localPlayer.id sigue en -1)
         if (this.playerManager.localPlayer.id === -1 && playerId !== 0) {

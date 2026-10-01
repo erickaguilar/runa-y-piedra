@@ -55,6 +55,7 @@ export class PlayerManager {
       this.connToPlayerId.set(conn, existing.id);
       if (name) existing.name = name;
       if (colorIndex !== undefined && colorIndex !== null) existing.setColorIndex(colorIndex);
+      if (conn?.peer) existing.peerId = conn.peer;
       return existing;
     }
 
@@ -67,11 +68,24 @@ export class PlayerManager {
     const resolvedColor = this.getAvailableColorIndex(colorIndex ?? 1, null, 5);
     const player = new Player(pid, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, spawnZ, name, resolvedColor);
     player.yaw = Math.PI;
+    player.peerId = conn?.peer || '';
+    player.joinedAt = Date.now();
 
     this.connToPlayerId.set(conn, pid);
     this.players.set(pid, player);
     return player;
   }
+
+  getRoster() {
+    return Array.from(this.players.values()).map(p => ({
+      playerId: p.id,
+      peerId: p.peerId || '',
+      name: p.name || 'Aventurero',
+      colorIndex: p.colorIndex ?? 0,
+      joinedAt: p.joinedAt || 0
+    }));
+  }
+
 
   updatePlayerMeta(id, name, colorIndex) {
     let player = this.players.get(id);

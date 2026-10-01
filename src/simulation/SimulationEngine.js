@@ -6,14 +6,16 @@ const HALF_W = (PHYSICS_CONFIG.PLAYER_W || 0.6) / 2;
 const PLAYER_H = PHYSICS_CONFIG.PLAYER_H || 1.8;
 
 export class SimulationEngine {
-  constructor(world, { onPlayerRespawn, onPlayerLavaSink, onStairTouch, isTransitioning, lavaSinkTicks } = {}) {
+  constructor(world, { onPlayerRespawn, onPlayerLavaSink, onStairTouch, onJumpPad, isTransitioning, lavaSinkTicks } = {}) {
     this.world = world;
     this.onPlayerRespawn = onPlayerRespawn || null;
     this.onPlayerLavaSink = onPlayerLavaSink || null;
     this.onStairTouch = onStairTouch || null;
+    this.onJumpPad = onJumpPad || null;
     this.isTransitioning = isTransitioning || null;
     this.lavaSinkTicks = lavaSinkTicks !== undefined ? lavaSinkTicks : (PHYSICS_CONFIG.LAVA_SINK_TICKS ?? 36);
   }
+
 
   isTouchingLava(p) {
     const minX = Math.floor(p.pos.x - HALF_W);
@@ -102,11 +104,32 @@ export class SimulationEngine {
     // Se deshabilita por completo el salto si está en lava o hundiéndose en ella
     if (actions & ACTION_FLAGS.JUMP) {
       if (p.onGround && !p.isSinkingInLava && !inLava) {
-        const jumpMult = p.hero?.jumpMultiplier || 1.0;
+        // Detección de losa rúnica JUMP_PAD bajo los pies
+        const feetY = Math.floor(p.pos.y - 0.05);
+        const bx = Math.floor(p.pos.x);
+        const bz = Math.floor(p.pos.z);
+        const isJumpPad = this.world.get(bx, feetY, bz) === BLOCK_TYPES.JUMP_PAD;
+
+        const jumpMult = (p.hero?.jumpMultiplier || 1.0) * (isJumpPad ? 1.35 : 1.0);
         p.vel.y = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult;
         p.onGround = false;
+
+        // Métricas cuantificables de gameplay y verticalidad
+        p.jumpCount = (p.jumpCount || 0) + 1;
+        if (isJumpPad) {
+          p.jumpPadCount = (p.jumpPadCount || 0) + 1;
+          if (this.onJumpPad) {
+            this.onJumpPad(p);
+          }
+        }
       }
     }
+
+    // Seguimiento de cota de altitud máxima alcanzada (métrica de verticalidad)
+    if (typeof p.maxAltitude !== 'number' || p.pos.y > p.maxAltitude) {
+      p.maxAltitude = p.pos.y;
+    }
+
 
     // 1. Cálculo de velocidad según yaw, input y características del héroe
     let speedMult = p.hero?.speedMultiplier || 1.0;

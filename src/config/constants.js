@@ -1,7 +1,8 @@
 export const APP_CONFIG = {
   NAME: 'Runa y Piedra',
-  VERSION: '1.32.0',
+  VERSION: '1.33.0',
 };
+
 
 export const GAME_CONFIG = {
   MAX_PLAYERS: 5,

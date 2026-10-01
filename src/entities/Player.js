@@ -29,7 +29,12 @@ export class Player {
 
     // Inventario de llaves (ids de llave, p. ej. "llave_santuario"). Persiste ante muertes.
     this.keys = [];
+
+    // Metadatos de red para sincronización de roster y elección determinista de líder
+    this.peerId = '';
+    this.joinedAt = Date.now();
   }
+
 
   setColorIndex(colorIndex) {
     this.colorIndex = colorIndex;

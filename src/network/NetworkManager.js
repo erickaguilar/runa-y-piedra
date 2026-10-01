@@ -20,6 +20,7 @@ export class NetworkManager extends EventTarget {
 
     // Monitor y telemetría de red (?debug=1)
     this.stats = new NetworkStats({ protocolVersion: Proto.PROTOCOL_VERSION });
+    this.peerRoster = [];
     this._pingInterval = null;
     this._signalingHeartbeat = null;
     this._reconnectTimer = null;
@@ -89,20 +90,34 @@ export class NetworkManager extends EventTarget {
     return safeForConn(this._links, conn);
   }
 
-  host(maxRetries = 5) {
+  host(pinOrOpts = null, maxRetries = 5) {
+    if (typeof pinOrOpts === 'number' && pinOrOpts <= 10) {
+      maxRetries = pinOrOpts;
+      pinOrOpts = null;
+    }
     this.isHost = true;
     this._links = new Map();
+    this.peerRoster = [];
     this.stats.setMode('HOST', 0);
 
     const tryPin = (attempt) => new Promise((resolve, reject) => {
-      const pin = Math.floor(1000 + Math.random() * 9000);
-      this.roomId = 'VOXELSALA-' + pin;
+      let pin;
+      if (pinOrOpts) {
+        this.roomId = String(pinOrOpts).startsWith('VOXELSALA-')
+          ? String(pinOrOpts)
+          : 'VOXELSALA-' + pinOrOpts;
+        pin = this.roomId.replace(/^VOXELSALA-/, '');
+      } else {
+        pin = Math.floor(1000 + Math.random() * 9000);
+        this.roomId = 'VOXELSALA-' + pin;
+      }
       if (this.peer) { try { this.peer.destroy(); } catch {} this.peer = null; }
       this.peer = this._newPeer(this.roomId);
       if (typeof window !== 'undefined') {
         window.__peer = this.peer;
         window.network = this;
       }
+
 
       const onOpen = () => {
         this.peer?.off?.('open', onOpen);
@@ -332,8 +347,9 @@ export class NetworkManager extends EventTarget {
       };
 
       this.peer.on('open', () => {
-        const room = 'VOXELSALA-' + pin;
+        const room = String(pin).startsWith('VOXELSALA-') ? String(pin) : 'VOXELSALA-' + pin;
         console.log(`[WebRTC] 📡 Peer cliente abierto con ID: ${this.peer.id}. Conectando a sala ${room}...`);
+
         // Canal fiable para eventos (INIT, DOOR, CHEST, ...)
         const safe = this.peer.connect(room, {
           label: 'game-safe',
@@ -618,8 +634,20 @@ export class NetworkManager extends EventTarget {
         this.dispatchEvent(new CustomEvent('world-snapshot', { detail: snap }));
         break;
       }
+
+      case Proto.MSG.PEER_ROSTER: {
+        // Solo los clientes procesan el roster sincronizado por el Host
+        if (this.isHost) break;
+        const roster = Proto.deserializePeerRoster(buf);
+        if (Array.isArray(roster)) {
+          this.peerRoster = roster;
+          this.dispatchEvent(new CustomEvent('peer-roster', { detail: { roster } }));
+        }
+        break;
+      }
     }
   }
+
 
   sendToHost(buf) {
     if (this.hostConn?.open) {
@@ -718,10 +746,20 @@ export class NetworkManager extends EventTarget {
     }
   }
 
+  /** Sincronización de roster de peers para migración determinista de host */
+  broadcastPeerRoster(roster) {
+    if (Array.isArray(roster)) this.peerRoster = roster;
+    if (this.isHost && this.peerRoster.length > 0) {
+      this.broadcast(Proto.serializePeerRoster(this.peerRoster));
+    }
+  }
+
   disconnect() {
     this._hostClosingHandled = true;
     this.stopWorldSnapshot();
+    this.peerRoster = [];
     if (this._signalingHeartbeat) {
+
       clearInterval(this._signalingHeartbeat);
       this._signalingHeartbeat = null;
     }

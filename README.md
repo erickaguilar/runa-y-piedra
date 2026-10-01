@@ -6,8 +6,9 @@
 
 > Mazmorra vóxel cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
-[![Version](https://img.shields.io/badge/version-1.32.0-blue.svg)](package.json)
-[![Tests](https://img.shields.io/badge/tests-134%20passed-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-1.33.0-blue.svg)](package.json)
+[![Tests](https://img.shields.io/badge/tests-146%20passed-brightgreen.svg)](tests/)
+
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-Dual%20Channels-green.svg)](https://webrtc.org/)
 [![Vite](https://img.shields.io/badge/Bundler-Vite%205-purple.svg)](https://vitejs.dev/)
@@ -89,7 +90,7 @@ La interfaz móvil está calibrada para pantallas táctiles de 60–120 Hz sin n
   * **Límite DPR ($\le 1.5$)**: `renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))` para evitar estrangulamiento térmico de GPUs móviles (Mali-G52 / Adreno 610).
   * **Sin Garbage Collection (Zero-GC)**: Paquetes binarios fijos con `DataView` y `ArrayBuffer` reutilizados en el bucle principal.
   * **Físicas Desacopladas a 30 Hz**: Motor de colisiones AABB propio sin sobrecarga en la CPU del teléfono.
-* **Suite de Pruebas Unitarias Integrada**: 134 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas, inventario, niveles y contratos de UI.
+* **Suite de Pruebas Unitarias Integrada**: 146 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas, inventario, niveles, verticalidad, elección determinista y contratos de UI.
 
 ---
 
@@ -101,7 +102,7 @@ El código está estructurado bajo **Clean Architecture** y principios de **Resp
 runa-y-piedra/
 ├── docs/                     # Documentación técnica completa y guías de arquitectura
 │   └── assets/               # Diagramas vectoriales SVG de jugabilidad y HUD móvil
-├── tests/                    # Suite de 134 pruebas automatizadas (node:test)
+├── tests/                    # Suite de 146 pruebas automatizadas (node:test)
 ├── src/
 │   ├── audio/
 │   │   └── SoundManager.js   # Efectos de sonido procedurales con Web Audio API
@@ -180,8 +181,9 @@ runa-y-piedra/
 # 1. Instalar dependencias
 npm install
 
-# 2. Ejecutar suite de pruebas unitarias (134 tests)
+# 2. Ejecutar suite de pruebas unitarias (146 tests)
 npm test
+
 
 # 3. Iniciar servidor de desarrollo en red local
 npm run dev
@@ -239,11 +241,12 @@ Al ejecutarse 100% en el navegador mediante canales de datos WebRTC (`RTCDataCha
 2. **Desconexión Abrupta (Crash, Batería o Corte Wi-Fi)**: Si el dispositivo del Host se apaga o pierde cobertura súbitamente, el cliente detecta el cierre inmediato en el evento `safe.on('close')` y por caída de acuses de recibo en el monitor de telemetría RTT/Heartbeat a 1 Hz.
 3. **Respuesta en la Interfaz (UX)**: El cliente no se queda congelado; recibe una notificación narrativa flotante (*"🏰 El anfitrión ha abandonado o cerrado la partida"*), reproduce un sonido de alerta y es redirigido suavemente al vestíbulo principal.
 
-### Hoja de Ruta: Migración Automática de Host (*Host Migration*)
-La arquitectura técnica ([`docs/06-arquitectura-listen-server-hosting.md`](docs/06-arquitectura-listen-server-hosting.md)) documenta el diseño para la próxima fase:
-* **Elección de Líder Distribuida**: Algoritmo determinista donde el peer con menor RTT y mayor permanencia asume el rol de Host.
-* **Snapshot de Mazmorra Compartido**: Difusión periódica del estado del mundo (bloques rotos, puertas abiertas, cofres saqueados, llaves y checkpoints) para que el nuevo Host retome la simulación en menos de 2 segundos.
-* **Respaldo Local (`sessionStorage`)**: Salvaguarda del progreso del capítulo en el navegador para permitir reanudar la expedición en caso de caída total de la sala.
+### Migración Automática de Host y Elección Determinista de Líder (v1.33.0)
+La arquitectura técnica ([`docs/06-arquitectura-listen-server-hosting.md`](docs/06-arquitectura-listen-server-hosting.md)) implementa un consenso distribuido sin dependencias externas:
+* **Sincronización de Peer Roster (`PEER_ROSTER 0x12`)**: El anfitrión propaga de forma fiable el censo de todos los aventureros en la sala por el canal `game-safe`.
+* **Elección Determinista de Líder ([`LeaderElection.js`](file:///data/data/com.termux/files/home/develop/game/src/network/LeaderElection.js))**: Al detectar la caída del anfitrión, todos los clientes supervivientes ejecutan el mismo algoritmo determinista (criterio: menor `playerId` / mayor antigüedad). El líder electo asume automáticamente el rol de Host sin votación en red.
+* **Salas de Migración Derivadas (`VOXELSALA-XXXX-M`)**: El nuevo Host abre una sala derivada predecible y restaura el estado del mundo (`HostSnapshot` en `sessionStorage`); el resto de compañeros se reconecta automáticamente a dicha sala.
+
 
 ---
 

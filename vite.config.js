@@ -8,6 +8,23 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
-    minify: 'esbuild'
+    minify: 'esbuild',
+    chunkSizeWarningLimit: 750,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/three')) {
+            return 'vendor-three';
+          }
+          if (id.includes('node_modules/peerjs') || id.includes('node_modules/@msgpack')) {
+            return 'vendor-net';
+          }
+          if (id.includes('node_modules/qrcode') || id.includes('node_modules/nipplejs')) {
+            return 'vendor-ui';
+          }
+        }
+      }
+    }
   }
 });
+

@@ -27,6 +27,7 @@ export const MSG = {
   STAIRS:       0x0F, // Sealed slab: REQ (client->host) & OPEN (host->all)
   POTION:       0x10, // Consumable potion use (client->host)
   WORLD_SNAPSHOT: 0x11, // Host -> all: world state (level + doors + chests, JSON, ~5s)
+  PEER_ROSTER:    0x12, // Host -> all: peer list for deterministic leader election
 };
 
 export const ACTION_FLAGS = {
@@ -555,3 +556,32 @@ export function deserializeWorldSnapshot(buf) {
     return null;
   }
 }
+
+// ==========================================
+// 15. PEER ROSTER (lista de aventureros en la sala para migración de host determinista)
+// [type:1][json bytes...] (host -> todos, canal safe al conectar/desconectar)
+// ==========================================
+export function serializePeerRoster(roster = []) {
+  const bytes = textEncoder.encode(JSON.stringify(roster));
+  const buf = new ArrayBuffer(1 + bytes.length);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.PEER_ROSTER);
+  new Uint8Array(buf, 1).set(bytes);
+  return buf;
+}
+
+export function deserializePeerRoster(buf) {
+  const v = buf instanceof DataView
+    ? buf
+    : (ArrayBuffer.isView(buf)
+      ? new DataView(buf.buffer, buf.byteOffset, buf.byteLength)
+      : new DataView(buf));
+  const bytes = new Uint8Array(v.buffer, v.byteOffset + 1, v.byteLength - 1);
+  try {
+    const list = JSON.parse(textDecoder.decode(bytes));
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
