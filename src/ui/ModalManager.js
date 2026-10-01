@@ -1165,11 +1165,47 @@ export const ModalMixin = {
     const registry = this.campaignCallbacks?.getChapterRegistry ? this.campaignCallbacks.getChapterRegistry() : null;
     const chapters = registry?.getAllChapters?.() || CHAPTER_CATALOG;
     const isHost = state.isHost !== false && state.mode !== 'client';
-    const currentChapterId = registry?.currentChapterId || 'capitulo_1';
+    const currentLevelId = state.currentLevelId;
+    const currentChapter = registry?.getChapterForLevel?.(currentLevelId);
+    const currentChapterId = currentChapter ? currentChapter.id : null;
+    const isAtLobby = (currentLevelId === 'lobby_tutorial' || !currentLevelId);
 
     const overlay = document.createElement('div');
     overlay.id = 'modal-chapter-overlay';
     overlay.className = 'modal-chapter-overlay';
+
+    const lobbyCardHtml = `
+      <div class="modal-chapter-section-header">
+        ${renderIcon('shield', { size: 16, color: '#38bdf8' })}
+        <span>Refugio & Campamento Base</span>
+      </div>
+      <div class="chapter-card lobby-card unlocked ${isAtLobby ? 'is-active' : ''}" data-chapter-id="lobby_tutorial">
+        <div class="chapter-card-header">
+          <span class="chapter-num-badge lobby">Campamento</span>
+          ${isAtLobby 
+            ? '<span class="chapter-status-badge current">📍 Ubicación Actual</span>' 
+            : '<span class="chapter-status-badge available">Zona Segura</span>'}
+        </div>
+        <div class="chapter-icon-wrap lobby">
+          ${renderIcon('castle', { size: 28, color: isAtLobby ? '#38bdf8' : '#fbbf24' })}
+        </div>
+        <div class="chapter-card-title">Campamento Central (Lobby)</div>
+        <div class="chapter-card-desc">Refugio de la cofradía, monolito cartográfico, forja y zona de maniobras previa a las expediciones.</div>
+        <div class="chapter-dungeons-track" title="Zona segura y tutorial">🏛️ Mazmorra de Entrenamiento & Sala de Maniobras</div>
+        <div class="chapter-card-actions">
+          ${isHost ? (isAtLobby 
+            ? '<div class="chapter-client-info chapter-action-pill is-current">📍 Estás aquí actualmente</div>' 
+            : '<button class="chapter-launch-btn btn-lobby chapter-action-pill is-launch" data-chapter-id="lobby_tutorial">🚀 Viaje Rápido al Lobby</button>')
+            : (isAtLobby 
+              ? '<div class="chapter-client-info chapter-action-pill is-current">📍 Estás aquí actualmente</div>' 
+              : '<div class="chapter-client-info chapter-action-pill is-client">Refugio disponible</div>')}
+        </div>
+      </div>
+      <div class="modal-chapter-section-header" style="margin-top: 8px;">
+        ${renderIcon('compass', { size: 16, color: '#fbbf24' })}
+        <span>Campaña de Expediciones (10 Capítulos)</span>
+      </div>
+    `;
 
     const cardsHtml = chapters.map((ch) => {
       const isUnlocked = registry ? registry.isChapterUnlocked(ch.id) : (ch.number === 1);
@@ -1237,7 +1273,7 @@ export const ModalMixin = {
       if (isHost) {
         actionPill = `
           <button class="chapter-launch-btn chapter-action-pill ${isCurrent ? 'btn-current is-current' : 'is-launch'}" data-chapter-id="${ch.id}">
-            ${isCurrent ? '⚡ En curso (Explorar)' : '▶ Iniciar Expedición'}
+            ${isCurrent ? '⚡ En curso (Explorar)' : '🚀 Viaje Rápido'}
           </button>
         `;
       } else {
@@ -1249,9 +1285,8 @@ export const ModalMixin = {
       return `
         <div class="chapter-card unlocked ${isCurrent ? 'is-active' : ''} ${isCompleted ? 'is-completed' : ''}" 
              data-chapter-id="${ch.id}" 
-             role="button" 
              tabindex="0" 
-             title="${isHost ? `Seleccionar Capítulo ${ch.number}: ${escapeHtml(ch.name)}` : `Capítulo ${ch.number}: ${escapeHtml(ch.name)}`}">
+             title="${isHost ? `Capítulo ${ch.number}: ${escapeHtml(ch.name)}` : `Capítulo ${ch.number}: ${escapeHtml(ch.name)}`}">
           <div class="chapter-card-header">
             <span class="chapter-num-badge">Capítulo ${ch.number}</span>
             ${statusBadge}
@@ -1272,8 +1307,8 @@ export const ModalMixin = {
     }).join('');
 
     const hostNote = isHost
-      ? '👑 <strong>Anfitrión</strong>: Toca cualquier capítulo disponible para iniciar la travesía con tu equipo.'
-      : '🛡️ <strong>Aventurero</strong>: Explora los capítulos de la campaña. Solo el anfitrión puede liderar la expedición.';
+      ? '👑 <strong>Anfitrión</strong>: Pulsa el botón <strong>Viaje Rápido</strong> para desplegar la expedición con tu equipo.'
+      : '🛡️ <strong>Aventurero</strong>: Explora los capítulos de la campaña. Solo el anfitrión puede liderar el Viaje Rápido.';
 
     overlay.innerHTML = `
       <div class="modal-chapter-box">
@@ -1295,6 +1330,7 @@ export const ModalMixin = {
         </div>
 
         <div class="modal-chapter-grid">
+          ${lobbyCardHtml}
           ${cardsHtml}
         </div>
       </div>
@@ -1344,34 +1380,49 @@ export const ModalMixin = {
     };
 
     overlay.querySelectorAll('.chapter-launch-btn').forEach((btn) => {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let isScrolling = false;
+
+      btn.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches[0]) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          isScrolling = false;
+        }
+      }, { passive: true });
+
+      btn.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches[0]) {
+          const dx = e.touches[0].clientX - touchStartX;
+          const dy = e.touches[0].clientY - touchStartY;
+          if (Math.hypot(dx, dy) > 8) {
+            isScrolling = true;
+          }
+        }
+      }, { passive: true });
+
       const handleBtn = (e) => {
         if (e) {
           e.stopPropagation();
-          if (e.cancelable) e.preventDefault();
+        }
+        if (isScrolling) {
+          isScrolling = false;
+          return;
         }
         const isTouch = e?.type === 'touchend';
         triggerSelect(btn.dataset.chapterId, isTouch);
       };
-      btn.onclick = handleBtn;
-      btn.addEventListener('touchend', handleBtn, { passive: false });
-    });
 
-    overlay.querySelectorAll('.chapter-card.unlocked').forEach((card) => {
-      const handleSelect = (e) => {
-        if (e) {
-          e.stopPropagation();
-          if (e.cancelable) e.preventDefault();
+      btn.onclick = handleBtn;
+      btn.addEventListener('touchend', (e) => {
+        if (isScrolling) {
+          isScrolling = false;
+          return;
         }
-        const isTouch = e?.type === 'touchend';
-        triggerSelect(card.dataset.chapterId, isTouch);
-      };
-      card.onclick = handleSelect;
-      card.addEventListener('touchend', handleSelect, { passive: false });
-      card.onkeydown = (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          handleSelect(e);
-        }
-      };
+        if (e.cancelable) e.preventDefault();
+        handleBtn(e);
+      }, { passive: false });
     });
   },
 

@@ -42,6 +42,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       const elementStore = new Map();
       let lastMockButton = null;
       let lastChapterButton = null;
+      let lastLobbyButton = null;
       let lastChapterCard = null;
       const mockEl = (tag = 'div') => {
         let _id = '';
@@ -67,6 +68,13 @@ describe('UIManager - Contratos de API de Configuración', () => {
               return lastMockButton;
             }
             if (sel?.includes('chapter-launch-btn')) {
+              if (sel?.includes('lobby_tutorial')) {
+                if (!lastLobbyButton) {
+                  lastLobbyButton = mockEl('button');
+                  lastLobbyButton.dataset = { chapterId: 'lobby_tutorial' };
+                }
+                return lastLobbyButton;
+              }
               if (!lastChapterButton) {
                 lastChapterButton = mockEl('button');
                 lastChapterButton.dataset = { chapterId: 'capitulo_1' };
@@ -88,7 +96,11 @@ describe('UIManager - Contratos de API de Configuración', () => {
                 lastChapterButton = mockEl('button');
                 lastChapterButton.dataset = { chapterId: 'capitulo_1' };
               }
-              return [lastChapterButton];
+              if (!lastLobbyButton) {
+                lastLobbyButton = mockEl('button');
+                lastLobbyButton.dataset = { chapterId: 'lobby_tutorial' };
+              }
+              return [lastLobbyButton, lastChapterButton];
             }
             if (sel?.includes('chapter-card')) {
               if (!lastChapterCard) {
@@ -586,11 +598,12 @@ describe('UIManager - Contratos de API de Configuración', () => {
       const overlay = document.getElementById('modal-chapter-overlay');
       assert.ok(overlay);
       assert.match(overlay.innerHTML, /Atlas de Expedición/);
+      assert.match(overlay.innerHTML, /Campamento Central \(Lobby\)/);
       assert.match(overlay.innerHTML, /El Descenso Ancestral/);
       assert.match(overlay.innerHTML, /Cripta de las Sombras/);
       assert.match(overlay.innerHTML, /Bloqueado/);
 
-      // El capítulo 1 tiene botón de iniciar expedición
+      // El capítulo 1 tiene botón de Viaje Rápido
       const launchBtn = overlay.querySelector('.chapter-launch-btn[data-chapter-id="capitulo_1"]');
       assert.ok(launchBtn);
       launchBtn.click();
@@ -599,7 +612,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(selectedChapterId, 'capitulo_1');
       assert.equal(ui.isChapterOpen, false);
 
-      // Abrir nuevamente para probar selección directa haciendo clic en la tarjeta completa
+      // Abrir nuevamente para verificar que hacer clic/scroll en la tarjeta NO navega (solo el botón de Viaje Rápido)
       selectedChapterId = null;
       ui.openChapterModal();
       const currentOverlay = document.getElementById('modal-chapter-overlay');
@@ -607,7 +620,42 @@ describe('UIManager - Contratos de API de Configuración', () => {
       const cardUnlocked = currentOverlay.querySelector('.chapter-card.unlocked');
       assert.ok(cardUnlocked);
       cardUnlocked.click();
+      assert.equal(selectedChapterId, null, 'Hacer clic en la tarjeta no debe activar viaje');
+      assert.equal(ui.isChapterOpen, true);
+
+      // El botón de Viaje Rápido sí debe navegar
+      const fastTravelBtn = currentOverlay.querySelector('.chapter-launch-btn[data-chapter-id="capitulo_1"]');
+      assert.ok(fastTravelBtn);
+      fastTravelBtn.click();
       assert.equal(selectedChapterId, 'capitulo_1');
+      assert.equal(ui.isChapterOpen, false);
+
+      // Prueba de gesto de scroll táctil: mover el dedo no debe disparar viaje
+      selectedChapterId = null;
+      ui.openChapterModal();
+      const scrollOverlay = document.getElementById('modal-chapter-overlay');
+      const scrollBtn = scrollOverlay.querySelector('.chapter-launch-btn[data-chapter-id="capitulo_1"]');
+      assert.ok(scrollBtn);
+      scrollBtn.ontouchstart?.({ touches: [{ clientX: 100, clientY: 100 }] });
+      scrollBtn.ontouchmove?.({ touches: [{ clientX: 100, clientY: 150 }] });
+      scrollBtn.ontouchend?.({ cancelable: true, preventDefault() {} });
+      assert.equal(selectedChapterId, null, 'Un gesto de scroll táctil no debe activar viaje');
+      assert.equal(ui.isChapterOpen, true);
+      ui.closeChapterModal();
+
+      // Prueba en mazmorra: el lobby muestra botón de viaje rápido al lobby
+      selectedChapterId = null;
+      ui.bindCampaign({
+        getChapterRegistry: () => mockRegistry,
+        getGameState: () => ({ isHost: true, currentLevelId: 'dungeon_classic' }),
+        onSelectChapter: (id) => { selectedChapterId = id; },
+      });
+      ui.openChapterModal();
+      const dungeonOverlay = document.getElementById('modal-chapter-overlay');
+      const lobbyTravelBtn = dungeonOverlay.querySelector('.chapter-launch-btn[data-chapter-id="lobby_tutorial"]');
+      assert.ok(lobbyTravelBtn, 'Debe haber botón de viaje rápido al lobby estando en mazmorra');
+      lobbyTravelBtn.click();
+      assert.equal(selectedChapterId, 'lobby_tutorial');
       assert.equal(ui.isChapterOpen, false);
 
       // Alternar toggle y verificar restauración incondicional de botones de acción

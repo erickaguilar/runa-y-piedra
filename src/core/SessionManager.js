@@ -178,6 +178,20 @@ export const SessionMixin = {
       this.ui.setCrosshairVisible(true);
       this.ui.setActionButtonsVisible(true);
     }
+
+    if (chapterId === 'lobby' || chapterId === 'lobby_tutorial') {
+      const currentLevel = this.world?.levelRegistry?.currentLevelId;
+      if (currentLevel === 'lobby_tutorial') {
+        this.ui.showNarrativeMessage('📍 Ya te encuentras en el Campamento Central.', 2500);
+        return true;
+      }
+      this.soundManager.playPedestal();
+      this.ui.showNarrativeMessage('🏛️ Regresando al Campamento Central...', 3000);
+      setTimeout(() => {
+        this.switchLevel('lobby_tutorial', true);
+      }, 400);
+      return true;
+    }
     if (!this.chapterRegistry.isChapterUnlocked(chapterId)) {
       this.ui.showNarrativeMessage('🔒 Este capítulo aún está bloqueado.', 3000);
       return false;
