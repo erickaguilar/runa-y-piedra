@@ -1,3 +1,4 @@
+import './style.css';
 import { SceneManager } from './render/SceneManager.js';
 import { VoxelMap } from './render/VoxelMap.js';
 import { AvatarRenderer } from './render/AvatarRenderer.js';
