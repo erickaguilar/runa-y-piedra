@@ -1,18 +1,15 @@
 // src/render/PedestalRenderer.js
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-
-const IDLE_LIGHT = 1.4;
-const BLESSED_LIGHT = 2.6;
-const FLASH_LIGHT = 7.0;
-const PARTICLE_COUNT = 36;
-
-// Temas por mazmorra: dorado ancestral, brasa volcánica y amatista abisal
-const THEMES = {
-  classic: { light: 0xfbbf24, rune: 0xfde68a, crystal: 0xf59e0b, ember: 0xfcd34d },
-  inferno: { light: 0xfb9235, rune: 0xfdba74, crystal: 0xea580c, ember: 0xf97316 },
-  abyss: { light: 0xa78bfa, rune: 0xddd6fe, crystal: 0x7c3aed, ember: 0x8b5cf6 },
-};
+import {
+  IDLE_LIGHT,
+  BLESSED_LIGHT,
+  FLASH_LIGHT,
+  PARTICLE_COUNT,
+  THEMES,
+  createPedestalMaterials,
+  createPedestalGeometries,
+  buildPedestalMesh,
+} from './models/props/pedestalModel.js';
 
 export class PedestalRenderer {
   constructor(scene) {
@@ -27,59 +24,11 @@ export class PedestalRenderer {
   }
 
   _createMaterials(themeName) {
-    const t = THEMES[themeName] || THEMES.classic;
-    return {
-      theme: themeName,
-      stone: new THREE.MeshLambertMaterial({ color: 0x475569 }), // Sillar pizarra (muros)
-      stoneDark: new THREE.MeshLambertMaterial({ color: 0x1e293b }), // Zócalo profundo
-      iron: new THREE.MeshLambertMaterial({ color: 0x27272a }), // Forja (cofres/puertas)
-      gold: new THREE.MeshLambertMaterial({ color: 0xf59e0b, emissive: 0x78350f }),
-      rune: new THREE.MeshBasicMaterial({ color: t.rune, transparent: true, opacity: 0.95 }),
-      crystal: new THREE.MeshLambertMaterial({
-        color: 0xffffff, emissive: t.crystal, emissiveIntensity: 0.9, transparent: true, opacity: 0.96,
-      }),
-      ember: new THREE.PointsMaterial({
-        color: t.ember, size: 0.055, transparent: true, opacity: 0.9,
-        blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
-      }),
-    };
+    return createPedestalMaterials(themeName);
   }
 
   _createGeometries() {
-    // Zócalo escalonado de cantería (2 peldaños)
-    const plinth1 = new THREE.BoxGeometry(1.0, 0.18, 1.0).translate(0, 0.09, 0);
-    const plinth2 = new THREE.BoxGeometry(0.8, 0.16, 0.8).translate(0, 0.26, 0);
-    const stoneBase = mergeGeometries([plinth1, plinth2]);
-    plinth1.dispose(); plinth2.dispose();
-
-    // Fuste monolítico de 4 caras (prisma ahusado, aristas alineadas a los ejes)
-    const column = new THREE.CylinderGeometry(0.30, 0.38, 0.86, 4, 1);
-    column.rotateY(Math.PI / 4);
-    column.translate(0, 0.77, 0);
-
-    // Collar de forja + losa de coronación + filete dorado
-    const collar = new THREE.BoxGeometry(0.62, 0.10, 0.62).translate(0, 1.25, 0);
-    const cap = new THREE.BoxGeometry(0.78, 0.12, 0.78).translate(0, 1.36, 0);
-    const trimN = new THREE.BoxGeometry(0.80, 0.035, 0.05).translate(0, 1.425, 0.375);
-    const trimS = new THREE.BoxGeometry(0.80, 0.035, 0.05).translate(0, 1.425, -0.375);
-    const trimE = new THREE.BoxGeometry(0.05, 0.035, 0.80).translate(0.375, 1.425, 0);
-    const trimW = new THREE.BoxGeometry(0.05, 0.035, 0.80).translate(-0.375, 1.425, 0);
-    const goldTrim = mergeGeometries([trimN, trimS, trimE, trimW]);
-    trimN.dispose(); trimS.dispose(); trimE.dispose(); trimW.dispose();
-
-    // Runa solar: disco + anillo (giran en sentidos opuestos)
-    const runeDisc = new THREE.CircleGeometry(0.24, 24);
-    runeDisc.rotateX(-Math.PI / 2);
-    runeDisc.translate(0, 1.445, 0);
-    const runeRing = new THREE.RingGeometry(0.27, 0.33, 24);
-    runeRing.rotateX(-Math.PI / 2);
-    runeRing.translate(0, 1.445, 0);
-
-    // Cristal rúnico flotante (octaedro)
-    const crystal = new THREE.OctahedronGeometry(0.14, 0);
-    crystal.translate(0, 1.95, 0);
-
-    return { stoneBase, column, collar, cap, goldTrim, runeDisc, runeRing, crystal };
+    return createPedestalGeometries();
   }
 
   _applyTheme(themeName) {
@@ -112,53 +61,15 @@ export class PedestalRenderer {
       const y = cfg.y ?? 1.0;
       const z = cfg.z ?? 30;
 
-      const root = new THREE.Group();
-      // El bloque PEDESTAL ocupa (x, 1, z): su base física está en y=1.0
+      const {
+        root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed
+      } = buildPedestalMesh(this._geos, this._mats);
+
       root.position.set(x, Math.max(1.0, y), z);
-
-      const baseMesh = new THREE.Mesh(this._geos.stoneBase, this._mats.stoneDark);
-      const columnMesh = new THREE.Mesh(this._geos.column, this._mats.stone);
-      const collarMesh = new THREE.Mesh(this._geos.collar, this._mats.iron);
-      const capMesh = new THREE.Mesh(this._geos.cap, this._mats.stone);
-      const trimMesh = new THREE.Mesh(this._geos.goldTrim, this._mats.gold);
-      root.add(baseMesh, columnMesh, collarMesh, capMesh, trimMesh);
-
-      // Runa giratoria sobre la losa
-      const runePivot = new THREE.Group();
-      runePivot.position.set(0, 0, 0);
-      const runeMesh = new THREE.Mesh(this._geos.runeDisc, this._mats.rune);
-      const ringMesh = new THREE.Mesh(this._geos.runeRing, this._mats.gold);
-      runePivot.add(runeMesh, ringMesh);
-      root.add(runePivot);
-
-      // Cristal flotante
-      const crystalMesh = new THREE.Mesh(this._geos.crystal, this._mats.crystal);
-      root.add(crystalMesh);
-
-      // Luz cálida del altar
-      const light = new THREE.PointLight(this._mats.rune.color, IDLE_LIGHT, 9, 2.0);
-      light.position.set(0, 2.1, 0);
-      root.add(light);
-
-      // Brasas ascendentes
-      const pos = new Float32Array(PARTICLE_COUNT * 3);
-      const speed = new Float32Array(PARTICLE_COUNT);
-      for (let k = 0; k < PARTICLE_COUNT; k++) {
-        const r = 0.15 + Math.random() * 0.45;
-        const a = Math.random() * Math.PI * 2;
-        pos[k * 3] = Math.cos(a) * r;
-        pos[k * 3 + 1] = Math.random() * 2.2;
-        pos[k * 3 + 2] = Math.sin(a) * r;
-        speed[k] = 0.25 + Math.random() * 0.5;
-      }
-      const emberGeo = new THREE.BufferGeometry();
-      emberGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      const embers = new THREE.Points(emberGeo, this._mats.ember);
-      root.add(embers);
-
       this.group.add(root);
+
       this.pedestals.set(id, {
-        id, x, y, z, root, runePivot, ringMesh, crystalMesh, light, embers, emberSpeed: speed,
+        id, x, y, z, root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed,
         isActive: false, flash: 0, spinBoost: 0, phase: Math.random() * Math.PI * 2,
       });
     });

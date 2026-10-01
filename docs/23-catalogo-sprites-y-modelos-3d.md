@@ -130,6 +130,33 @@ El juego incluye **6 familias de modelos 3D paramétricos** instanciados e integ
  (5 Héroes)   (Tapa Móvil)       (2 Batientes)     (Orbe Flotante) (Losa Desliz.)
 ```
 
+### Modularización Atómica de Modelos 3D (`src/render/models/`)
+
+Siguiendo el mismo principio de desacoplamiento arquitectónico de los sprites vectoriales, la construcción procedural de geometrías, materiales y ensamblaje de mallas se encuentra modularizada en archivos atómicos dentro de `src/render/models/`, separando la **generación geométrica pura** del **ciclo de vida dinámico, cinemática y sincronización de red**:
+
+```
+src/render/models/
+├── heroes/                   # Constructores de mallas y equipo para avatares
+│   ├── baseAvatar.js         # Geometrías/materiales compartidos, esqueleto base y nametag 3D
+│   ├── paladinGear.js        # Yelmo con visera, cresta carmesí, hombreras y escudo con umbo
+│   ├── rangerGear.js         # Capucha forestal, capa élfica y carcaj con astiles/plumas
+│   ├── wizardGear.js         # Sombrero de ala ancha y báculo con cristal octaédrico
+│   ├── guardianGear.js       # Corona de oro con rubí, hombreras pesadas y faldón de placas
+│   └── index.js              # Re-exportador y mapa GEAR_BUILDERS
+├── props/                    # Constructores de mallas para interactuables y props
+│   ├── chestModel.js         # Madera SVG, base hueca, herrajes de forja, tapa curva y gemas
+│   ├── doorModel.js          # Madera SVG, batientes dobles, cerrajería y pomos esféricos
+│   ├── pedestalModel.js      # Plinto escalonado, fuste ahusado, runas solares y partículas
+│   ├── stairsModel.js        # Losa rúnica corrediza, pozo con luz y partículas de niebla
+│   └── index.js              # Re-exportador unificado de props
+└── index.js                  # Agregador central del subsistema de modelos 3D
+```
+
+#### Ventajas Técnicas del Desacoplamiento:
+1. **Reducción Drástica de Complejidad**: Los renderers (`AvatarRenderer`, `ChestRenderer`, `DoorRenderer`, `PedestalRenderer`, `StairsRenderer`) redujeron su volumen en más de 1,000 líneas combinadas, enfocándose exclusivamente en físicas de resortes (*springs*), interpolación cinemática Lerp, balanceo de extremidades (*walking gait*) y sincronización de red.
+2. **Seguridad Isomórfica en Node.js**: Los constructores procedurales implementan salvaguardas (`typeof document === 'undefined'`) que permiten instanciar y verificar geometrías y materiales en suites de testing automatizadas (`npm test`) sin requerir un DOM simulado completo, manteniendo al mismo tiempo renderizado nítido en WebGL en el navegador.
+3. **Reutilización y Extensibilidad**: Facilidad para introducir nuevos kits de clase de héroe o elementos de escenografía interactivos agregando funciones declarativas sin alterar la orquestación de renderizado.
+
 ---
 
 ### 1. Avatares de Jugadores (5 Clases de Héroes) (`AvatarRenderer.js`)

@@ -1,12 +1,13 @@
 // src/render/StairsRenderer.js
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-
-// Máquina de estados de la losa: closed -> shaking -> sliding -> open
-const SHAKE_TIME = 0.5;
-const SLIDE_TIME = 1.4;
-const SLIDE_DIST = 2.6;
-const FOG_COUNT = 24;
+import {
+  SHAKE_TIME,
+  SLIDE_TIME,
+  SLIDE_DIST,
+  FOG_COUNT,
+  createStairsMaterials,
+  buildStairsMesh,
+} from './models/props/stairsModel.js';
 
 export class StairsRenderer {
   constructor(scene) {
@@ -17,11 +18,12 @@ export class StairsRenderer {
 
     this.stairs = null; // Solo hay una escalinata por nivel (tras el altar)
 
-    this.stoneMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
-    this.stoneDarkMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-    this.ironMat = new THREE.MeshLambertMaterial({ color: 0x27272a });
-    this.goldMat = new THREE.MeshLambertMaterial({ color: 0xf59e0b, emissive: 0x78350f });
-    this.blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    this.mats = createStairsMaterials();
+    this.stoneMat = this.mats.stone;
+    this.stoneDarkMat = this.mats.stoneDark;
+    this.ironMat = this.mats.iron;
+    this.goldMat = this.mats.gold;
+    this.blackMat = this.mats.black;
   }
 
   /**
@@ -32,63 +34,9 @@ export class StairsRenderer {
     this.clear();
     if (!rect) return;
 
-    const cx = (rect.x1 + rect.x2 + 1) / 2; // centro X del hueco (11..12 -> 12.0)
-    const cz = (rect.z1 + rect.z2 + 1) / 2; // centro Z del hueco (31..33 -> 32.0)
-    const w = rect.x2 - rect.x1 + 1; // 2
-    const d = rect.z2 - rect.z1 + 1; // 3
-
-    const root = new THREE.Group();
-    root.position.set(cx, 1.0, cz); // sobre el suelo (y=1.0)
-
-    // --- Losa sellada (2x3) con bandas de forja y runas doradas ---
-    const slab = new THREE.Group();
-    const slabBase = new THREE.Mesh(new THREE.BoxGeometry(w + 0.2, 0.14, d + 0.2), this.stoneDarkMat);
-    slabBase.position.y = 0.07;
-    slab.add(slabBase);
-    const bandGeos = [];
-    for (let i = 0; i < d; i++) {
-      const zoff = -d / 2 + 0.5 + i * 1.0;
-      bandGeos.push(new THREE.BoxGeometry(w + 0.24, 0.05, 0.12).translate(0, 0.15, zoff));
-    }
-    const bands = new THREE.Mesh(mergeGeometries(bandGeos), this.ironMat);
-    bandGeos.forEach(g => g.dispose());
-    slab.add(bands);
-    const runeGeos = [];
-    for (let i = 0; i < 2; i++) {
-      const zoff = -d / 2 + 1.0 + i * 1.0;
-      runeGeos.push(new THREE.BoxGeometry(0.12, 0.03, 0.5).translate(-0.5, 0.155, zoff));
-      runeGeos.push(new THREE.BoxGeometry(0.12, 0.03, 0.5).translate(0.5, 0.155, zoff));
-    }
-    const runes = new THREE.Mesh(mergeGeometries(runeGeos), this.goldMat);
-    runeGeos.forEach(g => g.dispose());
-    slab.add(runes);
-    root.add(slab);
-
-    // NOTA: peldaños y muros son bloques reales con colisión (main.js); el fondo
-    // oscuro se logra tiñendo esos bloques de negro (VoxelMap.setTint) + luz tenue.
-
-    // --- Luz brasienta tenue desde el fondo + niebla ascendente ---
-    const pitLight = new THREE.PointLight(0xea580c, 0, 7, 2.0);
-    pitLight.position.set(0, -4.2, 0);
-    root.add(pitLight);
-
-    const fogPos = new Float32Array(FOG_COUNT * 3);
-    for (let k = 0; k < FOG_COUNT; k++) {
-      fogPos[k * 3] = (Math.random() - 0.5) * (w - 0.4);
-      fogPos[k * 3 + 1] = -6.8 + Math.random() * 7.2;
-      fogPos[k * 3 + 2] = (Math.random() - 0.5) * (d - 0.4);
-    }
-    const fogGeo = new THREE.BufferGeometry();
-    fogGeo.setAttribute('position', new THREE.BufferAttribute(fogPos, 3));
-    const fogMat = new THREE.PointsMaterial({
-      color: 0x94a3b8, size: 0.16, transparent: true, opacity: 0,
-      depthWrite: false, sizeAttenuation: true,
-    });
-    const fog = new THREE.Points(fogGeo, fogMat);
-    fog.visible = false;
-    root.add(fog);
-
+    const { root, slab, pitLight, fog } = buildStairsMesh(rect, this.mats);
     this.group.add(root);
+
     this.stairs = {
       rect, root, slab, pitLight, fog,
       state: 'closed', t: 0, shakeSeed: Math.random() * 10,
@@ -171,10 +119,6 @@ export class StairsRenderer {
   dispose() {
     this.clear();
     this.scene.remove(this.group);
-    this.stoneMat.dispose?.();
-    this.stoneDarkMat.dispose?.();
-    this.ironMat.dispose?.();
-    this.goldMat.dispose?.();
-    this.blackMat.dispose?.();
+    for (const mat of Object.values(this.mats || {})) mat.dispose?.();
   }
 }
