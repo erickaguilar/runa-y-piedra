@@ -819,33 +819,48 @@ export const ModalMixin = {
       </div>
     `;
 
-    overlay.addEventListener('click', (e) => {
+    const handleBackdrop = (e) => {
       if (e.target === overlay) {
+        if (e.cancelable) e.preventDefault();
         soundManager.playClick();
         this.closeConfirmDialog();
         onCancel?.();
       }
-    });
+    };
+    overlay.addEventListener('click', handleBackdrop);
+    overlay.addEventListener('touchend', handleBackdrop, { passive: false });
 
-    this.uiEl.appendChild(overlay);
+    (document.body || this.uiEl).appendChild(overlay);
 
     const btnCancel = document.getElementById('btn-confirm-cancel');
     const btnAccept = document.getElementById('btn-confirm-accept');
 
     if (btnCancel) {
-      btnCancel.onclick = () => {
+      const handleCancel = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
         soundManager.playClick();
         this.closeConfirmDialog();
         onCancel?.();
       };
+      btnCancel.onclick = handleCancel;
+      btnCancel.addEventListener('touchend', handleCancel, { passive: false });
     }
 
     if (btnAccept) {
-      btnAccept.onclick = () => {
+      const handleAccept = async (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
         soundManager.playClick();
         this.closeConfirmDialog();
-        onConfirm?.();
+        return await onConfirm?.();
       };
+      btnAccept.onclick = handleAccept;
+      btnAccept.addEventListener('touchend', handleAccept, { passive: false });
     }
   },
 
@@ -1675,8 +1690,11 @@ export const ModalMixin = {
 
     // Cargar ranura
     overlay.querySelectorAll('.btn-slot-load').forEach(btn => {
-      btn.onclick = async (e) => {
-        e.stopPropagation();
+      const handleLoad = async (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
         soundManager.playClick();
         const slotId = btn.dataset.slotId;
         try {
@@ -1686,7 +1704,7 @@ export const ModalMixin = {
           localStorage.setItem('dungeon_player_name', this.playerName);
           localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
           if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-            window.__game.chapterRegistry.load();
+            window.__game.chapterRegistry.load?.();
           }
           this.settingsCallbacks?.onProfileSave?.({ name: this.playerName, colorIndex: this.selectedColorIndex });
           const num = slotId.replace('slot_', '');
@@ -1696,12 +1714,17 @@ export const ModalMixin = {
           this.showNarrativeMessage(`Error al cargar ranura: ${err.message}`, 3500);
         }
       };
+      btn.onclick = handleLoad;
+      btn.addEventListener('touchend', handleLoad, { passive: false });
     });
 
     // Nueva partida en ranura vacía
     overlay.querySelectorAll('.btn-slot-new').forEach(btn => {
-      btn.onclick = async (e) => {
-        e.stopPropagation();
+      const handleNew = async (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
         soundManager.playClick();
         const slotId = btn.dataset.slotId;
         try {
@@ -1711,7 +1734,7 @@ export const ModalMixin = {
           localStorage.setItem('dungeon_player_name', this.playerName);
           localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
           if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-            window.__game.chapterRegistry.load();
+            window.__game.chapterRegistry.load?.();
           }
           this.settingsCallbacks?.onProfileSave?.({ name: this.playerName, colorIndex: this.selectedColorIndex });
           const num = slotId.replace('slot_', '');
@@ -1721,12 +1744,17 @@ export const ModalMixin = {
           this.showNarrativeMessage(`Error al inicializar ranura: ${err.message}`, 3500);
         }
       };
+      btn.onclick = handleNew;
+      btn.addEventListener('touchend', handleNew, { passive: false });
     });
 
     // Exportar partida
     overlay.querySelectorAll('.btn-slot-export').forEach(btn => {
-      btn.onclick = async (e) => {
-        e.stopPropagation();
+      const handleExport = async (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
         soundManager.playClick();
         const slotId = btn.dataset.slotId;
         try {
@@ -1746,12 +1774,17 @@ export const ModalMixin = {
           this.showNarrativeMessage(`Error al exportar: ${err.message}`, 3500);
         }
       };
+      btn.onclick = handleExport;
+      btn.addEventListener('touchend', handleExport, { passive: false });
     });
 
     // Borrar / Reiniciar partida
     overlay.querySelectorAll('.btn-slot-delete').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
+      const handleDelete = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
         soundManager.playClick();
         const slotId = btn.dataset.slotId;
         const num = slotId.replace('slot_', '');
@@ -1764,22 +1797,29 @@ export const ModalMixin = {
           iconColor: '#ef4444',
           danger: true,
           onConfirm: async () => {
-            await saveManager.deleteSlot(slotId);
-            if (slotId === saveManager.currentSlotId) {
-              this.playerName = saveManager.currentSave.profile?.name || 'Aventurero';
-              this.selectedColorIndex = Number.isFinite(saveManager.currentSave.profile?.favoriteHero) ? saveManager.currentSave.profile.favoriteHero : 0;
-              localStorage.setItem('dungeon_player_name', this.playerName);
-              localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
-              if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-                window.__game.chapterRegistry.load();
+            try {
+              await saveManager.deleteSlot(slotId);
+              if (slotId === saveManager.currentSlotId) {
+                this.playerName = saveManager.currentSave.profile?.name || 'Aventurero';
+                this.selectedColorIndex = Number.isFinite(saveManager.currentSave.profile?.favoriteHero) ? saveManager.currentSave.profile.favoriteHero : 0;
+                localStorage.setItem('dungeon_player_name', this.playerName);
+                localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
+                if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
+                  window.__game.chapterRegistry.load?.();
+                }
+                this.settingsCallbacks?.onProfileSave?.({ name: this.playerName, colorIndex: this.selectedColorIndex });
               }
-              this.settingsCallbacks?.onProfileSave?.({ name: this.playerName, colorIndex: this.selectedColorIndex });
+              this.showNarrativeMessage(`💾 Ranura ${num} reiniciada.`, 3000);
+              await this.openSaveSlotsModal();
+            } catch (err) {
+              console.error('[ModalManager] Error borrando ranura:', err);
+              this.showNarrativeMessage(`Error al borrar ranura: ${err.message}`, 3500);
             }
-            this.showNarrativeMessage(`💾 Ranura ${num} reiniciada.`, 3000);
-            await this.openSaveSlotsModal();
           },
         });
       };
+      btn.onclick = handleDelete;
+      btn.addEventListener('touchend', handleDelete, { passive: false });
     });
 
     // Importar partida
@@ -1787,8 +1827,11 @@ export const ModalMixin = {
     let pendingImportSlotId = null;
 
     overlay.querySelectorAll('.btn-slot-import').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
+      const handleImport = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
         soundManager.playClick();
         pendingImportSlotId = btn.dataset.slotId;
         if (fileInput) {
@@ -1796,6 +1839,8 @@ export const ModalMixin = {
           fileInput.click();
         }
       };
+      btn.onclick = handleImport;
+      btn.addEventListener('touchend', handleImport, { passive: false });
     });
 
     if (fileInput) {
@@ -1814,7 +1859,7 @@ export const ModalMixin = {
             localStorage.setItem('dungeon_player_name', this.playerName);
             localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
             if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-              window.__game.chapterRegistry.load();
+              window.__game.chapterRegistry.load?.();
             }
             this.settingsCallbacks?.onProfileSave?.({ name: this.playerName, colorIndex: this.selectedColorIndex });
           }

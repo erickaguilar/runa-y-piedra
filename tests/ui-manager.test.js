@@ -48,6 +48,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       let lastChapterButton = null;
       let lastLobbyButton = null;
       let lastChapterCard = null;
+      let lastDeleteButton = null;
       const mockEl = (tag = 'div') => {
         let _id = '';
         const el = {
@@ -116,6 +117,18 @@ describe('UIManager - Contratos de API de Configuración', () => {
             if (sel?.includes('btn-use-potion')) {
               if (!lastMockButton) lastMockButton = mockEl('button');
               return [lastMockButton];
+            }
+            if (sel?.includes('btn-slot-delete')) {
+              if (!lastDeleteButton) {
+                lastDeleteButton = mockEl('button');
+                lastDeleteButton.dataset = { slotId: 'slot_1' };
+              }
+              return [lastDeleteButton];
+            }
+            if (sel?.includes('menu-slot-chip')) {
+              const chip = mockEl('button');
+              chip.dataset = { slotId: 'slot_1' };
+              return [chip];
             }
             return [];
           },
@@ -723,7 +736,23 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.match(overlay.innerHTML, /Regla de la Mazmorra/);
       assert.match(overlay.innerHTML, /El progreso y los tesoros solo se guardan de forma permanente al culminar una mazmorra/);
 
-      // 4. Cierre del modal
+      // 4. Apertura y flujo de borrado con diálogo de confirmación
+      await ui.openSaveSlotsModal();
+      const deleteButtons = overlay.querySelectorAll('.btn-slot-delete');
+      assert.ok(deleteButtons.length > 0);
+      deleteButtons[0].onclick();
+
+      // Debe abrirse el diálogo de confirmación temático montado
+      const confirmDialog = document.getElementById('modal-confirm-dialog');
+      assert.ok(confirmDialog);
+      assert.match(confirmDialog.innerHTML, /¿Borrar Ranura 1\?/);
+
+      // Confirmar borrado
+      const confirmAccept = document.getElementById('btn-confirm-accept');
+      assert.ok(confirmAccept);
+      await confirmAccept.onclick();
+
+      // 5. Cierre del modal
       ui.closeSaveSlotsModal();
       assert.equal(ui.isSaveSlotsOpen, false);
     });

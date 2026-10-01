@@ -142,7 +142,11 @@ export const MenuMixin = {
     // 6. Ranuras de Guardado en el Menú Principal
     const slotChips = this.uiEl.querySelectorAll('.menu-slot-chip');
     slotChips.forEach(chip => {
-      chip.onclick = async () => {
+      const handleChipClick = async (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
         soundManager.playClick();
         const slotId = chip.dataset.slotId;
         if (slotId === saveManager.currentSlotId) {
@@ -156,7 +160,7 @@ export const MenuMixin = {
           localStorage.setItem('dungeon_player_name', this.playerName);
           localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
           if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-            window.__game.chapterRegistry.load();
+            window.__game.chapterRegistry.load?.();
           }
           this.showMenu(this.lastMenuParams);
           this.showNarrativeMessage(`💾 Ranura ${slotId.replace('slot_', '')} activada y cargada.`, 2500);
@@ -164,14 +168,22 @@ export const MenuMixin = {
           console.warn('[MenuManager] Error cambiando ranura:', err);
         }
       };
+      chip.onclick = handleChipClick;
+      chip.addEventListener('touchend', handleChipClick, { passive: false });
     });
 
     const btnSlots = document.getElementById('btn-open-save-slots');
     if (btnSlots) {
-      btnSlots.onclick = () => {
+      const handleOpenSlots = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
         soundManager.playClick();
         this.openSaveSlotsModal();
       };
+      btnSlots.onclick = handleOpenSlots;
+      btnSlots.addEventListener('touchend', handleOpenSlots, { passive: false });
     }
   },
 

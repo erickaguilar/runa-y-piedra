@@ -246,6 +246,11 @@ export class ChapterRegistry {
     return lastDungeon.id === levelId;
   }
 
+  load() {
+    this.progress = this.loadProgress();
+    return this.progress;
+  }
+
   loadProgress() {
     // 1. Intentar cargar desde saveManager v2 si ya está inicializado
     if (saveManager && saveManager.currentSave?.campaign) {

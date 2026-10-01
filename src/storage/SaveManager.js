@@ -424,6 +424,13 @@ export class SaveManager {
       this._writeLegacyMirror(this.currentSave);
       this._notifyChange();
     }
+    if (slotId === DEFAULT_SLOT_ID) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(LEGACY_CAMPAIGN_KEY);
+        }
+      } catch {}
+    }
     return true;
   }
 
