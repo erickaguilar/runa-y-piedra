@@ -1,13 +1,19 @@
 // src/render/textures/ceilings.js
 
 /**
- * Tile 23: Techo 1 — Bóveda de cantería con nervaduras góticas cruzadas y clave central.
- * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
- * @returns {string} Fragmento SVG.
+ * Genera la estructura base unificada para todos los sprites de techo:
+ * piedra oscura de sillar cenital, bisel de profundidad perimetral,
+ * juntas de mampostería en 4 cuadrantes, nervaduras diagonales cruzadas
+ * (arcos fajones de crucería de ojiva) y clave central circular tallada en relieve.
+ * Comparte la misma filosofía que los pilares y la lava: estructura común idéntica
+ * con ligeros cambios/detalles distintivos en el interior de cada variante.
+ *
+ * @param {number} S - Tamaño de celda en píxeles (default: 128).
+ * @returns {string} Fragmento SVG base unificado.
  */
-export function ceilingVault(S = 128) {
+function createCeilingBaseSvg(S = 128) {
   return `
-    <!-- Fondo base: Piedra oscura de sillar cenital -->
+    <!-- Fondo base: Piedra oscura de sillar cenital unificada -->
     <rect width="${S}" height="${S}" fill="#181a20"/>
     <rect x="2" y="2" width="${S - 4}" height="${S - 4}" fill="#22252c"/>
 
@@ -60,244 +66,196 @@ export function ceilingVault(S = 128) {
 }
 
 /**
- * Tile 24: Techo 2 — Artesonado de vigas de roble cruzadas con herrajes de hierro forjado.
+ * Tile 23: Techo 1 — Bóveda Gótica de Crucería / Base Limpia.
+ * Estructura base unificada con relieve de aristas, nervaduras y micro-desgaste mineral sutil.
+ * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
+ * @returns {string} Fragmento SVG.
+ */
+export function ceilingVault(S = 128) {
+  return `
+    ${createCeilingBaseSvg(S)}
+
+    <!-- Detalle Característico 1: Micro-desgaste de cantería y textura mineral sutil -->
+    <g fill="#4b5563" opacity="0.4">
+      <circle cx="48" cy="28" r="1.5"/><circle cx="80" cy="28" r="1.2"/>
+      <circle cx="28" cy="48" r="1.2"/><circle cx="28" cy="80" r="1.5"/>
+      <circle cx="100" cy="48" r="1.5"/><circle cx="100" cy="80" r="1.2"/>
+      <circle cx="48" cy="100" r="1.2"/><circle cx="80" cy="100" r="1.5"/>
+    </g>
+  `;
+}
+
+/**
+ * Tile 24: Techo 2 — Bóveda con Refuerzos de Hierro Forjado y Herrajes.
+ * Misma base unificada enriquecida con placa de unión central de forja y remaches en dovelas.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function ceilingCoffered(S = 128) {
   return `
-    <!-- Fondo: Paneles de madera de roble rehundidos en 4 casetones -->
-    <rect width="${S}" height="${S}" fill="#1c140e"/>
+    ${createCeilingBaseSvg(S)}
 
-    <!-- 4 Casetones cuadrangulares con veta de madera -->
-    <!-- Casetón 1: Noroeste -->
-    <rect x="6" y="6" width="50" height="50" fill="#291e17"/>
-    <path d="M 6,6 L 56,6 L 52,10 L 10,10 L 10,52 L 6,56 Z" fill="#3b2b21" opacity="0.6"/>
-    <path d="M 56,6 L 56,56 L 6,56 L 10,52 L 52,52 L 52,10 Z" fill="#120c08" opacity="0.8"/>
-    <line x1="16" y1="12" x2="16" y2="50" stroke="#1f1611" stroke-width="1.2"/>
-    <line x1="32" y1="12" x2="32" y2="50" stroke="#1f1611" stroke-width="1.2"/>
+    <!-- Detalle Característico 2: Placa de unión de hierro forjado y remaches en clave y dovelas -->
+    <!-- Placa cuadrada de forja sobre la clave central -->
+    <rect x="52" y="52" width="24" height="24" fill="#1c1917" stroke="#3b4252" stroke-width="1.5"/>
+    <circle cx="64" cy="64" r="5" fill="#0d0e12" stroke="#4c566a" stroke-width="1"/>
+    <circle cx="64" cy="64" r="2" fill="#78716c"/>
+    <!-- 4 Remaches de forja en las esquinas de la placa central -->
+    <circle cx="56" cy="56" r="1.8" fill="#9ca3af" stroke="#121418" stroke-width="0.8"/>
+    <circle cx="72" cy="56" r="1.8" fill="#9ca3af" stroke="#121418" stroke-width="0.8"/>
+    <circle cx="56" cy="72" r="1.8" fill="#9ca3af" stroke="#121418" stroke-width="0.8"/>
+    <circle cx="72" cy="72" r="1.8" fill="#9ca3af" stroke="#121418" stroke-width="0.8"/>
 
-    <!-- Casetón 2: Noreste -->
-    <rect x="72" y="6" width="50" height="50" fill="#291e17"/>
-    <path d="M 72,6 L 122,6 L 118,10 L 76,10 L 76,52 L 72,56 Z" fill="#3b2b21" opacity="0.6"/>
-    <path d="M 122,6 L 122,56 L 72,56 L 76,52 L 118,52 L 118,10 Z" fill="#120c08" opacity="0.8"/>
-    <line x1="88" y1="12" x2="88" y2="50" stroke="#1f1611" stroke-width="1.2"/>
-    <line x1="104" y1="12" x2="104" y2="50" stroke="#1f1611" stroke-width="1.2"/>
-
-    <!-- Casetón 3: Suroeste -->
-    <rect x="6" y="72" width="50" height="50" fill="#291e17"/>
-    <path d="M 6,72 L 56,72 L 52,76 L 10,76 L 10,118 L 6,122 Z" fill="#3b2b21" opacity="0.6"/>
-    <path d="M 56,72 L 56,122 L 6,122 L 10,118 L 52,118 L 52,76 Z" fill="#120c08" opacity="0.8"/>
-    <line x1="16" y1="78" x2="16" y2="116" stroke="#1f1611" stroke-width="1.2"/>
-    <line x1="32" y1="78" x2="32" y2="116" stroke="#1f1611" stroke-width="1.2"/>
-
-    <!-- Casetón 4: Sureste -->
-    <rect x="72" y="72" width="50" height="50" fill="#291e17"/>
-    <path d="M 72,72 L 122,72 L 118,76 L 76,76 L 76,118 L 72,122 Z" fill="#3b2b21" opacity="0.6"/>
-    <path d="M 122,72 L 122,122 L 72,122 L 76,118 L 118,118 L 118,76 Z" fill="#120c08" opacity="0.8"/>
-    <line x1="88" y1="78" x2="88" y2="116" stroke="#1f1611" stroke-width="1.2"/>
-    <line x1="104" y1="78" x2="104" y2="116" stroke="#1f1611" stroke-width="1.2"/>
-
-    <!-- Gran Viga Horizontal de Roble Central (Y: 56 a 72) -->
-    <rect x="0" y="56" width="${S}" height="16" fill="#382416"/>
-    <line x1="0" y1="56" x2="${S}" y2="56" stroke="#4f331f" stroke-width="1.5"/>
-    <line x1="0" y1="72" x2="${S}" y2="72" stroke="#1a110a" stroke-width="2"/>
-    <line x1="0" y1="62" x2="${S}" y2="62" stroke="#2c1c11" stroke-width="1" opacity="0.7"/>
-
-    <!-- Gran Viga Vertical de Roble Central (X: 56 a 72) -->
-    <rect x="56" y="0" width="16" height="${S}" fill="#332114"/>
-    <line x1="56" y1="0" x2="56" y2="${S}" stroke="#4f331f" stroke-width="1.5"/>
-    <line x1="72" y1="0" x2="72" y2="${S}" stroke="#1a110a" stroke-width="2"/>
-    <line x1="62" y1="0" x2="62" y2="${S}" stroke="#2c1c11" stroke-width="1" opacity="0.7"/>
-
-    <!-- Placa de unión de hierro forjado central con remaches -->
-    <rect x="52" y="52" width="24" height="24" fill="#1c1917" stroke="#292524" stroke-width="1.5"/>
-    <circle cx="64" cy="64" r="5" fill="#0c0a09" stroke="#44403c" stroke-width="1"/>
-    <!-- 4 Remaches de forja en las esquinas de la placa -->
-    <circle cx="56" cy="56" r="1.8" fill="#78716c"/>
-    <circle cx="72" cy="56" r="1.8" fill="#78716c"/>
-    <circle cx="56" cy="72" r="1.8" fill="#78716c"/>
-    <circle cx="72" cy="72" r="1.8" fill="#78716c"/>
+    <!-- Abrazaderas metálicas con remaches en las 4 dovelas angulares -->
+    <rect x="32" y="32" width="8" height="8" fill="#1c1917" stroke="#3b4252" stroke-width="1"/>
+    <circle cx="36" cy="36" r="1.5" fill="#9ca3af"/>
+    <rect x="88" y="32" width="8" height="8" fill="#1c1917" stroke="#3b4252" stroke-width="1"/>
+    <circle cx="92" cy="36" r="1.5" fill="#9ca3af"/>
+    <rect x="32" y="88" width="8" height="8" fill="#1c1917" stroke="#3b4252" stroke-width="1"/>
+    <circle cx="36" cy="92" r="1.5" fill="#9ca3af"/>
+    <rect x="88" y="88" width="8" height="8" fill="#1c1917" stroke="#3b4252" stroke-width="1"/>
+    <circle cx="92" cy="92" r="1.5" fill="#9ca3af"/>
   `;
 }
 
 /**
- * Tile 25: Techo 3 — Losa cenital con fracturas tectónicas profundas y filtraciones minerales.
+ * Tile 25: Techo 3 — Bóveda con Fisuras Tectónicas y Filtraciones Minerales.
+ * Misma base unificada con fracturas que cruzan nervaduras, halo de humedad y gotas de condensación.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function ceilingCracked(S = 128) {
   return `
-    <rect width="${S}" height="${S}" fill="#181a20"/>
-    <rect x="2" y="2" width="${S - 4}" height="${S - 4}" fill="#22252c"/>
+    ${createCeilingBaseSvg(S)}
 
-    <!-- Bisel perimetral -->
-    <path d="M 0,0 L ${S},0 L ${S - 4},4 L 4,4 L 4,${S - 4} L 0,${S} Z" fill="#2d323b" opacity="0.5"/>
-    <path d="M ${S},0 L ${S},${S} L 0,${S} L 4,${S - 4} L ${S - 4},${S - 4} L ${S - 4},4 Z" fill="#0d0e12" opacity="0.8"/>
-
-    <!-- Hiladas base de losa con juntas rústicas -->
-    <line x1="0" y1="42" x2="${S}" y2="42" stroke="#121418" stroke-width="3"/>
-    <line x1="0" y1="86" x2="${S}" y2="86" stroke="#121418" stroke-width="3"/>
-    <line x1="64" y1="0" x2="64" y2="42" stroke="#121418" stroke-width="2.5"/>
-    <line x1="48" y1="42" x2="48" y2="86" stroke="#121418" stroke-width="2.5"/>
-    <line x1="84" y1="86" x2="84" y2="${S}" stroke="#121418" stroke-width="2.5"/>
-
-    <!-- Gran fractura tectónica cenital con sombra y realce lumínico -->
-    <!-- Sombra profunda -->
-    <g stroke="#090a0d" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M 18,6 L 32,24 L 28,42 L 48,56 L 62,50 L 78,68 L 88,96 L 76,118 L 82,128"/>
-      <path d="M 48,56 L 68,64 L 94,60 L 112,74"/>
-      <path d="M 28,42 L 14,48 L 4,66"/>
-      <path d="M 78,68 L 70,84 L 54,94"/>
+    <!-- Detalle Característico 3: Fracturas tectónicas profundas, filtración mineral y condensación -->
+    <g stroke="#090a0d" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 18,12 L 28,26 L 36,36 L 46,50 L 64,64 L 74,78 L 86,90 L 98,106 L 110,118"/>
+      <path d="M 46,50 L 58,46 L 72,52 L 88,48"/>
+      <path d="M 74,78 L 70,92 L 56,102"/>
+      <path d="M 28,26 L 16,34 L 8,48"/>
     </g>
 
     <!-- Bisel de fractura 3D de piedra quebrada -->
-    <g stroke="#4b5563" stroke-width="1.1" fill="none" opacity="0.65" stroke-linecap="round">
-      <path d="M 19,6 L 33,24 L 29,42 L 49,56 L 63,50 L 79,68 L 89,96 L 77,118 L 83,128"/>
-      <path d="M 49,56 L 69,64 L 95,60 L 113,74"/>
+    <g stroke="#4b5563" stroke-width="0.9" fill="none" opacity="0.7" stroke-linecap="round">
+      <path d="M 19,12 L 29,26 L 37,36 L 47,50 L 65,64 L 75,78 L 87,90 L 99,106 L 111,118"/>
+      <path d="M 47,50 L 59,46 L 73,52 L 89,48"/>
     </g>
 
-    <!-- Manchas de humedad y filtración mineral de mazmorra -->
-    <g fill="#0e1014" opacity="0.5">
-      <ellipse cx="48" cy="56" rx="14" ry="10"/>
-      <ellipse cx="78" cy="68" rx="12" ry="8"/>
-      <ellipse cx="28" cy="42" rx="10" ry="8"/>
+    <!-- Manchas de humedad oscura acumulada en las fisuras -->
+    <g fill="#0e1014" opacity="0.55">
+      <ellipse cx="46" cy="50" rx="10" ry="7"/>
+      <ellipse cx="74" cy="78" rx="9" ry="6"/>
+      <ellipse cx="64" cy="64" rx="8" ry="8"/>
     </g>
 
-    <!-- Depósitos de caliza/salitre y micro-estalactitas incipientes -->
-    <g fill="#94a3b8" opacity="0.7">
-      <circle cx="32" cy="24" r="2"/>
-      <circle cx="48" cy="56" r="2.5"/>
-      <circle cx="68" cy="64" r="2"/>
-      <circle cx="78" cy="68" r="2.2"/>
-      <circle cx="88" cy="96" r="2"/>
-      <circle cx="76" cy="118" r="1.8"/>
-      <!-- Gotas de condensación translúcidas -->
-      <circle cx="48" cy="59" r="1.2" fill="#e2e8f0"/>
-      <circle cx="78" cy="71" r="1.1" fill="#e2e8f0"/>
+    <!-- Depósitos de caliza/salitre y micro-gotas de condensación -->
+    <g fill="#94a3b8" opacity="0.75">
+      <circle cx="28" cy="26" r="1.8"/>
+      <circle cx="46" cy="50" r="2.2"/>
+      <circle cx="74" cy="78" r="2"/>
+      <circle cx="86" cy="90" r="1.8"/>
+      <!-- Gotas translúcidas a punto de desprenderse -->
+      <circle cx="46" cy="53" r="1.2" fill="#e2e8f0"/>
+      <circle cx="74" cy="81" r="1.1" fill="#e2e8f0"/>
     </g>
   `;
 }
 
 /**
- * Tile 26: Techo 4 — Bóveda con musgo colgante, moho umbrío y humedad subterránea.
+ * Tile 26: Techo 4 — Bóveda con Musgo Colgante y Moho Umbrío.
+ * Misma base unificada con vegetación descendente en 3 capas botánicas y gotas de agua suspendidas.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function ceilingMossy(S = 128) {
   return `
-    <rect width="${S}" height="${S}" fill="#181a20"/>
-    <rect x="2" y="2" width="${S - 4}" height="${S - 4}" fill="#20242a"/>
+    ${createCeilingBaseSvg(S)}
 
-    <!-- Juntas de cantería cenital -->
-    <line x1="0" y1="42" x2="${S}" y2="42" stroke="#121418" stroke-width="3"/>
-    <line x1="0" y1="86" x2="${S}" y2="86" stroke="#121418" stroke-width="3"/>
-    <line x1="64" y1="0" x2="64" y2="42" stroke="#121418" stroke-width="2.5"/>
-    <line x1="32" y1="42" x2="32" y2="86" stroke="#121418" stroke-width="2.5"/>
-    <line x1="96" y1="42" x2="96" y2="86" stroke="#121418" stroke-width="2.5"/>
-    <line x1="64" y1="86" x2="64" y2="${S}" stroke="#121418" stroke-width="2.5"/>
-
-    <!-- Capa 1: Humedad oscura umbría acumulada en grietas y juntas -->
+    <!-- Detalle Característico 4: Colonización vegetal cenital en 3 capas botánicas y gotas de agua -->
+    <!-- Capa 1: Humedad umbría profunda verde oscura -->
     <g fill="#14532d" opacity="0.85">
-      <ellipse cx="64" cy="42" rx="28" ry="12"/>
-      <ellipse cx="32" cy="86" rx="22" ry="10"/>
-      <ellipse cx="96" cy="42" rx="20" ry="9"/>
-      <ellipse cx="48" cy="64" rx="16" ry="14"/>
-      <ellipse cx="88" cy="86" rx="24" ry="11"/>
-      <ellipse cx="20" cy="24" rx="14" ry="12"/>
-      <ellipse cx="108" cy="104" rx="15" ry="12"/>
+      <ellipse cx="64" cy="64" rx="18" ry="18"/>
+      <ellipse cx="36" cy="36" rx="14" ry="10"/>
+      <ellipse cx="92" cy="36" rx="13" ry="9"/>
+      <ellipse cx="36" cy="92" rx="13" ry="9"/>
+      <ellipse cx="92" cy="92" rx="14" ry="10"/>
+      <ellipse cx="64" cy="30" rx="12" ry="7"/>
+      <ellipse cx="64" cy="98" rx="12" ry="7"/>
     </g>
 
-    <!-- Capa 2: Musgo vivo verde bosque que se adhiere al techo -->
+    <!-- Capa 2: Musgo vivo verde bosque -->
     <g fill="#16a34a" opacity="0.9">
-      <circle cx="64" cy="42" r="8"/>
-      <circle cx="56" cy="40" r="5.5"/>
-      <circle cx="72" cy="44" r="6"/>
-      <circle cx="32" cy="86" r="7"/>
-      <circle cx="26" cy="84" r="5"/>
-      <circle cx="38" cy="88" r="4.5"/>
-      <circle cx="48" cy="64" r="7.5"/>
-      <circle cx="88" cy="86" r="8"/>
-      <circle cx="94" cy="84" r="5"/>
-      <circle cx="20" cy="24" r="6"/>
-      <circle cx="108" cy="104" r="6.5"/>
+      <circle cx="64" cy="64" r="10"/>
+      <circle cx="58" cy="60" r="6"/>
+      <circle cx="70" cy="68" r="5.5"/>
+      <circle cx="36" cy="36" r="6"/>
+      <circle cx="92" cy="36" r="5.5"/>
+      <circle cx="36" cy="92" r="5.5"/>
+      <circle cx="92" cy="92" r="6"/>
+      <circle cx="64" cy="30" r="5"/>
+      <circle cx="64" cy="98" r="5"/>
     </g>
 
-    <!-- Capa 3: Brotes y esporas claras de líquenes colgantes -->
+    <!-- Capa 3: Brotes y esporas claras de líquenes -->
     <g fill="#4ade80" opacity="0.75">
-      <circle cx="64" cy="44" r="2.2"/>
-      <circle cx="58" cy="38" r="1.8"/>
-      <circle cx="70" cy="42" r="1.6"/>
-      <circle cx="32" cy="88" r="2"/>
-      <circle cx="28" cy="82" r="1.5"/>
-      <circle cx="48" cy="66" r="2.4"/>
-      <circle cx="88" cy="88" r="2.2"/>
-      <circle cx="92" cy="82" r="1.7"/>
-      <circle cx="20" cy="26" r="1.8"/>
-      <circle cx="108" cy="106" r="2"/>
+      <circle cx="64" cy="66" r="2.2"/>
+      <circle cx="56" cy="58" r="1.6"/>
+      <circle cx="72" cy="70" r="1.8"/>
+      <circle cx="36" cy="38" r="1.8"/>
+      <circle cx="92" cy="38" r="1.8"/>
+      <circle cx="36" cy="94" r="1.8"/>
+      <circle cx="92" cy="94" r="1.8"/>
+      <circle cx="64" cy="32" r="1.6"/>
+      <circle cx="64" cy="100" r="1.6"/>
     </g>
 
-    <!-- Gotas de agua pura condensadas a punto de caer -->
+    <!-- Gotas de condensación translúcidas -->
     <g fill="#e0f2fe" opacity="0.85">
-      <circle cx="64" cy="47" r="1.5"/>
-      <circle cx="32" cy="91" r="1.4"/>
-      <circle cx="48" cy="69" r="1.6"/>
-      <circle cx="88" cy="91" r="1.5"/>
-      <circle cx="20" cy="29" r="1.2"/>
+      <circle cx="64" cy="74" r="1.5"/>
+      <circle cx="36" cy="44" r="1.3"/>
+      <circle cx="92" cy="44" r="1.3"/>
+      <circle cx="36" cy="100" r="1.3"/>
+      <circle cx="92" cy="100" r="1.3"/>
     </g>
   `;
 }
 
 /**
- * Tile 27: Techo 5 — Clave de bóveda arcana con círculo rúnico de contención tectónica.
+ * Tile 27: Techo 5 — Bóveda con Inscripción Rúnica de Contención Arcana.
+ * Misma base unificada con octagrama místico grabado, núcleo ámbar cálido y glifos cardinales.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function ceilingRunic(S = 128) {
   return `
-    <rect width="${S}" height="${S}" fill="#16181e"/>
-    <rect x="2" y="2" width="${S - 4}" height="${S - 4}" fill="#20232a"/>
+    ${createCeilingBaseSvg(S)}
 
-    <!-- Bisel perimetral y ménsulas angulares de soporte -->
-    <path d="M 0,0 L ${S},0 L ${S - 6},6 L 6,6 L 6,${S - 6} L 0,${S} Z" fill="#2d323b" opacity="0.6"/>
-    <path d="M ${S},0 L ${S},${S} L 0,${S} L 6,${S - 6} L ${S - 6},${S - 6} L ${S - 6},6 Z" fill="#0d0e12" opacity="0.85"/>
+    <!-- Detalle Característico 5: Inscripción rúnica arcana, octagrama de contención y núcleo ámbar -->
+    <!-- Círculo rúnico exterior grabado alrededor de la clave -->
+    <circle cx="64" cy="64" r="30" fill="none" stroke="#0f1115" stroke-width="2.5"/>
+    <circle cx="64" cy="64" r="30" fill="none" stroke="#d97706" stroke-width="1.2" opacity="0.75"/>
 
-    <!-- Ménsulas angulares talladas en sillar noble -->
-    <g fill="#272b34" stroke="#121418" stroke-width="1.5">
-      <polygon points="6,6 26,6 6,26"/>
-      <polygon points="122,6 102,6 122,26"/>
-      <polygon points="6,122 26,122 6,102"/>
-      <polygon points="122,122 102,122 122,102"/>
-    </g>
+    <circle cx="64" cy="64" r="22" fill="none" stroke="#0f1115" stroke-width="2"/>
+    <circle cx="64" cy="64" r="22" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/>
 
-    <!-- Círculo rúnico arcano concéntrico -->
-    <circle cx="64" cy="64" r="46" fill="none" stroke="#0f1115" stroke-width="3"/>
-    <circle cx="64" cy="64" r="46" fill="none" stroke="#4b5563" stroke-width="1.2" opacity="0.7"/>
-
-    <circle cx="64" cy="64" r="34" fill="none" stroke="#0f1115" stroke-width="2.5"/>
-    <circle cx="64" cy="64" r="34" fill="none" stroke="#d97706" stroke-width="1.4" opacity="0.75"/>
-
-    <!-- Cuadrado inscrito girado a 45 grados (octagrama de soporte) -->
-    <rect x="42" y="42" width="44" height="44" fill="none" stroke="#0f1115" stroke-width="2"/>
-    <rect x="42" y="42" width="44" height="44" fill="none" stroke="#4b5563" stroke-width="1" opacity="0.6"/>
+    <!-- Octagrama de soporte místico inscrito -->
+    <rect x="50" y="50" width="28" height="28" fill="none" stroke="#d97706" stroke-width="1" opacity="0.7"/>
     <g transform="rotate(45 64 64)">
-      <rect x="42" y="42" width="44" height="44" fill="none" stroke="#0f1115" stroke-width="2"/>
-      <rect x="42" y="42" width="44" height="44" fill="none" stroke="#f59e0b" stroke-width="1.2" opacity="0.75"/>
+      <rect x="50" y="50" width="28" height="28" fill="none" stroke="#f59e0b" stroke-width="1.2" opacity="0.85"/>
     </g>
 
-    <!-- Clave central de contención con núcleo ámbar cálido -->
-    <circle cx="64" cy="64" r="14" fill="#1c1f26" stroke="#0f1115" stroke-width="2"/>
-    <circle cx="64" cy="64" r="14" fill="none" stroke="#d97706" stroke-width="1.2" opacity="0.85"/>
-    <circle cx="64" cy="64" r="8" fill="#d97706" opacity="0.3"/>
-    <circle cx="64" cy="64" r="5" fill="#fef08a" opacity="0.85"/>
-    <circle cx="64" cy="64" r="2.5" fill="#ffffff"/>
+    <!-- Núcleo ámbar incandescente en el centro de la clave de bóveda -->
+    <circle cx="64" cy="64" r="8" fill="#d97706" opacity="0.35"/>
+    <circle cx="64" cy="64" r="5" fill="#fef08a" opacity="0.9"/>
+    <circle cx="64" cy="64" r="2.2" fill="#ffffff"/>
 
-    <!-- 4 Glifos cardinales rúnicos en relieve -->
-    <g fill="#f59e0b" opacity="0.8">
-      <circle cx="64" cy="24" r="2.2"/>
-      <circle cx="64" cy="104" r="2.2"/>
-      <circle cx="24" cy="64" r="2.2"/>
-      <circle cx="104" cy="64" r="2.2"/>
+    <!-- 4 Glifos cardinales rúnicos en los plementos -->
+    <g fill="#f59e0b" opacity="0.85">
+      <circle cx="64" cy="22" r="2"/>
+      <circle cx="64" cy="106" r="2"/>
+      <circle cx="22" cy="64" r="2"/>
+      <circle cx="106" cy="64" r="2"/>
     </g>
   `;
 }

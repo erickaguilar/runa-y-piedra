@@ -43,7 +43,7 @@ El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5
 | **Fila 3** ($v=0.500$) | **Tile 12**: Columna Acanalada | **Tile 13**: Lava 1 (Flujo Base) | **Tile 14**: Salto Jump Pad | **Tile 15**: Pedestal Runa |
 | **Fila 4** ($v=0.375$) | **Tile 16**: Lava 2 (Fisuras Basalto) | **Tile 17**: Lava 3 (Burbujas Gas) | **Tile 18**: Lava 4 (Ascuas/Chispas) | **Tile 19**: Lava 5 (Costra Obsidiana) |
 | **Fila 5** ($v=0.250$) | **Tile 20**: Pilar con Musgo | **Tile 21**: Pilar con Desgaste | **Tile 22**: Pilar Manchas Oscuras | **Tile 23**: Techo Bóveda Cruz |
-| **Fila 6** ($v=0.125$) | **Tile 24**: Techo Artesonado Roble | **Tile 25**: Techo con Fisuras | **Tile 26**: Techo con Musgo | **Tile 27**: Techo Clave Rúnica |
+| **Fila 6** ($v=0.125$) | **Tile 24**: Techo Forja/Remaches | **Tile 25**: Techo con Fisuras | **Tile 26**: Techo con Musgo | **Tile 27**: Techo Clave Rúnica |
 | **Fila 7** ($v=0.000$) | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* |
 
 ### Modularización Atómica del Código de Sprites (`src/render/textures/`)
@@ -54,8 +54,8 @@ Para optimizar el mantenimiento, evitar archivos monolíticos de más de 1,000 l
 - [`src/render/textures/floors.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/floors.js): Suelos (Tiles 5 a 9 — losas limpias, desgaste, musgo, mixto, rombo de santuario).
 - [`src/render/textures/pillars.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/pillars.js): Pilares y Columnas (Tiles 10, 12, 20, 21, 22 — monolítica base, acanalada lisa, musgo, desgaste, manchas oscuras).
 - [`src/render/textures/specials.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/specials.js): Losas interactivas y ceremoniales (Tiles 11, 14, 15 — Respawn Pad, Jump Pad, Pedestal).
-- [`src/render/textures/lava.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/lava.js): Fluidos volcánicos (Tiles 13, 16, 17, 18, 19 — magma activo, fisuras, géiseres, río piroclástico, caldera).
-- [`src/render/textures/ceilings.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/ceilings.js): Techos y Bóvedas (Tiles 23, 24, 25, 26, 27 — bóveda de crucería, artesonado de roble, fracturas, musgo colgante, clave arcana).
+- [`src/render/textures/lava.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/lava.js): Fluidos volcánicos (Tiles 13, 16, 17, 18, 19 — base unificada de magma y basalto con variantes: flujo base, fisuras, burbujas, ascuas, costra flotante).
+- [`src/render/textures/ceilings.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/ceilings.js): Techos y Bóvedas (Tiles 23 a 27 — base unificada de crucería gótica con variantes: limpia, forja, fisuras, musgo, clave rúnica).
 - [`src/render/textures/index.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/index.js): Agregador y ensamblador unificado `createTilesSvgArray(S)`.
 - [`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js): Orquestador desacoplado con máscara de recorte estricta `clipPath` por celda que renderiza el SVG combinado al canvas HTML5 y crea la instancia de `THREE.CanvasTexture`.
 
@@ -118,13 +118,13 @@ Cuenta con **1 sprite exclusivo** (Tile 15):
 - Círculo rúnico arcano con estrella mística de 8 puntas (octagrama) y símbolos de protección para la base del altar.
 
 #### H. Techos y Bóvedas Cenitales (`CEILING` — Bloque Tipo 12)
-Cuenta con **5 sprites distintos** (Tiles 23 al 27). Diseñados específicamente para cubrir la parte superior de las salas, bóvedas y galerías de la mazmorra con rica variedad arquitectónica medieval/fantasía oscura. `VoxelMap.selectTile` distribuye deterministamente las 5 variantes mediante la paleta `[23, 23, 24, 25, 26, 27]` evaluada con `hashCoord(x, y, z)`:
+Cuenta con **5 sprites con estructura base unificada idéntica** (Tiles 23 al 27). Siguiendo la misma filosofía arquitectónica de los pilares y la lava, todos los sprites de techo comparten el 100% de la arquitectura base: fondo de sillar oscuro cenital (`#181a20`), bisel perimetral de profundidad en relieve (`#2d323b`), juntas de cantería en 4 cuadrantes, nervaduras de crucería diagonales cruzadas (arcos fajones de ojiva en `#2d323b` con realce `#4b5563`) y clave central circular tallada en relieve. `VoxelMap.selectTile` distribuye deterministamente las 5 variantes mediante la paleta `[23, 23, 24, 25, 26, 27]` evaluada con `hashCoord(x, y, z)`:
 
-1. **Tile 23 (Bóveda de Crucería Gótica - Base)**: Sillar oscuro cenital con arcos fajones diagonales cruzados en relieve, dovelas de piedra y clave de bóveda central circular tallada con aro exterior de soporte.
-2. **Tile 24 (Artesonado de Vigas de Roble y Forja)**: Cuatro casetones rehundidos de madera de roble oscuro estructurados por dos grandes vigas cruzadas centrales y placa de unión de hierro forjado con 4 remaches perimetrales.
-3. **Tile 25 (Losa con Fracturas y Filtraciones)**: Techo de cantería con fisura tectónica profunda ramificada, halo de humedad oscura y micro-estalactitas o concreciones minerales de caliza/salitre con gotas de condensación.
-4. **Tile 26 (Bóveda con Musgo Colgante y Moho)**: Colonización vegetal cenital en tres capas botánicas (humedad umbría en hendiduras `#14532d`, musgo vivo `#16a34a` y esporas claras `#4ade80`) con micro-gotas de agua suspendidas.
-5. **Tile 27 (Clave de Bóveda Rúnica de Contención)**: Gran glifo rúnico arcano concéntrico con estrella/octagrama de contención tectónica, cuatro ménsulas angulares talladas en sillar noble y núcleo solar cálido de protección mágica.
+1. **Tile 23 (Techo 1: Bóveda de Crucería / Base Limpia)**: Cantería limpia con aristas definidas, nervaduras continuas y micro-desgaste mineral sutil.
+2. **Tile 24 (Techo 2: Bóveda con Refuerzos de Hierro Forjado)**: Misma base unificada enriquecida con una placa cuadrangular central de hierro forjado (`#1c1917`, `#3b4252`) y remaches de forja en la clave y dovelas angulares.
+3. **Tile 25 (Techo 3: Bóveda con Fracturas Tectónicas)**: Misma base unificada con grietas profundas ramificadas que quiebran las nervaduras de piedra, halo de filtración de humedad oscura y depósitos minerales de caliza/salitre con gotas de condensación.
+4. **Tile 26 (Techo 4: Bóveda con Musgo Colgante y Moho)**: Misma base unificada con colonización vegetal descendente en 3 capas botánicas (humedad umbría `#14532d`, musgo vivo `#16a34a` y esporas claras `#4ade80`) adherida a las juntas y dovelas, con microgotas de agua suspendidas.
+5. **Tile 27 (Techo 5: Bóveda con Inscripción Rúnica Arcana)**: Misma base unificada con grabado de círculos rúnicos dorados/ámbar concéntricos, octagrama rotado 45° de contención mágica, núcleo cálido ámbar en la clave y 4 glifos cardinales en los plementos.
 
 ---
 

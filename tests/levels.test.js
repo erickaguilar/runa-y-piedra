@@ -206,6 +206,11 @@ test('los sprites de techo no contienen coordenadas fuera de límites [0, 128] p
     assert.doesNotMatch(svg, /\bpoints="[^"]*13\d+/, `Techo variante ${i} no debe contener coordenadas de puntos mayores a 128`);
     assert.doesNotMatch(svg, /\bd="[^"]*-\d+/, `Techo variante ${i} no debe contener coordenadas path negativas`);
     assert.doesNotMatch(svg, /\bd="[^"]*13\d+/, `Techo variante ${i} no debe contener coordenadas path mayores a 128`);
+
+    // Validar estructura base unificada idéntica (fondo sillar cenital, nervaduras de crucería y clave)
+    assert.ok(svg.includes('fill="#181a20"'), `Techo variante ${i} debe compartir el fondo de sillar #181a20`);
+    assert.ok(svg.includes('stroke="#2d323b" stroke-width="5"'), `Techo variante ${i} debe compartir las nervaduras de crucería base`);
+    assert.ok(svg.includes('cx="64" cy="64" r="16"'), `Techo variante ${i} debe compartir la clave central de bóveda`);
   }
 });
 

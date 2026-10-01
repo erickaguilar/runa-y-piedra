@@ -276,12 +276,12 @@ varying vec2 vAtlasOffset;`
         return lavaPalette[h % lavaPalette.length];
       }
       case BLOCK_TYPES.CEILING: {
-        // 5 Variantes de Techo / Bóvedas (distribución orgánica determinista):
-        // Tile 23: Bóveda de Cantería con Nervaduras de Cruz (dominante)
-        // Tile 24: Artesonado de Vigas de Roble y Forja
-        // Tile 25: Losa con Fracturas y Filtraciones
-        // Tile 26: Bóveda con Musgo Colgante y Moho
-        // Tile 27: Clave de Bóveda Rúnica de Contención Arcana
+        // 5 Variantes de Techo (base común idéntica con sutiles variaciones internas):
+        // Tile 23: Bóveda de Cantería con Nervaduras de Cruz (base limpia)
+        // Tile 24: Bóveda con Refuerzos de Hierro Forjado y Remaches
+        // Tile 25: Bóveda con Fracturas Tectónicas y Filtraciones Minerales
+        // Tile 26: Bóveda con Musgo Colgante y Gotas de Humedad
+        // Tile 27: Bóveda con Clave Rúnica de Contención Arcana
         const ceilingPalette = [23, 23, 24, 25, 26, 27];
         return ceilingPalette[h % ceilingPalette.length];
       }
