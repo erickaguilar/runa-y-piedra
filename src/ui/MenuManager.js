@@ -128,16 +128,28 @@ export const MenuMixin = {
     const btnHost = document.getElementById('btn-host');
     if (btnHost) {
       btnHost.onclick = () => {
-        const name = nameInput ? nameInput.value.trim() || 'Aventurero' : 'Aventurero';
-        onHost({ name, colorIndex: this.selectedColorIndex });
+        const activeSave = saveManager.currentSave;
+        const name = (this.isMenuLocked && activeSave?.profile?.name)
+          ? activeSave.profile.name
+          : (nameInput ? nameInput.value.trim() || 'Aventurero' : (this.playerName || 'Aventurero'));
+        const colorIndex = (this.isMenuLocked && Number.isFinite(activeSave?.profile?.favoriteHero))
+          ? activeSave.profile.favoriteHero
+          : (this.selectedColorIndex ?? 0);
+        onHost({ name, colorIndex });
       };
     }
 
     // 4. Unirse
     const handleJoin = () => {
       const pin = document.getElementById('pin-input')?.value?.trim() || '';
-      const name = nameInput ? nameInput.value.trim() || 'Aventurero' : 'Aventurero';
-      onJoin(pin, { name, colorIndex: this.selectedColorIndex });
+      const activeSave = saveManager.currentSave;
+      const name = (this.isMenuLocked && activeSave?.profile?.name)
+        ? activeSave.profile.name
+        : (nameInput ? nameInput.value.trim() || 'Aventurero' : (this.playerName || 'Aventurero'));
+      const colorIndex = (this.isMenuLocked && Number.isFinite(activeSave?.profile?.favoriteHero))
+        ? activeSave.profile.favoriteHero
+        : (this.selectedColorIndex ?? 0);
+      onJoin(pin, { name, colorIndex });
     };
 
     const btnJoin = document.getElementById('btn-join');
@@ -202,9 +214,6 @@ export const MenuMixin = {
                     <span class="menu-slot-hero-class">${hero.name}</span> • <span class="menu-slot-chapter-val">Cap. ${s.highestChapter}</span>
                   </div>
                 </div>
-                <button class="menu-chip-delete-btn" data-slot-id="${s.slotId}" title="Borrar partida Ranura ${num}" type="button">
-                  ${renderIcon('trash', { size: 11, color: '#ef4444' })}
-                </button>
               </div>
             `}
           </div>
@@ -412,54 +421,6 @@ export const MenuMixin = {
       });
     }
 
-    // Botones de borrado en chips
-    const chipDeleteBtns = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('.menu-chip-delete-btn') : (typeof document !== 'undefined' ? document?.querySelectorAll?.('.menu-chip-delete-btn') : null);
-    if (chipDeleteBtns && chipDeleteBtns.length > 0) {
-      chipDeleteBtns.forEach(btn => {
-        const handleDeleteChip = (e) => {
-          if (e) {
-            e.stopPropagation();
-            if (e.cancelable) e.preventDefault();
-          }
-          soundManager.playClick();
-          const slotId = btn.dataset.slotId;
-          const num = slotId ? slotId.replace('slot_', '') : '1';
-          const summary = (saveManager.getCachedSummaries() || []).find(s => s.slotId === slotId);
-          const hero = summary ? (PLAYER_HEROES[summary.heroIndex] || PLAYER_HEROES[0]) : PLAYER_HEROES[0];
-
-          this.showConfirmDialog({
-            title: `¿Borrar Ranura ${num}?`,
-            message: `¿Estás seguro de que deseas eliminar la partida de ${escapeHtml(summary?.name || 'Aventurero')} (${hero.name})? Esta acción no se puede deshacer.`,
-            confirmText: 'Borrar Guardado',
-            cancelText: 'Cancelar',
-            icon: 'trash',
-            iconColor: '#ef4444',
-            danger: true,
-            onConfirm: async () => {
-              try {
-                await saveManager.deleteSlot(slotId);
-                if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-                  window.__game.chapterRegistry.load?.();
-                }
-                if (slotId === saveManager.currentSlotId) {
-                  this.playerName = 'Aventurero';
-                  this.selectedColorIndex = 0;
-                  localStorage.setItem('dungeon_player_name', this.playerName);
-                  localStorage.setItem('dungeon_player_color', '0');
-                  this.setMenuLockedState(false);
-                }
-                this.showNarrativeMessage(`🗑️ Ranura ${num} borrada. Puedes personalizar un nuevo héroe.`, 3000);
-                await this.refreshMenuSlots();
-              } catch (err) {
-                console.error('[MenuManager] Error borrando ranura:', err);
-                this.showNarrativeMessage(`Error al borrar: ${err.message}`, 3500);
-              }
-            },
-          });
-        };
-        btn.onclick = handleDeleteChip;
-      });
-    }
 
     // Botón de borrado de la ranura activa en cabecera
     const getEl = (id) => (typeof document !== 'undefined' && document?.getElementById ? document.getElementById(id) : (this.uiEl?.querySelector ? this.uiEl.querySelector('#' + id) : null));

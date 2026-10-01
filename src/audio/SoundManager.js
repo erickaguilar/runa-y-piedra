@@ -113,6 +113,12 @@ export class SoundManager {
     return this._isMuted;
   }
 
+  setMuted(muted) {
+    if (this._isMuted !== !!muted) {
+      this.toggleMute();
+    }
+  }
+
   setVolume(vol) {
     this._volume = Math.max(0, Math.min(1, vol));
     if (!this._isMuted && this.masterGain && this.ctx) {

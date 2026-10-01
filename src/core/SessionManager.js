@@ -6,15 +6,49 @@
  */
 import * as Proto from '../network/Protocol.js';
 import { buildWorldSnapshot } from '../network/HostSnapshot.js';
-import { WORLD_CONFIG } from '../config/constants.js';
+import { WORLD_CONFIG, PLAYER_HEROES } from '../config/constants.js';
 import { escapeHtml } from '../ui/Icons.js';
 import { saveManager } from '../storage/SaveManager.js';
 
 export const SessionMixin = {
   async startHost(profile = {}) {
-    const name = profile.name || 'Host';
-    const colorIndex = profile.colorIndex ?? 0;
+    const activeSave = saveManager.currentSave;
+    const name = profile.name || activeSave?.profile?.name || 'Host';
+    const colorIndex = Number.isFinite(profile.colorIndex)
+      ? profile.colorIndex
+      : (Number.isFinite(activeSave?.profile?.favoriteHero) ? activeSave.profile.favoriteHero : 0);
     this.playerManager.setLocalProfile(name, colorIndex);
+
+    // Sincronizar registro de capítulos con el guardado actual
+    if (this.chapterRegistry && typeof this.chapterRegistry.load === 'function') {
+      try {
+        this.chapterRegistry.load();
+      } catch (err) {
+        console.warn('[SessionManager] Error sincronizando chapterRegistry:', err);
+      }
+    }
+
+    // Aplicar configuración guardada en la partida activa
+    if (activeSave?.profile?.settings) {
+      const s = activeSave.profile.settings;
+      if (s.camera && typeof this.setCameraMode === 'function') {
+        this.setCameraMode(s.camera);
+      }
+      if (Number.isFinite(s.sensitivity) && this.input) {
+        this.input.cameraSensitivity = s.sensitivity;
+      }
+      if (typeof s.soundMuted === 'boolean') {
+        if (this.soundManager?.setMuted) {
+          this.soundManager.setMuted(s.soundMuted);
+        } else if (this.soundManager && this.soundManager.isMuted !== s.soundMuted) {
+          this.soundManager.toggleMute();
+        }
+      }
+      if (Number.isFinite(s.dpr) && this.renderer?.setPixelRatio) {
+        const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+        this.renderer.setPixelRatio(Math.min(dpr, s.dpr));
+      }
+    }
 
     this.ui.setStatus('Creando mazmorra...');
     try {
@@ -35,7 +69,17 @@ export const SessionMixin = {
       this.ui.setCrosshairVisible(true);
       this.ui.setActionButtonsVisible(true);
       this.ui.setLivesVisible(true);
-      this.resetInventory({ keepGems: false, keepRelics: false });
+
+      // Cargar inventario persistido (gemas y pociones) desde el save activo
+      this.resetInventory({ keepGems: false, keepRelics: false, keepPotions: false });
+      if (activeSave?.inventory) {
+        this.inventory.gems = activeSave.inventory.totalGems || 0;
+        if (Array.isArray(activeSave.inventory.potions)) {
+          this.inventory.potions = [...activeSave.inventory.potions];
+        }
+        this.ui.updateInventory(this.inventory);
+      }
+
       const lvl = this.world.levelRegistry.getCurrentLevel();
       this.ui.setTutorialControlsVisible(lvl?.id === 'lobby_tutorial');
       const localInit = this.playerManager.localPlayer;
@@ -45,7 +89,14 @@ export const SessionMixin = {
       this.ui.updateLives(localInit.lives, localInit.maxLives);
       this.ui.setHasKey(false);
 
-      this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}). Toca ⚙️ para invitar amigos.`, 5500);
+      // Configurar metadatos del avatar local
+      const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+      this.avatars.setMetadata(0, name, hero.hex || hero.color, hero.id || null);
+
+      const highestChap = activeSave?.campaign?.highestChapterUnlocked || 1;
+      const gemsMsg = this.inventory.gems > 0 ? ` • ${this.inventory.gems}💎` : '';
+      this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}) — ${name} (${hero.name} • Cap. ${highestChap}${gemsMsg}).`, 5500);
+
       this.broadcastRoster();
       this.network.startWorldSnapshot(() => this.collectWorldSnapshot());
     } catch (e) {
