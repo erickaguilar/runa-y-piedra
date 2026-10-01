@@ -139,3 +139,10 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Arquitectura de renderizado multicapa en SVG: lecho incandescente de 7 paradas térmicas, 4 pasadas de corrientes de magma, placas tectónicas de basalto/obsidiana biseladas con microfisuras, domos de gas hirviente con brillos especulares 3D y ascuas flotantes con halos térmicos.
     - Continuidad y mosaico sin costuras (*seamless tiling*) en los bordes del bloque de 128x128 píxeles.
     - Compatibilidad total con Three.js `MeshLambertMaterial` y modulación de color blanco puro (`0xffffff`).
+
+22. [**22. Showroom de Desarrollo y Galería Completa de Bloques**](./22-showroom-desarrollo-y-galeria-bloques.md)
+    - Entorno sandbox completo (`dev_showroom`) con dimensiones de 24x16x36 m², aislado de la rotación de la campaña regular (`isDevOnly`, `hiddenFromCampaign`).
+    - Sala 1 (Galería de Sprites): Podios elevados para cada bloque del Texture Atlas (`FLOOR_STONE`, `FLOOR_WORN`, `FLOOR_MOSS`, `WALL`, `PILLAR`, `RESPAWN_PAD`, `JUMP_PAD`, `LAVA`, `PEDESTAL`).
+    - Sala 2 (Laboratorio de Físicas y Mecánicas): Circuito escalonado de Jump Pads, fosa de lava activa con viscosidad y sumersión, y 3 cofres (Llave Maestra, 250 gemas y poción de vida +1 ❤️).
+    - Divisores con puertas libre y sellada por llave, altar ancestral con orbe flotante y escalinata de descenso ceremonial.
+    - Acceso exclusivo desde el modal de Herramientas Dev (`#btn-dev-enter-showroom` y `#btn-dev-exit-showroom`) con soporte de sesión local directa (`startDevShowroomSession`).

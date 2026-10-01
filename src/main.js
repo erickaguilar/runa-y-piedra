@@ -188,6 +188,7 @@ class VoxelSandboxGame {
     this.initNetworkTimers();
     this.initGameLoop();
     this.initSettings();
+    this.initDev();
     this.initUI();
     if (typeof window !== 'undefined') window.__game = this;
   }
@@ -225,6 +226,34 @@ class VoxelSandboxGame {
       getGameState: () => ({
         inGame: this.mode !== null,
         isHost: this.mode === 'host',
+        currentLevelId: this.world.levelRegistry.currentLevelId,
+        roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
+        joinUrl: this.currentJoinUrl,
+        players: this.playerManager.getAllPlayers(),
+        localPlayer: this.playerManager.localPlayer,
+      }),
+      onToggleDebug: (enable) => {
+        this.network.stats.setEnabled(enable);
+      },
+    });
+  }
+
+  initDev() {
+    this.ui.bindDev({
+      onEnterShowroom: async () => {
+        if (!this.mode) {
+          await this.startDevShowroomSession();
+        } else {
+          this.switchLevel('dev_showroom', this.mode === 'host');
+        }
+      },
+      onExitShowroom: () => {
+        this.switchLevel('lobby_tutorial', this.mode === 'host');
+      },
+      getGameState: () => ({
+        inGame: this.mode !== null,
+        isHost: this.mode === 'host',
+        currentLevelId: this.world.levelRegistry.currentLevelId,
         roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
         joinUrl: this.currentJoinUrl,
         players: this.playerManager.getAllPlayers(),
@@ -283,6 +312,31 @@ class VoxelSandboxGame {
     } catch (e) {
       this.ui.setStatus('Error al crear sala: ' + (e?.message || e));
     }
+  }
+
+  async startDevShowroomSession() {
+    this.mode = 'host';
+    this.playerManager.setLocalId(0);
+    this.playerManager.setLocalProfile('Dev Tester', 0);
+    this.avatars.remove(-1);
+
+    this.ui.currentScreen = 'in_game';
+    this.ui.hideMenu();
+    this.ui.setCrosshairVisible(true);
+    this.ui.setActionButtonsVisible(true);
+    this.ui.setLivesVisible(true);
+    this.resetInventory({ keepGems: false, keepRelics: false });
+
+    const localInit = this.playerManager.localPlayer;
+    if (localInit) {
+      this.input.yaw = Math.PI;
+      localInit.yaw = Math.PI;
+      localInit.resetLives();
+      this.ui.updateLives(localInit.lives, localInit.maxLives);
+      this.ui.setHasKey(false);
+    }
+
+    this.switchLevel('dev_showroom', false);
   }
 
   switchLevel(levelId, broadcast = true, { isGameOver = false } = {}) {
@@ -350,7 +404,9 @@ class VoxelSandboxGame {
     this.reconciler.reset(this.reconciler.lastProcessedSimTime);
     this.inputQueue.clear();
 
-    if (levelData.id === 'lobby_tutorial') {
+    if (levelData.id === 'dev_showroom') {
+      this.ui.showNarrativeMessage('🧪 Showroom de Desarrollo: Galería completa de bloques y físicas.', 5500);
+    } else if (levelData.id === 'lobby_tutorial') {
       const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
         ? window.matchMedia('(pointer: coarse)').matches
         : false;

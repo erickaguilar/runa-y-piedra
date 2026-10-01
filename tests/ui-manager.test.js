@@ -51,6 +51,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
           dataset: { potionIndex: '0', index: '0' },
           children: [],
           addEventListener(evt, fn) { this['on' + evt] = fn; },
+          click() { this.onclick?.(); },
           appendChild(child) { this.children.push(child); return child; },
           querySelector(sel) {
             if (sel?.includes('btn-use-potion')) {
@@ -185,6 +186,8 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.match(uiDev.uiEl.innerHTML, /HERRAMIENTAS DEV/);
       assert.match(uiDev.uiEl.innerHTML, /btn-reload-page/);
       assert.match(uiDev.uiEl.innerHTML, /Recargar Página Ahora/);
+      assert.match(uiDev.uiEl.innerHTML, /btn-dev-enter-showroom/);
+      assert.match(uiDev.uiEl.innerHTML, /Showroom de Bloques/);
       assert.match(uiDev.uiEl.innerHTML, /Telemetría de Red WebRTC/);
       assert.match(uiDev.uiEl.innerHTML, /btn-net-debug-on/);
       assert.match(uiDev.uiEl.innerHTML, /btn-dev-audit/);
@@ -196,6 +199,46 @@ describe('UIManager - Contratos de API de Configuración', () => {
       uiDev.toggleDev();
       assert.equal(uiDev.isDevOpen, true);
       uiDev.toggleDev();
+      assert.equal(uiDev.isDevOpen, false);
+    });
+
+    it('gestiona la navegación hacia y desde el Showroom de Desarrollo en el modal dev', async () => {
+      const uiDev = new UIManager({ isDev: true });
+      let enteredShowroom = false;
+      let exitedShowroom = false;
+
+      uiDev.bindDev({
+        getGameState: () => ({ currentLevelId: 'lobby_tutorial' }),
+        onEnterShowroom: () => { enteredShowroom = true; },
+        onExitShowroom: () => { exitedShowroom = true; },
+      });
+
+      uiDev.openDevModal();
+      assert.match(uiDev.uiEl.innerHTML, /btn-dev-enter-showroom/);
+      assert.doesNotMatch(uiDev.uiEl.innerHTML, /btn-dev-exit-showroom/);
+
+      // Clic en entrar al showroom
+      const enterBtn = document.getElementById('btn-dev-enter-showroom');
+      assert.ok(enterBtn);
+      enterBtn.click();
+      assert.equal(enteredShowroom, true);
+      assert.equal(uiDev.isDevOpen, false);
+
+      // Ahora dentro del showroom
+      uiDev.bindDev({
+        getGameState: () => ({ currentLevelId: 'dev_showroom' }),
+        onEnterShowroom: () => {},
+        onExitShowroom: () => { exitedShowroom = true; },
+      });
+
+      uiDev.openDevModal();
+      assert.match(uiDev.uiEl.innerHTML, /btn-dev-exit-showroom/);
+
+      // Clic en salir del showroom
+      const exitBtn = document.getElementById('btn-dev-exit-showroom');
+      assert.ok(exitBtn);
+      exitBtn.click();
+      assert.equal(exitedShowroom, true);
       assert.equal(uiDev.isDevOpen, false);
     });
 

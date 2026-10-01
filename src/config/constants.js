@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   NAME: 'Runa y Piedra',
-  VERSION: '1.27.0',
+  VERSION: '1.28.0',
 };
 
 export const GAME_CONFIG = {

@@ -5,6 +5,30 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.28.0] - 2026-10-01
+
+### Added
+- **Showroom de Desarrollo y Sandbox de Pruebas de Bloques (`dev_showroom.json`, `LevelRegistry.js`, `UIManager.js`, `main.js`)**:
+  - Mapa de pruebas exhaustivo (`24 × 16 × 36`) que reúne todos los bloques vóxel creados y todas las mecánicas interactivas del motor en un único escenario sin alterar el progreso de la campaña.
+  - **Aislamiento Absoluto de la Campaña**: Registro con banderas `isDevOnly: true` y `hiddenFromCampaign: true`. `LevelRegistry.getAllLevels()` filtra el nivel para que `DescentManager` jamás lo cargue en la rotación regular (`lobby_tutorial` $\to$ `dungeon_classic` $\to$ `crypt_inferno` $\to$ `abyss_throne`).
+  - **Sala 1 (Galería de Sprites y Texturas)**: Podios elevados de $2 \times 2$ para inspeccionar con fidelidad cada bloque del Texture Atlas procedural (`FLOOR_STONE`, `FLOOR_WORN`, `FLOOR_MOSS`, `WALL` con fisuras/musgo/runas, `PILLAR`, `RESPAWN_PAD`, `JUMP_PAD`, `LAVA`, `PEDESTAL`).
+  - **Puerta 1 (Divisor Libre)**: Puerta deslizante 2×2 interactiva con tecla `E` / botón táctil sin requerimiento de llave.
+  - **Sala 2 (Laboratorio de Físicas y Mecánicas)**:
+    - Circuito de salto escalonado con dos *Jump Pads* a diferentes alturas ($y=0 \to y=2 \to y=4$) para verificar el impulso vertical ($14.0$), ausencia de daño por caída y acumulador de delta time a 30 Hz.
+    - Fosa activa de lava de $4 \times 4$ bloques para auditar la física de fluidos no sólidos: sumersión, velocidad terminal reducida ($-1.0$), bloqueo de salto, ciclo de daño por inmersión y reaparición en la losa rúnica con arpegio procedural.
+    - Cofre 1: Otorga la `llave_showroom` (*"Llave Maestra del Showroom"*).
+    - Cofre 2: Otorga 250 gemas arcanas con actualización en vivo del HUD.
+    - Cofre 3: Otorga la `pocion_vida` (+1 ❤️) consumible desde inventario (`B`) o atajo (`P`).
+  - **Puerta 2 (Divisor Sellado)**: Cerradura de seguridad que exige la `llave_showroom` obtenida en el Cofre 1 y la consume al abrirse.
+  - **Sala 3 (Santuario, Reliquias y Escalinata Ceremonial)**: Altar ancestral con orbe flotante en levitación trigonométrica y compuerta de escalinata de descenso.
+- **Acceso Exclusivo desde el Modal de Herramientas Dev (`UIManager.js`, `main.js`)**:
+  - Botón `#btn-dev-enter-showroom` en el modal `#modal-dev` (activo solo en desarrollo o con botón dev).
+  - Botón dinámico `#btn-dev-exit-showroom` para regresar al vestíbulo (`lobby_tutorial`) cuando se está dentro del Showroom.
+  - Método `startDevShowroomSession()` en `main.js`: permite iniciar una sesión local directa en solitario al hacer clic en el Showroom desde el menú principal o vestíbulo, configurando controles, HUD e invulnerabilidad inicial.
+- **Documentación Técnica y Pruebas Unitarias ([`docs/22-showroom-desarrollo-y-galeria-bloques.md`](file:///data/data/com.termux/files/home/develop/game/docs/22-showroom-desarrollo-y-galeria-bloques.md), [`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js), [`tests/ui-manager.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/ui-manager.test.js))**:
+  - Especificación completa de arquitectura del Showroom, topología de salas y flujo de navegación.
+  - Tests unitarios que validan el aislamiento estricto de la campaña, la coherencia de llaves/cofres/puertas, la carga del mapa en `World` y los eventos del modal dev.
+
 ## [1.27.0] - 2026-10-01
 
 ### Added

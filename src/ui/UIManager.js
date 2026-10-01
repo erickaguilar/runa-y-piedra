@@ -803,6 +803,7 @@ export class UIManager {
     const debugEnabled = localStorage.getItem('dungeon_debug') === '1' || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1');
     const callbacks = this.devCallbacks || this.settingsCallbacks || {};
     const state = callbacks.getGameState ? callbacks.getGameState() : {};
+    const isCurrentShowroom = state.currentLevelId === 'dev_showroom' || (typeof window !== 'undefined' && window.__game?.world?.levelRegistry?.currentLevelId === 'dev_showroom');
 
     this.uiEl.innerHTML = `
       <div id="modal-dev" class="menu dev-modal" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
@@ -833,7 +834,32 @@ export class UIManager {
           </button>
         </div>
 
-        <!-- 2. Telemetría de Red WebRTC (?debug=1) -->
+        <!-- 2. Showroom de Bloques & Físicas (Exclusivo Dev) -->
+        <div class="settings-group" style="background:rgba(15, 23, 42, 0.75);border:1px solid rgba(52, 211, 153, 0.35);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 4px 16px rgba(16, 185, 129, 0.12);">
+          <div class="setting-row">
+            <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;color:#34d399;font-weight:700;">
+              ${renderIcon('sparkles', { size: 15, color: '#34d399' })} Showroom de Bloques & Físicas
+            </span>
+            <span class="settings-version-pill" style="color:#34d399;background:rgba(16, 185, 129, 0.15);border-color:rgba(16, 185, 129, 0.35);font-size:9px;">
+              EXCLUSIVO DEV
+            </span>
+          </div>
+          <p style="font-size:11px;color:#94a3b8;margin:4px 0 10px;line-height:1.4;">
+            Mapa completo de pruebas con podios para todos los bloques creados (Sprites del Texture Atlas), circuito de Jump Pads, fosa activa de lava, puertas normales y selladas, cofres con botín/pociones/gemas, escalinata y altar de victoria.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <button id="btn-dev-enter-showroom" class="btn-primary" style="width:100%;padding:10px;background:linear-gradient(135deg,#059669,#047857);border:1px solid #10b981;box-shadow:0 4px 14px rgba(16, 185, 129, 0.3);display:inline-flex;align-items:center;justify-content:center;gap:8px;" title="Cargar mapa showroom">
+              ${renderIcon('castle', { size: 15, color: '#fff' })} 🧪 Entrar al Showroom de Bloques
+            </button>
+            ${isCurrentShowroom ? `
+              <button id="btn-dev-exit-showroom" class="btn-secondary" style="width:100%;padding:9px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#cbd5e1;" title="Volver al lobby">
+                ${renderIcon('refresh', { size: 14, color: '#cbd5e1' })} Volver al Lobby / Tutorial
+              </button>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- 3. Telemetría de Red WebRTC (?debug=1) -->
         <div class="settings-group" style="background:rgba(15, 23, 42, 0.6);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;margin-bottom:12px;">
           <div class="setting-row">
             <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;color:#f8fafc;">
@@ -897,6 +923,28 @@ export class UIManager {
       soundManager.playClick();
       if (typeof window !== 'undefined') {
         window.location.reload();
+      }
+    });
+
+    // Showroom de desarrollo
+    document.getElementById('btn-dev-enter-showroom')?.addEventListener('click', async () => {
+      soundManager.playClick();
+      this.closeDevModal();
+      if (callbacks.onEnterShowroom) {
+        await callbacks.onEnterShowroom();
+      } else if (typeof window !== 'undefined' && window.__game) {
+        if (!window.__game.mode) await window.__game.startDevShowroomSession();
+        else window.__game.switchLevel('dev_showroom', window.__game.mode === 'host');
+      }
+    });
+
+    document.getElementById('btn-dev-exit-showroom')?.addEventListener('click', () => {
+      soundManager.playClick();
+      this.closeDevModal();
+      if (callbacks.onExitShowroom) {
+        callbacks.onExitShowroom();
+      } else if (typeof window !== 'undefined' && window.__game) {
+        window.__game.switchLevel('lobby_tutorial', window.__game.mode === 'host');
       }
     });
 

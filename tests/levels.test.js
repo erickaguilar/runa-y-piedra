@@ -88,3 +88,54 @@ test('abyss_throne Sala 1 contiene el cofre con la poción de vida para recupera
   assert.ok(chest1.message.includes('+1 ❤️'));
 });
 
+test('dev_showroom está registrado pero aislado de la campaña regular', () => {
+  const world = new World();
+  const registry = world.levelRegistry;
+
+  // Existe en el registry
+  const devLvl = registry.getLevel('dev_showroom');
+  assert.ok(devLvl, 'dev_showroom debe estar registrado');
+  assert.equal(devLvl.id, 'dev_showroom');
+  assert.equal(devLvl.isDevOnly, true);
+  assert.equal(devLvl.hiddenFromCampaign, true);
+
+  // La campaña regular (getAllLevels(false)) debe excluir dev_showroom
+  const regularLevels = registry.getAllLevels(false);
+  assert.equal(regularLevels.some(l => l.id === 'dev_showroom'), false, 'dev_showroom no debe aparecer en la campaña');
+  assert.deepEqual(regularLevels.map(l => l.id), ['lobby_tutorial', 'dungeon_classic', 'crypt_inferno', 'abyss_throne']);
+
+  // getAllLevels(true) debe incluir dev_showroom
+  const allLevelsWithDev = registry.getAllLevels(true);
+  assert.equal(allLevelsWithDev.some(l => l.id === 'dev_showroom'), true);
+
+  // Mecánicas de llaves y puertas en el showroom
+  const chest1 = devLvl.chests?.find(c => c.id === 1);
+  assert.ok(chest1, 'Cofre 1 debe existir en dev_showroom');
+  assert.equal(chest1.givesKey, 'llave_showroom');
+
+  const door2 = devLvl.doors?.find(d => d.id === 2);
+  assert.ok(door2, 'Puerta 2 debe existir en dev_showroom');
+  assert.equal(door2.requiresKey, 'llave_showroom');
+
+  // Cofre 2 (gemas) y Cofre 3 (poción)
+  const chest2 = devLvl.chests?.find(c => c.id === 2);
+  assert.equal(chest2.gems, 250);
+  const chest3 = devLvl.chests?.find(c => c.id === 3);
+  assert.equal(chest3.potion?.id, 'pocion_vida');
+
+  // Puede cargarse en World sin errores
+  assert.doesNotThrow(() => {
+    world.loadLevel(devLvl);
+  });
+  assert.equal(world.doors.length, 2);
+  assert.equal(world.chests.length, 3);
+  assert.equal(world.objectives.length, 1);
+  assert.equal(world.stairwells.length, 1);
+
+  let jumpPadCount = 0;
+  for (let i = 0; i < world.blocks.length; i++) {
+    if (world.blocks[i] === BLOCK_TYPES.JUMP_PAD) jumpPadCount++;
+  }
+  assert.ok(jumpPadCount > 0, 'Debe registrar bloques JUMP_PAD');
+});
+
