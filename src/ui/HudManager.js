@@ -28,10 +28,12 @@ export const HudMixin = {
 
   setActionButtonsVisible(visible) {
     const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia('(pointer: coarse)').matches
+      ? (window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0))
       : false;
     const btnInteract = document.getElementById('btn-interact');
     const btnJump = document.getElementById('btn-jump');
+
+    this._actionButtonsVisible = !!visible;
 
     // El botón táctil de salto solo se muestra en dispositivos móviles (en desktop se usa Espacio)
     if (btnJump) btnJump.style.display = (visible && isTouch) ? 'flex' : 'none';
@@ -43,7 +45,6 @@ export const HudMixin = {
         btnInteract.style.display = visible ? 'flex' : 'none';
       }
     }
-    if (!visible) this._interactKey = null;
   },
 
   /**
@@ -58,7 +59,7 @@ export const HudMixin = {
     this._interactKey = key;
 
     const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia('(pointer: coarse)').matches
+      ? (window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0))
       : false;
 
     const iconEl = document.getElementById('interact-icon');
@@ -75,13 +76,19 @@ export const HudMixin = {
       if (labelEl) labelEl.textContent = MAP[key][1];
       btn.classList.remove('dim');
       btn.classList.add('ready');
-      if (!isTouch) btn.style.display = 'flex';
+      if (this._actionButtonsVisible !== false) {
+        btn.style.display = 'flex';
+      }
     } else {
       if (iconEl) iconEl.innerHTML = renderIcon('star', { size: 24 });
       if (labelEl) labelEl.textContent = isTouch ? 'USAR' : '[E] USAR';
       btn.classList.add('dim');
       btn.classList.remove('ready');
-      if (!isTouch) btn.style.display = 'none';
+      if (!isTouch) {
+        btn.style.display = 'none';
+      } else if (this._actionButtonsVisible !== false) {
+        btn.style.display = 'flex';
+      }
     }
   },
 

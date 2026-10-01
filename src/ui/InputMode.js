@@ -20,26 +20,29 @@ export class InputMode {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return 'pc';
     }
-    const isTouch = window.matchMedia('(pointer: coarse)').matches;
-    const hasFine = window.matchMedia('(any-pointer: fine)').matches;
-    // Si tiene apuntador fino (ratón/trackpad físico), priorizar PC en híbridos
-    return hasFine ? 'pc' : (isTouch ? 'touch' : 'pc');
+    const isTouch = window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const hasFine = window.matchMedia('(pointer: fine)').matches && !isTouch;
+    return isTouch ? 'touch' : (hasFine ? 'pc' : 'touch');
   }
 
   _bind() {
     if (typeof window === 'undefined') return;
 
-    // Cualquier pulsación de tecla real -> cambiar inmediatamente a modo PC y marcar timestamp
+    // Cualquier pulsación de tecla real de juego -> cambiar inmediatamente a modo PC si no está en un input
     window.addEventListener('keydown', (e) => {
+      const activeTag = document.activeElement?.tagName;
+      if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || e.isComposing) return;
       this.lastKeyTime = Date.now();
       if (['ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight',
            'AltLeft', 'AltRight', 'MetaLeft', 'MetaRight'].includes(e.code)) return;
       this.setMode('pc');
     }, { passive: true });
 
-    // Toque táctil -> cambiar a modo táctil solo si no se pulsó teclado en los últimos 500ms (evita falsos toques en laptops táctiles)
-    window.addEventListener('touchstart', () => {
-      if (Date.now() - this.lastKeyTime < 500) return;
+    // Toque táctil -> cambiar a modo táctil
+    window.addEventListener('touchstart', (e) => {
+      const activeTag = document.activeElement?.tagName;
+      if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+      if (Date.now() - this.lastKeyTime < 300) return;
       this.setMode('touch');
     }, { passive: true });
   }

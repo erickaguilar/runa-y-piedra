@@ -1301,6 +1301,7 @@ export const ModalMixin = {
     `;
 
     document.body.appendChild(overlay);
+    const openedAt = Date.now();
 
     const closeBtn = overlay.querySelector('#btn-close-chapter');
     const handleClose = (e) => {
@@ -1318,6 +1319,8 @@ export const ModalMixin = {
 
     overlay.onclick = (e) => {
       if (e.target === overlay) {
+        // Evitar descarte accidental por ghost click inmediato al tocar el botón en móvil
+        if (Date.now() - openedAt < 350) return;
         soundManager.playClick();
         this.closeChapterModal();
       }

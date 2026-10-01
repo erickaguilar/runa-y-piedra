@@ -448,6 +448,8 @@ class VoxelSandboxGame {
     const local = this.playerManager.localPlayer;
     this.resetInventory({ keepGems: true, keepRelics: true, keepPotions: true });
     this.ui.setLivesVisible(true);
+    this.ui.setActionButtonsVisible(true);
+    this.ui.setCrosshairVisible(true);
     this.ui.updateLives(local.lives, local.maxLives);
     this.ui.setTutorialControlsVisible(levelData.id === 'lobby_tutorial');
     this.ui.setHasKey(false);
@@ -502,7 +504,7 @@ class VoxelSandboxGame {
     const firstDungeon = dungeons[0];
     if (!firstDungeon) return false;
 
-    if (this.network && (this.network.connections?.size > 0 || this.network.isHosting)) {
+    if (this.network && (this.network.connections?.length > 0 || this.network.isHost)) {
       this.network.broadcast(Proto.serializeChapterSelect(chapterId, firstDungeon.id));
     }
     this.soundManager.playPedestal();
@@ -511,7 +513,7 @@ class VoxelSandboxGame {
 
     setTimeout(() => {
       this.switchLevel(firstDungeon.id, true);
-    }, 600);
+    }, 400);
     return true;
   }
 
