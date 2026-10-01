@@ -273,70 +273,82 @@ export function pillarCracked(S = 128) {
 }
 
 /**
- * Tile 22: Columna tono oscuro — sillar sombrío de basalto ~35% más oscuro.
+ * Tile 22: Columna con manchas oscuras — mismo tono base de cantería (#1c2027) con manchas orgánicas de hollín y humedad profunda.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function pillarDark(S = 128) {
   return `
-    <!-- Fondo base: Basalto/Sillar sombrío ~35% más oscuro que Tile 10 -->
-    <rect width="${S}" height="${S}" fill="#111419"/>
+    <!-- Fondo base: Piedra oscura de sillar macizo (mismo tono unificado #1c2027 que Tile 10, 12, 20 y 21) -->
+    <rect width="${S}" height="${S}" fill="#1c2027"/>
 
-    <!-- Sombreado de volumen cilíndrico más profundo y frío -->
-    <rect x="0" y="0" width="6" height="${S}" fill="#2a303a" opacity="0.45"/>
-    <rect x="6" y="0" width="8" height="${S}" fill="#1c2027" opacity="0.35"/>
-    <!-- Sombra lateral derecha más profunda -->
-    <rect x="116" y="0" width="6" height="${S}" fill="#07080b" opacity="0.75"/>
-    <rect x="122" y="0" width="6" height="${S}" fill="#020304" opacity="0.95"/>
+    <!-- Sombreado de volumen cilíndrico continuo (idéntico al resto de columnas) -->
+    <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
+    <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
+    <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
+    <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
 
-    <!-- 3 Acanaladuras/Estrías verticales profundas continuas de Y=0 a Y=S con mayor contraste -->
-    <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#06080b" stroke-width="2.5" opacity="0.95"/>
-    <line x1="32"   y1="0" x2="32"   y2="${S}" stroke="#020304" stroke-width="2"/>
-    <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#2a303a" stroke-width="1.5" opacity="0.55"/>
+    <!-- 3 Acanaladuras/Estrías verticales profundas continuas de Y=0 a Y=S -->
+    <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+    <line x1="32"   y1="0" x2="32"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
+    <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
 
-    <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#06080b" stroke-width="2.5" opacity="0.95"/>
-    <line x1="64"   y1="0" x2="64"   y2="${S}" stroke="#020304" stroke-width="2"/>
-    <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#2a303a" stroke-width="1.5" opacity="0.55"/>
+    <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+    <line x1="64"   y1="0" x2="64"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
+    <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
 
-    <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#06080b" stroke-width="2.5" opacity="0.95"/>
-    <line x1="96"   y1="0" x2="96"   y2="${S}" stroke="#020304" stroke-width="2"/>
-    <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#1c2027" stroke-width="1.5" opacity="0.5"/>
+    <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
+    <line x1="96"   y1="0" x2="96"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
+    <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
 
-    <!-- Micro-desgaste y erosión en piedra oscura -->
-    <g stroke="#040507" stroke-width="1.4" fill="none" opacity="0.8">
-      <path d="M 16,18 L 19,32 L 15,50 L 18,66"/>
-      <path d="M 48,62 L 52,78 L 47,96 L 51,112"/>
-      <path d="M 80,18 L 77,34 L 81,52 L 78,68"/>
-      <path d="M 110,46 L 107,62 L 111,78"/>
-    </g>
-    <g stroke="#2a303a" stroke-width="0.6" fill="none" opacity="0.35">
-      <path d="M 17,18 L 20,32 L 16,50 L 19,66"/>
-      <path d="M 49,62 L 53,78 L 48,96 L 52,112"/>
-      <path d="M 81,18 L 78,34 L 82,52 L 79,68"/>
+    <!-- Desgaste base sutil -->
+    <g stroke="#080a0d" stroke-width="1.2" fill="none" opacity="0.5">
+      <path d="M 18,22 L 20,38 L 17,54"/>
+      <path d="M 76,66 L 79,82 L 75,98"/>
     </g>
 
-    <!-- Muescas de piedra desconchada -->
+    <!-- MANCHAS OSCURAS (Hollín, pátina de tizne y filtraciones sombrías) -->
+    <!-- Capa 1: Halos exteriores de humedad y pátina difusa -->
+    <g fill="#080a0d" opacity="0.45">
+      <!-- Mancha 1: Fuste y estría izquierda -->
+      <path d="M 24,18 Q 36,12 40,28 Q 44,44 36,60 Q 28,68 22,54 Q 16,36 24,18 Z"/>
+      <!-- Mancha 2: Núcleo central de estría media -->
+      <path d="M 54,48 Q 68,38 76,52 Q 82,68 74,86 Q 64,98 56,88 Q 48,74 54,48 Z"/>
+      <!-- Mancha 3: Zona superior derecha -->
+      <path d="M 88,14 Q 104,10 108,24 Q 112,40 102,52 Q 92,58 86,46 Q 80,30 88,14 Z"/>
+      <!-- Mancha 4: Zona inferior derecha -->
+      <path d="M 82,78 Q 98,70 104,84 Q 108,98 100,114 Q 90,122 84,110 Q 76,96 82,78 Z"/>
+      <!-- Mancha 5: Base inferior izquierda -->
+      <path d="M 12,80 Q 26,76 30,90 Q 32,106 24,118 Q 14,122 10,108 Q 6,94 12,80 Z"/>
+    </g>
+
+    <!-- Capa 2: Núcleos concentrados de manchas oscuras intensas -->
     <g fill="#040507" opacity="0.8">
-      <polygon points="32,32 37,37 32,42"/>
-      <polygon points="64,70 59,75 64,80"/>
-      <polygon points="96,22 91,27 96,32"/>
-      <polygon points="96,86 101,91 96,96"/>
-      <polygon points="16,46 19,51 15,54"/>
-      <polygon points="80,58 84,63 79,66"/>
+      <path d="M 27,24 Q 34,20 37,30 Q 39,42 34,52 Q 28,58 25,48 Q 21,36 27,24 Z"/>
+      <path d="M 58,54 Q 68,46 72,56 Q 76,68 70,80 Q 62,88 58,80 Q 52,70 58,54 Z"/>
+      <path d="M 91,18 Q 102,16 104,26 Q 106,38 99,46 Q 91,50 88,40 Q 85,28 91,18 Z"/>
+      <path d="M 85,84 Q 96,78 100,88 Q 103,98 97,108 Q 89,114 85,104 Q 80,94 85,84 Z"/>
+      <path d="M 14,86 Q 23,82 26,92 Q 27,104 21,112 Q 13,114 11,104 Q 8,94 14,86 Z"/>
     </g>
 
-    <!-- Pátina de hollín volcánico / sombra profunda continua -->
-    <g fill="#020304" opacity="0.55">
-      <ellipse cx="32" cy="58" rx="5" ry="24"/>
-      <ellipse cx="64" cy="46" rx="6" ry="28"/>
-      <ellipse cx="96" cy="74" rx="5" ry="26"/>
-      <ellipse cx="120" cy="64" rx="4" ry="34"/>
-      <ellipse cx="14" cy="38" rx="4" ry="18"/>
-      <ellipse cx="78" cy="94" rx="5" ry="20"/>
+    <!-- Chorretones / filtraciones verticales de hollín por las estrías -->
+    <g fill="#040507" opacity="0.75">
+      <path d="M 31,58 Q 33,70 31,82 L 33,82 Q 34,70 32,58 Z"/>
+      <path d="M 63,86 Q 65,98 63,110 L 65,110 Q 66,98 64,86 Z"/>
+      <path d="M 95,50 Q 97,64 95,76 L 97,76 Q 98,64 96,50 Z"/>
     </g>
 
-    <!-- Picado mineral sutil -->
-    <g fill="#2a303a" opacity="0.25">
+    <!-- Salpicaduras y motas de pátina sombría -->
+    <g fill="#040507" opacity="0.7">
+      <circle cx="44" cy="72" r="2.2"/>
+      <circle cx="48" cy="80" r="1.5"/>
+      <circle cx="78" cy="40" r="2"/>
+      <circle cx="112" cy="60" r="2.2"/>
+      <circle cx="18" cy="68" r="1.8"/>
+    </g>
+
+    <!-- Picado de cantería sutil -->
+    <g fill="#454f5d" opacity="0.25">
       <circle cx="12" cy="30" r="1.5"/><circle cx="24" cy="82" r="2"/>
       <circle cx="44" cy="18" r="2"/><circle cx="54" cy="92" r="1.5"/>
       <circle cx="74" cy="44" r="1.8"/><circle cx="86" cy="100" r="2"/>

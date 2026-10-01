@@ -42,7 +42,7 @@ El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5
 | **Fila 2** ($v=0.625$) | **Tile 8**: Suelo Mixto | **Tile 9**: Suelo Santuario | **Tile 10**: Columna Fuste | **Tile 11**: Losa Respawn |
 | **Fila 3** ($v=0.500$) | **Tile 12**: Columna Acanalada | **Tile 13**: Lava 1 (Magma Activo) | **Tile 14**: Salto Jump Pad | **Tile 15**: Pedestal Runa |
 | **Fila 4** ($v=0.375$) | **Tile 16**: Lava 2 (Fisuras Magma) | **Tile 17**: Lava 3 (Géiseres Gas) | **Tile 18**: Lava 4 (Río Piroclástico) | **Tile 19**: Lava 5 (Caldera Hipertérmica) |
-| **Fila 5** ($v=0.250$) | **Tile 20**: Pilar con Musgo | **Tile 21**: Pilar con Desgaste | **Tile 22**: Pilar Tono Oscuro | **Tile 23**: Techo Bóveda Cruz |
+| **Fila 5** ($v=0.250$) | **Tile 20**: Pilar con Musgo | **Tile 21**: Pilar con Desgaste | **Tile 22**: Pilar Manchas Oscuras | **Tile 23**: Techo Bóveda Cruz |
 | **Fila 6** ($v=0.125$) | **Tile 24**: Techo Artesonado Roble | **Tile 25**: Techo con Fisuras | **Tile 26**: Techo con Musgo | **Tile 27**: Techo Clave Rúnica |
 | **Fila 7** ($v=0.000$) | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* |
 
@@ -52,7 +52,7 @@ Para optimizar el mantenimiento, evitar archivos monolíticos de más de 1,000 l
 
 - [`src/render/textures/walls.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/walls.js): Muros (Tiles 0 a 4 — sillar regular, agrietado, mampostería, musgo, glifo rúnico).
 - [`src/render/textures/floors.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/floors.js): Suelos (Tiles 5 a 9 — losas limpias, desgaste, musgo, mixto, rombo de santuario).
-- [`src/render/textures/pillars.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/pillars.js): Pilares y Columnas (Tiles 10, 12, 20, 21, 22 — monolítica base, acanalada lisa, musgo, desgaste, oscura).
+- [`src/render/textures/pillars.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/pillars.js): Pilares y Columnas (Tiles 10, 12, 20, 21, 22 — monolítica base, acanalada lisa, musgo, desgaste, manchas oscuras).
 - [`src/render/textures/specials.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/specials.js): Losas interactivas y ceremoniales (Tiles 11, 14, 15 — Respawn Pad, Jump Pad, Pedestal).
 - [`src/render/textures/lava.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/lava.js): Fluidos volcánicos (Tiles 13, 16, 17, 18, 19 — magma activo, fisuras, géiseres, río piroclástico, caldera).
 - [`src/render/textures/ceilings.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/ceilings.js): Techos y Bóvedas (Tiles 23, 24, 25, 26, 27 — bóveda de crucería, artesonado de roble, fracturas, musgo colgante, clave arcana).
@@ -88,7 +88,7 @@ Cuenta con **5 sprites distintos** (Tiles 10, 12, 20, 21, 22). Para garantizar u
 2. **Tile 12 (Columna Acanalada Lisa)**: Fuste de cantería limpio con estrías profundas, filetes de iluminación de 1.5 px y sombras laterales de volumen cilíndrico, sin grietas.
 3. **Tile 20 (Columna con Musgo y Líquenes)**: Misma estructura geométrica acanalada enriquecida con 3 capas vegetales: humedad verde oscura en hendiduras (`#14532d`), musgo vivo en verde bosque (`#16a34a`) y brotes de líquenes/esporas en resalte claro (`#4ade80`).
 4. **Tile 21 (Columna con Desgaste y Fracturas)**: Fisura diagonal severa que quiebra el fuste, fracturas ramificadas por estrés de carga (`stroke-width="2.2"`), bisel de luz en bordes de roca quebrada y grandes muescas de cantería desprendida.
-5. **Tile 22 (Columna Tono Oscuro / Basalto Sombrío)**: Fuste de basalto y sillar sombrío ~35% más oscuro (`#111419`), realces lumínicos atenuados, sombras derechas más profundas (`#020304`) y densa pátina de hollín volcánico.
+5. **Tile 22 (Columna con Manchas Oscuras / Hollín y Filtraciones)**: Conserva el tono base idéntico de cantería común (`#1c2027`), sombreado cilíndrico y estrías que los demás pilares, incorporando de forma exclusiva marcadas manchas orgánicas oscuras de hollín y filtraciones sombrías (`#040507`, `#080a0d`), con vetas descendentes por las estrías y salpicaduras satélite de tizne.
 
 #### D. Losa Rúnica de Aparición (`RESPAWN_PAD` — Bloque Tipo 11)
 Cuenta con **1 sprite exclusivo** (Tile 11):

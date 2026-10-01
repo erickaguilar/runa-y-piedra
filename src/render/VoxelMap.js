@@ -255,7 +255,7 @@ varying vec2 vAtlasOffset;`
         // Tile 12: Columna Acanalada Lisa (fuste de cantería limpio)
         // Tile 20: Columna con Musgo (vegetación y líquenes en hendiduras de estrías)
         // Tile 21: Columna con Desgaste (fracturas estructurales y mampostería erosionada)
-        // Tile 22: Columna Tono Oscuro (sillar de basalto ensombrecido)
+        // Tile 22: Columna con Manchas Oscuras (fuste estándar con manchas de hollín y filtraciones sombrías)
         const pillarPalette = [10, 12, 20, 21, 22];
         return pillarPalette[h % pillarPalette.length];
       }

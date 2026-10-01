@@ -204,6 +204,29 @@ test('los sprites de techo no contienen coordenadas fuera de límites [0, 128] p
   }
 });
 
+test('los sprites de pilares no contienen coordenadas fuera de límites [0, 128] y pillarDark comparte el tono base #1c2027', () => {
+  const S = 128;
+  const pillarVariants = [
+    pillarSprites.pillarMonolith(S),
+    pillarSprites.pillarFluted(S),
+    pillarSprites.pillarMossy(S),
+    pillarSprites.pillarCracked(S),
+    pillarSprites.pillarDark(S)
+  ];
+
+  for (let i = 0; i < pillarVariants.length; i++) {
+    const svg = pillarVariants[i];
+    assert.doesNotMatch(svg, /\bpoints="[^"]*-\d+/, `Pilar variante ${i} no debe contener coordenadas de puntos negativas`);
+    assert.doesNotMatch(svg, /\bpoints="[^"]*13\d+/, `Pilar variante ${i} no debe contener coordenadas de puntos mayores a 128`);
+    assert.doesNotMatch(svg, /\bd="[^"]*-\d+/, `Pilar variante ${i} no debe contener coordenadas path negativas`);
+    assert.doesNotMatch(svg, /\bd="[^"]*13\d+/, `Pilar variante ${i} no debe contener coordenadas path mayores a 128`);
+  }
+
+  // pillarDark debe compartir la base #1c2027 y contener manchas oscuras #040507
+  assert.ok(pillarSprites.pillarDark(S).includes('fill="#1c2027"'), 'pillarDark debe usar el mismo tono base #1c2027');
+  assert.ok(pillarSprites.pillarDark(S).includes('fill="#040507"'), 'pillarDark debe contener manchas oscuras');
+});
+
 test('abyss_throne Sala 1 contiene el cofre con la poción de vida para recuperar 1 corazón', () => {
   const world = new World();
   const abyssData = world.levelRegistry.getLevel('abyss_throne');
