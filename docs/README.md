@@ -146,3 +146,8 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Sala 2 (Laboratorio de Físicas y Mecánicas): Circuito escalonado de Jump Pads, fosa de lava activa con viscosidad y sumersión, y 3 cofres (Llave Maestra, 250 gemas y poción de vida +1 ❤️).
     - Divisores con puertas libre y sellada por llave, altar ancestral con orbe flotante y escalinata de descenso ceremonial.
     - Acceso exclusivo desde el modal de Herramientas Dev (`#btn-dev-enter-showroom` y `#btn-dev-exit-showroom`) con soporte de sesión local directa (`startDevShowroomSession`).
+
+23. [**23. Catálogo Técnico de Sprites y Modelos 3D**](./23-catalogo-sprites-y-modelos-3d.md)
+    - Especificación exhaustiva de los 16 sprites procedurales SVG del Texture Atlas (5 de muros, 5 de suelos, 2 de pilares, losa de respawn, magma, jump pad y pedestal).
+    - Desglose detallado de los 11 modelos 3D del motor: 5 arquetipos de héroes con kits distintivos, cofre de botín animado a 85°, puertas batientes de doble hoja, altar con orbe flotante en levitación armónica, escalinata ceremonial con losa corrediza y malla instanciada del mundo vóxel.
+    - Matriz cuantitativa de geometrías, algoritmos deterministas de selección de tiles y presupuestos de Draw Calls (20-35 DC).

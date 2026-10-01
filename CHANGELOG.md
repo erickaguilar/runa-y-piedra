@@ -25,8 +25,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Botón `#btn-dev-enter-showroom` en el modal `#modal-dev` (activo solo en desarrollo o con botón dev).
   - Botón dinámico `#btn-dev-exit-showroom` para regresar al vestíbulo (`lobby_tutorial`) cuando se está dentro del Showroom.
   - Método `startDevShowroomSession()` en `main.js`: permite iniciar una sesión local directa en solitario al hacer clic en el Showroom desde el menú principal o vestíbulo, configurando controles, HUD e invulnerabilidad inicial.
-- **Documentación Técnica y Pruebas Unitarias ([`docs/22-showroom-desarrollo-y-galeria-bloques.md`](file:///data/data/com.termux/files/home/develop/game/docs/22-showroom-desarrollo-y-galeria-bloques.md), [`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js), [`tests/ui-manager.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/ui-manager.test.js))**:
+- **Documentación Técnica y Pruebas Unitarias ([`docs/22-showroom-desarrollo-y-galeria-bloques.md`](file:///data/data/com.termux/files/home/develop/game/docs/22-showroom-desarrollo-y-galeria-bloques.md), [`docs/23-catalogo-sprites-y-modelos-3d.md`](file:///data/data/com.termux/files/home/develop/game/docs/23-catalogo-sprites-y-modelos-3d.md), [`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js), [`tests/ui-manager.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/ui-manager.test.js))**:
   - Especificación completa de arquitectura del Showroom, topología de salas y flujo de navegación.
+  - Catálogo exhaustivo de los 16 sprites procedurales del Texture Atlas y desglose detallado de los 11 modelos 3D paramétricos del motor (5 héroes, cofre interactivo, puertas dobles, altar con orbe, escalinata y mundo vóxel instanciado).
   - Tests unitarios que validan el aislamiento estricto de la campaña, la coherencia de llaves/cofres/puertas, la carga del mapa en `World` y los eventos del modal dev.
 
 ## [1.27.0] - 2026-10-01
