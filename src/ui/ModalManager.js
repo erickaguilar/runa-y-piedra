@@ -1317,16 +1317,21 @@ export const ModalMixin = {
       closeBtn.addEventListener('touchend', handleClose, { passive: false });
     }
 
-    overlay.onclick = (e) => {
+    const handleBackdrop = (e) => {
       if (e.target === overlay) {
         // Evitar descarte accidental por ghost click inmediato al tocar el botón en móvil
         if (Date.now() - openedAt < 350) return;
+        if (e.cancelable) e.preventDefault();
         soundManager.playClick();
         this.closeChapterModal();
       }
     };
+    overlay.onclick = handleBackdrop;
+    overlay.addEventListener('touchend', handleBackdrop, { passive: false });
 
-    const triggerSelect = (chapterId) => {
+    const triggerSelect = (chapterId, isTouchEvent = false) => {
+      // Proteger contra activación inmediata por el touchend del botón táctil que abrió el modal
+      if (isTouchEvent && (Date.now() - openedAt < 350)) return;
       if (!isHost) {
         soundManager.playClick();
         return;
@@ -1344,7 +1349,8 @@ export const ModalMixin = {
           e.stopPropagation();
           if (e.cancelable) e.preventDefault();
         }
-        triggerSelect(btn.dataset.chapterId);
+        const isTouch = e?.type === 'touchend';
+        triggerSelect(btn.dataset.chapterId, isTouch);
       };
       btn.onclick = handleBtn;
       btn.addEventListener('touchend', handleBtn, { passive: false });
@@ -1356,7 +1362,8 @@ export const ModalMixin = {
           e.stopPropagation();
           if (e.cancelable) e.preventDefault();
         }
-        triggerSelect(card.dataset.chapterId);
+        const isTouch = e?.type === 'touchend';
+        triggerSelect(card.dataset.chapterId, isTouch);
       };
       card.onclick = handleSelect;
       card.addEventListener('touchend', handleSelect, { passive: false });
