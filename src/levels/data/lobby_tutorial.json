@@ -7,7 +7,7 @@
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,
-    "sizeZ": 36
+    "sizeZ": 64
   },
   "spawn": {
     "x": 12.0,
@@ -30,7 +30,7 @@
         { "x": 12, "y": 1, "z": 18 },
         { "x": 12, "y": 2, "z": 18 }
       ],
-      "openMessage": "🚪 ¡Puerta abierta! La escalinata sellada te espera al fondo de la sala.",
+      "openMessage": "🚪 ¡Puerta abierta! La zona de entrenamiento y la escalinata sellada te esperan.",
       "requiresKey": "llave_santuario",
       "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave del Cofre de Práctica."
     }
@@ -45,9 +45,9 @@
     },
     {
       "id": "sala_b",
-      "name": "Sala B (Descenso)",
+      "name": "Sala B (Entrenamiento y Descenso)",
       "minZ": 18.5,
-      "maxZ": 36.0,
+      "maxZ": 64.0,
       "respawn": { "x": 12.0, "y": 1.2, "z": 19.5 }
     }
   ],
@@ -63,7 +63,7 @@
       "triggerRadius": 2.8
     }
   ],
-  "stairs": { "x1": 11, "x2": 12, "z1": 31, "z2": 33, "openFromStart": false },
+  "stairs": { "x1": 11, "x2": 12, "z1": 59, "z2": 61, "openFromStart": false },
   "chests": [
     {
       "id": 1,
@@ -78,20 +78,25 @@
     }
   ],
   "regions": [
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 34] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 62] },
     { "type": "perimeter", "height": 5, "block": "WALL" },
     { "type": "divider", "z": 18, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
-    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 62 },
     { "type": "pillar", "x": 5, "z": 5, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 5, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 5, "z": 14, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 14, "height": 5, "block": "PILLAR" },
-    { "type": "fill", "block": "JUMP_PAD", "from": [10, 1, 6], "to": [11, 1, 6] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [12, 1, 8], "to": [13, 1, 8] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [10, 1, 10], "to": [11, 1, 10] },
-    { "type": "pillar", "x": 6, "z": 24, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 24, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 6, "z": 29, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 29, "height": 5, "block": "PILLAR" }
+    { "type": "pillar", "x": 6, "z": 23, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 23, "height": 5, "block": "PILLAR" },
+    { "type": "fill", "block": "JUMP_PAD", "from": [10, 1, 24], "to": [11, 1, 24] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [12, 1, 27], "to": [13, 1, 27] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [10, 1, 30], "to": [11, 1, 30] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [12, 1, 33], "to": [13, 1, 33] },
+    { "type": "pillar", "x": 6, "z": 35, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 35, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 47, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 47, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 57, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 57, "height": 5, "block": "PILLAR" }
   ]
 }

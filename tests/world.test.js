@@ -61,6 +61,6 @@ test('lobby: puerta con llave y escalinata del tutorial', () => {
   assert.equal(chest.givesKey, door.requiresKey);
   assert.deepEqual(
     [world.stairwells[0].x1, world.stairwells[0].x2, world.stairwells[0].z1, world.stairwells[0].z2],
-    [11, 12, 31, 33]
+    [11, 12, 59, 61]
   );
 });

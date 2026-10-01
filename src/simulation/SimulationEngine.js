@@ -230,7 +230,9 @@ export class SimulationEngine {
 
     // 6. Seguridad Anti-Barda y Techo: Si escapa por encima de las bardas perimetrales o el techo
     // No quita vida (es anti-trampas), solo reposiciona sin castigo en el spawn único.
-    if (p.pos.y >= 6.0 || (p.pos.y >= 5.0 && (p.pos.x <= 1.0 || p.pos.x >= WORLD_CONFIG.SIZE_X - 2.0 || p.pos.z <= 1.0 || p.pos.z >= WORLD_CONFIG.SIZE_Z - 2.0))) {
+    const limitX = this.world?.sizeX ?? WORLD_CONFIG.SIZE_X;
+    const limitZ = this.world?.sizeZ ?? WORLD_CONFIG.SIZE_Z;
+    if (p.pos.y >= 6.0 || (p.pos.y >= 5.0 && (p.pos.x <= 1.0 || p.pos.x >= limitX - 2.0 || p.pos.z <= 1.0 || p.pos.z >= limitZ - 2.0))) {
       const currentSpawn = this.world.spawnPoint || {
         x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z,
       };

@@ -19,7 +19,9 @@ function overlaps(world, x, y, z) {
   const maxZ = Math.floor(z + HALF_W);
 
   // Límite físico: impide salir de las dimensiones del mundo
-  if (minX < 0 || maxX >= WORLD_CONFIG.SIZE_X || minZ < 0 || maxZ >= WORLD_CONFIG.SIZE_Z) {
+  const limitX = world?.sizeX ?? WORLD_CONFIG.SIZE_X;
+  const limitZ = world?.sizeZ ?? WORLD_CONFIG.SIZE_Z;
+  if (minX < 0 || maxX >= limitX || minZ < 0 || maxZ >= limitZ) {
     return true;
   }
 

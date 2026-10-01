@@ -187,9 +187,11 @@ varying vec2 vAtlasOffset;`
     this.usedCount = 0;
     this.mesh.count = 0;
 
-    for (let x = 0; x < WORLD_X; x++) {
+    const maxX = this.world?.sizeX || WORLD_X;
+    const maxZ = this.world?.sizeZ || WORLD_Z;
+    for (let x = 0; x < maxX; x++) {
       for (let y = this.minY; y < WORLD_Y; y++) {
-        for (let z = 0; z < WORLD_Z; z++) {
+        for (let z = 0; z < maxZ; z++) {
           const t = this.world.get(x, y, z);
           if (t !== BLOCK_TYPES.AIR && t !== BLOCK_TYPES.DOOR && t !== BLOCK_TYPES.PEDESTAL) {
             this.addBlock(x, y, z, t);

@@ -14,6 +14,8 @@ export class World {
   constructor(levelData = null) {
     this.minY = WORLD_MIN_Y;
     this.sizeY = WORLD_Y_SIZE;
+    this.sizeX = WORLD_X;
+    this.sizeZ = WORLD_Z;
     this.blocks = new Uint8Array(WORLD_X * this.sizeY * WORLD_Z);
     this.isDoor1Open = false;
     this.isDoor2Open = false;
@@ -39,11 +41,15 @@ export class World {
   }
 
   inBounds(x, y, z) {
-    return x >= 0 && x < WORLD_X && y >= this.minY && y < WORLD_Y && z >= 0 && z < WORLD_Z;
+    const maxX = this.sizeX || WORLD_X;
+    const maxZ = this.sizeZ || WORLD_Z;
+    return x >= 0 && x < maxX && y >= this.minY && y < WORLD_Y && z >= 0 && z < maxZ;
   }
 
   isBorder(x, z) {
-    return x === 0 || x === WORLD_X - 1 || z === 0 || z === WORLD_Z - 1;
+    const maxX = this.sizeX || WORLD_X;
+    const maxZ = this.sizeZ || WORLD_Z;
+    return x === 0 || x === maxX - 1 || z === 0 || z === maxZ - 1;
   }
 
   isDoorCoord(x, y, z) {

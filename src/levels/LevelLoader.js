@@ -28,6 +28,9 @@ export class LevelLoader {
     world.isDoor2Open = false;
 
     // 2. Asociar metadata y configuraciones de nivel
+    world.sizeX = sizeX;
+    world.sizeY = sizeY;
+    world.sizeZ = sizeZ;
     world.currentLevel = levelData;
     world.doors = levelData.doors || [];
     world.checkpoints = levelData.checkpoints || [];

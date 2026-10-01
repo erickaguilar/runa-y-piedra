@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   NAME: 'Runa y Piedra',
-  VERSION: '1.36.1',
+  VERSION: '1.37.0',
 };
 
 
@@ -11,7 +11,7 @@ export const GAME_CONFIG = {
 export const WORLD_CONFIG = {
   SIZE_X: 24,
   SIZE_Y: 16,
-  SIZE_Z: 36,
+  SIZE_Z: 64,
   MIN_Y: -8, // Capas inferiores: lava (y=-1) y pozo de escalinata (hasta y=-8)
   SPAWN_X: 12.0,
   SPAWN_Y: 2.1,
