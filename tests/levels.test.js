@@ -139,3 +139,24 @@ test('dev_showroom está registrado pero aislado de la campaña regular', () => 
   assert.ok(jumpPadCount > 0, 'Debe registrar bloques JUMP_PAD');
 });
 
+test('dev_showroom el punto de spawn no contiene bloques sólidos en el cuerpo del jugador', () => {
+  const world = new World();
+  const devLvl = world.levelRegistry.getLevel('dev_showroom');
+  world.loadLevel(devLvl);
+
+  const sp = devLvl.spawn;
+  const sx = Math.floor(sp.x);
+  const sz = Math.floor(sp.z);
+  // En las capas y=1 e y=2 (altura del jugador) en torno al spawn, debe ser aire (0)
+  for (let x = sx - 1; x <= sx + 1; x++) {
+    for (let z = sz - 1; z <= sz + 1; z++) {
+      assert.equal(world.get(x, 1, z), 0, `Bloque en x=${x}, y=1, z=${z} obstruye el spawn`);
+      assert.equal(world.get(x, 2, z), 0, `Bloque en x=${x}, y=2, z=${z} obstruye el spawn`);
+    }
+  }
+
+  // La losa bajo los pies del spawn (y=0) debe ser la losa rúnica RESPAWN_PAD
+  assert.equal(world.get(11, 0, 4), BLOCK_TYPES.RESPAWN_PAD);
+  assert.equal(world.get(12, 0, 4), BLOCK_TYPES.RESPAWN_PAD);
+});
+
