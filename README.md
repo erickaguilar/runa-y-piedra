@@ -6,8 +6,8 @@
 
 > Mazmorra vóxel cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
-[![Version](https://img.shields.io/badge/version-1.31.0-blue.svg)](package.json)
-[![Tests](https://img.shields.io/badge/tests-128%20passed-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-1.32.0-blue.svg)](package.json)
+[![Tests](https://img.shields.io/badge/tests-134%20passed-brightgreen.svg)](tests/)
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-Dual%20Channels-green.svg)](https://webrtc.org/)
 [![Vite](https://img.shields.io/badge/Bundler-Vite%205-purple.svg)](https://vitejs.dev/)
@@ -89,7 +89,7 @@ La interfaz móvil está calibrada para pantallas táctiles de 60–120 Hz sin n
   * **Límite DPR ($\le 1.5$)**: `renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))` para evitar estrangulamiento térmico de GPUs móviles (Mali-G52 / Adreno 610).
   * **Sin Garbage Collection (Zero-GC)**: Paquetes binarios fijos con `DataView` y `ArrayBuffer` reutilizados en el bucle principal.
   * **Físicas Desacopladas a 30 Hz**: Motor de colisiones AABB propio sin sobrecarga en la CPU del teléfono.
-* **Suite de Pruebas Unitarias Integrada**: 128 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas, inventario, niveles y contratos de UI.
+* **Suite de Pruebas Unitarias Integrada**: 134 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas, inventario, niveles y contratos de UI.
 
 ---
 
@@ -101,7 +101,7 @@ El código está estructurado bajo **Clean Architecture** y principios de **Resp
 runa-y-piedra/
 ├── docs/                     # Documentación técnica completa y guías de arquitectura
 │   └── assets/               # Diagramas vectoriales SVG de jugabilidad y HUD móvil
-├── tests/                    # Suite de 128 pruebas automatizadas (node:test)
+├── tests/                    # Suite de 134 pruebas automatizadas (node:test)
 ├── src/
 │   ├── audio/
 │   │   └── SoundManager.js   # Efectos de sonido procedurales con Web Audio API
@@ -131,11 +131,14 @@ runa-y-piedra/
 │   │   ├── LevelLoader.js    # Carga y ensamblado de vóxeles y sensores
 │   │   └── LevelRegistry.js  # Registro de mazmorras y progresión
 │   ├── network/
+│   │   ├── ChannelLinks.js   # Clasificación hot/safe y agrupación por peer
 │   │   ├── ClientReconciler.js # Predicción y reconciliación de movimiento
+│   │   ├── HostSnapshot.js   # Foto de mazmorra para host-migration (sessionStorage)
 │   │   ├── InputQueue.js     # Cola autoritativa de inputs en el Host
-│   │   ├── NetworkManager.js # Canales duales WebRTC (game-safe / game-hot)
-│   │   ├── NetworkStats.js   # Monitor de latencia RTT, ancho de banda y paquetes
-│   │   └── Protocol.js       # Protocolo binario de cero asignación (Zero-GC)
+│   │   ├── NetworkManager.js # Fachada WebRTC: señalización + canales duales
+│   │   ├── NetworkStats.js   # RTT, PPS, FPS, draws y overlay ?debug=1
+│   │   ├── Protocol.js       # Protocolo binario + WORLD_SNAPSHOT 0x11
+│   │   └── SignalingConfig.js # ICE/TURN y errores PeerJS traducidos
 │   ├── render/
 │   │   ├── AvatarRenderer.js # Avatares 3D con interpolación Lerp y nametags
 │   │   ├── ChestRenderer.js  # Mallas de cofres y estados de apertura
@@ -147,11 +150,17 @@ runa-y-piedra/
 │   │   └── VoxelMap.js       # Terreno InstancedMesh único
 │   ├── simulation/
 │   │   └── SimulationEngine.js # Físicas del Host y predicción del Cliente
+│   ├── perf/
+│   │   └── PerfMonitor.js    # FPS real con ventana 1s y colores de presupuesto
 │   ├── ui/
+│   │   ├── HeroManager.js    # Fichas y rasgos de héroes
+│   │   ├── HudManager.js     # Vidas, narrativas, descenso y guía de controles
 │   │   ├── Icons.js          # Iconografía SVG para botones y HUD
 │   │   ├── InputMode.js      # Detección inteligente táctil vs PC
+│   │   ├── MenuManager.js    # Menú, QR, party y compartir enlace
+│   │   ├── ModalManager.js   # Settings, dev, confirm e inventario
 │   │   ├── Spring.js         # Física de resortes para animaciones UI
-│   │   └── UIManager.js      # Menú, QR, selección de héroe, HUD y modales
+│   │   └── UIManager.js      # Fachada (constructor + composición de mixins)
 │   └── main.js               # Orquestador del juego
 ├── index.html                # Canvas a pantalla completa, UI, HUD y controles
 ├── package.json              # Dependencias y scripts
@@ -171,7 +180,7 @@ runa-y-piedra/
 # 1. Instalar dependencias
 npm install
 
-# 2. Ejecutar suite de pruebas unitarias (128 tests)
+# 2. Ejecutar suite de pruebas unitarias (134 tests)
 npm test
 
 # 3. Iniciar servidor de desarrollo en red local

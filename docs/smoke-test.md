@@ -25,6 +25,7 @@ Abre dos ventanas del navegador (una normal como **Anfitrión** y una en modo in
 | **5** | **Interacción del Anfitrión**<br>El Anfitrión abre la puerta con su llave o empuja una losa. | El Invitado ve la puerta abrirse inmediatamente y puede atravesar el umbral sin colisiones fantasma. |
 | **6** | **Desconexión Ordenada**<br>El Invitado cierra la pestaña o sale de la partida. | El Anfitrión recibe el evento `peer-left`:<br>Se muestra el mensaje narrativo *"⚠️ [Nombre] ha abandonado la partida"*, el avatar remoto desaparece de Three.js y la cola de inputs se limpia sin memory leaks. |
 | **7** | **Reconexión / Estado Persistente**<br>Un nuevo Invitado se une a la misma sala en curso. | El nuevo jugador recibe el mapa actual con las puertas ya abiertas, cofres ya saqueados y posición sincronizada. |
+| **8** | **Caída de Host / Reanudar**<br>El Anfitrión cierra la pestaña con un Invitado dentro (snapshot previo de ~5s). | El Invitado recibe `host-closing` y ofrece **Reanudar como Host**: nueva sala PIN con mismo `levelId`, puertas/cofres conservados y narrativa de nueva sala. |
 
 ---
 
@@ -46,8 +47,10 @@ Para garantizar que el juego tolere fluctuaciones de red móvil sin congelarse:
 
 Antes de fusionar `develop` en `main`:
 
-- [ ] `npm test`: 62/62 tests pasando con 0 errores.
+- [ ] `npm test`: 134/134 tests pasando con 0 errores.
+- [ ] `npm run lint`: 0 errores de sintaxis (`node --check`).
 - [ ] `npm run build`: Compilación de producción con Vite terminada con código 0.
-- [ ] Smoke Test de 7 pasos ejecutado satisfactoriamente.
+- [ ] Smoke Test de 8 pasos ejecutado satisfactoriamente (incluye reanudar como Host).
+- [ ] Overlay `?debug=1`: FPS ≥55 verde / draws ≤25 verde, RTT estable.
 - [ ] Prueba rápida con throttling de red (Slow 4G) verificada.
 - [ ] Commit limpio en `develop` y merge hacia `main`.

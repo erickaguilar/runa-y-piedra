@@ -24,6 +24,7 @@ import { soundManager } from './audio/SoundManager.js';
 import { InputMode } from './ui/InputMode.js';
 import { NET_CONFIG, PHYSICS_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from './config/constants.js';
 import { buildWorldSnapshot, loadWorldSnapshot, clearWorldSnapshot } from './network/HostSnapshot.js';
+import { PerfMonitor } from './perf/PerfMonitor.js';
 
 // Auditoría automática de eventos de red WebRTC para diagnóstico en tiempo real
 if (typeof window !== 'undefined') {
@@ -177,6 +178,8 @@ class VoxelSandboxGame {
     this.snapshotSeq = 0;
     this.inputQueue = new InputQueue();
     this.reconciler = new ClientReconciler();
+    this.perf = new PerfMonitor();
+    this._perfAcc = 0;
     // Salto con perdón: buffer 150ms + coyote time 120ms
     this.jumpBufferTime = 0;
     this.lastGroundTime = 0;
@@ -232,6 +235,7 @@ class VoxelSandboxGame {
         joinUrl: this.currentJoinUrl,
         players: this.playerManager.getAllPlayers(),
         localPlayer: this.playerManager.localPlayer,
+        perf: this.network.stats.getPerfSummary(),
       }),
       onToggleDebug: (enable) => {
         this.network.stats.setEnabled(enable);
@@ -259,6 +263,7 @@ class VoxelSandboxGame {
         joinUrl: this.currentJoinUrl,
         players: this.playerManager.getAllPlayers(),
         localPlayer: this.playerManager.localPlayer,
+        perf: this.network.stats.getPerfSummary(),
       }),
       onToggleDebug: (enable) => {
         this.network.stats.setEnabled(enable);
@@ -1122,6 +1127,15 @@ class VoxelSandboxGame {
         }
       },
       onRender: (dt) => {
+        // Perf fase 3: FPS real medido en rAF, push al overlay cada ~0.5s
+        this.perf.record(dt);
+        this._perfAcc += dt;
+        if (this._perfAcc >= 0.5) {
+          this._perfAcc = 0;
+          const { fps } = this.perf.getStats();
+          const dpr = this.sceneManager.renderer?.getPixelRatio?.() || 0;
+          this.network.stats.setPerfStats({ fps, dpr });
+        }
         if (this.mode) {
           const local = this.playerManager.localPlayer;
           local.updateVisualSmoothing(dt);

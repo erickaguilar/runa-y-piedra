@@ -602,6 +602,13 @@ export const ModalMixin = {
               ${renderIcon('trophy', { size: 15, color: '#fbbf24' })} Diagnóstico de Sesión
             </span>
           </div>
+          <div id="dev-perf-summary" style="font-size:11px;color:#94a3b8;margin:4px 0 10px;line-height:1.6;">
+            FPS: <strong style="color:#f8fafc;">${state.perf?.fps ?? '—'}</strong> (obj ≥55)
+            · Draws: <strong style="color:#f8fafc;">${state.perf?.calls ?? '—'}</strong> (≤25)
+            · Tris: <strong style="color:#f8fafc;">${state.perf?.tris ?? '—'}</strong>
+            · DPR: <strong style="color:#f8fafc;">${state.perf?.dpr ? Number(state.perf.dpr).toFixed(2) : '—'}</strong> (≤1.5)
+            · RTT: <strong style="color:#f8fafc;">${state.perf?.rttMs ?? '—'} ms</strong>
+          </div>
           <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
             <button id="btn-dev-audit" class="btn-secondary" style="font-size:11px;padding:9px 10px;display:flex;align-items:center;justify-content:center;gap:6px;">
               ${renderIcon('terminal', { size: 14, color: '#10b981' })} Imprimir Auditoría en Consola (printNetAudit)

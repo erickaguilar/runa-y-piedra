@@ -5,6 +5,22 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.32.0] - 2026-10-01
+
+### Added
+- **Rendimiento medible (Fase 3: `src/perf/PerfMonitor.js`, `NetworkStats.js`, `main.js`, `ModalManager.js`)**:
+  - `PerfMonitor` con ventana 1s + EMA: FPS real desde `GameLoop.onRender`, push al overlay cada 0.5s (`setPerfStats`).
+  - Overlay `?debug=1` con línea FPS (verde ≥55 / ámbar ≥30 / rojo) + DPR real + draws con presupuesto (verde ≤25).
+  - Modal dev con bloque de diagnóstico: FPS, draws, tris, DPR (≤1.5), RTT. `getGameState().perf` expuesto.
+  - Tests `tests/perf-monitor.test.js`: 3 tests (~60fps, ~30fps, colores).
+- **Calidad CI/Lint (`scripts/lint.mjs`, `.github/workflows/ci.yml`, `package.json`)**:
+  - `npm run lint`: `node --check` sobre 79 ficheros vía `git ls-files` (sin nuevas dependencias, apto Termux/Node 18).
+  - `npm run ci`: lint + test + build. CI en push/PR a `main/develop` (Node 20, `npm ci`).
+- **Cobertura de red (`tests/channel-links.test.js`, `tests/world-snapshot-sync.test.js`)**:
+  - 2 tests de `isHotChannel/trackLink/safeForConn` + 1 E2E host→guest de `WORLD_SNAPSHOT` con `sessionStorage` mock. Suite 128 → 134.
+- **Docs (`docs/smoke-test.md`, `README.md`)**:
+  - Paso 8: caída de host / reanudar. Checklist 62 → 134 tests + lint + overlay FPS/RTT. Arquitectura README con `perf/`, `network/` y `ui/` descompuestos.
+
 ## [1.31.0] - 2026-10-01
 
 ### Added

@@ -20,6 +20,10 @@ export class NetworkStats {
     this.softCorrectionsPerSec = 0;
     this.teleportsPerSec = 0;
 
+    // Métricas de rendimiento (Fase 3: PerfMonitor -> overlay)
+    this.fps = 0;
+    this.dpr = 0;
+
     // Conteo continuo
     this.totalPacketsIn = 0;
     this.totalPacketsOut = 0;
@@ -117,6 +121,20 @@ export class NetworkStats {
     }
   }
 
+  setPerfStats({ fps = 0, dpr = 0 } = {}) {
+    this.fps = fps;
+    this.dpr = dpr;
+    if (this.enabled && this.domElement) {
+      this.renderDom();
+    }
+  }
+
+  getPerfSummary() {
+    const calls = this.renderer?.info?.render?.calls ?? null;
+    const tris = this.renderer?.info?.render?.triangles ?? null;
+    return { fps: this.fps, dpr: this.dpr, calls, tris, mode: this.mode, peers: this.peerCount, rttMs: this.rttMs };
+  }
+
   _maybeUpdateWindow() {
     const now = performance.now();
     const dt = (now - this._lastWindowTime) / 1000;
@@ -174,6 +192,9 @@ export class NetworkStats {
     const hasNetworkProblem = this.softCorrectionsPerSec > 2 && this.predError > 0.3;
     const isModerateJitter = this.predError > 0.09 || this.softCorrectionsPerSec > 0;
     const rttColor = this.rttMs > 150 ? '#ef4444' : (this.rttMs > 80 ? '#f59e0b' : '#38bdf8');
+    const fpsColor = this.fps >= 55 ? '#4ade80' : (this.fps >= 30 ? '#f59e0b' : '#ef4444');
+    const calls = this.renderer?.info?.render?.calls;
+    const callsColor = calls == null ? '#94a3b8' : (calls <= 25 ? '#4ade80' : (calls <= 50 ? '#f59e0b' : '#ef4444'));
     const predErrColor = hasNetworkProblem ? '#ef4444' : (isModerateJitter ? '#f59e0b' : '#38bdf8');
     const softColor = this.softCorrectionsPerSec > 2 ? '#ef4444' : (this.softCorrectionsPerSec > 0 ? '#f59e0b' : '#94a3b8');
     const teleColor = this.teleportsPerSec > 0 ? '#ef4444' : '#94a3b8';
@@ -190,9 +211,10 @@ export class NetworkStats {
       <div>In: <strong>${this.ppsIn}</strong> pps (${this.kbpsIn} KB/s)</div>
       <div>Out: <strong>${this.ppsOut}</strong> pps (${this.kbpsOut} KB/s)</div>
       <div>Drops / OOO: <strong style="color:${this.drops > 0 ? '#f59e0b' : '#94a3b8'}">${this.drops}</strong></div>
+      <div>FPS: <strong style="color:${fpsColor}">${this.fps || '—'}</strong>${this.dpr ? ` <span style="color:#94a3b8">| DPR ${Number(this.dpr).toFixed(2)}</span>` : ''}</div>
       ${this.renderer ? `
         <div style="margin-top:4px;border-top:1px solid rgba(255,255,255,0.1);padding-top:2px;font-size:10px;color:#a7f3d0;">
-          Draw Calls: <strong>${this.renderer.info.render.calls}</strong> | Tris: <strong>${this.renderer.info.render.triangles}</strong>
+          Draw Calls: <strong style="color:${callsColor}">${this.renderer.info.render.calls}</strong> <span style="color:#64748b">(≤25)</span> | Tris: <strong>${this.renderer.info.render.triangles}</strong>
         </div>
       ` : ''}
       ${this.mode === 'CLIENT' ? `
