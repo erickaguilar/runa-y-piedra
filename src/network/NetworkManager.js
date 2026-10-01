@@ -1,35 +1,11 @@
 import Peer from 'peerjs';
 import * as Proto from './Protocol.js';
 import { NetworkStats } from './NetworkStats.js';
+import { ICE_SERVERS, getIceConfig, translatePeerError } from './SignalingConfig.js';
+import { isHotChannel, trackLink, safeForConn } from './ChannelLinks.js';
+import { saveWorldSnapshot } from './HostSnapshot.js';
 
-const TURN_USERNAME = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TURN_USERNAME) || '520abdc449e671e900251fc6';
-const TURN_CREDENTIAL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TURN_CREDENTIAL) || 'ML25kOXmKOcfSLFO';
-
-export const ICE_SERVERS = [
-  { urls: 'stun:stun.relay.metered.ca:80' },
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  {
-    urls: 'turn:global.relay.metered.ca:80',
-    username: TURN_USERNAME,
-    credential: TURN_CREDENTIAL,
-  },
-  {
-    urls: 'turn:global.relay.metered.ca:80?transport=tcp',
-    username: TURN_USERNAME,
-    credential: TURN_CREDENTIAL,
-  },
-  {
-    urls: 'turn:global.relay.metered.ca:443',
-    username: TURN_USERNAME,
-    credential: TURN_CREDENTIAL,
-  },
-  {
-    urls: 'turns:global.relay.metered.ca:443?transport=tcp',
-    username: TURN_USERNAME,
-    credential: TURN_CREDENTIAL,
-  },
-];
+export { ICE_SERVERS };
 
 export class NetworkManager extends EventTarget {
   constructor() {
@@ -47,6 +23,7 @@ export class NetworkManager extends EventTarget {
     this._pingInterval = null;
     this._signalingHeartbeat = null;
     this._reconnectTimer = null;
+    this._worldSnapshotTimer = null;
 
     if (typeof window !== 'undefined') {
       window.network = this;
@@ -78,38 +55,11 @@ export class NetworkManager extends EventTarget {
 
   /** Config ICE: STUN/TURN de Metered por defecto + fallback Google STUN + override opcional vía localStorage. */
   getIceConfig() {
-    const iceServers = [...ICE_SERVERS];
-    try {
-      if (typeof window !== 'undefined') {
-        const url = localStorage.getItem('dungeon_turn_url');
-        const user = localStorage.getItem('dungeon_turn_user') || '';
-        const pass = localStorage.getItem('dungeon_turn_pass') || '';
-        if (url) {
-          iceServers.unshift({ urls: url, username: user || undefined, credential: pass || undefined });
-        }
-      }
-    } catch { /* localStorage / window no disponible */ }
-    return {
-      iceServers,
-      iceCandidatePoolSize: 10,
-    };
+    return getIceConfig();
   }
 
   static translatePeerError(e) {
-    const raw = String(e?.message || e?.type || e || '');
-    if (e?.type === 'peer-unavailable' || /peer-unavailable|Could not connect to peer/i.test(raw)) {
-      return 'No se pudo contactar al anfitrión (sala no encontrada). Causas comunes: el anfitrión cerró la partida, cambió de app en móvil (pantalla apagada o en segundo plano), o el PIN es incorrecto. Vuelve a intentarlo.';
-    }
-    if (e?.type === 'unavailable-id' || /unavailable-id|taken/i.test(raw)) {
-      return 'El PIN ya está en uso. Genera una sala nueva.';
-    }
-    if (e?.type === 'network' || /network/i.test(raw)) {
-      return 'Error de conexión de red o NAT restrictivo. Comprueba la conexión Wi-Fi/datos e inténtalo de nuevo.';
-    }
-    if (e?.type === 'server-error' || /server/i.test(raw)) {
-      return 'Servidor de señalización no disponible temporalmente. Reintenta en unos segundos.';
-    }
-    return raw;
+    return translatePeerError(e);
   }
 
   _newPeer(roomIdOrOpts, opts = {}) {
@@ -131,25 +81,12 @@ export class NetworkManager extends EventTarget {
   }
 
   _trackLink(conn, kind) {
-    // kind: 'safe' | 'hot'. Agrupa ambos canales por peer remoto.
-    const peerId = conn?.peer;
-    if (!peerId) return null;
     if (!this._links) this._links = new Map();
-    let link = this._links.get(peerId);
-    if (!link) {
-      link = {};
-      this._links.set(peerId, link);
-    }
-    link[kind] = conn;
-    return link;
+    return trackLink(this._links, conn, kind);
   }
 
   _safeForConn(conn) {
-    // Normaliza al canal safe para que PlayerManager/InputQueue usen una clave estable.
-    const peerId = conn?.peer;
-    const link = peerId && this._links?.get(peerId);
-    if (link?.safe) return link.safe;
-    return conn;
+    return safeForConn(this._links, conn);
   }
 
   host(maxRetries = 5) {
@@ -261,10 +198,7 @@ export class NetworkManager extends EventTarget {
   }
 
   _isHotChannel(conn) {
-    if (conn?.reliable === false) return true;
-    if (conn?.dataChannel && conn.dataChannel.ordered === false) return true;
-    const label = conn?.label || conn?.metadata?.channel || '';
-    return /hot/i.test(label);
+    return isHotChannel(conn);
   }
 
   _attachConnectionDiagnostics(conn, label) {
@@ -674,6 +608,16 @@ export class NetworkManager extends EventTarget {
         this.dispatchEvent(new CustomEvent('potion-use', { detail: potionData }));
         break;
       }
+
+      case Proto.MSG.WORLD_SNAPSHOT: {
+        // Solo los clientes procesan snapshots de mundo (el Host es la fuente).
+        if (this.isHost) break;
+        const snap = Proto.deserializeWorldSnapshot(buf);
+        if (!snap) break;
+        saveWorldSnapshot(snap);
+        this.dispatchEvent(new CustomEvent('world-snapshot', { detail: snap }));
+        break;
+      }
     }
   }
 
@@ -747,8 +691,36 @@ export class NetworkManager extends EventTarget {
     this.sendToHost(buf);
   }
 
+  /** Snapshot de mazmorra (Fase 2 MVP): el Host difunde nivel+puertas+cofres cada ~5s por safe. */
+  startWorldSnapshot(getStateFn, intervalMs = 5000) {
+    this.stopWorldSnapshot();
+    if (typeof getStateFn !== 'function') return;
+    const tick = () => {
+      if (!this.isHost) return;
+      try {
+        const snap = getStateFn();
+        if (!snap) return;
+        this.broadcast(Proto.serializeWorldSnapshot(snap));
+      } catch (e) {
+        console.warn('[WebRTC] Fallo al difundir world-snapshot:', e);
+      }
+    };
+    // Difusión inmediata + periódica (el invitado guarda en sessionStorage al recibir).
+    tick();
+    this._worldSnapshotTimer = setInterval(tick, intervalMs);
+    if (this._worldSnapshotTimer?.unref) this._worldSnapshotTimer.unref();
+  }
+
+  stopWorldSnapshot() {
+    if (this._worldSnapshotTimer) {
+      clearInterval(this._worldSnapshotTimer);
+      this._worldSnapshotTimer = null;
+    }
+  }
+
   disconnect() {
     this._hostClosingHandled = true;
+    this.stopWorldSnapshot();
     if (this._signalingHeartbeat) {
       clearInterval(this._signalingHeartbeat);
       this._signalingHeartbeat = null;

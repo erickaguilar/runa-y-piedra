@@ -23,6 +23,7 @@ import { DescentManager } from './controllers/DescentManager.js';
 import { soundManager } from './audio/SoundManager.js';
 import { InputMode } from './ui/InputMode.js';
 import { NET_CONFIG, PHYSICS_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from './config/constants.js';
+import { buildWorldSnapshot, loadWorldSnapshot, clearWorldSnapshot } from './network/HostSnapshot.js';
 
 // Auditoría automática de eventos de red WebRTC para diagnóstico en tiempo real
 if (typeof window !== 'undefined') {
@@ -309,6 +310,7 @@ class VoxelSandboxGame {
       this.ui.setHasKey(false);
 
       this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}). Toca ⚙️ para invitar amigos.`, 5500);
+      this.network.startWorldSnapshot(() => this.collectWorldSnapshot());
     } catch (e) {
       this.ui.setStatus('Error al crear sala: ' + (e?.message || e));
     }
@@ -421,6 +423,81 @@ class VoxelSandboxGame {
 
     if (broadcast && this.mode === 'host') {
       this.network.broadcast(Proto.serializeLevelChange(levelId, isGameOver));
+    }
+  }
+
+  /** Fase 2 MVP: foto de mazmorra para host-migration (nivel + puertas + cofres + losa). */
+  collectWorldSnapshot() {
+    const levelId = this.world.levelRegistry.currentLevelId || 'lobby_tutorial';
+    const doorsOpen = [];
+    if (this.world.isDoor1Open) doorsOpen.push(1);
+    if (this.world.isDoor2Open) doorsOpen.push(2);
+    if (Array.isArray(this.world.doors)) {
+      for (const d of this.world.doors) {
+        if (d?.id > 2 && this.doorRenderer?.isDoorOpen?.(d.id)) doorsOpen.push(d.id);
+      }
+    }
+    const chestsOpen = Array.isArray(this.world.chests)
+      ? this.world.chests.filter((c) => c?.isOpen).map((c) => c.id)
+      : [];
+    return buildWorldSnapshot({ levelId, doorsOpen, chestsOpen, stairsOpen: !!this.world.stairsOpen });
+  }
+
+  applyWorldSnapshot(snap) {
+    if (!snap) return false;
+    const levelId = snap.levelId || 'lobby_tutorial';
+    this.switchLevel(levelId, false);
+    for (const doorId of snap.doorsOpen || []) {
+      try {
+        this.world.openDoor(doorId);
+        this.voxelMap?.openDoor?.(doorId);
+        this.doorRenderer?.setOpenInstant?.(doorId);
+      } catch { /* puerta inexistente en este nivel */ }
+    }
+    for (const chestId of snap.chestsOpen || []) {
+      try {
+        const chestData = this.world.chests?.find((c) => c.id === chestId);
+        if (chestData) chestData.isOpen = true;
+        this.chestRenderer?.setOpenInstant?.(chestId);
+      } catch { /* cofre inexistente */ }
+    }
+    return true;
+  }
+
+  /** Reanuda la mazmorra como nuevo Host tras caída del anterior (nueva sala PIN). */
+  async resumeAsHostFromSnapshot(snap) {
+    try {
+      this.network.disconnect();
+      const pin = await this.network.host();
+      this.mode = 'host';
+      this.playerManager.setLocalId(0);
+      this.avatars.remove(-1);
+      const name = this.playerManager.localPlayer?.name || this.ui.playerName || 'Anfitrión';
+      const colorIndex = this.playerManager.localPlayer?.colorIndex ?? this.ui.selectedColorIndex ?? 0;
+      this.playerManager.setLocalProfile(name, colorIndex);
+
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const hostAddr = isLocal ? (localStorage.getItem('dungeon_lan_ip') || '192.168.100.28:5173') : window.location.host;
+      this.currentJoinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
+
+      this.applyWorldSnapshot(snap);
+      this.ui.currentScreen = 'in_game';
+      this.ui.hideMenu();
+      this.ui.setCrosshairVisible(true);
+      this.ui.setActionButtonsVisible(true);
+      this.ui.setLivesVisible(true);
+      const local = this.playerManager.localPlayer;
+      if (local) {
+        local.resetLives();
+        this.ui.updateLives(local.lives, local.maxLives);
+      }
+      this.ui.setHasKey(false);
+      this.network.startWorldSnapshot(() => this.collectWorldSnapshot());
+      this.ui.showNarrativeMessage(`🏰 Mazmorra reanudada como Host (nueva sala PIN: ${pin}). Comparte el enlace desde ⚙️.`, 6000);
+    } catch (e) {
+      this.ui.showNarrativeMessage('⚠️ No se pudo reanudar como Host: ' + (e?.message || e), 5000);
+      this.mode = null;
+      window.location.href = window.location.origin + window.location.pathname;
     }
   }
 
@@ -609,6 +686,7 @@ class VoxelSandboxGame {
       }
     }
     this.currentJoinUrl = `${window.location.protocol}//${window.location.host}/?join=${pin}`;
+    this.network.stopWorldSnapshot();
     this.ui.currentScreen = 'in_game';
     this.ui.setCrosshairVisible(true);
     this.ui.setActionButtonsVisible(true);
@@ -683,6 +761,17 @@ class VoxelSandboxGame {
         }
       }
 
+      // 5b. Sincronizar puertas y losa ya abiertas (late-join coherente)
+      if (this.world.isDoor1Open) {
+        this.network.sendTo(conn, Proto.serializeDoorOpen(1));
+      }
+      if (this.world.isDoor2Open) {
+        this.network.sendTo(conn, Proto.serializeDoorOpen(2));
+      }
+      if (this.world.stairsOpen) {
+        this.network.sendTo(conn, Proto.serializeStairsOpen());
+      }
+
       this.avatars.setTarget(
         remotePlayer.id,
         remotePlayer.pos.x,
@@ -721,6 +810,29 @@ class VoxelSandboxGame {
           this.network.disconnect();
           this.ui.showMenu(this.ui.lastMenuParams || {});
         }, 2500);
+        return;
+      }
+      // Fase 2 MVP: si hay snapshot fresco, ofrecer reanudar como Host (nueva sala).
+      const snap = loadWorldSnapshot();
+      if (snap && this.mode === 'client') {
+        this.ui.showNarrativeMessage('🏰 El anfitrión ha abandonado. Puedes reanudar la mazmorra como Host.', 5000);
+        this.soundManager.playHurt();
+        this.ui.showConfirmDialog({
+          title: '¿Reanudar como Anfitrión?',
+          message: `El host cerró la partida en ${snap.levelId}. Puedes reanudarla en una nueva sala con puertas/cofres conservados.`,
+          confirmText: 'Reanudar como Host',
+          cancelText: 'Salir al Menú',
+          icon: 'castle',
+          iconColor: '#38bdf8',
+          danger: false,
+          onConfirm: () => this.resumeAsHostFromSnapshot(snap),
+          onCancel: () => {
+            this.mode = null;
+            this.network.disconnect();
+            clearWorldSnapshot();
+            window.location.href = window.location.origin + window.location.pathname;
+          },
+        });
         return;
       }
       this.ui.showNarrativeMessage('🏰 El anfitrión ha abandonado o cerrado la partida.', 5000);

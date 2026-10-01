@@ -6,8 +6,8 @@
 
 > Mazmorra vóxel cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
-[![Version](https://img.shields.io/badge/version-1.27.0-blue.svg)](package.json)
-[![Tests](https://img.shields.io/badge/tests-107%20passed-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-1.31.0-blue.svg)](package.json)
+[![Tests](https://img.shields.io/badge/tests-128%20passed-brightgreen.svg)](tests/)
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-Dual%20Channels-green.svg)](https://webrtc.org/)
 [![Vite](https://img.shields.io/badge/Bundler-Vite%205-purple.svg)](https://vitejs.dev/)
@@ -89,7 +89,7 @@ La interfaz móvil está calibrada para pantallas táctiles de 60–120 Hz sin n
   * **Límite DPR ($\le 1.5$)**: `renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))` para evitar estrangulamiento térmico de GPUs móviles (Mali-G52 / Adreno 610).
   * **Sin Garbage Collection (Zero-GC)**: Paquetes binarios fijos con `DataView` y `ArrayBuffer` reutilizados en el bucle principal.
   * **Físicas Desacopladas a 30 Hz**: Motor de colisiones AABB propio sin sobrecarga en la CPU del teléfono.
-* **Suite de Pruebas Unitarias Integrada**: 107 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas, inventario, niveles y contratos de UI.
+* **Suite de Pruebas Unitarias Integrada**: 128 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas, inventario, niveles y contratos de UI.
 
 ---
 
@@ -101,7 +101,7 @@ El código está estructurado bajo **Clean Architecture** y principios de **Resp
 runa-y-piedra/
 ├── docs/                     # Documentación técnica completa y guías de arquitectura
 │   └── assets/               # Diagramas vectoriales SVG de jugabilidad y HUD móvil
-├── tests/                    # Suite de 107 pruebas automatizadas (node:test)
+├── tests/                    # Suite de 128 pruebas automatizadas (node:test)
 ├── src/
 │   ├── audio/
 │   │   └── SoundManager.js   # Efectos de sonido procedurales con Web Audio API
@@ -171,7 +171,7 @@ runa-y-piedra/
 # 1. Instalar dependencias
 npm install
 
-# 2. Ejecutar suite de pruebas unitarias (107 tests)
+# 2. Ejecutar suite de pruebas unitarias (128 tests)
 npm test
 
 # 3. Iniciar servidor de desarrollo en red local
@@ -283,4 +283,6 @@ La carpeta [`docs/`](docs/) contiene el desglose técnico, análisis de hardware
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT.
+Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE).
+
+Código MIT, marca y logo "Runa y Piedra" reservados.

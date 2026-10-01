@@ -5,6 +5,36 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.31.0] - 2026-10-01
+
+### Added
+- **Host-migration MVP (`Protocol.js`, `HostSnapshot.js`, `NetworkManager.js`, `main.js`)**:
+  - Nuevo mensaje binario `WORLD_SNAPSHOT (0x11)` con payload JSON: `levelId + doorsOpen + chestsOpen + stairsOpen`.
+  - `src/network/HostSnapshot.js`: `buildWorldSnapshot` (dedup+orden), `save/load/clear` en `sessionStorage` (`runa_world_snapshot_v1`, frescura 10 min).
+  - Host difunde foto cada 5s por canal `game-safe` (`startWorldSnapshot/stopWorldSnapshot`); el invitado la guarda al recibir (`world-snapshot`).
+  - Al caer el host, el invitado ofrece `Reanudar como Host` (nueva sala PIN) con `applyWorldSnapshot` en vez de redirect inmediato. Sin snapshot fresco, comportamiento anterior.
+  - Sincronización late-join: puertas 1/2 y losa ya abiertas se envían al nuevo peer (`peer-joined`), además de cofres.
+  - Tests `tests/host-snapshot.test.js`: 4 tests (normalización, validación, sessionStorage, roundtrip binario). Suite 124 → 128.
+- **Split de red SRP (`SignalingConfig.js`, `ChannelLinks.js`)**:
+  - `SignalingConfig.js`: `ICE_SERVERS`, `getIceConfig()`, `translatePeerError()` extraídos de `NetworkManager`.
+  - `ChannelLinks.js`: `isHotChannel`, `trackLink`, `safeForConn` puros y testeables.
+  - `NetworkManager.js`: 788 → ~700 líneas, fachada que delega. API 100% retrocompatible (`_setupHostChannel`, `broadcastHot`, `peer-joined/left`).
+  - Bug corregido: `showHudMessage` indefinido en dev-audit (alias a `showNarrativeMessage` desde v1.30).
+
+## [1.30.0] - 2026-10-01
+
+### Added
+- **Licencia MIT oficial (`LICENSE`, `package.json`, `src/config/constants.js`, `README.md`)**:
+  - Archivo `LICENSE` MIT incluido (antes el badge enlazaba a un fichero inexistente).
+  - Campo `"license": "MIT"` en `package.json` y versión unificada a `1.30.0` (`APP_CONFIG.VERSION`, badges README `1.30.0` / `124 passed`).
+  - Nota de marca reservada "Runa y Piedra" en README. Código MIT, logo y nombre reservados.
+- **Descomposición de `UIManager` (1902 líneas) en mixins SRP (`src/ui/`)**:
+  - `MenuManager.js`: `showMenu`, `hideMenu`, `setStatus`, `shareLink`, `copyLink`, `updatePartyList`.
+  - `HudManager.js`: crosshair, botones de acción, `setInteractTarget`, vidas/llave/gemas, `showGameOver`, transiciones, descenso 5s, mensajes narrativos, guía de controles HUD.
+  - `ModalManager.js`: settings, dev, confirm, inventario (estado + modal + render).
+  - `HeroManager.js`: `renderHeroTraitCard` y helpers de fichas de héroe.
+  - `UIManager.js` queda como fachada (~150 líneas): constructor + `Object.assign` de mixins. API pública 100% retrocompatible, `tests/ui-manager.test.js` sin cambios.
+
 ## [1.29.0] - 2026-10-01
 
 ### Fixed

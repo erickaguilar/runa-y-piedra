@@ -26,6 +26,7 @@ export const MSG = {
   DESCENT:      0x0E, // Synced descent: NOW (client->host), START/GO (host->all)
   STAIRS:       0x0F, // Sealed slab: REQ (client->host) & OPEN (host->all)
   POTION:       0x10, // Consumable potion use (client->host)
+  WORLD_SNAPSHOT: 0x11, // Host -> all: world state (level + doors + chests, JSON, ~5s)
 };
 
 export const ACTION_FLAGS = {
@@ -526,4 +527,31 @@ export function deserializePotionUse(buf) {
   const playerId = v.byteLength > 1 ? v.getUint8(1) : 0;
   const healAmount = v.byteLength > 2 ? v.getUint8(2) : 1;
   return { playerId, healAmount };
+}
+
+// ==========================================
+// 14. WORLD SNAPSHOT (estado de mazmorra, ~5s, canal safe)
+// [type:1][json bytes...] (host -> todos, raro pero fiable)
+// ==========================================
+export function serializeWorldSnapshot(snap = {}) {
+  const bytes = textEncoder.encode(JSON.stringify(snap));
+  const buf = new ArrayBuffer(1 + bytes.length);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.WORLD_SNAPSHOT);
+  new Uint8Array(buf, 1).set(bytes);
+  return buf;
+}
+
+export function deserializeWorldSnapshot(buf) {
+  const v = buf instanceof DataView
+    ? buf
+    : (ArrayBuffer.isView(buf)
+      ? new DataView(buf.buffer, buf.byteOffset, buf.byteLength)
+      : new DataView(buf));
+  const bytes = new Uint8Array(v.buffer, v.byteOffset + 1, v.byteLength - 1);
+  try {
+    return JSON.parse(textDecoder.decode(bytes));
+  } catch {
+    return null;
+  }
 }
