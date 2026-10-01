@@ -4,6 +4,14 @@ import { World } from '../src/core/World.js';
 import { floorVariant } from '../src/levels/LevelLoader.js';
 import { BLOCK_TYPES } from '../src/config/constants.js';
 import { VoxelMap } from '../src/render/VoxelMap.js';
+import {
+  createTilesSvgArray,
+  wallSprites,
+  floorSprites,
+  pillarSprites,
+  lavaSprites,
+  specialSprites
+} from '../src/render/textures/index.js';
 
 test('floorVariant es determinista y solo da tipos de suelo', () => {
   const a = floorVariant(7, 19);
@@ -110,6 +118,27 @@ test('VoxelMap.getTileUVOffset calcula coordenadas UV exactas para la cuadrícul
   assert.deepEqual(VoxelMap.getTileUVOffset(20), { u: 0.0, v: 0.25 });
   assert.deepEqual(VoxelMap.getTileUVOffset(21), { u: 0.25, v: 0.25 });
   assert.deepEqual(VoxelMap.getTileUVOffset(22), { u: 0.5, v: 0.25 });
+});
+
+test('createTilesSvgArray y módulos de texturas generan los 23 sprites SVG modulares válidos', () => {
+  const tilesSvg = createTilesSvgArray(128);
+  assert.ok(Array.isArray(tilesSvg), 'createTilesSvgArray debe devolver un arreglo');
+  assert.ok(tilesSvg.length >= 23, 'Debe contener al menos 23 casillas con sprites activos');
+
+  // Validar que cada uno de los 23 tiles tiene contenido SVG sustancial
+  for (let i = 0; i <= 22; i++) {
+    const tile = tilesSvg[i];
+    assert.ok(typeof tile === 'string' && tile.trim().length > 20, `Tile ${i} debe ser un fragmento SVG válido`);
+    assert.ok(tile.includes('<rect') || tile.includes('<circle') || tile.includes('<path') || tile.includes('<defs'), `Tile ${i} debe contener elementos SVG`);
+  }
+
+  // Validar módulos individuales
+  assert.ok(wallSprites.wallRegular(128).includes('<rect'), 'wallRegular debe generar SVG');
+  assert.ok(floorSprites.floorClean(128).includes('<pattern id="floorA"'), 'floorClean debe generar patrón');
+  assert.ok(pillarSprites.pillarMonolith(128).includes('stroke="#0e1015"'), 'pillarMonolith debe tener estrías');
+  assert.ok(lavaSprites.lavaActive(128).includes('lava-core-13'), 'lavaActive debe tener gradiente');
+  assert.ok(specialSprites.respawnPad(128).includes('38bdf8'), 'respawnPad debe tener glifo cian');
+  assert.ok(specialSprites.jumpPad(128).includes('d97706'), 'jumpPad debe tener runa ámbar');
 });
 
 test('abyss_throne Sala 1 contiene el cofre con la poción de vida para recuperar 1 corazón', () => {

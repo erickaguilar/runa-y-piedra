@@ -32,10 +32,19 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
     - **Tile 21 (Pilar 4: Columna con Desgaste Estructural)**: Fractura diagonal severa por fatiga de carga, grietas ramificadas con bisel lumínico 3D (`stroke-width="2.2"`), picado mineral profundo y muescas de mampostería desprendida.
     - **Tile 22 (Pilar 5: Columna Tono Oscuro)**: Fuste de basalto/sillar sombrío ~35% más oscuro (`#111419`), sombras laterales profundas (`#020304`), reflejos tenues y pátina de hollín volcánico.
   - Distribución espacial determinista $O(1)$ en `VoxelMap.selectTile` con la paleta `[10, 12, 20, 21, 22]` basada en `VoxelMap.hashCoord(x, y, z)`, completando la simetría de 5 variantes orgánicas para todos los bloques estructurales elementales (Muros, Suelos, Lava y Pilares).
+- **Modularización y Desacoplamiento Atómico del Sistema de Sprites (`src/render/textures/`, `src/render/TextureGenerator.js`)**:
+  - Descomposición de la clase monolítica `TextureGenerator.js` (reducción de 1,175 a 65 líneas de código), separando la generación de texturas vectoriales SVG en módulos especializados por tipo de bloque:
+    - [`src/render/textures/walls.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/walls.js): Muros (Tiles 0 a 4).
+    - [`src/render/textures/floors.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/floors.js): Suelos (Tiles 5 a 9).
+    - [`src/render/textures/pillars.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/pillars.js): Pilares y Columnas (Tiles 10, 12, 20, 21, 22).
+    - [`src/render/textures/specials.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/specials.js): Respawn Pad, Jump Pad y Pedestal (Tiles 11, 14, 15).
+    - [`src/render/textures/lava.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/lava.js): Lava y Fluidos Ígneos (Tiles 13, 16, 17, 18, 19).
+    - [`src/render/textures/index.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/index.js): Módulo agregador con la función `createTilesSvgArray(S)`.
+  - Mantenimiento del 100% de retrocompatibilidad con Three.js y WebGL, 0 peticiones HTTP adicionales, empaquetado optimizado con Vite y suite de pruebas unitarias que valida la integridad estructural de cada sprite.
 - **Documentación Técnica y Pruebas Unitarias ([`docs/21-sprite-lava-y-renderizado-igneo.md`](file:///data/data/com.termux/files/home/develop/game/docs/21-sprite-lava-y-renderizado-igneo.md), [`docs/23-catalogo-sprites-y-modelos-3d.md`](file:///data/data/com.termux/files/home/develop/game/docs/23-catalogo-sprites-y-modelos-3d.md), [`docs/README.md`](file:///data/data/com.termux/files/home/develop/game/docs/README.md), [`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js))**:
   - Documentación de las 5 variantes ígneas y las 5 variantes de columnas monolíticas, diagramas de flujo y especificación matemática de la matriz 4x8.
-  - Actualización del catálogo de sprites (23 casillas activas en matriz 4x8).
-  - Pruebas unitarias que certifican la selección balanceada de las 5 variantes de lava, las 5 variantes de pilares y la precisión de coordenadas UV en la cuadrícula 4x8.
+  - Actualización del catálogo de sprites (23 casillas activas en matriz 4x8) y su arquitectura modular en `src/render/textures/`.
+  - Pruebas unitarias que certifican la selección balanceada de las 5 variantes de lava, las 5 variantes de pilares, la generación de los 23 fragmentos SVG modulares y la precisión de coordenadas UV en la cuadrícula 4x8.
 
 ## [1.28.0] - 2026-10-01
 

@@ -51,7 +51,14 @@ runa-y-piedra/
 │   │   ├── PedestalRenderer.js # Altar y orbe ancestral de victoria
 │   │   ├── SceneManager.js   # Setup WebGL 2.0 (Three.js), luces fijas y niebla
 │   │   ├── StairsRenderer.js # Losa y escalinata de descenso
-│   │   ├── TextureGenerator.js # Atlas procedural de texturas SVG
+│   │   ├── TextureGenerator.js # Orquestador y rasterizador del atlas de texturas
+│   │   ├── textures/         # Módulos atómicos de sprites SVG por familia
+│   │   │   ├── walls.js      # Muros (5 variantes, Tiles 0-4)
+│   │   │   ├── floors.js     # Suelos (5 variantes, Tiles 5-9)
+│   │   │   ├── pillars.js    # Pilares (5 variantes, Tiles 10, 12, 20-22)
+│   │   │   ├── specials.js   # Especiales (Respawn, Jump Pad, Pedestal, Tiles 11, 14, 15)
+│   │   │   ├── lava.js       # Lava y magma (5 variantes, Tiles 13, 16-19)
+│   │   │   └── index.js      # Agregador y ensamblador de la matriz 4x8
 │   │   └── VoxelMap.js       # Terreno InstancedMesh único con pool de slots
 │   ├── simulation/
 │   │   └── SimulationEngine.js # Bucle de física autoritativo a 30 Hz
@@ -96,7 +103,8 @@ runa-y-piedra/
 | [`src/render/ChestRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js) | Gestionar los modelos de cofres y su animación angular de apertura de tapa. |
 | [`src/render/PedestalRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/PedestalRenderer.js) | Renderizar el pedestal ceremonial, el orbe flotante y los efectos de partículas de victoria. |
 | [`src/render/StairsRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/StairsRenderer.js) | Representar visualmente la losa rúnica de descenso y su escalinata oculta al abrirse. |
-| [`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js) | Generar en tiempo de ejecución el atlas procedural de texturas mediante rasterizado de SVG. |
+| [`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js) | Rasterizar en tiempo de ejecución el canvas WebGL y crear el `THREE.CanvasTexture` del atlas. |
+| [`src/render/textures/`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/) | Módulos atómicos con los fragmentos vectoriales SVG de muros, suelos, pilares, lava y losas especiales. |
 | [`src/render/VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js) | Renderizar todo el escenario en un único `THREE.InstancedMesh` con gestión de instancias libres. |
 | [`src/simulation/SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js) | Ejecutar el bucle físico autoritativo para todos los aventureros a 30 Hz. |
 | [`src/ui/Icons.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js) | Proveer iconos SVG vectoriales nítidos para botones táctiles y mensajes narrativos. |

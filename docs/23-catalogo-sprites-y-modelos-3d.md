@@ -45,6 +45,18 @@ El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5
 | **Fila 5** ($v=0.250$) | **Tile 20**: Pilar con Musgo | **Tile 21**: Pilar con Desgaste | **Tile 22**: Pilar Tono Oscuro | *(Reservado Expansión)* |
 | **Filas 6-7** ($v \le 0.125$) | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* |
 
+### Modularización Atómica del Código de Sprites (`src/render/textures/`)
+
+Para optimizar el mantenimiento, evitar archivos monolíticos de más de 1,000 líneas y facilitar la expansión de nuevos biomas, el código vectorial SVG de los sprites está modularizado en archivos independientes por categoría:
+
+- [`src/render/textures/walls.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/walls.js): Muros (Tiles 0 a 4 — sillar regular, agrietado, mampostería, musgo, glifo rúnico).
+- [`src/render/textures/floors.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/floors.js): Suelos (Tiles 5 a 9 — losas limpias, desgaste, musgo, mixto, rombo de santuario).
+- [`src/render/textures/pillars.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/pillars.js): Pilares y Columnas (Tiles 10, 12, 20, 21, 22 — monolítica base, acanalada lisa, musgo, desgaste, oscura).
+- [`src/render/textures/specials.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/specials.js): Losas interactivas y ceremoniales (Tiles 11, 14, 15 — Respawn Pad, Jump Pad, Pedestal).
+- [`src/render/textures/lava.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/lava.js): Fluidos volcánicos (Tiles 13, 16, 17, 18, 19 — magma activo, fisuras, géiseres, río piroclástico, caldera).
+- [`src/render/textures/index.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/index.js): Agregador y ensamblador unificado `createTilesSvgArray(S)`.
+- [`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js): Orquestador desacoplado que renderiza el SVG combinado al canvas HTML5 y crea la instancia de `THREE.CanvasTexture`.
+
 ---
 
 ### Desglose Detallado de Sprites por Tipo de Bloque
