@@ -332,5 +332,27 @@ describe('SaveManager - Persistencia Robusta y SaveSchema v2', () => {
       assert.equal(storedAfter.inventory.totalGems, 50);
       assert.equal(validateSaveData(storedAfter), true);
     });
+
+    it('no duplica la ranura 1 en las ranuras 2 o 3 al cambiar a ranuras vacías', async () => {
+      await manager.init('slot_1');
+      await manager.saveDungeonCompletion({
+        levelId: 'crypt_shadows',
+        campaign: { highestChapterUnlocked: 3 },
+      });
+
+      // Cambiar a slot_2
+      await manager.switchSlot('slot_2');
+      const summaries = await manager.getAllSlotsSummary();
+      const slot2 = summaries.find(s => s.slotId === 'slot_2');
+      assert.equal(slot2.isEmpty, true);
+      assert.equal(slot2.highestChapter, 1);
+
+      // Cambiar a slot_3
+      await manager.switchSlot('slot_3');
+      const summaries3 = await manager.getAllSlotsSummary();
+      const slot3 = summaries3.find(s => s.slotId === 'slot_3');
+      assert.equal(slot3.isEmpty, true);
+      assert.equal(slot3.highestChapter, 1);
+    });
   });
 });

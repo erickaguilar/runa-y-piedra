@@ -716,10 +716,10 @@ describe('UIManager - Contratos de API de Configuración', () => {
     it('gestiona el modal de 3 ranuras de guardado y botones de menú/configuración', async () => {
       const ui = new UIManager();
 
-      // 1. Botón en el menú principal
+      // 1. En el menú principal se muestran exclusivamente las 3 ranuras directas
       ui.showMenu({ onHost: () => {}, onJoin: () => {} });
-      assert.match(ui.uiEl.innerHTML, /id="btn-open-save-slots"/);
-      assert.match(ui.uiEl.innerHTML, /Partidas Guardadas \(3 Ranuras\)/);
+      assert.match(ui.uiEl.innerHTML, /id="menu-slots-row"/);
+      assert.doesNotMatch(ui.uiEl.innerHTML, /id="btn-open-save-slots"/);
 
       // 2. Botón en el modal de configuración
       ui.openSettingsModal();

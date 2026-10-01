@@ -60,7 +60,7 @@ export const MenuMixin = {
           <button id="btn-join" class="btn-join">Unirse</button>
         </div>
 
-        <!-- Ranuras de Guardado -->
+        <!-- Ranuras de Guardado (3 ranuras directas) -->
         <div class="lobby-section">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <label class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
@@ -69,9 +69,6 @@ export const MenuMixin = {
             <div style="display:flex;align-items:center;gap:6px;">
               <button id="btn-menu-delete-active-slot" class="menu-delete-slot-btn" type="button" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;font-size:10.5px;font-weight:700;cursor:pointer;border-radius:6px;padding:2px 6px;align-items:center;gap:4px;">
                 ${renderIcon('trash', { size: 11, color: '#f87171' })} Borrar Save
-              </button>
-              <button id="btn-open-save-slots" class="menu-slots-manage-btn" style="background:transparent;border:none;color:#38bdf8;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 4px;">
-                ${renderIcon('settings', { size: 12, color: '#38bdf8' })} Partidas Guardadas (3 Ranuras)
               </button>
             </div>
           </div>
@@ -166,19 +163,6 @@ export const MenuMixin = {
     this.bindMenuSlotsEvents();
     this.refreshMenuSlots();
 
-    const btnSlots = document.getElementById('btn-open-save-slots');
-    if (btnSlots) {
-      const handleOpenSlots = (e) => {
-        if (e) {
-          e.stopPropagation();
-          if (e.cancelable) e.preventDefault();
-        }
-        soundManager.playClick();
-        this.openSaveSlotsModal();
-      };
-      btnSlots.onclick = handleOpenSlots;
-      btnSlots.addEventListener('touchend', handleOpenSlots, { passive: false });
-    }
   },
 
   renderMenuSlotsHtml(summaries) {
@@ -195,10 +179,11 @@ export const MenuMixin = {
       const hero = PLAYER_HEROES[s.heroIndex] || PLAYER_HEROES[0];
 
       return `
-        <button class="menu-slot-chip ${isActive ? 'active' : ''} ${isEmpty ? 'is-empty' : 'has-data'}" 
-                data-slot-id="${s.slotId}" 
-                type="button"
-                title="${isEmpty ? `Ranura ${num}: Vacía` : `Ranura ${num}: ${escapeHtml(s.name)} (${hero.name} - Cap. ${s.highestChapter})`}">
+        <div class="menu-slot-chip ${isActive ? 'active' : ''} ${isEmpty ? 'is-empty' : 'has-data'}" 
+             data-slot-id="${s.slotId}" 
+             role="button"
+             tabindex="0"
+             title="${isEmpty ? `Ranura ${num}: Vacía` : `Ranura ${num}: ${escapeHtml(s.name)} (${hero.name} - Cap. ${s.highestChapter})`}">
           <div class="menu-slot-chip-top">
             <span class="menu-slot-num">Ranura ${num}</span>
             <span class="menu-slot-badge ${isActive ? 'badge-active' : (isEmpty ? 'badge-empty' : 'badge-saved')}">
@@ -225,7 +210,7 @@ export const MenuMixin = {
               </div>
             `}
           </div>
-        </button>
+        </div>
       `;
     }).join('');
   },
@@ -289,10 +274,28 @@ export const MenuMixin = {
         nameInput.disabled = false;
         nameInput.classList.remove('input-locked');
         nameInput.title = 'Introduce tu nombre o apodo';
+        nameInput.value = this.playerName || 'Aventurero';
       }
       if (heroesRow) {
         heroesRow.classList.remove('heroes-locked');
         heroesRow.title = 'Selecciona tu clase de héroe';
+      }
+      const heroChips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('#heroes-row .hero-chip') : (typeof document !== 'undefined' ? document?.querySelectorAll?.('#heroes-row .hero-chip') : null);
+      if (heroChips) {
+        heroChips.forEach(c => {
+          const idx = parseInt(c.dataset.index, 10);
+          c.classList.toggle('selected', idx === this.selectedColorIndex);
+        });
+      }
+      const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
+      const badge = getEl('hero-badge');
+      if (badge) {
+        badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
+        badge.style.color = hero.color;
+      }
+      const traitContainer = getEl('hero-trait-container');
+      if (traitContainer) {
+        traitContainer.innerHTML = this.renderHeroTraitCard(hero);
       }
       if (advBadge) {
         advBadge.innerHTML = `${renderIcon('sparkles', { size: 11, color: '#22c55e' })} <span style="color:#4ade80">Nueva Partida</span>`;
@@ -315,17 +318,18 @@ export const MenuMixin = {
             e.stopPropagation();
             if (e.cancelable) e.preventDefault();
           }
+          if (this._isSwitchingSlot) return;
           const slotId = chip.dataset.slotId;
-          const num = slotId ? slotId.replace('slot_', '') : '1';
+          if (!slotId) return;
 
           // Ya no abre el admin de guardados, solo afecta al modal menu
           if (slotId === saveManager.currentSlotId) {
             return;
           }
 
-          soundManager.playClick();
-
+          this._isSwitchingSlot = true;
           try {
+            soundManager.playClick?.();
             const updatedSave = await saveManager.switchSlot(slotId);
             const summaries = await saveManager.getAllSlotsSummary();
             const targetSummary = summaries.find(s => s.slotId === slotId);
@@ -336,48 +340,56 @@ export const MenuMixin = {
               this.selectedColorIndex = Number.isFinite(updatedSave.profile?.favoriteHero)
                 ? updatedSave.profile.favoriteHero
                 : 0;
-              localStorage.setItem('dungeon_player_name', this.playerName);
-              localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
             } else {
               this.playerName = 'Aventurero';
               this.selectedColorIndex = 0;
-              localStorage.setItem('dungeon_player_name', this.playerName);
-              localStorage.setItem('dungeon_player_color', '0');
             }
+
+            try {
+              localStorage.setItem('dungeon_player_name', this.playerName);
+              localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
+            } catch {}
 
             if (updatedSave.profile?.settings) {
               const s = updatedSave.profile.settings;
-              if (s.camera) {
-                localStorage.setItem('dungeon_camera', s.camera);
-                this.cameraModeUI = s.camera;
-                if (typeof window !== 'undefined' && window.__game?.cameraController) {
-                  window.__game.setCameraMode?.(s.camera);
+              try {
+                if (s.camera) {
+                  localStorage.setItem('dungeon_camera', s.camera);
+                  this.cameraModeUI = s.camera;
+                  if (typeof window !== 'undefined' && window.__game?.cameraController) {
+                    window.__game.setCameraMode?.(s.camera);
+                  }
                 }
-              }
-              if (s.soundMuted !== undefined) {
-                soundManager.isMuted = !!s.soundMuted;
-                localStorage.setItem('dungeon_sound_muted', s.soundMuted ? '1' : '0');
-              }
-              if (s.dpr) {
-                localStorage.setItem('dungeon_dpr', String(s.dpr));
-              }
-              if (s.sensitivity) {
-                localStorage.setItem('dungeon_sensitivity', String(s.sensitivity));
-              }
+                if (s.soundMuted !== undefined) {
+                  soundManager.isMuted = !!s.soundMuted;
+                  localStorage.setItem('dungeon_sound_muted', s.soundMuted ? '1' : '0');
+                }
+                if (s.dpr) {
+                  localStorage.setItem('dungeon_dpr', String(s.dpr));
+                }
+                if (s.sensitivity) {
+                  localStorage.setItem('dungeon_sensitivity', String(s.sensitivity));
+                }
+              } catch {}
             }
 
             if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-              window.__game.chapterRegistry.load?.();
+              try {
+                window.__game.chapterRegistry.load?.();
+              } catch {}
             }
 
-            this.settingsCallbacks?.onProfileSave?.({
-              name: this.playerName,
-              colorIndex: this.selectedColorIndex,
-            });
+            try {
+              this.settingsCallbacks?.onProfileSave?.({
+                name: this.playerName,
+                colorIndex: this.selectedColorIndex,
+              });
+            } catch {}
 
             this.setMenuLockedState(isSaved, targetSummary);
             await this.refreshMenuSlots(summaries);
 
+            const num = slotId.replace('slot_', '');
             if (isSaved) {
               const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
               this.showNarrativeMessage(`💾 Ranura ${num} cargada: ${escapeHtml(this.playerName)} (${hero.name} • Cap. ${updatedSave.campaign?.highestChapterUnlocked || 1})`, 2800);
@@ -386,12 +398,19 @@ export const MenuMixin = {
             }
           } catch (err) {
             console.warn('[MenuManager] Error cambiando ranura:', err);
-            this.showNarrativeMessage(`Error al cargar ranura: ${err.message}`, 3500);
+            this.showNarrativeMessage(`Error al cargar ranura: ${err?.message || 'Error'}`, 3500);
+          } finally {
+            this._isSwitchingSlot = false;
           }
         };
 
         chip.onclick = handleChipClick;
-        chip.addEventListener('touchend', handleChipClick, { passive: false });
+        chip.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleChipClick(e);
+          }
+        };
       });
     }
 
@@ -441,7 +460,6 @@ export const MenuMixin = {
           });
         };
         btn.onclick = handleDeleteChip;
-        btn.addEventListener('touchend', handleDeleteChip, { passive: false });
       });
     }
 

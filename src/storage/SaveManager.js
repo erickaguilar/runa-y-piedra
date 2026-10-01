@@ -254,12 +254,14 @@ export class SaveManager {
       console.warn(`[SaveManager] Error leyendo backup ${backupKey}:`, err);
     }
 
-    // 3. Comprobar migración legacy v1
-    const legacyMigrated = migrateFromLegacy(slotId);
-    if (legacyMigrated) {
-      console.info(`[SaveManager] Migración v1 -> v2 completada para ${slotId}.`);
-      await this.saveSlot(slotId, legacyMigrated);
-      return legacyMigrated;
+    // 3. Comprobar migración legacy v1 (exclusivamente para la ranura principal DEFAULT_SLOT_ID)
+    if (slotId === DEFAULT_SLOT_ID) {
+      const legacyMigrated = migrateFromLegacy(slotId);
+      if (legacyMigrated) {
+        console.info(`[SaveManager] Migración v1 -> v2 completada para ${slotId}.`);
+        await this.saveSlot(slotId, legacyMigrated);
+        return legacyMigrated;
+      }
     }
 
     // 4. Generar estado inicial limpio en memoria
@@ -455,6 +457,8 @@ export class SaveManager {
       try {
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem(LEGACY_CAMPAIGN_KEY);
+          localStorage.removeItem('dungeon_player_name');
+          localStorage.removeItem('dungeon_player_color');
         }
       } catch {}
     }
