@@ -1,0 +1,433 @@
+/* ==========================================================================
+   Modals: Configuración, Herramientas Dev, Confirmación e Inventario
+   ========================================================================== */
+    /* Botón y Modal de Configuración */
+    #modal-settings{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+    .settings-btn {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top));
+      right: max(16px, env(safe-area-inset-right));
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 30;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s, border-color 0.15s, color 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .settings-btn:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(56, 189, 248, 0.6);
+      color: #38bdf8;
+    }
+    .settings-btn:active {
+      transform: scale(0.88);
+      transition: transform 80ms ease-out;
+    }
+
+    /* Botón de Herramientas de Desarrollador (aparece exclusivamente en modo desarrollo) */
+    .dev-btn {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top));
+      right: calc(max(16px, env(safe-area-inset-right)) + 52px);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #34d399;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 30;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(16, 185, 129, 0.18);
+      transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .dev-btn:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(52, 211, 153, 0.85);
+      color: #6ee7b7;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+    }
+    .dev-btn:active {
+      transform: scale(0.88);
+      transition: transform 80ms ease-out;
+    }
+    .dev-btn.is-dev {
+      display: flex;
+    }
+
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+    }
+    .settings-header h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #f8fafc;
+    }
+    .settings-version-pill {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      border-radius: 9999px;
+      padding: 1px 7px;
+      display: inline-flex;
+      align-items: center;
+      line-height: 1.4;
+    }
+    .close-x-btn {
+      background: transparent;
+      border: 0;
+      color: #94a3b8;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, background 0.15s;
+    }
+    .close-x-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .settings-group {
+      margin-bottom: 11px;
+      text-align: left;
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .quality-selector {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .quality-btn {
+      flex: 1;
+      padding: 8px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid #334155;
+      background: #0b1120;
+      color: #94a3b8;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .quality-btn.active {
+      background: #2563eb;
+      border-color: #3b82f6;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+    .level-btn-group {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      width: 100%;
+    }
+    .level-select-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid #334155;
+      background: #0b1120;
+      color: #94a3b8;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .level-select-btn:active {
+      transform: scale(0.92);
+      transition: transform 80ms ease-out;
+    }
+    .level-select-btn.active {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      border-color: #fbbf24;
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(217, 119, 6, 0.4);
+    }
+    .level-select-btn.active .level-btn-icon {
+      color: #fff !important;
+    }
+    .btn-danger {
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 0;
+      border-radius: 10px;
+      background: #dc2626;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      transition: filter 0.15s;
+    }
+    .btn-danger:active {
+      filter: brightness(0.9);
+      transform: scale(0.98);
+    }
+    .settings-footer-version {
+      margin-top: 14px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.4px;
+      text-align: center;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    /* Modal de Confirmación Personalizado (In-Game Alert / Confirm Dialog) */
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 7, 13, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+      animation: overlayFadeIn 0.2s ease-out forwards;
+      pointer-events: auto;
+    }
+    .confirm-modal {
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      padding: 22px 20px;
+      width: 90vw;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), 0 0 24px rgba(245, 158, 11, 0.15);
+      box-sizing: border-box;
+      animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .confirm-icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
+    }
+    .confirm-icon-box.danger {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.35);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+    }
+    .confirm-title {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: 0.5px;
+    }
+    .confirm-message {
+      margin: 0 0 18px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+    .confirm-actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+    .btn-secondary {
+      flex: 1;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: #1e293b;
+      color: #cbd5e1;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      transition: background 0.15s, color 0.15s, transform 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .btn-secondary:active {
+      transform: scale(0.96);
+    }
+
+
+    /* Modal de Inventario / Botín */
+    .inventory-modal {
+      position: relative;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #fff;
+      border-radius: 18px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), 0 0 24px rgba(245, 158, 11, 0.12);
+      box-sizing: border-box;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: transform, opacity;
+    }
+    .inv-section-title {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .inv-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .inv-detail-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(11, 17, 32, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      transition: border-color 0.15s;
+    }
+    .inv-detail-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .inv-detail-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .inv-detail-icon.key-bg {
+      background: rgba(245, 158, 11, 0.16);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .inv-detail-icon.gem-bg {
+      background: rgba(56, 189, 248, 0.16);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+    .inv-detail-icon.relic-bg {
+      background: rgba(234, 179, 8, 0.18);
+      border: 1px solid rgba(234, 179, 8, 0.4);
+      box-shadow: 0 0 10px rgba(234, 179, 8, 0.2);
+    }
+    .inv-detail-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .inv-detail-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f8fafc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .inv-detail-desc {
+      font-size: 10px;
+      color: #94a3b8;
+      line-height: 1.3;
+    }
+    .inv-status-pill {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      flex-shrink: 0;
+    }
+    .inv-status-pill.key {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
+    .inv-status-pill.gem {
+      background: rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+    }
+    .inv-status-pill.relic {
+      background: rgba(234, 179, 8, 0.25);
+      border: 1px solid rgba(234, 179, 8, 0.5);
+      color: #fef08a;
+      box-shadow: 0 0 8px rgba(234, 179, 8, 0.25);
+    }
+    .inv-modal-empty {
+      background: rgba(11, 17, 32, 0.6);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 24px 18px;
+      text-align: center;
+    }
+    .inv-modal-empty-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+    }
+

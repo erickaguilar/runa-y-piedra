@@ -1,0 +1,72 @@
+/* ==========================================================================
+   Menu: Lobby, Selección de Héroes y Sala Multijugador
+   ========================================================================== */
+    .menu{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      background:rgba(15,23,42,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,0.12);color:#fff;padding:20px 20px;border-radius:18px;
+      text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.75);width:90vw;max-width:350px;box-sizing:border-box;
+      max-height:92vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+    .menu h1{margin:0 0 14px;font-size:17px;font-weight:700;letter-spacing:.8px;color:#f8fafc}
+    .lobby-section{margin-bottom:12px;text-align:left}
+    .lobby-label{font-size:10px;font-weight:700;letter-spacing:1px;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;display:block}
+    .name-input{width:100%;box-sizing:border-box;padding:10px 14px;font-size:15px;border-radius:10px;
+      border:1px solid #334155;background:#0b1120;color:#fff;text-align:center;font-weight:600;outline:none;transition:border-color .2s}
+    .name-input:focus{border-color:#38bdf8;box-shadow:0 0 0 2px rgba(56,189,248,.25)}
+    .heroes-row{display:flex;justify-content:center;gap:10px;margin:8px 0 6px}
+    .hero-chip{width:36px;height:36px;border-radius:50%;border:2px solid transparent;cursor:pointer;
+      transition:transform .15s,border-color .15s,box-shadow .15s;box-shadow:0 2px 8px rgba(0,0,0,.4);
+      position:relative;display:inline-flex;align-items:center;justify-content:center}
+    .hero-chip svg{pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+    .hero-chip.selected{border-color:#fff;transform:scale(1.18);box-shadow:0 0 14px var(--hero-color),inset 0 0 4px rgba(255,255,255,.3)}
+    .hero-chip:hover:not(.occupied){transform:scale(1.08)}
+    .hero-chip.selected:hover{transform:scale(1.2)}
+    .hero-chip.occupied{opacity:0.35;filter:grayscale(0.85);cursor:not-allowed}
+    .hero-chip.occupied::after{content:'✕';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      font-size:15px;color:#ef4444;font-weight:900;text-shadow:0 0 4px #000}
+    .hero-chip:active:not(.occupied){transform:scale(0.95)}
+    .party-count-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.08)}
+    .hero-badge{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700;color:#38bdf8;margin-bottom:4px}
+    .hero-trait-box{background:rgba(11,17,32,0.7);border-radius:9px;padding:8px 10px;margin-top:6px;text-align:left;border:1px solid #1e293b}
+    .hero-role{font-size:11px;font-weight:700;letter-spacing:0.5px;margin-bottom:2px;display:flex;align-items:center;gap:4px}
+    .hero-trait{font-size:11px;color:#94a3b8;line-height:1.3;margin-bottom:6px}
+    .hero-stat-badges{display:flex;gap:5px;flex-wrap:wrap}
+    .hero-stat{font-size:10px;font-weight:700;background:rgba(30,41,59,0.8);border-radius:6px;padding:2px 6px;color:#cbd5e1;display:inline-flex;align-items:center;gap:3px}
+    .divider{height:1px;background:rgba(255,255,255,0.1);margin:12px 0}
+    .btn-primary{width:100%;padding:12px 18px;font-size:15px;border:0;border-radius:11px;
+      background:linear-gradient(135deg,#059669,#10b981);color:#fff;cursor:pointer;font-weight:700;
+      box-shadow:0 4px 14px rgba(16,185,129,.35);transition:filter .15s;
+      display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn-primary:active{filter:brightness(0.9);transform:scale(0.98)}
+    .join-container{display:flex;gap:8px;margin-top:10px;width:100%;box-sizing:border-box}
+    .join-input{flex:1;min-width:0;width:100%;box-sizing:border-box;padding:10px 8px;font-size:15px;text-align:center;border-radius:10px;
+      border:1px solid #334155;background:#0b1120;color:#fff;letter-spacing:3px;font-weight:700;outline:none;transition:border-color .2s}
+    .join-input:focus{border-color:#3b82f6}
+    .btn-join{padding:10px 16px;font-size:14px;border:0;border-radius:10px;background:#2563eb;
+      color:#fff;cursor:pointer;font-weight:700;flex-shrink:0;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:filter .15s}
+    .btn-join:active{filter:brightness(0.9);transform:scale(0.98)}
+    .status{margin-top:8px;font-size:12px;color:#94a3b8;min-height:16px}
+    
+    /* Sala de Host */
+    .room-pin-display{font-size:36px;letter-spacing:8px;font-weight:800;color:#fbbf24;margin:4px 0;text-shadow:0 0 16px rgba(251,191,36,.4)}
+    .share-btn{width:100%;padding:11px 16px;font-size:13px;border:0;border-radius:10px;
+      background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;cursor:pointer;font-weight:700;
+      display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;
+      box-shadow:0 4px 12px rgba(37,211,102,.3);transition:filter .15s}
+    .share-btn:active{filter:brightness(0.9);transform:scale(0.98)}
+    .copy-btn{width:100%;padding:9px 14px;font-size:12px;border:1px solid #334155;border-radius:10px;
+      background:#1e293b;color:#cbd5e1;cursor:pointer;font-weight:600;display:flex;
+      align-items:center;justify-content:center;gap:6px;transition:background .15s}
+    .copy-btn:hover{background:#334155}
+    .party-box{margin:10px 0 12px;background:rgba(11,17,32,.7);border-radius:10px;padding:8px 12px;border:1px solid #1e293b;text-align:left}
+    .party-title{font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+    .party-item{display:flex;align-items:center;justify-content:space-between;font-size:12px;margin:4px 0}
+    .party-member{display:flex;align-items:center;gap:6px}
+    .party-dot{width:8px;height:8px;border-radius:50%}
+    .party-badge{font-size:10px;padding:2px 6px;border-radius:10px;background:rgba(16,185,129,.2);color:#34d399;font-weight:700}
+    .btn-play{width:100%;padding:12px;font-size:14px;font-weight:700;border:0;border-radius:10px;
+      background:linear-gradient(135deg,#d97706,#b45309);color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(217,119,6,.35)}
+    .btn-play:active{filter:brightness(0.9);transform:scale(0.98)}
+
+
+/* Código QR de sala de Host */
+    #qr-canvas{border-radius:8px;margin:6px auto;background:#fff;padding:4px;display:block}
