@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { UIManager } from '../src/ui/UIManager.js';
 import { APP_CONFIG } from '../src/config/constants.js';
+import { ICONS, renderIcon, replaceEmojisWithSvg } from '../src/ui/Icons.js';
 
 describe('UIManager - Contratos de API de Configuración', () => {
   it('expone métodos de settings en el prototipo', () => {
@@ -266,6 +267,13 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.match(uiDev.uiEl.innerHTML, /btn-dev-enter-showroom/);
       assert.doesNotMatch(uiDev.uiEl.innerHTML, /btn-dev-exit-showroom/);
 
+      // Botón para abrir el Atlas de Expedición desde el Showroom
+      const openAtlasBtn = document.getElementById('btn-dev-open-atlas');
+      assert.ok(openAtlasBtn, 'El botón para abrir el Atlas debe existir en la sección del showroom');
+      openAtlasBtn.click();
+      assert.equal(uiDev.isChapterOpen, true, 'El Atlas debe abrirse al pulsar el botón dev');
+      uiDev.closeChapterModal();
+
       // Clic en entrar al showroom
       const enterBtn = document.getElementById('btn-dev-enter-showroom');
       assert.ok(enterBtn);
@@ -289,6 +297,24 @@ describe('UIManager - Contratos de API de Configuración', () => {
       exitBtn.click();
       assert.equal(exitedShowroom, true);
       assert.equal(uiDev.isDevOpen, false);
+    });
+
+    it('la librería Icons.js exporta iconos SVG vectoriales sin emojis para el Atlas y Showroom', () => {
+      const requiredIcons = [
+        'construction', 'hammer', 'pickaxe', 'droplet', 'anvil',
+        'snowflake', 'biohazard', 'orbit', 'sun', 'mapPin',
+        'temple', 'rocket', 'bolt', 'timer', 'map'
+      ];
+      for (const iconName of requiredIcons) {
+        assert.ok(ICONS[iconName], `ICONS.${iconName} debe existir`);
+        const rendered = renderIcon(iconName);
+        assert.match(rendered, /<svg class="svg-icon"/);
+        assert.match(rendered, /viewBox="0 0 24 24"/);
+      }
+      // Reemplazo de emojis sin caracteres unicode en el HTML resultante
+      const svgOutput = replaceEmojisWithSvg('🚧 En Construcción 📍 🏛️ 🚀');
+      assert.doesNotMatch(svgOutput, /🚧|📍|🏛|🚀/);
+      assert.match(svgOutput, /<svg/);
     });
 
     it('el HUD de botín es interactivo y abre el modal al hacer clic o touch', () => {

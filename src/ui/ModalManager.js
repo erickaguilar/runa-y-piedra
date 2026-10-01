@@ -315,7 +315,7 @@ export const ModalMixin = {
           soundManager.playHurt();
           const occupant = takenHeroes.get(idx) || 'otro jugador';
           const hero = PLAYER_HEROES[idx];
-          this.showNarrativeMessage(`⚠️ La clase ${hero.name} ya está en uso por ${occupant}.`, 3500);
+          this.showNarrativeMessage(`La clase ${hero.name} ya está en uso por ${occupant}.`, 3500);
           return;
         }
         soundManager.playClick();
@@ -567,7 +567,10 @@ export const ModalMixin = {
           </p>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <button id="btn-dev-enter-showroom" class="btn-primary" style="width:100%;padding:10px;background:linear-gradient(135deg,#059669,#047857);border:1px solid #10b981;box-shadow:0 4px 14px rgba(16, 185, 129, 0.3);display:inline-flex;align-items:center;justify-content:center;gap:8px;" title="Cargar mapa showroom">
-              ${renderIcon('castle', { size: 15, color: '#fff' })} 🧪 Entrar al Showroom de Bloques
+              ${renderIcon('sparkles', { size: 15, color: '#fff' })} Entrar al Showroom de Bloques
+            </button>
+            <button id="btn-dev-open-atlas" class="btn-secondary" style="width:100%;padding:9px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#38bdf8;border-color:rgba(56, 189, 248, 0.4);" title="Abrir Atlas de Expedición">
+              ${renderIcon('map', { size: 14, color: '#38bdf8' })} Explorar Atlas de Expedición
             </button>
             ${isCurrentShowroom ? `
               <button id="btn-dev-exit-showroom" class="btn-secondary" style="width:100%;padding:9px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#cbd5e1;" title="Volver al lobby">
@@ -675,6 +678,11 @@ export const ModalMixin = {
       } else if (typeof window !== 'undefined' && window.__game) {
         window.__game.switchLevel('lobby_tutorial', window.__game.mode === 'host');
       }
+    });
+
+    document.getElementById('btn-dev-open-atlas')?.addEventListener('click', () => {
+      soundManager.playClick();
+      this.openChapterModal();
     });
 
     // Toggle de telemetría debug
@@ -1013,7 +1021,7 @@ export const ModalMixin = {
                       <div class="inv-detail-icon potion-bg" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.3);display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;flex-shrink:0;">${renderIcon(icon, { size: 20, color })}</div>
                       <div class="inv-detail-info" style="min-width:0;">
                         <div class="inv-detail-name" style="color:#fda4af;">${escapeHtml(name)}</div>
-                        <div class="inv-detail-desc">Restaura 1 ❤️ corazón de vida</div>
+                        <div class="inv-detail-desc">Restaura 1 corazón de vida</div>
                       </div>
                     </div>
                     <button class="btn-use-potion" data-potion-index="${idx}" title="Beber Poción de Vida" style="background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(244,63,94,0.35);flex-shrink:0;transition:transform 0.1s,background 0.2s;">
@@ -1183,7 +1191,7 @@ export const ModalMixin = {
         <div class="chapter-card-header">
           <span class="chapter-num-badge lobby">Campamento</span>
           ${isAtLobby 
-            ? '<span class="chapter-status-badge current">📍 Ubicación Actual</span>' 
+            ? `<span class="chapter-status-badge current">${renderIcon('mapPin', { size: 12, color: '#38bdf8' })} Ubicación Actual</span>` 
             : '<span class="chapter-status-badge available">Zona Segura</span>'}
         </div>
         <div class="chapter-icon-wrap lobby">
@@ -1191,13 +1199,13 @@ export const ModalMixin = {
         </div>
         <div class="chapter-card-title">Campamento Central (Lobby)</div>
         <div class="chapter-card-desc">Refugio de la cofradía, monolito cartográfico, forja y zona de maniobras previa a las expediciones.</div>
-        <div class="chapter-dungeons-track" title="Zona segura y tutorial">🏛️ Mazmorra de Entrenamiento & Sala de Maniobras</div>
+        <div class="chapter-dungeons-track" title="Zona segura y tutorial">${renderIcon('temple', { size: 13, color: '#38bdf8' })} Mazmorra de Entrenamiento & Sala de Maniobras</div>
         <div class="chapter-card-actions">
           ${isHost ? (isAtLobby 
-            ? '<div class="chapter-client-info chapter-action-pill is-current">📍 Estás aquí actualmente</div>' 
-            : '<button class="chapter-launch-btn btn-lobby chapter-action-pill is-launch" data-chapter-id="lobby_tutorial">🚀 Viaje Rápido al Lobby</button>')
+            ? `<div class="chapter-client-info chapter-action-pill is-current">${renderIcon('mapPin', { size: 12, color: '#38bdf8' })} Estás aquí actualmente</div>` 
+            : `<button class="chapter-launch-btn btn-lobby chapter-action-pill is-launch" data-chapter-id="lobby_tutorial">${renderIcon('rocket', { size: 13, color: '#fff' })} Viaje Rápido al Lobby</button>`)
             : (isAtLobby 
-              ? '<div class="chapter-client-info chapter-action-pill is-current">📍 Estás aquí actualmente</div>' 
+              ? `<div class="chapter-client-info chapter-action-pill is-current">${renderIcon('mapPin', { size: 12, color: '#38bdf8' })} Estás aquí actualmente</div>` 
               : '<div class="chapter-client-info chapter-action-pill is-client">Refugio disponible</div>')}
         </div>
       </div>
@@ -1234,13 +1242,13 @@ export const ModalMixin = {
             <div class="chapter-card-title">${escapeHtml(ch.name)}</div>
             <div class="chapter-card-desc">${escapeHtml(ch.lore)}</div>
             <div class="chapter-dungeons-track construction" title="Niveles en desarrollo">
-              🚧 3 Niveles: ${dungeonsList}
+              ${renderIcon('construction', { size: 12, color: '#f59e0b' })} 3 Niveles: ${dungeonsList}
             </div>
             <div class="chapter-req-notice construction">
-              🚧 Niveles del 2 al 10 en construcción
+              ${renderIcon('construction', { size: 12, color: '#f59e0b' })} Niveles del 2 al 10 en construcción
             </div>
             <div class="chapter-card-actions">
-              <div class="chapter-client-info chapter-action-pill is-construction">🚧 En Construcción</div>
+              <div class="chapter-client-info chapter-action-pill is-construction">${renderIcon('construction', { size: 12, color: '#f59e0b' })} En Construcción</div>
             </div>
           </div>
         `;
@@ -1267,7 +1275,7 @@ export const ModalMixin = {
       if (isCompleted) {
         statusBadge = `<span class="chapter-status-badge completed">${renderIcon('check', { size: 12, color: '#10b981' })} Conquistado</span>`;
       } else if (isCurrent) {
-        statusBadge = `<span class="chapter-status-badge current">⚡ Activo</span>`;
+        statusBadge = `<span class="chapter-status-badge current">${renderIcon('bolt', { size: 12, color: '#38bdf8' })} Activo</span>`;
       } else {
         statusBadge = `<span class="chapter-status-badge available">Disponible</span>`;
       }
@@ -1289,8 +1297,8 @@ export const ModalMixin = {
       if (record) {
         recordInfo = `
           <div class="chapter-record-row">
-            ${bestTimeText ? `<span>⏱️ ${bestTimeText}</span>` : ''}
-            ${record.deaths !== undefined ? `<span>💀 ${record.deaths} bajas</span>` : ''}
+            ${bestTimeText ? `<span>${renderIcon('timer', { size: 12, color: '#fbbf24' })} ${bestTimeText}</span>` : ''}
+            ${record.deaths !== undefined ? `<span>${renderIcon('skull', { size: 12, color: '#e2e8f0' })} ${record.deaths} bajas</span>` : ''}
           </div>
         `;
       }
@@ -1299,12 +1307,12 @@ export const ModalMixin = {
       if (isHost) {
         actionPill = `
           <button class="chapter-launch-btn chapter-action-pill ${isCurrent ? 'btn-current is-current' : 'is-launch'}" data-chapter-id="${ch.id}">
-            ${isCurrent ? '⚡ En curso (Explorar)' : '🚀 Viaje Rápido'}
+            ${isCurrent ? `${renderIcon('bolt', { size: 13, color: '#fff' })} En curso (Explorar)` : `${renderIcon('rocket', { size: 13, color: '#fff' })} Viaje Rápido`}
           </button>
         `;
       } else {
         actionPill = `
-          <div class="chapter-client-info chapter-action-pill is-client">${isCurrent ? '⚡ En curso' : 'Listo para expedición'}</div>
+          <div class="chapter-client-info chapter-action-pill is-client">${isCurrent ? `${renderIcon('bolt', { size: 13, color: '#38bdf8' })} En curso` : 'Listo para expedición'}</div>
         `;
       }
 
@@ -1322,7 +1330,7 @@ export const ModalMixin = {
           </div>
           <div class="chapter-card-title">${escapeHtml(ch.name)}</div>
           <div class="chapter-card-desc">${escapeHtml(ch.lore)}</div>
-          <div class="chapter-dungeons-track" title="Trilogía de mazmorras">🏛️ ${dungeonsList}</div>
+          <div class="chapter-dungeons-track" title="Trilogía de mazmorras">${renderIcon('temple', { size: 13, color: '#38bdf8' })} ${dungeonsList}</div>
           ${starsHtml}
           ${recordInfo}
           <div class="chapter-card-actions">
@@ -1333,8 +1341,8 @@ export const ModalMixin = {
     }).join('');
 
     const hostNote = isHost
-      ? '👑 <strong>Anfitrión</strong>: Pulsa el botón <strong>Viaje Rápido</strong> para desplegar la expedición con tu equipo.'
-      : '🛡️ <strong>Aventurero</strong>: Explora los capítulos de la campaña. Solo el anfitrión puede liderar el Viaje Rápido.';
+      ? `${renderIcon('crown', { size: 14, color: '#fbbf24' })} <strong>Anfitrión</strong>: Pulsa el botón <strong>Viaje Rápido</strong> para desplegar la expedición con tu equipo.`
+      : `${renderIcon('shield', { size: 14, color: '#38bdf8' })} <strong>Aventurero</strong>: Explora los capítulos de la campaña. Solo el anfitrión puede liderar el Viaje Rápido.`;
 
     overlay.innerHTML = `
       <div class="modal-chapter-box">

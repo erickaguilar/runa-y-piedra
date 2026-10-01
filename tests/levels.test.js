@@ -293,6 +293,10 @@ test('dev_showroom está registrado pero aislado de la campaña regular', () => 
   assert.equal(world.chests.length, 3);
   assert.equal(world.objectives.length, 1);
   assert.equal(world.stairwells.length, 1);
+  assert.equal(world.monoliths.length, 1, 'Debe registrar el monolito cartográfico (Atlas)');
+  const cartoMonolith = devLvl.monoliths?.find(m => m.id === 'cartography');
+  assert.ok(cartoMonolith, 'Monolito de Cartografía (Atlas) debe existir en dev_showroom');
+  assert.equal(cartoMonolith.type, 'cartography');
 
   let jumpPadCount = 0;
   for (let i = 0; i < world.blocks.length; i++) {

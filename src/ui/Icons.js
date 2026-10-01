@@ -423,49 +423,227 @@ export const ICONS = {
     defaultColor: '#38bdf8',
     body: `<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="13" r="4"/>`,
   },
+
+  construction: {
+    name: 'construction',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#f59e0b',
+    body: `<rect x="3" y="6" width="18" height="10" rx="1" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v5M20 16v5M7 6l8 10M13 6l7 8.5M3 10.5l5 5.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  hammer: {
+    name: 'hammer',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#f59e0b',
+    body: `<path d="m15 12-8.5 8.5a2.12 2.12 0 1 1-3-3L12 9M17.6 3.6 20.4 6.4a2 2 0 0 1 0 2.8l-2.8 2.8-5.6-5.6 2.8-2.8a2 2 0 0 1 2.8 0z" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  pickaxe: {
+    name: 'pickaxe',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#94a3b8',
+    body: `<path d="m14 10-8.5 8.5a2.12 2.12 0 1 1-3-3L11 7M14.5 3.5 20.5 9.5M21 3a16.5 16.5 0 0 0-9 9" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  droplet: {
+    name: 'droplet',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  anvil: {
+    name: 'anvil',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#fb923c',
+    body: `<path d="M3 7h18l-3 4h-4v2c0 1.5 1 2 2 2h3v3H5v-3h3c1 0 2-.5 2-2v-2H7L4 10c-1-1.5-1-3-1-3z" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  snowflake: {
+    name: 'snowflake',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#67e8f9',
+    body: `<path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07M10 4l2-2 2 2M10 20l2 2 2 2M4 10l-2 2 2 2M20 10l2 2-2 2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  biohazard: {
+    name: 'biohazard',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#22c55e',
+    body: `<circle cx="12" cy="12" r="2"/><path d="M12 7.5a4.5 4.5 0 0 0-4.5 4.5M16.5 12a4.5 4.5 0 0 0-4.5-4.5M7.5 16.5A4.5 4.5 0 0 0 12 12M12 2v4M5 20l3.5-2M19 20l-3.5-2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  orbit: {
+    name: 'orbit',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#c084fc',
+    body: `<circle cx="12" cy="12" r="3" fill="currentColor"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-30 12 12)" stroke-linecap="round"/>`,
+  },
+
+  sun: {
+    name: 'sun',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#f59e0b',
+    body: `<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  mapPin: {
+    name: 'mapPin',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#ef4444',
+    body: `<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="10" r="3"/>`,
+  },
+
+  temple: {
+    name: 'temple',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<path d="M3 21h18M4 18h16M12 2l10 5H2l10-5zM6 10v8M10 10v8M14 10v8M18 10v8" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  rocket: {
+    name: 'rocket',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2zM9 12H4s.55-3.03 2-4.5c1.45-1.47 4.5-2 4.5-2M15 15v5s3.03-.55 4.5-2c1.47-1.45 2-4.5 2-4.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  bolt: {
+    name: 'bolt',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#facc15',
+    body: `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  timer: {
+    name: 'timer',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#fbbf24',
+    body: `<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  map: {
+    name: 'map',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="2" x2="8" y2="18" stroke-linecap="round"/><line x1="16" y1="6" x2="16" y2="22" stroke-linecap="round"/>`,
+  },
+};
+
+/**
+ * Convenient aliases for common icon names
+ */
+export const ICON_ALIASES = {
+  barrier: 'construction',
+  pin: 'mapPin',
+  monolith: 'temple',
+  flash: 'bolt',
+  clock: 'timer',
+  atlas: 'map',
+  lightning: 'bolt',
 };
 
 /**
  * Mapping between legacy Unicode emojis and SVG icon definitions.
  */
 export const EMOJI_TO_ICON_MAP = [
-  { regex: /⚔\uFE0F?/g, icon: 'swords', defaultColor: '#94a3b8' },
-  { regex: /🏰\uFE0F?/g, icon: 'castle', defaultColor: '#fbbf24' },
-  { regex: /🌋\uFE0F?/g, icon: 'volcano', defaultColor: '#f97316' },
-  { regex: /🛡\uFE0F?/g, icon: 'shield', defaultColor: '#38bdf8' },
-  { regex: /⚙\uFE0F?/g, icon: 'settings', defaultColor: '#cbd5e1' },
-  { regex: /🚪\uFE0F?/g, icon: 'door', defaultColor: '#d97706' },
-  { regex: /🔥\uFE0F?/g, icon: 'flame', defaultColor: '#ef4444' },
-  { regex: /📦\uFE0F?/g, icon: 'chest', defaultColor: '#f59e0b' },
-  { regex: /🗝\uFE0F?/g, icon: 'key', defaultColor: '#fbbf24' },
-  { regex: /🧪\uFE0F?/g, icon: 'potion', defaultColor: '#f43f5e' },
-  { regex: /💎\uFE0F?/g, icon: 'gem', defaultColor: '#38bdf8' },
-  { regex: /🏆\uFE0F?/g, icon: 'trophy', defaultColor: '#eab308' },
-  { regex: /✨\uFE0F?/g, icon: 'sparkles', defaultColor: '#facc15' },
-  { regex: /⚠\uFE0F?/g, icon: 'warning', defaultColor: '#f59e0b' },
-  { regex: /✅\uFE0F?/g, icon: 'check', defaultColor: '#22c55e' },
-  { regex: /📱\uFE0F?/g, icon: 'share', defaultColor: '#38bdf8' },
-  { regex: /📋\uFE0F?/g, icon: 'copy', defaultColor: '#cbd5e1' },
-  { regex: /🧭\uFE0F?/g, icon: 'compass', defaultColor: '#38bdf8' },
-  { regex: /🪶\uFE0F?/g, icon: 'feather', defaultColor: '#10b981' },
-  { regex: /🪄\uFE0F?/g, icon: 'wand', defaultColor: '#a855f7' },
-  { regex: /👑\uFE0F?/g, icon: 'crown', defaultColor: '#fbbf24' },
-  { regex: /🔒\uFE0F?/g, icon: 'lock', defaultColor: '#f59e0b' },
-  { regex: /🌀\uFE0F?/g, icon: 'vortex', defaultColor: '#38bdf8' },
-  { regex: /🪨\uFE0F?/g, icon: 'stone', defaultColor: '#a8a29e' },
-  { regex: /💀\uFE0F?/g, icon: 'skull', defaultColor: '#e2e8f0' },
-  { regex: /🔊\uFE0F?/g, icon: 'soundOn', defaultColor: '#fbbf24' },
-  { regex: /🔇\uFE0F?/g, icon: 'soundOff', defaultColor: '#94a3b8' },
-  { regex: /❤\uFE0F?/g, icon: 'heart', defaultColor: '#ef4444' },
+  { regex: /⚔\uFE0F?/g, icon: 'swords',       defaultColor: '#94a3b8' },
+  { regex: /🏰\uFE0F?/g, icon: 'castle',       defaultColor: '#fbbf24' },
+  { regex: /🌋\uFE0F?/g, icon: 'volcano',      defaultColor: '#f97316' },
+  { regex: /🛡\uFE0F?/g, icon: 'shield',       defaultColor: '#38bdf8' },
+  { regex: /⚙\uFE0F?/g, icon: 'settings',     defaultColor: '#cbd5e1' },
+  { regex: /🚪\uFE0F?/g, icon: 'door',         defaultColor: '#d97706' },
+  { regex: /🔥\uFE0F?/g, icon: 'flame',        defaultColor: '#ef4444' },
+  { regex: /📦\uFE0F?/g, icon: 'chest',        defaultColor: '#f59e0b' },
+  { regex: /🗝\uFE0F?/g, icon: 'key',          defaultColor: '#fbbf24' },
+  { regex: /🧪\uFE0F?/g, icon: 'potion',       defaultColor: '#f43f5e' },
+  { regex: /💎\uFE0F?/g, icon: 'gem',          defaultColor: '#38bdf8' },
+  { regex: /🏆\uFE0F?/g, icon: 'trophy',       defaultColor: '#eab308' },
+  { regex: /✨\uFE0F?/g, icon: 'sparkles',     defaultColor: '#facc15' },
+  { regex: /⚠\uFE0F?/g, icon: 'warning',      defaultColor: '#f59e0b' },
+  { regex: /✅\uFE0F?/g, icon: 'check',        defaultColor: '#22c55e' },
+  { regex: /📱\uFE0F?/g, icon: 'share',        defaultColor: '#38bdf8' },
+  { regex: /📋\uFE0F?/g, icon: 'copy',         defaultColor: '#cbd5e1' },
+  { regex: /🧭\uFE0F?/g, icon: 'compass',      defaultColor: '#38bdf8' },
+  { regex: /🪶\uFE0F?/g, icon: 'feather',      defaultColor: '#10b981' },
+  { regex: /🪄\uFE0F?/g, icon: 'wand',         defaultColor: '#a855f7' },
+  { regex: /👑\uFE0F?/g, icon: 'crown',        defaultColor: '#fbbf24' },
+  { regex: /🔒\uFE0F?/g, icon: 'lock',         defaultColor: '#f59e0b' },
+  { regex: /🌀\uFE0F?/g, icon: 'vortex',       defaultColor: '#38bdf8' },
+  { regex: /🪨\uFE0F?/g, icon: 'stone',        defaultColor: '#a8a29e' },
+  { regex: /💀\uFE0F?/g, icon: 'skull',        defaultColor: '#e2e8f0' },
+  { regex: /🔊\uFE0F?/g, icon: 'soundOn',      defaultColor: '#fbbf24' },
+  { regex: /🔇\uFE0F?/g, icon: 'soundOff',     defaultColor: '#94a3b8' },
+  { regex: /❤\uFE0F?/g, icon: 'heart',        defaultColor: '#ef4444' },
   { regex: /🖤\uFE0F?/g, icon: 'heartOutline', defaultColor: '#64748b' },
   { regex: /🤍\uFE0F?/g, icon: 'heartOutline', defaultColor: '#94a3b8' },
-  { regex: /⬆\uFE0F?/g, icon: 'arrowUp', defaultColor: '#fff' },
-  { regex: /✦/g,         icon: 'star', defaultColor: '#fde68a' },
-  { regex: /📷\uFE0F?/g, icon: 'camera', defaultColor: '#38bdf8' },
-  { regex: /🎮\uFE0F?/g, icon: 'gamepad', defaultColor: '#a855f7' },
-  { regex: /🕹\uFE0F?/g, icon: 'joystick', defaultColor: '#38bdf8' },
-  { regex: /🎯\uFE0F?/g, icon: 'target', defaultColor: '#ef4444' },
-  { regex: /✕/g,        icon: 'x',     defaultColor: '#94a3b8' },
+  { regex: /⬆\uFE0F?/g, icon: 'arrowUp',      defaultColor: '#fff' },
+  { regex: /✦/g,         icon: 'star',         defaultColor: '#fde68a' },
+  { regex: /📷\uFE0F?/g, icon: 'camera',       defaultColor: '#38bdf8' },
+  { regex: /🎮\uFE0F?/g, icon: 'gamepad',      defaultColor: '#a855f7' },
+  { regex: /🕹\uFE0F?/g, icon: 'joystick',     defaultColor: '#38bdf8' },
+  { regex: /🎯\uFE0F?/g, icon: 'target',       defaultColor: '#ef4444' },
+  { regex: /✕/g,        icon: 'x',            defaultColor: '#94a3b8' },
+  { regex: /🚧/g,        icon: 'construction', defaultColor: '#f59e0b' },
+  { regex: /🔨\uFE0F?/g, icon: 'hammer',       defaultColor: '#f59e0b' },
+  { regex: /⛏\uFE0F?/g, icon: 'pickaxe',      defaultColor: '#94a3b8' },
+  { regex: /💧\uFE0F?/g, icon: 'droplet',      defaultColor: '#38bdf8' },
+  { regex: /❄\uFE0F?/g, icon: 'snowflake',    defaultColor: '#67e8f9' },
+  { regex: /☣\uFE0F?/g, icon: 'biohazard',    defaultColor: '#22c55e' },
+  { regex: /🪐\uFE0F?/g, icon: 'orbit',        defaultColor: '#c084fc' },
+  { regex: /🌌\uFE0F?/g, icon: 'orbit',        defaultColor: '#c084fc' },
+  { regex: /☀\uFE0F?/g, icon: 'sun',          defaultColor: '#f59e0b' },
+  { regex: /📍\uFE0F?/g, icon: 'mapPin',       defaultColor: '#ef4444' },
+  { regex: /🏛\uFE0F?/g, icon: 'temple',       defaultColor: '#38bdf8' },
+  { regex: /🚀\uFE0F?/g, icon: 'rocket',       defaultColor: '#38bdf8' },
+  { regex: /⚡\uFE0F?/g, icon: 'bolt',         defaultColor: '#facc15' },
+  { regex: /⏱\uFE0F?/g, icon: 'timer',        defaultColor: '#fbbf24' },
+  { regex: /🗺\uFE0F?/g, icon: 'map',          defaultColor: '#38bdf8' },
 ];
 
 /**
@@ -476,6 +654,11 @@ export function resolveIcon(nameOrEmoji) {
 
   // Direct match in registry
   if (ICONS[nameOrEmoji]) return ICONS[nameOrEmoji];
+
+  // Alias check
+  if (ICON_ALIASES[nameOrEmoji] && ICONS[ICON_ALIASES[nameOrEmoji]]) {
+    return ICONS[ICON_ALIASES[nameOrEmoji]];
+  }
 
   // Emoji alias check
   const mapped = EMOJI_TO_ICON_MAP.find(m => m.regex.test(nameOrEmoji));
