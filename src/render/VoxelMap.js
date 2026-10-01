@@ -32,7 +32,7 @@ export class VoxelMap {
     this.atlasAttr.setUsage(THREE.DynamicDrawUsage);
     geo.setAttribute('atlasOffset', this.atlasAttr);
 
-    const texture = TextureGenerator.createVoxelAtlasTexture(512);
+    const texture = TextureGenerator.createVoxelAtlasTexture(512, 1024);
     const mat = new THREE.MeshLambertMaterial({
       color: 0xffffff,
       map: texture,
@@ -53,7 +53,7 @@ varying vec2 vAtlasOffset;`
 vAtlasOffset = atlasOffset;`
       );
 
-      // Inyección en Fragment Shader: calcular UV en el subcuadrante del atlas
+      // Inyección en Fragment Shader: calcular UV en el subcuadrante del atlas (4x8: cada casilla es 0.25 en U y 0.125 en V)
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <map_pars_fragment>',
         `#include <map_pars_fragment>
@@ -63,7 +63,7 @@ varying vec2 vAtlasOffset;`
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <map_fragment>',
         `#ifdef USE_MAP
-  vec2 tileUv = clamp(fract(vMapUv), 0.002, 0.998) * vec2(0.25, 0.25) + vAtlasOffset;
+  vec2 tileUv = clamp(fract(vMapUv), 0.002, 0.998) * vec2(0.25, 0.125) + vAtlasOffset;
   vec4 sampledDiffuseColor = texture2D( map, tileUv );
   #ifdef DECODE_VIDEO_TEXTURE
     sampledDiffuseColor = vec4( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3( lessThanEqual( sampledDiffuseColor.rgb, vec3( 0.04045 ) ) ) ), sampledDiffuseColor.w );
@@ -257,21 +257,29 @@ varying vec2 vAtlasOffset;`
         return 14; // Losa de cantería con runa ámbar de salto y refuerzos de forja
       case BLOCK_TYPES.PEDESTAL:
         return 15; // Círculo rúnico arcano con estrella de 8 puntas para el pedestal
-      case BLOCK_TYPES.LAVA:
-        return 13; // Magma volcánico: base ígnea con grietas de obsidiana
+      case BLOCK_TYPES.LAVA: {
+        // 5 Variantes de Lava (distribución orgánica determinista):
+        // Tile 13: Magma Activo (corrientes de convección y afluentes)
+        // Tile 16: Corteza de Basalto & Fisuras Tectónicas Ardientes
+        // Tile 17: Géiseres, Domos de Gas & Burbujas Hirvientes
+        // Tile 18: Río Rápido de Magma / Corriente Piroclástica Diagonal
+        // Tile 19: Caldera de Fusión Pura / Núcleo Solar Blanco-Dorado
+        const lavaPalette = [13, 16, 17, 18, 19];
+        return lavaPalette[h % lavaPalette.length];
+      }
       default:
         return 0;
     }
   }
 
   /**
-   * Convierte el índice de casilla en el atlas de 4x4 (0 a 15) en coordenadas UV normalizadas [0, 1].
+   * Convierte el índice de casilla en el atlas de 4x8 (0 a 31) en coordenadas UV normalizadas [0, 1].
    */
   static getTileUVOffset(tileIndex) {
     const col = tileIndex % 4;
     const row = Math.floor(tileIndex / 4);
     const u = col * 0.25;
-    const v = (3 - row) * 0.25;
+    const v = (7 - row) * 0.125;
     return { u, v };
   }
 }

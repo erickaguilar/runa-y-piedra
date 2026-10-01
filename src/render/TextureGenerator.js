@@ -3,27 +3,28 @@ import * as THREE from 'three';
 
 export class TextureGenerator {
   /**
-   * Genera el Texture Atlas procedural estilo voxel con 16 patrones vectoriales (4x4):
-   * - Muros (5 variaciones): Sillar regular, sillar agrietado, mampostería irregular, sillar con musgo, glifo rúnico.
-   * - Suelo (5 variaciones): Grandes losas, losa fracturada, adoquines irregulares, losa con musgo, rombo ceremonial.
-   * - Pilares (5 variaciones): Columna estriada, pilar con anillo de forja, sillar almohadillado, espiral helicoidal, capitel con escuadras.
-   * - Especial (1 patrón): Círculo rúnico solar para pedestales y plataformas mágicas.
+   * Genera el Texture Atlas procedural estilo voxel con 32 patrones vectoriales (4x8):
+   * - Muros (5 variaciones, Tiles 0 a 4): Sillar regular, sillar agrietado, mampostería irregular, sillar con musgo, glifo rúnico.
+   * - Suelo (5 variaciones, Tiles 5 a 9): Grandes losas, losa fracturada, adoquines irregulares, losa con musgo, rombo ceremonial.
+   * - Pilares (2 variaciones, Tiles 10 y 12): Columna monolítica continua sin costuras, pilar con acanaladuras estriadas.
+   * - Especial (3 patrones, Tiles 11, 14, 15): Losa rúnica de aparición (Respawn), losa de salto ámbar (Jump Pad) y círculo rúnico (Pedestal).
+   * - Lava (5 variaciones, Tiles 13, 16 a 19): Magma activo, corteza de basalto con fisuras, domos de gas hirviente, río piroclástico y caldera de fusión pura.
    * 
    * Al estar en escala de grises calibrada, Three.js multiplica automáticamente la textura
    * por el color del tipo de bloque (p. ej. slate-700 para muros, slate-600 para suelo, slate-500 para pilares).
    */
-  static createVoxelAtlasTexture(atlasSize = 512) {
+  static createVoxelAtlasTexture(atlasWidth = 512, atlasHeight = 1024) {
     const canvas = document.createElement('canvas');
-    canvas.width = atlasSize;
-    canvas.height = atlasSize;
+    canvas.width = atlasWidth;
+    canvas.height = atlasHeight;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    const S = atlasSize / 4; // 128 px por casilla en el atlas de 512x512
+    const S = 128; // 128 px por casilla en la cuadrícula de 4 columnas x 8 filas (512x1024)
 
     // Color base neutro inmediato para evitar destellos antes de que cargue la imagen
     ctx.fillStyle = '#d4d4d8';
-    ctx.fillRect(0, 0, atlasSize, atlasSize);
+    ctx.fillRect(0, 0, atlasWidth, atlasHeight);
 
     const tilesSvg = [
       // ==================== GRUPO 1: MUROS (Tiles 0 a 4) ====================
@@ -710,22 +711,215 @@ export class TextureGenerator {
         <polygon points="64,28 74,54 100,64 74,74 64,100 54,74 28,64 54,54" fill="#ffffff" opacity="0.4"/>
         <circle cx="64" cy="64" r="14" fill="#27272a" stroke="#ffffff" stroke-width="2"/>
         <circle cx="64" cy="64" r="6" fill="#e4e4e7"/>
+      `,
+
+      // ==================== TILE 16: LAVA 2 (Corteza de Basalto Fracturada & Fisuras de Magma Vivo) ====================
+      `
+        <defs>
+          <radialGradient id="lava-glow-16" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stop-color="#fffbeb"/>
+            <stop offset="20%" stop-color="#fef08a"/>
+            <stop offset="45%" stop-color="#f97316"/>
+            <stop offset="75%" stop-color="#dc2626"/>
+            <stop offset="100%" stop-color="#450a0a"/>
+          </radialGradient>
+          <linearGradient id="lava-basalt-16" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#262322"/>
+            <stop offset="50%" stop-color="#191716"/>
+            <stop offset="100%" stop-color="#0c0a09"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Fondo incandescente bajo las placas -->
+        <rect width="${S}" height="${S}" fill="url(#lava-glow-16)"/>
+
+        <!-- Gran red de fisuras de magma ardiente (Halo de calor) -->
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M 0,28 L 34,36 L 62,24 L 88,48 L 128,40 M 62,24 L 68,64 L 54,92 L 64,128 M 68,64 L 102,74 L 128,88 M 54,92 L 24,104 L 0,96 M 34,36 L 22,68 L 24,104" stroke="#ea580c" stroke-width="12" opacity="0.7"/>
+          <path d="M 0,28 L 34,36 L 62,24 L 88,48 L 128,40 M 62,24 L 68,64 L 54,92 L 64,128 M 68,64 L 102,74 L 128,88 M 54,92 L 24,104 L 0,96 M 34,36 L 22,68 L 24,104" stroke="#f97316" stroke-width="6"/>
+          <path d="M 0,28 L 34,36 L 62,24 L 88,48 L 128,40 M 62,24 L 68,64 L 54,92 L 64,128 M 68,64 L 102,74 L 128,88 M 54,92 L 24,104 L 0,96 M 34,36 L 22,68 L 24,104" stroke="#facc15" stroke-width="2.6"/>
+          <path d="M 0,28 L 34,36 L 62,24 L 88,48 L 128,40 M 62,24 L 68,64 L 54,92 L 64,128 M 68,64 L 102,74 L 128,88 M 54,92 L 24,104 L 0,96 M 34,36 L 22,68 L 24,104" stroke="#ffffff" stroke-width="1.2" opacity="0.9"/>
+        </g>
+
+        <!-- Placas tectónicas de basalto oscuro enfriado -->
+        <polygon points="-2,-2 60,-2 58,20 32,32 0,24" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+        <polygon points="66,-2 130,-2 130,36 90,44 64,20" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+        <polygon points="-2,32 18,34 18,64 20,100 -2,92" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+        <polygon points="26,40 58,30 64,60 50,88 26,64" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+        <polygon points="94,50 130,42 130,84 106,70 74,60" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+        <polygon points="-2,100 20,108 50,96 58,130 -2,130" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+        <polygon points="70,68 102,78 130,92 130,130 68,130 58,96" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+
+        <!-- Micro-grietas en las placas con brillo interno -->
+        <g stroke="#ea580c" stroke-width="0.8" fill="none" opacity="0.75">
+          <path d="M 12,6 L 24,14 L 32,10 M 80,8 L 92,16 M 10,114 L 20,122 L 32,118 M 84,104 L 96,112"/>
+        </g>
+        <g fill="#fef08a" opacity="0.85">
+          <circle cx="62" cy="24" r="2"/><circle cx="68" cy="64" r="2.4"/><circle cx="54" cy="92" r="1.8"/>
+        </g>
+      `,
+
+      // ==================== TILE 17: LAVA 3 (Géiseres, Domos de Gas & Burbujas Hirvientes) ====================
+      `
+        <defs>
+          <radialGradient id="lava-base-17" cx="48%" cy="52%" r="65%">
+            <stop offset="0%" stop-color="#fffbeb"/>
+            <stop offset="25%" stop-color="#f97316"/>
+            <stop offset="65%" stop-color="#dc2626"/>
+            <stop offset="100%" stop-color="#450a0a"/>
+          </radialGradient>
+          <radialGradient id="lava-bubble-major-17" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="20%" stop-color="#fef08a"/>
+            <stop offset="45%" stop-color="#f59e0b"/>
+            <stop offset="70%" stop-color="#ea580c"/>
+            <stop offset="90%" stop-color="#991b1b"/>
+            <stop offset="100%" stop-color="#450a0a"/>
+          </radialGradient>
+          <radialGradient id="lava-bubble-burst-17" cx="40%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="#fffbeb"/>
+            <stop offset="35%" stop-color="#facc15"/>
+            <stop offset="70%" stop-color="#f97316"/>
+            <stop offset="100%" stop-color="#7f1d1d"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Base de magma ardiente -->
+        <rect width="${S}" height="${S}" fill="url(#lava-base-17)"/>
+
+        <!-- Ondas de choque térmico concéntricas -->
+        <circle cx="44" cy="54" r="38" fill="none" stroke="#ea580c" stroke-width="2" opacity="0.45"/>
+        <circle cx="44" cy="54" r="30" fill="none" stroke="#f97316" stroke-width="1.8" opacity="0.6"/>
+        <circle cx="92" cy="38" r="26" fill="none" stroke="#ea580c" stroke-width="1.5" opacity="0.5"/>
+
+        <!-- Gran Domo Alfa (Burbuja Gigante antes de estallar) -->
+        <circle cx="44" cy="54" r="22" fill="url(#lava-bubble-major-17)"/>
+        <path d="M 32,42 Q 40,36 50,40" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <circle cx="34" cy="44" r="2" fill="#ffffff" opacity="0.95"/>
+
+        <!-- Domo Beta (En erupción / estallido expulsando salpicaduras) -->
+        <circle cx="92" cy="38" r="15" fill="url(#lava-bubble-burst-17)"/>
+        <path d="M 84,30 Q 90,26 96,28" stroke="#ffffff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.85"/>
+        <circle cx="92" cy="38" r="16" fill="none" stroke="#fef08a" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <circle cx="96" cy="18" r="2.5" fill="#facc15"/><circle cx="108" cy="28" r="2" fill="#f97316"/>
+        <circle cx="80" cy="24" r="1.8" fill="#fffbeb"/><circle cx="106" cy="46" r="2.2" fill="#ea580c"/>
+
+        <!-- Burbujas secundarias menores -->
+        <circle cx="32" cy="100" r="12" fill="url(#lava-bubble-burst-17)"/>
+        <path d="M 26,94 Q 30,92 35,93" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8"/>
+        <circle cx="98" cy="98" r="14" fill="url(#lava-bubble-major-17)"/>
+        <path d="M 90,90 Q 95,87 102,89" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.85"/>
+        <circle cx="70" cy="82" r="8" fill="url(#lava-bubble-burst-17)"/>
+
+        <!-- Costras menores de basalto flotante arrastradas -->
+        <polygon points="6,12 18,8 22,20 10,24" fill="#1c1917" stroke="#7f1d1d" stroke-width="0.8"/>
+        <polygon points="112,74 124,70 126,82 116,84" fill="#1c1917" stroke="#7f1d1d" stroke-width="0.8"/>
+      `,
+
+      // ==================== TILE 18: LAVA 4 (Río Rápido de Magma / Corriente Piroclástica Diagonal) ====================
+      `
+        <defs>
+          <linearGradient id="lava-river-18" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#450a0a"/>
+            <stop offset="25%" stop-color="#dc2626"/>
+            <stop offset="50%" stop-color="#f97316"/>
+            <stop offset="75%" stop-color="#facc15"/>
+            <stop offset="90%" stop-color="#fef08a"/>
+            <stop offset="100%" stop-color="#fffbeb"/>
+          </linearGradient>
+          <linearGradient id="lava-edge-18" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1c1917"/>
+            <stop offset="100%" stop-color="#0c0a09"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Base ígnea de gran caudal -->
+        <rect width="${S}" height="${S}" fill="#7f1d1d"/>
+        <rect width="${S}" height="${S}" fill="url(#lava-river-18)" opacity="0.9"/>
+
+        <!-- Líneas de corriente fluidodinámica en alta velocidad -->
+        <g fill="none" stroke-linecap="round">
+          <path d="M -6,110 Q 24,96 54,64 Q 84,32 120,4 Q 128,-4 134,-6" stroke="#ea580c" stroke-width="18" opacity="0.6"/>
+          <path d="M 4,134 Q 38,104 68,72 Q 98,40 134,16" stroke="#ea580c" stroke-width="14" opacity="0.55"/>
+          <path d="M -6,110 Q 24,96 54,64 Q 84,32 120,4 Q 128,-4 134,-6" stroke="#f97316" stroke-width="9"/>
+          <path d="M 4,134 Q 38,104 68,72 Q 98,40 134,16" stroke="#f97316" stroke-width="7"/>
+          <path d="M -6,110 Q 24,96 54,64 Q 84,32 120,4 Q 128,-4 134,-6" stroke="#fef08a" stroke-width="4"/>
+          <path d="M 4,134 Q 38,104 68,72 Q 98,40 134,16" stroke="#fde047" stroke-width="3"/>
+          <path d="M -4,110 Q 24,96 54,64 Q 84,32 120,4" stroke="#ffffff" stroke-width="1.8" opacity="0.95"/>
+          <path d="M 6,132 Q 38,104 68,72 Q 98,40 132,16" stroke="#ffffff" stroke-width="1.4" opacity="0.9"/>
+        </g>
+
+        <!-- Orillas de roca y basalto que canalizan el torrente -->
+        <polygon points="-2,-2 82,-2 52,24 24,44 -2,66" fill="url(#lava-edge-18)" stroke="#7f1d1d" stroke-width="1.2"/>
+        <polygon points="66,130 130,130 130,52 108,74 88,104" fill="url(#lava-edge-18)" stroke="#7f1d1d" stroke-width="1.2"/>
+
+        <!-- Estelas de arrastre y vórtices térmicos -->
+        <g stroke="#fef08a" stroke-width="1" fill="none" opacity="0.8">
+          <path d="M 38,52 L 48,42 M 56,76 L 68,64 M 78,44 L 90,32 M 94,68 L 104,58"/>
+        </g>
+        <circle cx="58" cy="50" r="2.2" fill="#fffbeb"/><circle cx="82" cy="28" r="1.8" fill="#fffbeb"/>
+        <circle cx="34" cy="78" r="2" fill="#facc15"/><circle cx="72" cy="88" r="2.4" fill="#facc15"/>
+      `,
+
+      // ==================== TILE 19: LAVA 5 (Caldera de Fusión Pura / Núcleo Solar Blanco-Dorado) ====================
+      `
+        <defs>
+          <radialGradient id="lava-hyper-19" cx="50%" cy="50%" r="55%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="25%" stop-color="#fffbeb"/>
+            <stop offset="50%" stop-color="#fef08a"/>
+            <stop offset="72%" stop-color="#f59e0b"/>
+            <stop offset="88%" stop-color="#ea580c"/>
+            <stop offset="100%" stop-color="#991b1b"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Base hiper-térmica cegadora -->
+        <rect width="${S}" height="${S}" fill="#991b1b"/>
+        <rect width="${S}" height="${S}" fill="url(#lava-hyper-19)"/>
+
+        <!-- Espirales de convección rotacional / Vórtice solar -->
+        <g fill="none" stroke-linecap="round">
+          <ellipse cx="64" cy="64" rx="46" ry="46" stroke="#ea580c" stroke-width="10" opacity="0.6"/>
+          <ellipse cx="64" cy="64" rx="34" ry="34" stroke="#f97316" stroke-width="8" opacity="0.75"/>
+          <ellipse cx="64" cy="64" rx="22" ry="22" stroke="#fde047" stroke-width="6"/>
+          <ellipse cx="64" cy="64" rx="10" ry="10" stroke="#ffffff" stroke-width="3.5"/>
+
+          <path d="M 64,18 Q 98,24 104,58 Q 106,92 74,106 Q 38,108 26,76 Q 24,44 54,28" stroke="#ffffff" stroke-width="1.8" opacity="0.9"/>
+          <path d="M 64,28 Q 88,34 94,60 Q 94,84 70,94 Q 44,96 36,72" stroke="#fffbeb" stroke-width="2.5" opacity="0.95"/>
+        </g>
+
+        <!-- Destellos estelares de temperatura límite -->
+        <g stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.95">
+          <line x1="64" y1="46" x2="64" y2="82"/>
+          <line x1="46" y1="64" x2="82" y2="64"/>
+          <line x1="51" y1="51" x2="77" y2="77"/>
+          <line x1="77" y1="51" x2="51" y2="77"/>
+        </g>
+        <circle cx="64" cy="64" r="6" fill="#ffffff"/>
+
+        <!-- Micro-esquirlas minerales flotantes incandescentes -->
+        <polygon points="18,16 26,14 24,22 16,20" fill="#2d2a29" stroke="#ea580c" stroke-width="0.8"/>
+        <polygon points="106,18 114,22 110,28 102,24" fill="#2d2a29" stroke="#ea580c" stroke-width="0.8"/>
+        <polygon points="16,104 24,108 22,116 14,112" fill="#2d2a29" stroke="#ea580c" stroke-width="0.8"/>
+        <polygon points="108,102 116,98 118,108 110,112" fill="#2d2a29" stroke="#ea580c" stroke-width="0.8"/>
       `
     ];
 
-    // Ensamblar los 16 grupos en la cuadrícula 4x4
+    // Ensamblar los grupos en la cuadrícula 4x8 (32 casillas de 128x128 en 512x1024)
     let innerSvg = '';
-    for (let r = 0; r < 4; r++) {
+    for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 4; c++) {
         const idx = r * 4 + c;
         const x = c * S;
         const y = r * S;
-        innerSvg += `<g transform="translate(${x}, ${y})">${tilesSvg[idx]}</g>\n`;
+        const tileContent = tilesSvg[idx] || `<rect width="${S}" height="${S}" fill="#18181b"/>`;
+        innerSvg += `<g transform="translate(${x}, ${y})">${tileContent}</g>\n`;
       }
     }
 
     const fullSvgString = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${atlasSize}" height="${atlasSize}" viewBox="0 0 ${atlasSize} ${atlasSize}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="${atlasWidth}" height="${atlasHeight}" viewBox="0 0 ${atlasWidth} ${atlasHeight}">
         ${innerSvg}
       </svg>
     `;
@@ -737,7 +931,7 @@ export class TextureGenerator {
 
     const img = new Image();
     img.onload = () => {
-      ctx.drawImage(img, 0, 0, atlasSize, atlasSize);
+      ctx.drawImage(img, 0, 0, atlasWidth, atlasHeight);
       texture.needsUpdate = true;
     };
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(fullSvgString);
@@ -747,6 +941,6 @@ export class TextureGenerator {
 
   /** Mantiene compatibilidad con versiones previas. */
   static createVoxelTexture(size = 64) {
-    return TextureGenerator.createVoxelAtlasTexture(size * 4);
+    return TextureGenerator.createVoxelAtlasTexture(size * 4, size * 8);
   }
 }

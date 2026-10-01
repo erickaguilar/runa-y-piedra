@@ -6,7 +6,7 @@
 
 Esta arquitectura separa estrictamente el renderizado del mundo en dos subsistemas coordinados:
 
-1. **Mundo Vóxel Instanciado (`VoxelMap.js`)**: Renderizado masivo de hasta 13,824 bloques cúbicos simultáneos mediante un único `THREE.InstancedMesh`. Las texturas no se cargan como archivos PNG/JPG independientes, sino que se muestrean desde un **Texture Atlas vectorial procedural SVG de $512 \times 512$ píxeles** ($4 \times 4$ casillas) inyectado directamente en el shader (`onBeforeCompile`), permitiendo renderizar toda la geometría estática en **1 sola llamada de dibujo (Draw Call)**.
+1. **Mundo Vóxel Instanciado (`VoxelMap.js`)**: Renderizado masivo de hasta 13,824 bloques cúbicos simultáneos mediante un único `THREE.InstancedMesh`. Las texturas no se cargan como archivos PNG/JPG independientes, sino que se muestrean desde un **Texture Atlas vectorial procedural SVG de $512 \times 1024$ píxeles** ($4 \times 8$ casillas, 20 sprites procedurales activos) inyectado directamente en el shader (`onBeforeCompile`), permitiendo renderizar toda la geometría estática en **1 sola llamada de dibujo (Draw Call)**.
 2. **Entidades 3D Interactivas y Dinámicas (`AvatarRenderer.js`, `ChestRenderer.js`, `DoorRenderer.js`, `PedestalRenderer.js`, `StairsRenderer.js`)**: Modelos tridimensionales paramétricos con geometrías optimizadas y fusionadas (`BufferGeometryUtils.mergeGeometries`), provistos de simulaciones físicas basadas en resortes (*Spring mechanics*), luces puntuales dinámicas y sistemas de partículas.
 
 ```
@@ -20,8 +20,8 @@ Esta arquitectura separa estrictamente el renderizado del mundo en dos subsistem
      │      MUNDO VÓXEL (1 DC)     │                 │   ENTIDADES 3D DINÁMICAS    │
      ├─────────────────────────────┤                 ├─────────────────────────────┤
      │ • InstancedMesh (Box 1x1x1) │                 │ • Avatares (5 Clases Héroe) │
-     │ • Atlas Vectorial 4x4 SVG   │                 │ • Cofres con apertura 85°   │
-     │ • 16 Sprites Procedurales   │                 │ • Puertas de Doble Hoja     │
+     │ • Atlas Vectorial 4x8 SVG   │                 │ • Cofres con apertura 85°   │
+     │ • 20 Sprites Procedurales   │                 │ • Puertas de Doble Hoja     │
      │ • Shaders con Atlas Offset  │                 │ • Altar con Orbe Flotante   │
      │ • Modulación THREE_COLORS   │                 │ • Escalinata con Losa Desl. │
      └─────────────────────────────┘                 └─────────────────────────────┘
@@ -29,18 +29,20 @@ Esta arquitectura separa estrictamente el renderizado del mundo en dos subsistem
 
 ---
 
-## 2. Catálogo de Sprites del Texture Atlas (16 Casillas)
+## 2. Catálogo de Sprites del Texture Atlas (20 Sprites Activos en Matriz 4x8)
 
-El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5 de $512 \times 512$ píxeles dividido en **16 cuadrantes de $128 \times 128$ píxeles** distribuidos en una matriz de $4 \times 4$. La textura se calibra en escala de grises para que el shader de Three.js multiplique los valores de luminancia por el color del tipo de bloque (`BLOCK_COLORS`), preservando contrastes, biseles y microtexturas minerales.
+El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5 de $512 \times 1024$ píxeles dividido en **32 casillas de $128 \times 128$ píxeles** (4 columnas $\times$ 8 filas), de las cuales **20 casillas activas** (Tiles 0 al 19) están implementadas para los tipos de bloques del juego. La textura se calibra en escala de grises para que el shader de Three.js multiplique los valores de luminancia por el color del tipo de bloque (`BLOCK_COLORS`), preservando contrastes, biseles y microtexturas minerales, con la excepción de las losas de respawn y la lava volcánica, que emplean policromía vectorial de alta fidelidad (`0xffffff`).
 
-### Matriz de Distribución en el Atlas ($4 \times 4$)
+### Matriz de Distribución en el Atlas ($4 \times 8$)
 
 | Fila / Columna | Col 0 ($u=0.00$) | Col 1 ($u=0.25$) | Col 2 ($u=0.50$) | Col 3 ($u=0.75$) |
 | :---: | :---: | :---: | :---: | :---: |
-| **Fila 0** ($v=0.75$) | **Tile 0**: Muro Sillar | **Tile 1**: Muro Fisuras | **Tile 2**: Muro Mampostería | **Tile 3**: Muro Musgo |
-| **Fila 1** ($v=0.50$) | **Tile 4**: Muro Runa | **Tile 5**: Suelo Limpio | **Tile 6**: Suelo Desgaste | **Tile 7**: Suelo Musgo |
-| **Fila 2** ($v=0.25$) | **Tile 8**: Suelo Mixto | **Tile 9**: Suelo Santuario | **Tile 10**: Columna Fuste | **Tile 11**: Losa Respawn |
-| **Fila 3** ($v=0.00$) | **Tile 12**: Columna Acanalada | **Tile 13**: Magma Lava | **Tile 14**: Salto Jump Pad | **Tile 15**: Pedestal Runa |
+| **Fila 0** ($v=0.875$) | **Tile 0**: Muro Sillar | **Tile 1**: Muro Fisuras | **Tile 2**: Muro Mampostería | **Tile 3**: Muro Musgo |
+| **Fila 1** ($v=0.750$) | **Tile 4**: Muro Runa | **Tile 5**: Suelo Limpio | **Tile 6**: Suelo Desgaste | **Tile 7**: Suelo Musgo |
+| **Fila 2** ($v=0.625$) | **Tile 8**: Suelo Mixto | **Tile 9**: Suelo Santuario | **Tile 10**: Columna Fuste | **Tile 11**: Losa Respawn |
+| **Fila 3** ($v=0.500$) | **Tile 12**: Columna Acanalada | **Tile 13**: Lava 1 (Magma Activo) | **Tile 14**: Salto Jump Pad | **Tile 15**: Pedestal Runa |
+| **Fila 4** ($v=0.375$) | **Tile 16**: Lava 2 (Fisuras Magma) | **Tile 17**: Lava 3 (Géiseres Gas) | **Tile 18**: Lava 4 (Río Piroclástico) | **Tile 19**: Lava 5 (Caldera Hipertérmica) |
+| **Filas 5-7** ($v \le 0.250$) | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* |
 
 ---
 
@@ -79,12 +81,13 @@ Cuenta con **1 sprite exclusivo** (Tile 11):
 - Vinculado al sonido procedural de campanillas `SoundManager.playRespawn()`.
 
 #### E. Magma Volcánico (`LAVA` — Bloque Tipo 7)
-Cuenta con **1 sprite multicapa procedural** (Tile 13):
-- Lecho incandescente con gradiente térmico de 7 paradas (de blanco-oro `#fffbeb` a carmesí volcánico `#450a0a`).
-- 4 pasadas vectoriales de corrientes de convección de magma.
-- Placas tectónicas flotantes de basalto y obsidiana con fisuras incandescentes.
-- Domos de gas hirviente con brillos especulares 3D y ascuas flotantes con halos térmicos.
-- Mosaico continuo en bordes (*seamless border wrap*).
+Cuenta con **5 sprites distintos multicapa** (Tiles 13, 16, 17, 18, 19). Para evitar patrones repetitivos en los lagos y abismos volcánicos, `VoxelMap.selectTile` distribuye deterministamente las 5 variantes mediante `hashCoord(x, y, z) % 5` (~20% de probabilidad por variante):
+
+1. **Tile 13 (Lava 1: Magma Activo con Afluentes en Y)**: Corrientes de magma divergentes con 4 niveles térmicos concéntricos, 6 placas de basalto periféricas con microfisuras rojas y domo de gas hirviente.
+2. **Tile 16 (Lava 2: Fisuras Magmáticas y Corteza Tectónica)**: Placas oscuras de enfriamiento basáltico dominantes con red de fracturas carmesí vivo y bordes al rojo vivo.
+3. **Tile 17 (Lava 3: Géiseres e Incandescencia Hirviente)**: Foco de ebullición extrema con 3 domos de gas en erupción, reflejo especular esférico 3D y salpicaduras de magma proyectadas al aire.
+4. **Tile 18 (Lava 4: Río Piroclástico Rápido)**: Flujo direccional en diagonal rápida con orillas escarpadas de escoria y micro-estrías de velocidad superficial.
+5. **Tile 19 (Lava 5: Caldera de Fusión Hiper-Térmica)**: Vórtice térmico rotacional con núcleo solar blanco-oro hiper-caliente y ondas de calor concéntricas.
 
 #### F. Plataforma de Salto (`JUMP_PAD` — Bloque Tipo 6)
 Cuenta con **1 sprite exclusivo** (Tile 14):
@@ -228,7 +231,7 @@ Mecanismo interactivo de descenso entre pisos de la mazmorra:
 
 * **Geometría Base**: `THREE.BoxGeometry(1, 1, 1)` reutilizada en un único `THREE.InstancedMesh`.
 * **Capacidad Máxima**: Hasta 13,824 instancias de bloques por nivel ($24 \times 16 \times 36$ m).
-* **Buffer Atributo `atlasOffset`**: Vector bidimensional `(u, v)` de 2 componentes por instancia inyectado en el vertex shader para mapear cualquier bloque a uno de los 16 sprites del Texture Atlas en tiempo constante sin llamadas adicionales a la GPU.
+* **Buffer Atributo `atlasOffset`**: Vector bidimensional `(u, v)` de 2 componentes por instancia inyectado en el vertex shader para mapear cualquier bloque a uno de los 20 sprites activos del Texture Atlas en tiempo constante sin llamadas adicionales a la GPU.
 
 ---
 
@@ -236,7 +239,7 @@ Mecanismo interactivo de descenso entre pisos de la mazmorra:
 
 | Subsistema / Elemento | Tipo de Entidad | N.º Variantes | Geometría / Primitivas | Draw Calls Estimadas |
 | :--- | :--- | :---: | :--- | :---: |
-| **Texture Atlas Procedural** | Textura SVG 512x512 | **16 Sprites** | 16 cuadrantes de 128x128 px | 0 (Memoria Textura) |
+| **Texture Atlas Procedural** | Textura SVG 512x1024 | **20 Sprites Activos** | 32 casillas (4x8) de 128x128 px | 0 (Memoria Textura) |
 | **Mundo Vóxel (`VoxelMap`)** | `InstancedMesh` | **1 Malla global** | Cubos $1 \times 1 \times 1$ m | **1** |
 | **Avatares de Jugadores** | Modelos 3D Vóxel | **5 Clases** | 6 piezas base + kits de clase | **1 - 3** por jugador |
 | **Cofre de Botín** | Modelo 3D Articulado | **1 Modelo completo** | Base hueca + tapa arco + gemas | **2 - 3** por cofre |
@@ -245,4 +248,4 @@ Mecanismo interactivo de descenso entre pisos de la mazmorra:
 | **Escalinata de Descenso** | Modelo 3D Mecánico | **1 Sistema** | Losa corrediza + peldaños + niebla | **3** por escalinata |
 
 ### Conclusión Técnica
-La combinación de **16 sprites procedurales** en un atlas único junto a **11 modelos 3D especializados** permite renderizar una mazmorra multijugador con alta riqueza estética, cinemática física y respuesta táctil, manteniendo el total de Draw Calls entre **20 y 35**, cumpliendo con holgura los presupuestos de hardware móvil a 60 cuadros por segundo.
+La combinación de **20 sprites procedurales activos** (incluyendo paletas completas de 5 variantes para muros, suelos y lava volcánica) en un atlas único junto a **11 modelos 3D especializados** permite renderizar una mazmorra multijugador con alta riqueza estética, cinemática física y respuesta táctil, manteniendo el total de Draw Calls entre **20 y 35**, cumpliendo con holgura los presupuestos de hardware móvil a 60 cuadros por segundo.

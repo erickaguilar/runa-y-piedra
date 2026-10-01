@@ -5,6 +5,26 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.29.0] - 2026-10-01
+
+### Added
+- **Expansión del Texture Atlas a Matriz $4 \times 8$ ($512 \times 1024$ px) ([`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js), [`src/render/VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js))**:
+  - Ampliación de la resolución vertical del atlas a 1024 píxeles (8 filas de casillas de 128x128 px), manteniendo potencias de dos exactas ($512 \times 1024$) para máxima eficiencia en GPU y mipmapping en WebGL.
+  - Ajuste del shader de fragmentos en `VoxelMap` para escalar las UVs locales con `vec2(0.25, 0.125)`, preservando una relación de aspecto estrictamente cuadrada ($1:1$) en cada cara de los bloques cúbicos.
+  - Función de coordenadas UV `VoxelMap.getTileUVOffset(tileIndex)` adaptada para 8 filas: `u = (tileIndex % 4) * 0.25` y `v = (7 - Math.floor(tileIndex / 4)) * 0.125`.
+- **Paleta de 5 Sprites Procedurales de Lava (`BLOCK_TYPES.LAVA = 7`) ([`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js), [`src/render/VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js))**:
+  - Incorporación de 4 nuevas variantes de sprites ígneos vectoriales SVG de alta definición que acompañan al sprite original (Tile 13):
+    - **Tile 13 (Lava 1: Magma Activo con Afluentes en Y)**: Corrientes viscosas divergentes en 4 capas de temperatura y 6 placas de basalto periféricas con bordes fundidos.
+    - **Tile 16 (Lava 2: Fisuras Magmáticas y Corteza Tectónica)**: Lecho basáltico fragmentado con red de grietas carmesí vivo y bordes al rojo vivo.
+    - **Tile 17 (Lava 3: Géiseres e Incandescencia Hirviente)**: Foco de descompresión volcánica con 3 domos de gas en ebullición 3D y salpicaduras de magma en suspensión.
+    - **Tile 18 (Lava 4: Río Piroclástico Rápido)**: Flujo direccional continuo en diagonal rápida con orillas escarpadas de escoria negra y estrías de velocidad superficial.
+    - **Tile 19 (Lava 5: Caldera de Fusión Hiper-Térmica)**: Vórtice térmico concéntrico con núcleo solar blanco-oro hiper-caliente (`#ffffff`, `#fffbeb`, `#fef08a`) y ondas de choque circulares.
+  - Distribución espacial determinista $O(1)$ en `VoxelMap.selectTile` con la paleta `[13, 16, 17, 18, 19]` basada en `VoxelMap.hashCoord(x, y, z)`, garantizando una apariencia variada y orgánica (~20% por variante) sincronizada entre todos los clientes en red P2P sin patrón repetitivo.
+- **Documentación Técnica y Pruebas Unitarias ([`docs/21-sprite-lava-y-renderizado-igneo.md`](file:///data/data/com.termux/files/home/develop/game/docs/21-sprite-lava-y-renderizado-igneo.md), [`docs/23-catalogo-sprites-y-modelos-3d.md`](file:///data/data/com.termux/files/home/develop/game/docs/23-catalogo-sprites-y-modelos-3d.md), [`docs/README.md`](file:///data/data/com.termux/files/home/develop/game/docs/README.md), [`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js))**:
+  - Documentación de las 5 variantes ígneas, diagramas de flujo y especificación matemática de la matriz 4x8.
+  - Actualización del catálogo de sprites (20 casillas activas en matriz 4x8).
+  - Pruebas unitarias que certifican la selección balanceada de las 5 variantes de lava y la precisión de coordenadas UV en la cuadrícula 4x8.
+
 ## [1.28.0] - 2026-10-01
 
 ### Added

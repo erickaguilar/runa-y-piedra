@@ -71,8 +71,24 @@ test('VoxelMap asigna el Tile 11 al bloque RESPAWN_PAD', () => {
   assert.equal(VoxelMap.selectTile(11, 0, 4, BLOCK_TYPES.RESPAWN_PAD), 11);
 });
 
-test('VoxelMap asigna el Tile 13 al bloque LAVA', () => {
-  assert.equal(VoxelMap.selectTile(5, -1, 15, BLOCK_TYPES.LAVA), 13);
+test('VoxelMap distribuye deterministamente las 5 variantes de sprites para el bloque LAVA', () => {
+  const validTiles = new Set([13, 16, 17, 18, 19]);
+  const seen = new Set();
+  for (let x = 0; x < 24; x++) {
+    for (let z = 0; z < 36; z++) {
+      const tile = VoxelMap.selectTile(x, -1, z, BLOCK_TYPES.LAVA);
+      assert.ok(validTiles.has(tile), `Tile ${tile} debe ser una de las variantes válidas de lava`);
+      seen.add(tile);
+    }
+  }
+  assert.equal(seen.size, 5, 'Debe generar las 5 variantes distintas de lava');
+});
+
+test('VoxelMap.getTileUVOffset calcula coordenadas UV exactas para la cuadrícula 4x8', () => {
+  assert.deepEqual(VoxelMap.getTileUVOffset(0), { u: 0.0, v: 0.875 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(13), { u: 0.25, v: 0.5 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(16), { u: 0.0, v: 0.375 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(19), { u: 0.75, v: 0.375 });
 });
 
 test('abyss_throne Sala 1 contiene el cofre con la poción de vida para recuperar 1 corazón', () => {

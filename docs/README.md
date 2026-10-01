@@ -134,11 +134,11 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Mecánica de Santuario de Reaparición Segura con protección e invulnerabilidad temporal (2 s).
     - Síntesis de audio procedural `playRespawn()` mediante arpegio armónico de campanillas celestiales en Web Audio API.
 
-21. [**21. Sprite de Lava y Renderizado Ígneo Procedural**](./21-sprite-lava-y-renderizado-igneo.md)
-    - Rediseño integral del **Tile 13** en el Texture Atlas procedural de 512x512 para el bloque de peligro `BLOCK_TYPES.LAVA = 7`.
-    - Arquitectura de renderizado multicapa en SVG: lecho incandescente de 7 paradas térmicas, 4 pasadas de corrientes de magma, placas tectónicas de basalto/obsidiana biseladas con microfisuras, domos de gas hirviente con brillos especulares 3D y ascuas flotantes con halos térmicos.
+21. [**21. Sistema de Sprites de Lava y Renderizado Ígneo Procedural (Paleta de 5 Variantes)**](./21-sprite-lava-y-renderizado-igneo.md)
+    - Expansión a paleta completa de **5 sprites procedurales ígneos** (Tiles 13, 16, 17, 18, 19) en el Texture Atlas 4x8 (512x1024 px) para el bloque de peligro `BLOCK_TYPES.LAVA = 7`.
+    - Arquitectura de renderizado multicapa en SVG: magma activo con afluentes en Y, fisuras tectónicas con bordes al rojo vivo, géiseres hirvientes con domos de gas en ebullición, río piroclástico diagonal y caldera hiper-térmica solar.
+    - Distribución determinista espacial en `VoxelMap` mediante `hashCoord(x, y, z) % 5` (~20% por variante) y preservación de aspect ratio 1:1 en caras de cubos mediante shader UV `vec2(0.25, 0.125)`.
     - Continuidad y mosaico sin costuras (*seamless tiling*) en los bordes del bloque de 128x128 píxeles.
-    - Compatibilidad total con Three.js `MeshLambertMaterial` y modulación de color blanco puro (`0xffffff`).
 
 22. [**22. Showroom de Desarrollo y Galería Completa de Bloques**](./22-showroom-desarrollo-y-galeria-bloques.md)
     - Entorno sandbox completo (`dev_showroom`) con dimensiones de 24x16x36 m², aislado de la rotación de la campaña regular (`isDevOnly`, `hiddenFromCampaign`).
@@ -148,6 +148,6 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Acceso exclusivo desde el modal de Herramientas Dev (`#btn-dev-enter-showroom` y `#btn-dev-exit-showroom`) con soporte de sesión local directa (`startDevShowroomSession`).
 
 23. [**23. Catálogo Técnico de Sprites y Modelos 3D**](./23-catalogo-sprites-y-modelos-3d.md)
-    - Especificación exhaustiva de los 16 sprites procedurales SVG del Texture Atlas (5 de muros, 5 de suelos, 2 de pilares, losa de respawn, magma, jump pad y pedestal).
+    - Especificación exhaustiva de los **20 sprites procedurales SVG activos** del Texture Atlas en matriz 4x8 (5 de muros, 5 de suelos, 2 de pilares, losa de respawn, 5 de lava volcánica, jump pad y pedestal).
     - Desglose detallado de los 11 modelos 3D del motor: 5 arquetipos de héroes con kits distintivos, cofre de botín animado a 85°, puertas batientes de doble hoja, altar con orbe flotante en levitación armónica, escalinata ceremonial con losa corrediza y malla instanciada del mundo vóxel.
     - Matriz cuantitativa de geometrías, algoritmos deterministas de selección de tiles y presupuestos de Draw Calls (20-35 DC).
