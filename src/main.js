@@ -352,7 +352,7 @@ class VoxelSandboxGame {
     // Reset del descenso sincronizado al cambiar de mapa
     this.descent.reset();
 
-    const spawn = levelData.spawn || { x: 12.0, y: 1.2, z: 4.5 };
+    const spawn = levelData.spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
     const allPlayers = this.playerManager.getAllPlayers();
     for (const pl of allPlayers) {
       pl.clearKeys?.();

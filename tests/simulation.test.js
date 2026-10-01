@@ -158,9 +158,9 @@ test('killPlayer descarta checkpoints de niveles anteriores y usa el spawn del n
   // Forzar muerte en dungeon_classic
   sim.killPlayer(p, 'lava');
   assert.equal(events.length, 1);
-  // Debe haber reaparecido en el spawn de dungeon_classic (x=12, z=4.5), NO en 19.5
+  // Debe haber reaparecido en el spawn de dungeon_classic (x=12, z=2.5), NO en 19.5
   assert.equal(p.pos.x, 12.0);
-  assert.equal(p.pos.z, 4.5, 'Debe reaparecer en spawn del nivel actual, nunca en z=19.5 del tutorial');
+  assert.equal(p.pos.z, 2.5, 'Debe reaparecer en spawn del nivel actual, nunca en z=19.5 del tutorial');
   assert.equal(p.checkpoint.levelId, 'dungeon_classic');
 });
 
@@ -177,9 +177,9 @@ test('la muerte en cualquier sala intermedia o avanzada siempre reaparece en el 
   // Simular pisar suelo firme en Sala 3
   sim.integratePlayer(p, 1 / 30, 0);
   assert.equal(p.checkpoint.roomName, 'Sala 3 (Santuario Ancestral)');
-  // Coordenadas deben apuntar al spawn único de la entrada (x=12, z=4.5)
+  // Coordenadas deben apuntar al spawn único de la entrada (x=12, z=2.5)
   assert.equal(p.checkpoint.x, 12.0);
-  assert.equal(p.checkpoint.z, 4.5);
+  assert.equal(p.checkpoint.z, 2.5);
 
   // Forzar muerte en el abismo/vacío
   p.pos.y = -9.0;
@@ -188,7 +188,7 @@ test('la muerte en cualquier sala intermedia o avanzada siempre reaparece en el 
   assert.equal(events.length, 1);
   assert.equal(p.pos.x, 12.0);
   assert.equal(p.pos.y, 1.2);
-  assert.equal(p.pos.z, 4.5, 'El respawn debe materializarse siempre en el spawn único de la mazmorra');
+  assert.equal(p.pos.z, 2.5, 'El respawn debe materializarse siempre en el spawn único de la mazmorra');
 });
 
 test('DescentManager orquesta descenso sincronizado a 5 segundos con notificación unificada', () => {

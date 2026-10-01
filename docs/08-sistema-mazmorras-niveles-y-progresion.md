@@ -86,7 +86,7 @@ En [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/
 
 | Estancia | Rango Z | Coordenadas de Reaparición | Mensaje de HUD |
 | :--- | :---: | :---: | :--- |
-| **Sala 1 (Vestíbulo)** | $0.0 \le z < 11.0$ | $(12.0, 1.2, 4.5)$ | *Reapareciendo en Sala 1 (Vestíbulo)...* |
+| **Sala 1 (Vestíbulo)** | $0.0 \le z < 11.0$ | $(12.0, 1.2, 2.5)$ | *Reapareciendo en Sala 1 (Vestíbulo)...* |
 | **Sala 2 (El Abismo / Lava)** | $11.0 \le z < 24.0$ | $(11.5, 1.2, 12.0)$ | *Reapareciendo en Sala 2 (El Abismo)...* |
 | **Sala 3 (Santuario Ancestral)** | $24.0 \le z \le 36.0$ | $(11.5, 1.2, 25.0)$ | *Reapareciendo en Sala 3 (Santuario)...* |
 

@@ -110,11 +110,11 @@ La suite de pruebas automatizadas valida la existencia de exactamente una plataf
 test('LevelLoader instala una única losa de respawn rúnica por mazmorra en la entrada', () => {
   const world = new World();
   world.loadLevel(world.levelRegistry.getLevel('dungeon_classic'));
-  // Spawn único principal en la entrada (2x2)
-  assert.equal(world.get(11, 0, 4), BLOCK_TYPES.RESPAWN_PAD);
-  assert.equal(world.get(12, 0, 4), BLOCK_TYPES.RESPAWN_PAD);
-  assert.equal(world.get(11, 0, 5), BLOCK_TYPES.RESPAWN_PAD);
-  assert.equal(world.get(12, 0, 5), BLOCK_TYPES.RESPAWN_PAD);
+  // Spawn único principal en la entrada a 1 bloque de la pared (2x2)
+  assert.equal(world.get(11, 0, 2), BLOCK_TYPES.RESPAWN_PAD);
+  assert.equal(world.get(12, 0, 2), BLOCK_TYPES.RESPAWN_PAD);
+  assert.equal(world.get(11, 0, 3), BLOCK_TYPES.RESPAWN_PAD);
+  assert.equal(world.get(12, 0, 3), BLOCK_TYPES.RESPAWN_PAD);
 
   // Las salas intermedias y checkpoints NO tienen losa de respawn
   assert.notEqual(world.get(11, 0, 12), BLOCK_TYPES.RESPAWN_PAD);

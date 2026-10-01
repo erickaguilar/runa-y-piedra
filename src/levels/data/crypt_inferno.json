@@ -12,7 +12,7 @@
   "spawn": {
     "x": 12.0,
     "y": 1.2,
-    "z": 4.5
+    "z": 2.5
   },
   "doors": [
     {
@@ -58,7 +58,7 @@
       "name": "Sala 1 (Vestíbulo de Cenizas)",
       "minZ": 0,
       "maxZ": 11.0,
-      "respawn": { "x": 12.0, "y": 1.2, "z": 4.5 }
+      "respawn": { "x": 12.0, "y": 1.2, "z": 2.5 }
     },
     {
       "id": "sala_2",
