@@ -192,6 +192,11 @@ export const SessionMixin = {
       }, 400);
       return true;
     }
+    const targetChapter = this.chapterRegistry.getChapter(chapterId);
+    if (targetChapter?.underConstruction || (targetChapter && targetChapter.number >= 2)) {
+      this.ui.showNarrativeMessage('🚧 Este capítulo se encuentra en construcción.', 3000);
+      return false;
+    }
     if (!this.chapterRegistry.isChapterUnlocked(chapterId)) {
       this.ui.showNarrativeMessage('🔒 Este capítulo aún está bloqueado.', 3000);
       return false;

@@ -1208,7 +1208,8 @@ export const ModalMixin = {
     `;
 
     const cardsHtml = chapters.map((ch) => {
-      const isUnlocked = registry ? registry.isChapterUnlocked(ch.id) : (ch.number === 1);
+      const isUnderConstruction = Boolean(ch.underConstruction || ch.number >= 2);
+      const isUnlocked = !isUnderConstruction && (registry ? registry.isChapterUnlocked(ch.id) : (ch.number === 1));
       const isCompleted = registry?.progress?.completedChapters?.includes(ch.id) || false;
       const isCurrent = currentChapterId === ch.id;
       const record = registry?.getRecord?.(ch.id);
@@ -1218,9 +1219,36 @@ export const ModalMixin = {
         ? `${Math.floor(record.bestTimeSec / 60)}m ${String(record.bestTimeSec % 60).padStart(2, '0')}s`
         : null;
 
+      const dungeonsList = (ch.dungeons || []).map((d) => escapeHtml(d.name || d.id)).join(' → ');
+
+      if (isUnderConstruction) {
+        return `
+          <div class="chapter-card locked construction" data-chapter-id="${ch.id}">
+            <div class="chapter-card-header">
+              <span class="chapter-num-badge locked">Capítulo ${ch.number}</span>
+              <span class="chapter-lock-badge construction">${renderIcon('hammer', { size: 12, color: '#f59e0b' })} En Construcción</span>
+            </div>
+            <div class="chapter-icon-wrap locked construction">
+              ${renderIcon(iconName, { size: 28, color: '#f59e0b' })}
+            </div>
+            <div class="chapter-card-title">${escapeHtml(ch.name)}</div>
+            <div class="chapter-card-desc">${escapeHtml(ch.lore)}</div>
+            <div class="chapter-dungeons-track construction" title="Niveles en desarrollo">
+              🚧 3 Niveles: ${dungeonsList}
+            </div>
+            <div class="chapter-req-notice construction">
+              🚧 Niveles del 2 al 10 en construcción
+            </div>
+            <div class="chapter-card-actions">
+              <div class="chapter-client-info chapter-action-pill is-construction">🚧 En Construcción</div>
+            </div>
+          </div>
+        `;
+      }
+
       if (!isUnlocked) {
         return `
-          <div class="chapter-card locked">
+          <div class="chapter-card locked" data-chapter-id="${ch.id}">
             <div class="chapter-card-header">
               <span class="chapter-num-badge locked">Capítulo ${ch.number}</span>
               <span class="chapter-lock-badge">${renderIcon('lock', { size: 14, color: '#94a3b8' })} Bloqueado</span>
@@ -1266,8 +1294,6 @@ export const ModalMixin = {
           </div>
         `;
       }
-
-      const dungeonsList = (ch.dungeons || []).map((d) => escapeHtml(d.name || d.id)).join(' → ');
 
       let actionPill = '';
       if (isHost) {

@@ -156,6 +156,13 @@
       border-color: rgba(255, 255, 255, 0.08);
       filter: grayscale(0.6);
     }
+    .chapter-card.locked.construction {
+      opacity: 0.75;
+      background: rgba(22, 19, 13, 0.5);
+      border-style: dashed;
+      border-color: rgba(245, 158, 11, 0.35);
+      filter: none;
+    }
     .chapter-card-header {
       display: flex;
       align-items: center;
@@ -212,6 +219,15 @@
       align-items: center;
       gap: 4px;
     }
+    .chapter-lock-badge.construction {
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.38);
+      border-radius: 9999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 800;
+    }
     .chapter-icon-wrap {
       width: 44px;
       height: 44px;
@@ -225,6 +241,10 @@
     .chapter-icon-wrap.locked {
       background: rgba(30, 41, 59, 0.4);
       border-color: rgba(255, 255, 255, 0.08);
+    }
+    .chapter-icon-wrap.locked.construction {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.3);
     }
     .chapter-card-title {
       font-size: 14px;
@@ -249,6 +269,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .chapter-dungeons-track.construction {
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.25);
+      background: rgba(22, 18, 12, 0.6);
+    }
     .chapter-stars {
       display: flex;
       gap: 3px;
@@ -266,6 +291,16 @@
       font-style: italic;
       margin-top: auto;
     }
+    .chapter-req-notice.construction {
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px dashed rgba(245, 158, 11, 0.3);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      font-style: normal;
+    }
     .chapter-card-actions {
       margin-top: auto;
       padding-top: 6px;
@@ -281,6 +316,14 @@
       border-radius: 8px;
       text-align: center;
       transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    }
+    .chapter-action-pill.is-construction {
+      background: rgba(36, 28, 14, 0.8);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fde68a;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
     }
     .chapter-action-pill.is-launch {
       background: linear-gradient(135deg, rgba(2, 132, 199, 0.85), rgba(3, 105, 161, 0.95));

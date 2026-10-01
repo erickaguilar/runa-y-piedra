@@ -601,7 +601,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.match(overlay.innerHTML, /Campamento Central \(Lobby\)/);
       assert.match(overlay.innerHTML, /El Descenso Ancestral/);
       assert.match(overlay.innerHTML, /Cripta de las Sombras/);
-      assert.match(overlay.innerHTML, /Bloqueado/);
+      assert.match(overlay.innerHTML, /En Construcción/);
 
       // El capítulo 1 tiene botón de Viaje Rápido
       const launchBtn = overlay.querySelector('.chapter-launch-btn[data-chapter-id="capitulo_1"]');

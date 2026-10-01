@@ -29,10 +29,11 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'dark_shadows',
     lore: 'Galerías de basalto negro y niebla densa donde las antorchas revelan secretos.',
     icon: 'pickaxe',
+    underConstruction: true,
     dungeons: [
-      { id: 'shadow_vault', role: 'intro', name: 'Bóveda Umbría' },
-      { id: 'shadow_chasm', role: 'challenge', name: 'Abismo de las Sombras' },
-      { id: 'shadow_sanctum', role: 'climax', name: 'Santuario Crepuscular' }
+      { id: 'shadow_vault', role: 'intro', name: 'Bóveda Umbría', underConstruction: true },
+      { id: 'shadow_chasm', role: 'challenge', name: 'Abismo de las Sombras', underConstruction: true },
+      { id: 'shadow_sanctum', role: 'climax', name: 'Santuario Crepuscular', underConstruction: true }
     ]
   },
   {
@@ -42,10 +43,11 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'subterranean_falls',
     lore: 'Piedra caliza húmeda y acueductos milenarios con corrientes turbulentas.',
     icon: 'droplet',
+    underConstruction: true,
     dungeons: [
-      { id: 'falls_aqueduct', role: 'intro', name: 'Acueducto Arcaico' },
-      { id: 'falls_torrent', role: 'challenge', name: 'Torrente Subterráneo' },
-      { id: 'falls_reservoir', role: 'climax', name: 'Cisterna Sumergida' }
+      { id: 'falls_aqueduct', role: 'intro', name: 'Acueducto Arcaico', underConstruction: true },
+      { id: 'falls_torrent', role: 'challenge', name: 'Torrente Subterráneo', underConstruction: true },
+      { id: 'falls_reservoir', role: 'climax', name: 'Cisterna Sumergida', underConstruction: true }
     ]
   },
   {
@@ -55,10 +57,11 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'dwarven_forge',
     lore: 'Ladrillos de hierro forjado, engranajes colosales y pistones aplastantes.',
     icon: 'anvil',
+    underConstruction: true,
     dungeons: [
-      { id: 'forge_hall', role: 'intro', name: 'Vestíbulo de Yunque' },
-      { id: 'forge_slag', role: 'challenge', name: 'Canal de Escoria' },
-      { id: 'forge_crucible', role: 'climax', name: 'Crisol del Titán' }
+      { id: 'forge_hall', role: 'intro', name: 'Vestíbulo de Yunque', underConstruction: true },
+      { id: 'forge_slag', role: 'challenge', name: 'Canal de Escoria', underConstruction: true },
+      { id: 'forge_crucible', role: 'climax', name: 'Crisol del Titán', underConstruction: true }
     ]
   },
   {
@@ -68,10 +71,11 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'frost_caves',
     lore: 'Bloques translúcidos de hielo donde la inercia desafía el equilibrio del explorador.',
     icon: 'snowflake',
+    underConstruction: true,
     dungeons: [
-      { id: 'frost_cavern', role: 'intro', name: 'Caverna Gélida' },
-      { id: 'frost_glacier', role: 'challenge', name: 'Glaciar Quebradizo' },
-      { id: 'frost_spire', role: 'climax', name: 'Aguja Helada' }
+      { id: 'frost_cavern', role: 'intro', name: 'Caverna Gélida', underConstruction: true },
+      { id: 'frost_glacier', role: 'challenge', name: 'Glaciar Quebradizo', underConstruction: true },
+      { id: 'frost_spire', role: 'climax', name: 'Aguja Helada', underConstruction: true }
     ]
   },
   {
@@ -81,10 +85,11 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'poison_catacombs',
     lore: 'Roca cubierta de líquenes, lodo verde y miasmas tóxicos que drenan la vitalidad.',
     icon: 'biohazard',
+    underConstruction: true,
     dungeons: [
-      { id: 'poison_moss', role: 'intro', name: 'Galería de Líquenes' },
-      { id: 'poison_canal', role: 'challenge', name: 'Canal Miasmático' },
-      { id: 'poison_necropolis', role: 'climax', name: 'Necrópolis Esmeralda' }
+      { id: 'poison_moss', role: 'intro', name: 'Galería de Líquenes', underConstruction: true },
+      { id: 'poison_canal', role: 'challenge', name: 'Canal Miasmático', underConstruction: true },
+      { id: 'poison_necropolis', role: 'climax', name: 'Necrópolis Esmeralda', underConstruction: true }
     ]
   },
   {
@@ -94,10 +99,11 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'arcane_temple',
     lore: 'Mármol blanco refinado, energía cian y portales de teletransporte instantáneo.',
     icon: 'sparkles',
+    underConstruction: true,
     dungeons: [
-      { id: 'arcane_vestibule', role: 'intro', name: 'Vestíbulo Celestial' },
-      { id: 'arcane_nexus', role: 'challenge', name: 'Nexo de Portales' },
-      { id: 'arcane_sanctuary', role: 'climax', name: 'Santuario de Éter' }
+      { id: 'arcane_vestibule', role: 'intro', name: 'Vestíbulo Celestial', underConstruction: true },
+      { id: 'arcane_nexus', role: 'challenge', name: 'Nexo de Portales', underConstruction: true },
+      { id: 'arcane_sanctuary', role: 'climax', name: 'Santuario de Éter', underConstruction: true }
     ]
   },
   {
@@ -107,10 +113,11 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'coal_mines',
     lore: 'Vigas de madera carcomida y losas frágiles que se quiebran bajo tus pies.',
     icon: 'hammer',
+    underConstruction: true,
     dungeons: [
-      { id: 'mines_shaft', role: 'intro', name: 'Pozo de Extracción' },
-      { id: 'mines_abyss', role: 'challenge', name: 'Grieta Carbonífera' },
-      { id: 'mines_heart', role: 'climax', name: 'Corazón de la Veta' }
+      { id: 'mines_shaft', role: 'intro', name: 'Pozo de Extracción', underConstruction: true },
+      { id: 'mines_abyss', role: 'challenge', name: 'Grieta Carbonífera', underConstruction: true },
+      { id: 'mines_heart', role: 'climax', name: 'Corazón de la Veta', underConstruction: true }
     ]
   },
   {
@@ -120,10 +127,11 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'void_prison',
     lore: 'Monolitos suspendidos en el cosmos; parkour de precisión sin margen para el error.',
     icon: 'orbit',
+    underConstruction: true,
     dungeons: [
-      { id: 'void_isles', role: 'intro', name: 'Islotes Ingrávidos' },
-      { id: 'void_bridge', role: 'challenge', name: 'Puente Estelar' },
-      { id: 'void_citadel', role: 'climax', name: 'Ciudadela del Vacío' }
+      { id: 'void_isles', role: 'intro', name: 'Islotes Ingrávidos', underConstruction: true },
+      { id: 'void_bridge', role: 'challenge', name: 'Puente Estelar', underConstruction: true },
+      { id: 'void_citadel', role: 'climax', name: 'Ciudadela del Vacío', underConstruction: true }
     ]
   },
   {
@@ -133,10 +141,11 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'titan_core',
     lore: 'Obsidiana pulida, magma dorado y el santuario supremo que exige cooperación total.',
     icon: 'sun',
+    underConstruction: true,
     dungeons: [
-      { id: 'titan_gate', role: 'intro', name: 'Puerta Primordial' },
-      { id: 'titan_chamber', role: 'challenge', name: 'Cámara de Presión' },
-      { id: 'titan_heart', role: 'climax', name: 'Núcleo Rúnico Final' }
+      { id: 'titan_gate', role: 'intro', name: 'Puerta Primordial', underConstruction: true },
+      { id: 'titan_chamber', role: 'challenge', name: 'Cámara de Presión', underConstruction: true },
+      { id: 'titan_heart', role: 'climax', name: 'Núcleo Rúnico Final', underConstruction: true }
     ]
   }
 ]);
@@ -287,6 +296,13 @@ export class ChapterRegistry {
     if (!ch) return false;
     if (ch.number === 1) return true;
     return ch.number <= (this.progress.highestChapterUnlocked || 1);
+  }
+
+  isChapterPlayable(idOrNumber) {
+    const ch = this.getChapter(idOrNumber);
+    if (!ch) return false;
+    if (ch.underConstruction || ch.number >= 2) return false;
+    return this.isChapterUnlocked(idOrNumber);
   }
 
   completeChapter(idOrNumber, stats = {}) {
