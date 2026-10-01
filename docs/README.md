@@ -42,7 +42,9 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
 6. [**06. Arquitectura Listen-Server y Modelo de Hosting (Vercel + P2P)**](./06-arquitectura-listen-server-hosting.md)
    - Distribución tripartita de responsabilidades (Vercel vs. Móvil Host vs. Móvil Cliente).
    - Costo cero de backend y conmutación de tráfico al router Wi-Fi local (< 5 ms).
-   - Análisis de ventajas y limitaciones del servidor anfitrión en memoria.
+   - Gestión de desconexión del Host (fail-safe defensivo, paquete `HOST_CLOSING` y detección de corte de canal seguro).
+   - Hoja de ruta para Migración Automática de Host (*Host Migration* P2P con elección de líder y snapshot distribuido).
+   - Flujo de onboarding móvil optimizado con código QR dinámico, PIN numérico y Web Share API.
 
 7. [**07. Arquitectura Atómica y Modular del Código**](./07-arquitectura-atomica-modular.md)
    - Desglose de responsabilidades únicas (SRP) por módulo y carpeta.

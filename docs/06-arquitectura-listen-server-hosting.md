@@ -58,4 +58,121 @@ Para enlazar los dispositivos sin necesidad de configurar un backend propio:
 
 ### Limitaciones Naturales
 * **Dependencia del Host**: Si el jugador que actúa como Host cierra la pestaña del navegador o bloquea su teléfono, la sala se cancela inmediatamente (comportamiento idéntico a las partidas LAN de Minecraft clásico).
-* **Consumo Térmico/Batería en el Host**: El dispositivo anfitrión tiene un consumo de batería ligeramente superior al ejecutar la física de ambos jugadores y el broadcast de red.
+* **Consumo Térmico/Batería en el Host**: El dispositivo anfitrión tiene un consumo de batería ligeramente superior al ejecutar la física de todos los jugadores y el broadcast de red a 20–30 Hz.
+
+---
+
+## 4. Gestión de Desconexión del Host (Fail-Safe & Graceful Shutdown)
+
+Al no contar con un servidor backend centralizado para sostener el socket, el juego implementa una arquitectura defensiva en capas para manejar cualquier tipo de interrupción del Host sin dejar al cliente en estados inconsistentes:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                   CIERRE O CAÍDA DEL DISPOSITIVO HOST                   │
+└────────────────────────────────────────────────────────────────────────┘
+          │                                           │
+          ▼ [Salida Ordenada]                         ▼ [Cierre Abrupto / Red]
+┌───────────────────────────────────┐       ┌───────────────────────────────────┐
+│ Eventos beforeunload / pagehide   │       │ Caída de socket WebRTC / Timeout  │
+│ Envío de paquete binario:         │       │ Disparo de evento safe.on('close')│
+│ HOST_CLOSING (0x07) por game-safe │       │ o pérdida de Heartbeat/RTT        │
+└───────────────────────────────────┘       └───────────────────────────────────┘
+                  │                                           │
+                  └─────────────────────┬─────────────────────┘
+                                        ▼
+                      ┌───────────────────────────────────┐
+                      │    DETECCIÓN EN CLIENTE INVITADO   │
+                      ├───────────────────────────────────┤
+                      │ 1. Interrupción de bucle de juego │
+                      │ 2. Audio procedural de pérdida    │
+                      │ 3. Toast narrativo temático:      │
+                      │    "El anfitrión ha abandonado"   │
+                      │ 4. Limpieza Zero-Memory WebRTC    │
+                      │ 5. Retorno suave al menú/lobby    │
+                      └───────────────────────────────────┘
+```
+
+### A. Salida Limpia y Controlada (Graceful Teardown)
+* **Captura de Ciclo de Vida del Navegador**: El Host escucha los eventos de ventana `beforeunload` y `pagehide` (crucial para móviles cuando el navegador suspende la pestaña o el usuario cambia de aplicación).
+* **Paquete Binario `HOST_CLOSING` (`0x07`)**: Antes de que la memoria se libere, el Host despacha un paquete binario ultra-compacto por el canal seguro garantizado `game-safe` (`reliable: true`), notificando la causa del cierre:
+  * `0`: Cierre voluntario / Abandono de expedición.
+  * `1`: Sala completa (`ROOM_FULL`, aforo superado de 5 jugadores).
+
+### B. Desconexión Abrupta (Crash, Batería Agotada o Corte de Señal)
+* Si el teléfono del Host muere instantáneamente o pierde cobertura Wi-Fi sin poder disparar `beforeunload`, el cliente detecta el fallo por dos vías:
+  1. **Disparo de `safe.on('close')` en WebRTC**: El canal `RTCDataChannel` notifica de inmediato la ruptura del socket P2P. El cliente despacha internamente `host-closing` garantizando que no existan bucles colgados.
+  2. **Monitor RTT & Heartbeat**: El sistema de telemetría vigila la pérdida de paquetes `PING`/`PONG` a 1 Hz; si los acuses dejan de recibirse durante más de 3 segundos consecutivos, el enlace se declara muerto.
+
+### C. Experiencia de Usuario (UX) ante la Desconexión
+* El cliente no experimenta cuelgues ni pantallas congeladas.
+* Se reproduce un efecto sonoro procedural de daño/alerta con Web Audio API.
+* Se despliega un aviso narrativo flotante en el HUD: *"🏰 El anfitrión ha abandonado o cerrado la partida."*
+* Tras 1.5 segundos de gracia para lectura, el cliente realiza una limpieza completa de memoria (`disconnect()`, destrucción de mallas Three.js y reseteo de reconciliador) y regresa de forma limpia al vestíbulo principal.
+
+---
+
+## 5. Hoja de Ruta: Migración Automática de Host (*Host Migration*)
+
+Para futuras iteraciones avanzadas de la arquitectura P2P de *Runa y Piedra*, el diseño contempla un sistema de **Migración Automática de Host** que permitirá a los clientes continuar la mazmorra sin interrupción si el anfitrión se marcha:
+
+```
+┌────────────────┐      (Host cae)      ┌────────────────┐      (Nuevo Host)    ┌────────────────┐
+│  Host Original │ ═══════════════════> │ Elección de    │ ═══════════════════> │ Invitado P2    │
+│  (Desconectado)│                      │ Líder (RAFT)   │                      │ (Listen-Server)│
+└────────────────┘                      └────────────────┘                      └────────────────┘
+                                                │
+                                                ▼
+                                    ┌───────────────────────┐
+                                    │ Restaura Snapshot     │
+                                    │ - Vóxeles modificados │
+                                    │ - Puertas abiertas    │
+                                    │ - Llaves e inventario │
+                                    │ - Checkpoints y vidas │
+                                    └───────────────────────┘
+```
+
+### Fases de la Migración Planificada:
+1. **Elección Determinista del Nuevo Líder**:
+   * Algoritmo de consenso distribuido ligero inspirado en Raft.
+   * Criterio determinista: El peer con menor RTT acumulado o el `playerId` más longevo en la sala asume automáticamente el liderazgo.
+2. **Replicación Periódica del Estado Maestro (Snapshot Distribuido)**:
+   * El Host actual difunde cada 5 segundos un resumen de sincronización de mundo (`WORLD_STATE_SUMMARY`):
+     * Estado del grid de vóxeles modificados (bloques rotos/colocados).
+     * Registro binario de puertas desbloqueadas (`doorsOpenMask`).
+     * Lista de cofres saqueados y llaves activas.
+     * Vidas restantes y checkpoint seguro de cada héroe.
+3. **Reapertura de Sala en PeerJS**:
+   * El nuevo anfitrión electo instancia de inmediato su propio `Peer` con una sala derivada identificable (ej. `VOXELSALA-XXXX-MIGRATE`).
+   * Los clientes restantes conmutan sus canales WebRTC duales hacia el nuevo Host en menos de 1.8 segundos.
+4. **Respaldo Local de Emergencia (`sessionStorage`)**:
+   * Como salvaguarda intermedia previa a la migración automática completa, si el Host se desconecta, cada cliente preserva en memoria local el progreso de nivel, llaves y botín acumulado, permitiendo pulsar *"Recrear Mazmorra"* para reanudar el capítulo actual sin empezar desde cero.
+
+---
+
+## 6. Flujo de Conexión y Onboarding (Código QR, PIN y Enlace Directo)
+
+El juego elimina cualquier fricción de registro o configuración de red. El onboarding cooperativo está optimizado para dispositivos móviles en 3 pasos rápidos:
+
+```
+┌─────────────────────────────────┐                 ┌─────────────────────────────────┐
+│       DISPOSITIVO 1 (HOST)      │                 │     DISPOSITIVO 2 (INVITADO)    │
+├─────────────────────────────────┤                 ├─────────────────────────────────┤
+│ 1. Pulsa "Crear Sala".          │                 │ 1. Abre la cámara del celular.  │
+│ 2. El sistema reserva el PIN    │  ESCANEADO QR   │ 2. Apunta al código QR en       │
+│    (ej. 4821) en PeerJS.        │ ──────────────> │    la pantalla del Host.        │
+│ 3. Muestra en pantalla el QR    │   (1 Segundo)   │ 3. Abre el enlace (?join=4821). │
+│    y el enlace de invitación.   │                 │ 4. ¡Conexión WebRTC directa!    │
+└─────────────────────────────────┘                 └─────────────────────────────────┘
+```
+
+1. **Creación Instantánea (Host)**:
+   * Al pulsar **"Crear Sala"**, se genera un PIN aleatorio de 4 dígitos (ej. `4821`), se abre la sala `VOXELSALA-4821` y la biblioteca [`qrcode`](https://github.com/soldair/node-qrcode) renderiza un código QR dinámico de alta fidelidad directamente en el `<canvas id="settings-qr-canvas">`.
+2. **Unión Zero-Typing (Invitado)**:
+   * El segundo jugador simplemente apunta la cámara de su smartphone a la pantalla del anfitrión.
+   * La cámara reconoce la URL parametrizada (`https://runa-y-piedra.vercel.app/?join=4821`) y abre el navegador conectando inmediatamente ambos canales WebRTC (`game-safe` y `game-hot`).
+3. **Compartir en Mensajería (WhatsApp / Telegram)**:
+   * El botón **"Compartir en Mensajería"** invoca la Web Share API nativa (`navigator.share`) para enviar el enlace directo con un toque a amigos remotos o en grupos de chat.
+4. **Selección de Héroe Sin Duplicados**:
+   * Cada jugador escoge su clase favorita (Guardián, Mago, Pícaro, Clérigo o Paladín).
+   * El Host valida que no haya clases repetidas, garantizando un equipo balanceado y colores distintivos en el mapa vóxel.
+

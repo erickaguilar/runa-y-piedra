@@ -835,7 +835,7 @@
       display: none;
       flex-direction: column;
       gap: 5px;
-      pointer-events: none;
+      pointer-events: auto;
       background: rgba(15, 23, 42, 0.88);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 12px;
@@ -844,6 +844,14 @@
       -webkit-backdrop-filter: blur(10px);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
       animation: hintFadeIn 0.3s ease-out;
+      user-select: none;
+    }
+    .hud-controls-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 2px;
     }
     .hud-controls-title {
       font-size: 9px;
@@ -851,7 +859,43 @@
       letter-spacing: 0.8px;
       color: #38bdf8;
       text-transform: uppercase;
-      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+    }
+    .hud-controls-hint-kbd {
+      font-size: 8px;
+      color: #94a3b8;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      margin-left: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .hud-controls-close-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+    }
+    .hud-controls-close-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+    }
+    .hud-controls-close-btn:active {
+      transform: scale(0.92);
     }
     .hud-control-row {
       display: flex;
@@ -1098,7 +1142,10 @@
       <div id="hud-lives" title="Vidas"></div>
     </div>
     <div id="tutorial-controls-hud" class="tutorial-controls-hud">
-      <div class="hud-controls-title"><svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><rect x="2" y="6" width="20" height="12" rx="4"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1" fill="#a855f7"/><circle cx="18" cy="11" r="1" fill="#a855f7"/></svg>CONTROLES</div>
+      <div class="hud-controls-header">
+        <div class="hud-controls-title"><svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><rect x="2" y="6" width="20" height="12" rx="4"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1" fill="#a855f7"/><circle cx="18" cy="11" r="1" fill="#a855f7"/></svg>CONTROLES <span class="hud-controls-hint-kbd">[H]</span></div>
+        <button id="btn-close-controls" class="hud-controls-close-btn" type="button" title="Ocultar controles (H)" aria-label="Cerrar panel de controles">×</button>
+      </div>
       <!-- Versión PC -->
       <div class="hud-pc-controls">
         <div class="hud-control-row">
@@ -1143,7 +1190,7 @@
   </div>
   <div id="level-transition"></div>
   <div id="pc-hint" class="input-hint">
-    <strong>WASD</strong> mover · <strong>Espacio</strong> saltar · <strong>E</strong> interactuar / bajar · <strong>Click</strong> mirar · <strong>Esc</strong> menú
+    <strong>WASD</strong> mover · <strong>Espacio</strong> saltar · <strong>E</strong> interactuar · <strong>B</strong> botín · <strong>H</strong> controles
   </div>
   <button class="action-btn dim" id="btn-interact" title="Interactuar">
     <span class="ab-icon" id="interact-icon"><svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="#fde68a" stroke="none"><path d="M12 2l2.6 6.2 6.7.5-5.1 4.4 1.6 6.6L12 16l-5.8 3.7 1.6-6.6L2.7 8.7l6.7-.5L12 2z"/></svg></span>

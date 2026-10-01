@@ -144,6 +144,10 @@ class VoxelSandboxGame {
       onSettingsToggle: () => this.toggleSettings(),
       onInventoryToggle: () => this.ui.toggleInventoryModal(),
       onUsePotion: () => this.usePotion(),
+      onControlsToggle: () => {
+        this.soundManager.playClick();
+        this.ui.toggleControlsHud(true);
+      },
     });
     this.cameraMode = localStorage.getItem('dungeon_camera') || 'first';
 

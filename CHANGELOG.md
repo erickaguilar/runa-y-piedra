@@ -5,6 +5,29 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.27.0] - 2026-10-01
+
+### Added
+- **Activos Visuales de Jugabilidad y Experiencia Móvil (`docs/assets/gameplay-coop.svg`, `docs/assets/mobile-hud-preview.svg`)**:
+  - `gameplay-coop.svg`: Representación vectorial panorámica que ilustra la apertura cooperativa de puertas 2×2, la plataforma de salto rúnico (*Jump Pad*), la fosa de lava ardiente sobre el abismo, el cofre de botín interactivo con llaves doradas y los avatares vóxel con nametags 3D en perspectiva.
+  - `mobile-hud-preview.svg`: Representación de la interfaz móvil en smartphone landscape, detallando el joystick virtual dinámico Nipple.js, Touch Look a 120 Hz, botones de acción (`USAR`, `SALTAR`), HUD de vidas con contorno y el nuevo panel interactivo de controles.
+  - Incorporación del logotipo oficial wordmark en la cabecera del README.
+- **Panel Superpuesto de Controles Descartable con Persistencia ([`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html), [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), [`InputManager.js`](file:///data/data/com.termux/files/home/develop/game/src/input/InputManager.js), [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js))**:
+  - Cabecera interactiva `#tutorial-controls-hud` con botón de cierre táctil `(×)` (`#btn-close-controls`) y badge de atajo `[H]`.
+  - Curva de aprendizaje guiada: se muestra automáticamente para nuevos aventureros y memoriza su descarte en `localStorage` (`runa_controls_dismissed`).
+  - Métodos `UIManager.prototype.showControlsHud`, `hideControlsHud` y `toggleControlsHud`.
+  - Atajo de teclado en tecla `H` para alternar la visibilidad de controles en cualquier momento con respuesta sonora procedural.
+  - Control de visibilidad en el modal de Ajustes (`⚙️` -> *"Guía de Controles (HUD)"* -> botones *Mostrar / Ocultar*).
+  - Barra inferior `#pc-hint` enriquecida con `B` botín y `H` controles.
+- **Documentación de Arquitectura de Red y Onboarding ([`06-arquitectura-listen-server-hosting.md`](file:///data/data/com.termux/files/home/develop/game/docs/06-arquitectura-listen-server-hosting.md), [`README.md`](file:///data/data/com.termux/files/home/develop/game/README.md), [`docs/README.md`](file:///data/data/com.termux/files/home/develop/game/docs/README.md))**:
+  - Sección 4: Gestión de desconexión del Host (fail-safe defensivo, paquete binario `HOST_CLOSING` `0x07` y captura de socket caído en `safe.on('close')`).
+  - Sección 5: Hoja de ruta para Migración Automática de Host (*Host Migration* P2P con algoritmo de consenso ligero y sincronización de snapshots maestros de mazmorra).
+  - Sección 6: Flujo de conexión y onboarding móvil paso a paso (*Zero-Typing WebRTC Onboarding* con escaneo de código QR dinámico y Web Share API).
+
+### Changed
+- **Robustecimiento ante Desconexión Abrupta de Host ([`NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js))**:
+  - Despacho automático de `host-closing` ante el cierre inesperado del canal seguro `safe.on('close')`, evitando que el cliente quede en un mundo huérfano si el host se apaga o pierde conexión súbitamente.
+
 ## [1.26.0] - 2026-09-30
 
 ### Added

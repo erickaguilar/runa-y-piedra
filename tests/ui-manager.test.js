@@ -25,6 +25,10 @@ describe('UIManager - Contratos de API de Configuración', () => {
     assert.equal(typeof UIManager.prototype.openInventoryModal, 'function');
     assert.equal(typeof UIManager.prototype.closeInventoryModal, 'function');
     assert.equal(typeof UIManager.prototype.toggleInventoryModal, 'function');
+    assert.equal(typeof UIManager.prototype.showControlsHud, 'function');
+    assert.equal(typeof UIManager.prototype.hideControlsHud, 'function');
+    assert.equal(typeof UIManager.prototype.toggleControlsHud, 'function');
+    assert.equal(typeof UIManager.prototype.setTutorialControlsVisible, 'function');
   });
 
   describe('comportamiento con DOM simulado', () => {
@@ -85,9 +89,12 @@ describe('UIManager - Contratos de API de Configuración', () => {
         exitPointerLock: () => {},
       };
 
+      const storageStore = new Map();
       globalThis.localStorage = {
-        getItem: () => null,
-        setItem: () => {},
+        getItem: (k) => storageStore.has(k) ? storageStore.get(k) : null,
+        setItem: (k, v) => { storageStore.set(k, String(v)); },
+        removeItem: (k) => { storageStore.delete(k); },
+        clear: () => { storageStore.clear(); },
       };
     });
 
@@ -426,6 +433,34 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.ok(btn);
       btn.onclick();
       assert.equal(closed, true);
+    });
+
+    it('gestiona la guía de controles superpuesta, persistencia y toggle con botón (x) y tecla H', () => {
+      const ui = new UIManager();
+      assert.equal(ui.isControlsDismissed, false);
+
+      // Mostrar y ocultar manualmente
+      ui.showControlsHud(true);
+      assert.equal(ui.isControlsHudVisible, true);
+      assert.equal(ui.isControlsDismissed, false);
+
+      ui.hideControlsHud(true);
+      assert.equal(ui.isControlsHudVisible, false);
+      assert.equal(ui.isControlsDismissed, true);
+      assert.equal(localStorage.getItem('runa_controls_dismissed'), 'true');
+
+      // Alternar toggle
+      ui.toggleControlsHud(true);
+      assert.equal(ui.isControlsHudVisible, true);
+      assert.equal(ui.isControlsDismissed, false);
+
+      // Si está dismissed, setTutorialControlsVisible no lo abre automáticamente salvo force=true
+      ui.hideControlsHud(true);
+      ui.setTutorialControlsVisible(true, false);
+      assert.equal(ui.isControlsHudVisible, false);
+
+      ui.setTutorialControlsVisible(true, true);
+      assert.equal(ui.isControlsHudVisible, true);
     });
   });
 });

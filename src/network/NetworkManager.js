@@ -380,6 +380,7 @@ export class NetworkManager extends EventTarget {
       window.network = this;
     }
     this.hostHotConn = null;
+    this._hostClosingHandled = false;
 
     return new Promise((resolve, reject) => {
       let settled = false;
@@ -478,6 +479,10 @@ export class NetworkManager extends EventTarget {
         });
         safe.on('close', () => {
           console.log('[WebRTC] 🔌 DataChannel safe cerrado con el host');
+          if (!this.isHost && !this._hostClosingHandled) {
+            this._hostClosingHandled = true;
+            this.dispatchEvent(new CustomEvent('host-closing', { detail: { reason: 0 } }));
+          }
         });
       });
       this.peer.on('error', (e) => {
@@ -743,6 +748,7 @@ export class NetworkManager extends EventTarget {
   }
 
   disconnect() {
+    this._hostClosingHandled = true;
     if (this._signalingHeartbeat) {
       clearInterval(this._signalingHeartbeat);
       this._signalingHeartbeat = null;

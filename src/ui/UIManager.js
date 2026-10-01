@@ -99,6 +99,13 @@ export class UIManager {
     this.playerName = localStorage.getItem('dungeon_player_name') || 'Aventurero';
     this.setActionButtonsVisible(false);
     this.updateInventory(this.inventory);
+
+    // Estado del panel superpuesto de controles (HUD)
+    this.isControlsDismissed = typeof localStorage !== 'undefined'
+      ? localStorage.getItem('runa_controls_dismissed') === 'true'
+      : false;
+    this.isControlsHudVisible = false;
+    this._bindControlsHud();
   }
 
   checkDevMode() {
@@ -129,6 +136,24 @@ export class UIManager {
     } else {
       this.devBtn.style.display = 'none';
       this.devBtn.classList.remove('is-dev');
+    }
+  }
+
+  _bindControlsHud() {
+    if (typeof document === 'undefined') return;
+    const btnCloseControls = document.getElementById('btn-close-controls');
+    if (btnCloseControls && !btnCloseControls.__bound) {
+      btnCloseControls.__bound = true;
+      const handleClose = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
+        soundManager.playClick();
+        this.hideControlsHud(true);
+      };
+      btnCloseControls.onclick = handleClose;
+      btnCloseControls.addEventListener('touchend', handleClose, { passive: false });
     }
   }
 
@@ -495,7 +520,24 @@ export class UIManager {
           </div>
         </div>
 
-        <!-- 5. SALA DE EXPEDICIÓN (si está en partida) -->
+        <!-- 5. Guía de Controles en Pantalla -->
+        <div class="settings-group" style="margin-top:10px;">
+          <div class="setting-row">
+            <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
+              ${renderIcon('sparkles', { size: 14, color: '#38bdf8' })} Guía de Controles (HUD)
+            </span>
+          </div>
+          <div class="quality-selector">
+            <button class="quality-btn ${this.isControlsHudVisible ? 'active' : ''}" id="btn-controls-on">
+              Mostrar
+            </button>
+            <button class="quality-btn ${!this.isControlsHudVisible ? 'active' : ''}" id="btn-controls-off">
+              Ocultar
+            </button>
+          </div>
+        </div>
+
+        <!-- 6. SALA DE EXPEDICIÓN (si está en partida) -->
         ${inGame && state.roomPin ? `
           <div class="divider" style="margin:12px 0"></div>
           <div class="settings-group" style="background:rgba(11,17,32,0.85);border-radius:14px;padding:14px;border:1px solid #1e293b;text-align:center;">
@@ -638,6 +680,20 @@ export class UIManager {
         if (!soundManager.isMuted) soundManager.toggleMute();
         btnSoundOff.classList.add('active');
         btnSoundOn.classList.remove('active');
+      };
+    }
+
+    // Botones de Guía de Controles HUD
+    const btnControlsOn = document.getElementById('btn-controls-on');
+    const btnControlsOff = document.getElementById('btn-controls-off');
+    if (btnControlsOn && btnControlsOff) {
+      btnControlsOn.onclick = () => {
+        soundManager.playClick();
+        this.showControlsHud(true);
+      };
+      btnControlsOff.onclick = () => {
+        soundManager.playClick();
+        this.hideControlsHud(true);
       };
     }
 
@@ -1451,10 +1507,73 @@ export class UIManager {
     }
   }
 
-  setTutorialControlsVisible(visible) {
-    const el = document.getElementById('tutorial-controls-hud');
-    if (el) {
-      el.style.display = visible ? 'flex' : 'none';
+  setTutorialControlsVisible(visible, force = false) {
+    if (visible) {
+      if (force || !this.isControlsDismissed) {
+        this.showControlsHud(false);
+      } else {
+        this.hideControlsHud(false);
+      }
+    } else {
+      this.hideControlsHud(false);
+    }
+  }
+
+  showControlsHud(userAction = false) {
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('tutorial-controls-hud');
+      if (el) {
+        el.style.display = 'flex';
+      }
+    }
+    this.isControlsHudVisible = true;
+    this._bindControlsHud();
+    if (userAction) {
+      this.isControlsDismissed = false;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('runa_controls_dismissed');
+        }
+      } catch {}
+      this._updateSettingsControlsButtons();
+    }
+  }
+
+  hideControlsHud(userAction = false) {
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('tutorial-controls-hud');
+      if (el) {
+        el.style.display = 'none';
+      }
+    }
+    this.isControlsHudVisible = false;
+    if (userAction) {
+      this.isControlsDismissed = true;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('runa_controls_dismissed', 'true');
+        }
+      } catch {}
+      this._updateSettingsControlsButtons();
+    }
+  }
+
+  toggleControlsHud(userAction = true) {
+    if (this.isControlsHudVisible) {
+      this.hideControlsHud(userAction);
+    } else {
+      this.showControlsHud(userAction);
+    }
+    return this.isControlsHudVisible;
+  }
+
+  _updateSettingsControlsButtons() {
+    if (typeof document === 'undefined') return;
+    const btnOn = document.getElementById('btn-controls-on');
+    const btnOff = document.getElementById('btn-controls-off');
+    if (btnOn && btnOff) {
+      btnOn.classList.toggle('active', this.isControlsHudVisible);
+      btnOff.classList.toggle('active', !this.isControlsHudVisible);
     }
   }
 
