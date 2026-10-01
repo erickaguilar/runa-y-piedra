@@ -7,6 +7,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [1.29.0] - 2026-10-01
 
+### Fixed
+- **Contención de Celdas SVG y Corrección de Sangrado en Sprites de Pilares y Jump Pad ([`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js), [`src/render/textures/lava.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/lava.js), [`src/render/VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js))**:
+  - Implementación de máscara de recorte estricta por celda en el Texture Atlas mediante `<clipPath id="tile-cell-clip">` aplicado a cada casilla `<g clip-path="url(#tile-cell-clip)">` en `TextureGenerator.js`, evitando que trazados vectoriales con grosores elevados o curvas se proyecten fuera de su cuadrícula de $128 \times 128$ px.
+  - Saneamiento y clamp de todas las coordenadas de placas basálticas y corrientes de magma en `lavaActive` (Tile 13), `lavaFissures` (Tile 16) y `lavaRiver` (Tile 18) para acotarlas estrictamente al rango $[0, 128]$ px, eliminando desbordamientos negativos ($-6, -2$) o superiores ($130, 134$).
+  - Eliminación definitiva del sangrado rojo/anaranjado que invadía el lateral derecho del pilar acanalado (Tile 12), la parte superior de los pilares en la fila 5 (Tiles 20, 21, 22) y las esquinas de la losa de salto *Jump Pad* (Tile 14).
+  - Calibración del clamping UV en el fragment shader de `VoxelMap` a `clamp(fract(vMapUv), 0.004, 0.996)` para prevenir redondeos subpíxel hacia celdas adyacentes en GPU.
+
 ### Added
 - **Expansión del Texture Atlas a Matriz $4 \times 8$ ($512 \times 1024$ px) ([`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js), [`src/render/VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js))**:
   - Ampliación de la resolución vertical del atlas a 1024 píxeles (8 filas de casillas de 128x128 px), manteniendo potencias de dos exactas ($512 \times 1024$) para máxima eficiencia en GPU y mipmapping en WebGL.

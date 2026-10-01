@@ -29,15 +29,23 @@ export class TextureGenerator {
 
     const tilesSvg = createTilesSvgArray(S);
 
+    // Máscara de recorte estricta por celda para garantizar contención absoluta (evitar sangrado entre celdas)
+    let innerSvg = `
+      <defs>
+        <clipPath id="tile-cell-clip">
+          <rect x="0" y="0" width="${S}" height="${S}" />
+        </clipPath>
+      </defs>
+    `;
+
     // Ensamblar los grupos en la cuadrícula 4x8 (32 casillas de 128x128 en 512x1024)
-    let innerSvg = '';
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 4; c++) {
         const idx = r * 4 + c;
         const x = c * S;
         const y = r * S;
         const tileContent = tilesSvg[idx] || `<rect width="${S}" height="${S}" fill="#18181b"/>`;
-        innerSvg += `<g transform="translate(${x}, ${y})">${tileContent}</g>\n`;
+        innerSvg += `<g transform="translate(${x}, ${y})" clip-path="url(#tile-cell-clip)">${tileContent}</g>\n`;
       }
     }
 

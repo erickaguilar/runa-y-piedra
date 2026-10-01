@@ -76,9 +76,9 @@ export function lavaActive(S = 128) {
     <!-- Capa 3: Placas tectónicas de basalto y obsidiana con bordes fundidos -->
     <!-- Placa 1: Noroeste / Superior-Izquierda -->
     <g>
-      <polygon points="-2,-2 62,-2 52,20 36,30 16,26 -2,20" fill="none" stroke="#b91c1c" stroke-width="4" stroke-linejoin="round"/>
-      <polygon points="-2,-2 62,-2 52,20 36,30 16,26 -2,20" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="-2,-2 60,-2 50,18 35,28 15,24 -2,18" fill="url(#lava-basalt-13)"/>
+      <polygon points="0,0 62,0 52,20 36,30 16,26 0,20" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
+      <polygon points="0,0 62,0 52,20 36,30 16,26 0,20" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="0,0 60,0 50,18 35,28 15,24 0,18" fill="url(#lava-basalt-13)"/>
       <path d="M 12,2 L 20,10 L 16,18 M 38,4 L 32,12" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.85"/>
       <path d="M 12,2 L 19,9" stroke="#ef4444" stroke-width="0.5" fill="none" opacity="0.7"/>
       <circle cx="28" cy="12" r="2.2" fill="#3f3f46" opacity="0.45"/>
@@ -87,9 +87,9 @@ export function lavaActive(S = 128) {
 
     <!-- Placa 2: Noreste / Superior-Derecha -->
     <g>
-      <polygon points="72,-2 130,-2 130,42 108,34 86,24 72,8" fill="none" stroke="#b91c1c" stroke-width="4" stroke-linejoin="round"/>
-      <polygon points="72,-2 130,-2 130,42 108,34 86,24 72,8" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="74,-2 130,-2 130,40 106,32 85,22 74,8" fill="url(#lava-basalt-13)"/>
+      <polygon points="72,0 128,0 128,42 108,34 86,24 72,8" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
+      <polygon points="72,0 128,0 128,42 108,34 86,24 72,8" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="74,0 128,0 128,40 106,32 85,22 74,8" fill="url(#lava-basalt-13)"/>
       <path d="M 104,6 L 98,16 L 102,24" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.85"/>
       <path d="M 104,6 L 99,14" stroke="#ef4444" stroke-width="0.5" fill="none" opacity="0.7"/>
       <circle cx="118" cy="18" r="2.5" fill="#3f3f46" opacity="0.5"/>
@@ -97,18 +97,18 @@ export function lavaActive(S = 128) {
 
     <!-- Placa 3: Este / Centro-Derecha -->
     <g>
-      <polygon points="86,46 130,58 130,80 110,82 86,68 76,54" fill="none" stroke="#b91c1c" stroke-width="4" stroke-linejoin="round"/>
-      <polygon points="86,46 130,58 130,80 110,82 86,68 76,54" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="88,48 130,60 130,78 108,80 88,66 78,54" fill="url(#lava-basalt-13)"/>
+      <polygon points="86,46 128,58 128,80 110,82 86,68 76,54" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
+      <polygon points="86,46 128,58 128,80 110,82 86,68 76,54" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="88,48 128,60 128,78 108,80 88,66 78,54" fill="url(#lava-basalt-13)"/>
       <path d="M 112,68 L 102,72" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.8"/>
       <circle cx="98" cy="62" r="2" fill="#3f3f46" opacity="0.4"/>
     </g>
 
     <!-- Placa 4: Suroeste / Centro-Izquierda -->
     <g>
-      <polygon points="-2,38 24,42 40,64 30,88 -2,94" fill="none" stroke="#b91c1c" stroke-width="4" stroke-linejoin="round"/>
-      <polygon points="-2,38 24,42 40,64 30,88 -2,94" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="-2,40 22,44 38,64 28,86 -2,92" fill="url(#lava-basalt-13)"/>
+      <polygon points="0,38 24,42 40,64 30,88 0,94" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
+      <polygon points="0,38 24,42 40,64 30,88 0,94" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="0,40 22,44 38,64 28,86 0,92" fill="url(#lava-basalt-13)"/>
       <path d="M 8,58 L 18,64 L 14,76" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.85"/>
       <path d="M 8,58 L 16,63" stroke="#ef4444" stroke-width="0.5" fill="none" opacity="0.7"/>
       <circle cx="16" cy="52" r="2.2" fill="#3f3f46" opacity="0.45"/>
@@ -116,18 +116,18 @@ export function lavaActive(S = 128) {
 
     <!-- Placa 5: Sur / Centro-Inferior -->
     <g>
-      <polygon points="44,106 68,94 98,100 94,130 30,130 36,114" fill="none" stroke="#b91c1c" stroke-width="4" stroke-linejoin="round"/>
-      <polygon points="44,106 68,94 98,100 94,130 30,130 36,114" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="46,108 68,96 96,102 92,130 32,130 38,116" fill="url(#lava-basalt-13)"/>
+      <polygon points="44,106 68,94 98,100 94,128 30,128 36,114" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
+      <polygon points="44,106 68,94 98,100 94,128 30,128 36,114" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="46,108 68,96 96,102 92,128 32,128 38,116" fill="url(#lava-basalt-13)"/>
       <path d="M 64,110 L 70,122" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.8"/>
       <circle cx="56" cy="118" r="2.2" fill="#3f3f46" opacity="0.45"/>
     </g>
 
     <!-- Placa 6: Sureste / Esquina Inferior-Derecha -->
     <g>
-      <polygon points="114,96 130,92 130,130 102,130" fill="none" stroke="#b91c1c" stroke-width="4" stroke-linejoin="round"/>
-      <polygon points="114,96 130,92 130,130 102,130" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="116,98 130,94 130,130 104,130" fill="url(#lava-basalt-13)"/>
+      <polygon points="114,96 128,92 128,128 102,128" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
+      <polygon points="114,96 128,92 128,128 102,128" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="116,98 128,94 128,128 104,128" fill="url(#lava-basalt-13)"/>
       <circle cx="120" cy="116" r="1.8" fill="#3f3f46" opacity="0.5"/>
     </g>
 
@@ -225,13 +225,13 @@ export function lavaFissures(S = 128) {
     </g>
 
     <!-- Placas tectónicas de basalto oscuro enfriado -->
-    <polygon points="-2,-2 60,-2 58,20 32,32 0,24" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="66,-2 130,-2 130,36 90,44 64,20" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="-2,32 18,34 18,64 20,100 -2,92" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+    <polygon points="0,0 60,0 58,20 32,32 0,24" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+    <polygon points="66,0 128,0 128,36 90,44 64,20" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+    <polygon points="0,32 18,34 18,64 20,100 0,92" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
     <polygon points="26,40 58,30 64,60 50,88 26,64" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="94,50 130,42 130,84 106,70 74,60" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="-2,100 20,108 50,96 58,130 -2,130" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="70,68 102,78 130,92 130,130 68,130 58,96" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+    <polygon points="94,50 128,42 128,84 106,70 74,60" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+    <polygon points="0,100 20,108 50,96 58,128 0,128" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
+    <polygon points="70,68 102,78 128,92 128,128 68,128 58,96" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
 
     <!-- Micro-grietas en las placas con brillo interno -->
     <g stroke="#ea580c" stroke-width="0.8" fill="none" opacity="0.75">
@@ -334,19 +334,19 @@ export function lavaRiver(S = 128) {
 
     <!-- Líneas de corriente fluidodinámica en alta velocidad -->
     <g fill="none" stroke-linecap="round">
-      <path d="M -6,110 Q 24,96 54,64 Q 84,32 120,4 Q 128,-4 134,-6" stroke="#ea580c" stroke-width="18" opacity="0.6"/>
-      <path d="M 4,134 Q 38,104 68,72 Q 98,40 134,16" stroke="#ea580c" stroke-width="14" opacity="0.55"/>
-      <path d="M -6,110 Q 24,96 54,64 Q 84,32 120,4 Q 128,-4 134,-6" stroke="#f97316" stroke-width="9"/>
-      <path d="M 4,134 Q 38,104 68,72 Q 98,40 134,16" stroke="#f97316" stroke-width="7"/>
-      <path d="M -6,110 Q 24,96 54,64 Q 84,32 120,4 Q 128,-4 134,-6" stroke="#fef08a" stroke-width="4"/>
-      <path d="M 4,134 Q 38,104 68,72 Q 98,40 134,16" stroke="#fde047" stroke-width="3"/>
-      <path d="M -4,110 Q 24,96 54,64 Q 84,32 120,4" stroke="#ffffff" stroke-width="1.8" opacity="0.95"/>
-      <path d="M 6,132 Q 38,104 68,72 Q 98,40 132,16" stroke="#ffffff" stroke-width="1.4" opacity="0.9"/>
+      <path d="M 0,110 Q 24,96 54,64 Q 84,32 118,10 L 128,0" stroke="#ea580c" stroke-width="14" opacity="0.6"/>
+      <path d="M 4,128 Q 38,104 68,72 Q 98,40 128,16" stroke="#ea580c" stroke-width="12" opacity="0.55"/>
+      <path d="M 0,110 Q 24,96 54,64 Q 84,32 118,10 L 128,0" stroke="#f97316" stroke-width="8"/>
+      <path d="M 4,128 Q 38,104 68,72 Q 98,40 128,16" stroke="#f97316" stroke-width="6"/>
+      <path d="M 0,110 Q 24,96 54,64 Q 84,32 118,10 L 128,0" stroke="#fef08a" stroke-width="3.5"/>
+      <path d="M 4,128 Q 38,104 68,72 Q 98,40 128,16" stroke="#fde047" stroke-width="2.8"/>
+      <path d="M 0,110 Q 24,96 54,64 Q 84,32 118,10 L 128,0" stroke="#ffffff" stroke-width="1.6" opacity="0.95"/>
+      <path d="M 6,128 Q 38,104 68,72 Q 98,40 128,16" stroke="#ffffff" stroke-width="1.3" opacity="0.9"/>
     </g>
 
     <!-- Orillas de roca y basalto que canalizan el torrente -->
-    <polygon points="-2,-2 82,-2 52,24 24,44 -2,66" fill="url(#lava-edge-18)" stroke="#7f1d1d" stroke-width="1.2"/>
-    <polygon points="66,130 130,130 130,52 108,74 88,104" fill="url(#lava-edge-18)" stroke="#7f1d1d" stroke-width="1.2"/>
+    <polygon points="0,0 82,0 52,24 24,44 0,66" fill="url(#lava-edge-18)" stroke="#7f1d1d" stroke-width="1.2"/>
+    <polygon points="66,128 128,128 128,52 108,74 88,104" fill="url(#lava-edge-18)" stroke="#7f1d1d" stroke-width="1.2"/>
 
     <!-- Estelas de arrastre y vórtices térmicos -->
     <g stroke="#fef08a" stroke-width="1" fill="none" opacity="0.8">

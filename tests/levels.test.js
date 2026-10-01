@@ -141,6 +141,26 @@ test('createTilesSvgArray y módulos de texturas generan los 23 sprites SVG modu
   assert.ok(specialSprites.jumpPad(128).includes('d97706'), 'jumpPad debe tener runa ámbar');
 });
 
+test('los sprites de lava no contienen coordenadas fuera de límites [0, 128] para evitar sangrado a celdas adyacentes', () => {
+  const S = 128;
+  const lavaVariants = [
+    lavaSprites.lavaActive(S),
+    lavaSprites.lavaFissures(S),
+    lavaSprites.lavaGeysers(S),
+    lavaSprites.lavaRiver(S),
+    lavaSprites.lavaCaldera(S)
+  ];
+
+  for (let i = 0; i < lavaVariants.length; i++) {
+    const svg = lavaVariants[i];
+    // No debe contener polígonos con coordenadas negativas como -2 ni mayores a 128 como 130 o 134
+    assert.doesNotMatch(svg, /\bpoints="[^"]*-\d+/, `Lava variante ${i} no debe contener coordenadas de puntos negativas`);
+    assert.doesNotMatch(svg, /\bpoints="[^"]*13\d+/, `Lava variante ${i} no debe contener coordenadas de puntos mayores a 128`);
+    assert.doesNotMatch(svg, /\bd="[^"]*-\d+/, `Lava variante ${i} no debe contener coordenadas path negativas`);
+    assert.doesNotMatch(svg, /\bd="[^"]*13\d+/, `Lava variante ${i} no debe contener coordenadas path mayores a 128`);
+  }
+});
+
 test('abyss_throne Sala 1 contiene el cofre con la poción de vida para recuperar 1 corazón', () => {
   const world = new World();
   const abyssData = world.levelRegistry.getLevel('abyss_throne');
