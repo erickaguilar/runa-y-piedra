@@ -110,3 +110,12 @@ test('potion-use roundtrip conserva playerId y healAmount', () => {
   assert.equal(res.healAmount, 1);
 });
 
+test('chapter-select roundtrip conserva chapterId y dungeonId', () => {
+  const buf = Proto.serializeChapterSelect('capitulo_2', 'shadow_vault');
+  assert.equal(new DataView(buf).getUint8(0), Proto.MSG.CHAPTER_SELECT);
+  const res = Proto.deserializeChapterSelect(buf);
+  assert.equal(res.chapterId, 'capitulo_2');
+  assert.equal(res.dungeonId, 'shadow_vault');
+});
+
+

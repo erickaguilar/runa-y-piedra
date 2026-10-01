@@ -20,6 +20,7 @@ export class World {
     this.doors = [];
     this.checkpoints = [];
     this.objectives = [];
+    this.monoliths = [];
     this.torches = [];
     this.chests = [];
     // Escalinata de descenso: [{x1,x2,z1,z2,triggerY,open}] derivada del altar (LevelLoader)

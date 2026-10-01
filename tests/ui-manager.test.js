@@ -41,7 +41,9 @@ describe('UIManager - Contratos de API de Configuración', () => {
 
       const elementStore = new Map();
       let lastMockButton = null;
+      let lastChapterButton = null;
       const mockEl = (tag = 'div') => {
+        let _id = '';
         const el = {
           tagName: tag.toUpperCase(),
           style: {},
@@ -50,6 +52,11 @@ describe('UIManager - Contratos de API de Configuración', () => {
           value: '',
           dataset: { potionIndex: '0', index: '0' },
           children: [],
+          get id() { return _id; },
+          set id(val) {
+            _id = val;
+            if (val) elementStore.set(val, el);
+          },
           addEventListener(evt, fn) { this['on' + evt] = fn; },
           click() { this.onclick?.(); },
           appendChild(child) { this.children.push(child); return child; },
@@ -58,9 +65,23 @@ describe('UIManager - Contratos de API de Configuración', () => {
               if (!lastMockButton) lastMockButton = mockEl('button');
               return lastMockButton;
             }
+            if (sel?.includes('chapter-launch-btn')) {
+              if (!lastChapterButton) {
+                lastChapterButton = mockEl('button');
+                lastChapterButton.dataset = { chapterId: 'capitulo_1' };
+              }
+              return lastChapterButton;
+            }
             return mockEl('span');
           },
           querySelectorAll(sel) {
+            if (sel?.includes('chapter-launch-btn')) {
+              if (!lastChapterButton) {
+                lastChapterButton = mockEl('button');
+                lastChapterButton.dataset = { chapterId: 'capitulo_1' };
+              }
+              return [lastChapterButton];
+            }
             if (sel?.includes('btn-use-potion')) {
               if (!lastMockButton) lastMockButton = mockEl('button');
               return [lastMockButton];
@@ -71,6 +92,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
             for (const [k, v] of elementStore.entries()) {
               if (v === this) elementStore.delete(k);
             }
+            if (_id) elementStore.delete(_id);
           },
         };
         return el;
@@ -504,6 +526,70 @@ describe('UIManager - Contratos de API de Configuración', () => {
 
       ui.setTutorialControlsVisible(true, true);
       assert.equal(ui.isControlsHudVisible, true);
+    });
+
+    it('gestiona el modal de selección de capítulos (Atlas de Expedición)', () => {
+      const ui = new UIManager();
+      let selectedChapterId = null;
+
+      const mockRegistry = {
+        getAllChapters: () => [
+          {
+            id: 'capitulo_1',
+            number: 1,
+            name: 'El Descenso Ancestral',
+            theme: 'ancient_stone',
+            lore: 'Antiguas cámaras de sillar.',
+            icon: 'castle',
+            dungeons: [{ id: 'dungeon_classic', name: 'Mazmorra Ancestral' }]
+          },
+          {
+            id: 'capitulo_2',
+            number: 2,
+            name: 'Cripta de las Sombras',
+            theme: 'dark_shadows',
+            lore: 'Galerías de basalto.',
+            icon: 'pickaxe',
+            dungeons: [{ id: 'shadow_vault', name: 'Bóveda Umbría' }]
+          },
+        ],
+        isChapterUnlocked: (id) => id === 'capitulo_1',
+        getRecord: (id) => id === 'capitulo_1' ? { bestTimeSec: 150, deaths: 1, stars: 3 } : null,
+        currentChapterId: 'capitulo_1',
+        progress: { completedChapters: [] },
+      };
+
+      ui.bindCampaign({
+        getChapterRegistry: () => mockRegistry,
+        getGameState: () => ({ isHost: true, currentLevelId: 'lobby_tutorial' }),
+        onSelectChapter: (id) => { selectedChapterId = id; },
+      });
+
+      // Abrir modal
+      ui.openChapterModal();
+      assert.equal(ui.isChapterOpen, true);
+      const overlay = document.getElementById('modal-chapter-overlay');
+      assert.ok(overlay);
+      assert.match(overlay.innerHTML, /Atlas de Expedición/);
+      assert.match(overlay.innerHTML, /El Descenso Ancestral/);
+      assert.match(overlay.innerHTML, /Cripta de las Sombras/);
+      assert.match(overlay.innerHTML, /Bloqueado/);
+
+      // El capítulo 1 tiene botón de iniciar expedición
+      const launchBtn = overlay.querySelector('.chapter-launch-btn[data-chapter-id="capitulo_1"]');
+      assert.ok(launchBtn);
+      launchBtn.click();
+
+      // Debe haber llamado a onSelectChapter con 'capitulo_1' y cerrado el modal
+      assert.equal(selectedChapterId, 'capitulo_1');
+      assert.equal(ui.isChapterOpen, false);
+
+      // Alternar toggle
+      ui.toggleChapterModal();
+      assert.equal(ui.isChapterOpen, true);
+
+      ui.closeChapterModal();
+      assert.equal(ui.isChapterOpen, false);
     });
   });
 });

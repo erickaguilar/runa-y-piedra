@@ -2,6 +2,7 @@ import QRCode from 'qrcode';
 import { PLAYER_HEROES, APP_CONFIG } from '../config/constants.js';
 import { renderIcon, escapeHtml } from './Icons.js';
 import { soundManager } from '../audio/SoundManager.js';
+import { CHAPTER_CATALOG } from '../levels/ChapterRegistry.js';
 
 export const ModalMixin = {
   bindSettings(callbacks = {}) {
@@ -26,6 +27,10 @@ export const ModalMixin = {
 
   bindInventory(callbacks = {}) {
     this.inventoryCallbacks = callbacks;
+  },
+
+  bindCampaign(callbacks = {}) {
+    this.campaignCallbacks = callbacks;
   },
 
   toggleSettingsModal() {
@@ -1133,6 +1138,214 @@ export const ModalMixin = {
     } else {
       this.devBtn.style.display = 'none';
       this.devBtn.classList.remove('is-dev');
+    }
+  },
+
+  toggleChapterModal() {
+    if (this.isChapterOpen) {
+      this.closeChapterModal();
+    } else {
+      this.openChapterModal();
+    }
+  },
+
+  openChapterModal() {
+    this.closeConfirmDialog();
+    this.closeSettingsModal();
+    this.closeInventoryModal();
+    if (this.isDevOpen) {
+      this.closeDevModal();
+    }
+    this.isChapterOpen = true;
+    this.setCrosshairVisible(false);
+    this.setActionButtonsVisible(false);
+    document.exitPointerLock?.();
+
+    const state = this.campaignCallbacks?.getGameState ? this.campaignCallbacks.getGameState() : {};
+    const registry = this.campaignCallbacks?.getChapterRegistry ? this.campaignCallbacks.getChapterRegistry() : null;
+    const chapters = registry?.getAllChapters?.() || CHAPTER_CATALOG;
+    const isHost = state.isHost ?? true;
+    const currentChapterId = registry?.currentChapterId || 'capitulo_1';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'modal-chapter-overlay';
+    overlay.className = 'modal-chapter-overlay';
+
+    const cardsHtml = chapters.map((ch) => {
+      const isUnlocked = registry ? registry.isChapterUnlocked(ch.id) : (ch.number === 1);
+      const isCompleted = registry?.progress?.completedChapters?.includes(ch.id) || false;
+      const isCurrent = currentChapterId === ch.id;
+      const record = registry?.getRecord?.(ch.id);
+
+      const iconName = ch.icon || 'castle';
+      const bestTimeText = record?.bestTimeSec
+        ? `${Math.floor(record.bestTimeSec / 60)}m ${String(record.bestTimeSec % 60).padStart(2, '0')}s`
+        : null;
+
+      if (!isUnlocked) {
+        return `
+          <div class="chapter-card locked">
+            <div class="chapter-card-header">
+              <span class="chapter-num-badge locked">Capítulo ${ch.number}</span>
+              <span class="chapter-lock-badge">${renderIcon('lock', { size: 14, color: '#94a3b8' })} Bloqueado</span>
+            </div>
+            <div class="chapter-icon-wrap locked">
+              ${renderIcon(iconName, { size: 28, color: '#64748b' })}
+            </div>
+            <div class="chapter-card-title">${escapeHtml(ch.name)}</div>
+            <div class="chapter-card-desc">${escapeHtml(ch.lore)}</div>
+            <div class="chapter-req-notice">Completa el Capítulo ${ch.number - 1} para desbloquear</div>
+          </div>
+        `;
+      }
+
+      let statusBadge = '';
+      if (isCompleted) {
+        statusBadge = `<span class="chapter-status-badge completed">${renderIcon('check', { size: 12, color: '#10b981' })} Conquistado</span>`;
+      } else if (isCurrent) {
+        statusBadge = `<span class="chapter-status-badge current">⚡ Activo</span>`;
+      } else {
+        statusBadge = `<span class="chapter-status-badge available">Disponible</span>`;
+      }
+
+      let starsHtml = '';
+      const starsCount = record?.stars ?? (isCompleted ? 3 : 0);
+      if (starsCount > 0) {
+        starsHtml = `
+          <div class="chapter-stars">
+            ${Array.from({ length: 3 }, (_, idx) => renderIcon('star', {
+              size: 13,
+              color: idx < starsCount ? '#f59e0b' : '#334155'
+            })).join('')}
+          </div>
+        `;
+      }
+
+      let recordInfo = '';
+      if (record) {
+        recordInfo = `
+          <div class="chapter-record-row">
+            ${bestTimeText ? `<span>⏱️ ${bestTimeText}</span>` : ''}
+            ${record.deaths !== undefined ? `<span>💀 ${record.deaths} bajas</span>` : ''}
+          </div>
+        `;
+      }
+
+      const dungeonsList = (ch.dungeons || []).map((d) => escapeHtml(d.name || d.id)).join(' → ');
+
+      let actionBtn = '';
+      if (isHost) {
+        actionBtn = `
+          <button class="chapter-launch-btn ${isCurrent ? 'btn-current' : ''}" data-chapter-id="${ch.id}">
+            ${isCurrent ? 'Reiniciar Capítulo' : 'Iniciar Expedición'}
+          </button>
+        `;
+      } else {
+        actionBtn = `
+          <div class="chapter-client-info">${isCurrent ? 'Capítulo en curso' : 'Listo para expedición'}</div>
+        `;
+      }
+
+      return `
+        <div class="chapter-card unlocked ${isCurrent ? 'is-active' : ''} ${isCompleted ? 'is-completed' : ''}">
+          <div class="chapter-card-header">
+            <span class="chapter-num-badge">Capítulo ${ch.number}</span>
+            ${statusBadge}
+          </div>
+          <div class="chapter-icon-wrap">
+            ${renderIcon(iconName, { size: 28, color: isCurrent ? '#38bdf8' : '#fbbf24' })}
+          </div>
+          <div class="chapter-card-title">${escapeHtml(ch.name)}</div>
+          <div class="chapter-card-desc">${escapeHtml(ch.lore)}</div>
+          <div class="chapter-dungeons-track" title="Trilogía de mazmorras">🏛️ ${dungeonsList}</div>
+          ${starsHtml}
+          ${recordInfo}
+          <div class="chapter-card-actions">
+            ${actionBtn}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const hostNote = isHost
+      ? '👑 <strong>Anfitrión</strong>: Selecciona un capítulo para iniciar la travesía con tu equipo.'
+      : '🛡️ <strong>Aventurero</strong>: Explora los capítulos de la campaña. Solo el anfitrión puede liderar la expedición.';
+
+    overlay.innerHTML = `
+      <div class="modal-chapter-box">
+        <div class="modal-chapter-header">
+          <div class="modal-chapter-title-wrap">
+            <div class="modal-chapter-icon">${renderIcon('compass', { size: 24, color: '#38bdf8' })}</div>
+            <div>
+              <div class="modal-chapter-title">Atlas de Expedición</div>
+              <div class="modal-chapter-subtitle">Campaña de los 10 Capítulos Primordiales</div>
+            </div>
+          </div>
+          <button class="modal-chapter-close" id="btn-close-chapter" aria-label="Cerrar">
+            ${renderIcon('x', { size: 20, color: '#94a3b8' })}
+          </button>
+        </div>
+
+        <div class="modal-chapter-banner ${isHost ? 'host' : 'guest'}">
+          ${hostNote}
+        </div>
+
+        <div class="modal-chapter-grid">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const closeBtn = overlay.querySelector('#btn-close-chapter');
+    const handleClose = (e) => {
+      if (e) {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+      }
+      soundManager.playClick();
+      this.closeChapterModal();
+    };
+    if (closeBtn) {
+      closeBtn.onclick = handleClose;
+      closeBtn.addEventListener('touchend', handleClose, { passive: false });
+    }
+
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        soundManager.playClick();
+        this.closeChapterModal();
+      }
+    };
+
+    overlay.querySelectorAll('.chapter-launch-btn').forEach((btn) => {
+      const handleLaunch = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
+        soundManager.playClick();
+        const chapterId = btn.dataset.chapterId;
+        if (chapterId && this.campaignCallbacks?.onSelectChapter) {
+          this.closeChapterModal();
+          this.campaignCallbacks.onSelectChapter(chapterId);
+        }
+      };
+      btn.onclick = handleLaunch;
+      btn.addEventListener('touchend', handleLaunch, { passive: false });
+    });
+  },
+
+  closeChapterModal() {
+    this.isChapterOpen = false;
+    const overlay = document.getElementById('modal-chapter-overlay');
+    if (overlay) {
+      overlay.remove();
+    }
+    if (this.currentScreen === 'in_game') {
+      this.setCrosshairVisible(true);
+      this.setActionButtonsVisible(true);
     }
   },
 };

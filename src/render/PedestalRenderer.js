@@ -49,30 +49,52 @@ export class PedestalRenderer {
     }
   }
 
-  loadPedestals(objectives = [], { theme = 'classic' } = {}) {
+  loadPedestals(objectives = [], { theme = 'classic', monoliths = [] } = {}) {
     this.clear();
     this._applyTheme(theme);
-    if (!Array.isArray(objectives) || objectives.length === 0) return;
+    if (Array.isArray(objectives) && objectives.length > 0) {
+      objectives.forEach((cfg, i) => {
+        if ((cfg.type || 'pedestal') !== 'pedestal') return;
+        const id = cfg.id ?? i + 1;
+        const x = cfg.x ?? 12;
+        const y = cfg.y ?? 1.0;
+        const z = cfg.z ?? 30;
 
-    objectives.forEach((cfg, i) => {
-      if ((cfg.type || 'pedestal') !== 'pedestal') return;
-      const id = cfg.id ?? i + 1;
-      const x = cfg.x ?? 12;
-      const y = cfg.y ?? 1.0;
-      const z = cfg.z ?? 30;
+        const {
+          root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed
+        } = buildPedestalMesh(this._geos, this._mats);
 
-      const {
-        root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed
-      } = buildPedestalMesh(this._geos, this._mats);
+        root.position.set(x, Math.max(1.0, y), z);
+        this.group.add(root);
 
-      root.position.set(x, Math.max(1.0, y), z);
-      this.group.add(root);
-
-      this.pedestals.set(id, {
-        id, x, y, z, root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed,
-        isActive: false, flash: 0, spinBoost: 0, phase: Math.random() * Math.PI * 2,
+        this.pedestals.set(id, {
+          id, x, y, z, root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed,
+          isActive: false, flash: 0, spinBoost: 0, phase: Math.random() * Math.PI * 2,
+        });
       });
-    });
+    }
+
+    if (Array.isArray(monoliths) && monoliths.length > 0) {
+      const cartoMats = this._createMaterials('cartography');
+      monoliths.forEach((m, idx) => {
+        const id = m.id ?? `monolith_${idx}`;
+        const x = m.x ?? 17.5;
+        const y = m.y ?? 1.0;
+        const z = m.z ?? 8.5;
+
+        const {
+          root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed
+        } = buildPedestalMesh(this._geos, cartoMats);
+
+        root.position.set(x, Math.max(1.0, y), z);
+        this.group.add(root);
+
+        this.pedestals.set(id, {
+          id, x, y, z, root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed,
+          isActive: true, flash: 0, spinBoost: 0, phase: Math.random() * Math.PI * 2,
+        });
+      });
+    }
   }
 
   /** Bendición del altar: destello + ráfaga de brasas; queda en estado "bendecido". */

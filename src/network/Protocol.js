@@ -28,6 +28,7 @@ export const MSG = {
   POTION:       0x10, // Consumable potion use (client->host)
   WORLD_SNAPSHOT: 0x11, // Host -> all: world state (level + doors + chests, JSON, ~5s)
   PEER_ROSTER:    0x12, // Host -> all: peer list for deterministic leader election
+  CHAPTER_SELECT: 0x13, // Host -> all: chapter selection sync
 };
 
 export const ACTION_FLAGS = {
@@ -583,5 +584,36 @@ export function deserializePeerRoster(buf) {
   } catch {
     return [];
   }
+}
+
+// ==========================================
+// 16. CHAPTER SELECT (sincronización de selección de capítulo del Anfitrión)
+// [type:1][u8 chapterIdLen:1][chapterId bytes...][u8 levelIdLen:1][levelId bytes...]
+// ==========================================
+export function serializeChapterSelect(chapterId = '', dungeonId = '') {
+  const chBytes = textEncoder.encode(chapterId);
+  const lvlBytes = textEncoder.encode(dungeonId);
+  const buf = new ArrayBuffer(3 + chBytes.length + lvlBytes.length);
+  const v = new DataView(buf);
+  v.setUint8(0, MSG.CHAPTER_SELECT);
+  v.setUint8(1, chBytes.length);
+  new Uint8Array(buf, 2, chBytes.length).set(chBytes);
+  v.setUint8(2 + chBytes.length, lvlBytes.length);
+  new Uint8Array(buf, 3 + chBytes.length, lvlBytes.length).set(lvlBytes);
+  return buf;
+}
+
+export function deserializeChapterSelect(buf) {
+  const v = buf instanceof DataView
+    ? buf
+    : (ArrayBuffer.isView(buf)
+      ? new DataView(buf.buffer, buf.byteOffset, buf.byteLength)
+      : new DataView(buf));
+  const chLen = v.byteLength > 1 ? v.getUint8(1) : 0;
+  const chapterId = chLen > 0 ? textDecoder.decode(new Uint8Array(v.buffer, v.byteOffset + 2, chLen)) : '';
+  const lvlOffset = 2 + chLen;
+  const lvlLen = v.byteLength > lvlOffset ? v.getUint8(lvlOffset) : 0;
+  const dungeonId = lvlLen > 0 ? textDecoder.decode(new Uint8Array(v.buffer, v.byteOffset + lvlOffset + 1, lvlLen)) : '';
+  return { chapterId, dungeonId };
 }
 

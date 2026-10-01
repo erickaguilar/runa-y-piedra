@@ -60,3 +60,15 @@ test('prioridad: puerta antes que cofre', () => {
   const r = new BlockRaycaster(null, null, w);
   assert.equal(r.getProximityTarget({ x: 11.5, y: 1, z: 10 }).type, 'door');
 });
+
+test('monolito interactivo de cartografía detectado por proximidad', () => {
+  const w = stubWorld({
+    monoliths: [{ id: 'cartography', type: 'cartography', name: 'Monolito de Cartografía', x: 17.5, z: 8.5, triggerRadius: 2.8 }],
+  });
+  const r = new BlockRaycaster(null, null, w);
+  const t = r.getProximityTarget({ x: 17.0, y: 1, z: 8.5 });
+  assert.ok(t);
+  assert.equal(t.type, 'cartography');
+  assert.equal(t.monolithId, 'cartography');
+});
+

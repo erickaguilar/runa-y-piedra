@@ -68,6 +68,7 @@ export const HudMixin = {
       chest: ['chest', isTouch ? 'ABRIR' : '[E] ABRIR'],
       stairs: ['stone', isTouch ? 'EMPUJAR' : '[E] EMPUJAR'],
       pedestal: ['sparkles', isTouch ? 'ACTIVAR' : '[E] ACTIVAR'],
+      cartography: ['compass', isTouch ? 'MAPA' : '[E] MAPA'],
     };
     if (MAP[key]) {
       if (iconEl) iconEl.innerHTML = renderIcon(MAP[key][0], { size: 26 });

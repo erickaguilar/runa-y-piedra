@@ -81,6 +81,10 @@ export class InteractionController {
         game.network.sendToHost(Proto.serializePedestalRequest(objIndex));
         game.ui.showNarrativeMessage('Activando el altar...', 1500);
       }
+    } else if (interaction.type === 'cartography') {
+      game.soundManager?.playClick?.();
+      game.ui.openChapterModal?.();
+      return true;
     }
   }
 

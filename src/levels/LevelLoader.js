@@ -32,6 +32,7 @@ export class LevelLoader {
     world.doors = levelData.doors || [];
     world.checkpoints = levelData.checkpoints || [];
     world.objectives = levelData.objectives || [];
+    world.monoliths = levelData.monoliths || [];
     world.torches = levelData.torches || [];
     world.chests = (levelData.chests || []).map(c => ({ ...c, isOpen: false }));
     // Escalinata de descenso:

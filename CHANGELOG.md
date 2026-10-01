@@ -5,6 +5,25 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.35.0] - 2026-10-01
+
+### Added
+- **Selector de Capítulos y Atlas de Expedición (Paso 2: `src/ui/ModalManager.js`, `src/ui/UIManager.js`, `index.html`)**:
+  - Modal interactivo del Atlas de Expedición (`openChapterModal`, `closeChapterModal`, `toggleChapterModal`): cuadrícula adaptable con tarjetas tridimensionales para los 10 capítulos.
+  - Visualización contextual de estados: capítulos desbloqueados con estrellas, mejor tiempo y bajas; capítulos completados con insignia esmeralda; capítulo activo con aura cian; capítulos bloqueados con silueta y candado.
+  - Rol de liderazgo autoritativo: el Anfitrión dispone de botones directos de "Iniciar Expedición", mientras los compañeros de party visualizan el atlas en modo consulta sincronizado.
+- **Monolito de Cartografía en el Campamento (`src/levels/data/lobby_tutorial.json`, `LevelLoader.js`, `World.js`, `PedestalRenderer.js`, `BlockRaycaster.js`, `HudManager.js`, `InteractionController.js`)**:
+  - Integración del **Monolito de Cartografía** en la Sala A del campamento (`lobby_tutorial` en `x: 17.5, z: 8.5`) con renderizado 3D de pedestal cristalino cian y orbe celestial con partículas.
+  - Detección de proximidad y botón adaptativo de HUD `[E] MAPA` (o `MAPA` táctil).
+  - Al interactuar o pulsar la tecla `M`, se abre instantáneamente el Atlas de Expedición.
+- **Protocolo de Selección de Capítulos WebRTC (`src/network/Protocol.js`, `NetworkManager.js`, `main.js`)**:
+  - Mensaje binario `MSG.CHAPTER_SELECT (0x13)` con serializadores `serializeChapterSelect` y `deserializeChapterSelect`.
+  - Transmisión autoritativa del Host a todos los clientes al iniciar expedición, cargando la mazmorra inicial del capítulo seleccionado y notificando a la party.
+- **Documentación Técnica de Persistencia y Cómputo (`docs/24-almacenamiento-indexeddb-y-computo-rust-wasm.md`)**:
+  - Análisis técnico exhaustivo de viabilidad para `IndexedDB` (asíncrono, binario masivo para replays y mapas) y `Rust + WebAssembly` (Greedy Meshing, pathfinding 3D y generador procedural en milisegundos).
+- **Cobertura de Pruebas Ampliada (`tests/protocol.test.js`, `tests/raycaster.test.js`, `tests/ui-manager.test.js`)**:
+  - 3 nuevas pruebas unitarias cubriendo roundtrip de red `CHAPTER_SELECT`, detección de proximidad de monolitos y ciclo de vida del modal de expedición. Cobertura ampliada a **163 pruebas pasando al 100%**.
+
 ## [1.34.0] - 2026-10-01
 
 ### Added

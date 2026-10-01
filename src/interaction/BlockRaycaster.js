@@ -43,6 +43,21 @@ export class BlockRaycaster {
       }
     }
 
+    // 2b. Monolitos interactivos (Cartografía / Selección de capítulo)
+    if (Array.isArray(this.world.monoliths) && this.world.monoliths.length > 0) {
+      for (let i = 0; i < this.world.monoliths.length; i++) {
+        const m = this.world.monoliths[i];
+        const dist = Math.hypot(playerPos.x - m.x, playerPos.z - m.z);
+        if (dist < (m.triggerRadius || 2.8)) {
+          return {
+            type: m.type || 'cartography',
+            monolithId: m.id || 'cartography',
+            message: m.completeMessage || m.name || 'Monolito de Cartografía',
+          };
+        }
+      }
+    }
+
     // 2b. Losa sellada de la escalinata (mientras siga cerrada)
     if (Array.isArray(this.world.stairwells) && this.world.stairwells.length > 0) {
       for (const w of this.world.stairwells) {

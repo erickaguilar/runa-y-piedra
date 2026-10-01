@@ -82,7 +82,7 @@ class VoxelSandboxGame {
     this.doorRenderer = new DoorRenderer(this.sceneManager.scene);
     this.doorRenderer.loadDoors(this.world.doors);
     this.pedestalRenderer = new PedestalRenderer(this.sceneManager.scene);
-    this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
+    this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
     this.stairsRenderer = new StairsRenderer(this.sceneManager.scene);
     this.interaction = new InteractionController(this);
     this.descent = new DescentManager(this);
@@ -161,6 +161,7 @@ class VoxelSandboxGame {
         this.soundManager.playClick();
         this.ui.toggleControlsHud(true);
       },
+      onChapterMapToggle: () => this.ui.toggleChapterModal(),
     });
     this.cameraMode = localStorage.getItem('dungeon_camera') || 'first';
 
@@ -308,6 +309,14 @@ class VoxelSandboxGame {
 
 
   initUI() {
+    this.ui.bindCampaign({
+      getChapterRegistry: () => this.chapterRegistry,
+      getGameState: () => ({
+        isHost: this.mode === 'host',
+        currentLevelId: this.world.levelRegistry.currentLevelId,
+      }),
+      onSelectChapter: (chapterId) => this.selectCampaignChapter(chapterId),
+    });
     this.ui.bindInventory({
       onUsePotion: (potion, idx) => this.usePotion(potion, idx),
     });
@@ -393,7 +402,7 @@ class VoxelSandboxGame {
     this.voxelMap.rebuildFromWorld();
     this.chestRenderer.loadChests(this.world.chests);
     this.doorRenderer.loadDoors(this.world.doors);
-    this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
+    this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
     this.interaction.ensureStairsState();
     // Reset del descenso sincronizado al cambiar de mapa
     this.descent.reset();
@@ -468,6 +477,31 @@ class VoxelSandboxGame {
     if (broadcast && this.mode === 'host') {
       this.network.broadcast(Proto.serializeLevelChange(levelId, isGameOver));
     }
+  }
+
+  selectCampaignChapter(chapterId) {
+    if (this.mode !== 'host') {
+      this.ui.showNarrativeMessage('Solo el Anfitrión puede seleccionar el capítulo de la expedición.', 3500);
+      return false;
+    }
+    if (!this.chapterRegistry.isChapterUnlocked(chapterId)) {
+      this.ui.showNarrativeMessage('🔒 Este capítulo aún está bloqueado.', 3000);
+      return false;
+    }
+    this.chapterRegistry.setCurrentChapter(chapterId);
+    const dungeons = this.chapterRegistry.getDungeonsForChapter(chapterId);
+    const firstDungeon = dungeons[0];
+    if (!firstDungeon) return false;
+
+    this.network.broadcast(Proto.serializeChapterSelect(chapterId, firstDungeon.id));
+    this.soundManager.playPedestal();
+    const ch = this.chapterRegistry.getChapter(chapterId);
+    this.ui.showNarrativeMessage(`🗺️ Iniciando Capítulo ${ch.number}: ${ch.name}...`, 3500);
+
+    setTimeout(() => {
+      this.switchLevel(firstDungeon.id, true);
+    }, 600);
+    return true;
   }
 
   /** Fase 2 MVP: foto de mazmorra para host-migration (nivel + puertas + cofres + losa). */
@@ -962,6 +996,17 @@ class VoxelSandboxGame {
       }
     });
 
+    this.network.addEventListener('chapter-select', (e) => {
+      const { chapterId } = e.detail || {};
+      if (chapterId && this.chapterRegistry) {
+        this.chapterRegistry.setCurrentChapter(chapterId);
+        const ch = this.chapterRegistry.getChapter(chapterId);
+        if (ch) {
+          this.ui.showNarrativeMessage(`🗺️ El anfitrión ha elegido: Capítulo ${ch.number} - ${ch.name}`, 4000);
+        }
+      }
+    });
+
     this.network.addEventListener('player-meta', (e) => {
       const { playerId, colorIndex, name, conn } = e.detail;
 
@@ -1084,7 +1129,7 @@ class VoxelSandboxGame {
       this.voxelMap.rebuildFromWorld();
       this.chestRenderer.loadChests(this.world.chests);
       this.doorRenderer.loadDoors(this.world.doors);
-      this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme() });
+      this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
       this.interaction.ensureStairsState();
       if (this.world.isDoor1Open) {
         this.doorRenderer.setOpenInstant(1);

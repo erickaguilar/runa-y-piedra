@@ -645,6 +645,13 @@ export class NetworkManager extends EventTarget {
         }
         break;
       }
+
+      case Proto.MSG.CHAPTER_SELECT: {
+        const cs = Proto.deserializeChapterSelect(buf);
+        cs.conn = logicalConn;
+        this.dispatchEvent(new CustomEvent('chapter-select', { detail: cs }));
+        break;
+      }
     }
   }
 
