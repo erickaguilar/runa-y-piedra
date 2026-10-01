@@ -40,8 +40,8 @@ El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5
 | **Fila 0** ($v=0.875$) | **Tile 0**: Muro Sillar | **Tile 1**: Muro Fisuras | **Tile 2**: Muro Mampostería | **Tile 3**: Muro Musgo |
 | **Fila 1** ($v=0.750$) | **Tile 4**: Muro Runa | **Tile 5**: Suelo Limpio | **Tile 6**: Suelo Desgaste | **Tile 7**: Suelo Musgo |
 | **Fila 2** ($v=0.625$) | **Tile 8**: Suelo Mixto | **Tile 9**: Suelo Santuario | **Tile 10**: Columna Fuste | **Tile 11**: Losa Respawn |
-| **Fila 3** ($v=0.500$) | **Tile 12**: Columna Acanalada | **Tile 13**: Lava 1 (Magma Activo) | **Tile 14**: Salto Jump Pad | **Tile 15**: Pedestal Runa |
-| **Fila 4** ($v=0.375$) | **Tile 16**: Lava 2 (Fisuras Magma) | **Tile 17**: Lava 3 (Géiseres Gas) | **Tile 18**: Lava 4 (Río Piroclástico) | **Tile 19**: Lava 5 (Caldera Hipertérmica) |
+| **Fila 3** ($v=0.500$) | **Tile 12**: Columna Acanalada | **Tile 13**: Lava 1 (Flujo Base) | **Tile 14**: Salto Jump Pad | **Tile 15**: Pedestal Runa |
+| **Fila 4** ($v=0.375$) | **Tile 16**: Lava 2 (Fisuras Basalto) | **Tile 17**: Lava 3 (Burbujas Gas) | **Tile 18**: Lava 4 (Ascuas/Chispas) | **Tile 19**: Lava 5 (Costra Obsidiana) |
 | **Fila 5** ($v=0.250$) | **Tile 20**: Pilar con Musgo | **Tile 21**: Pilar con Desgaste | **Tile 22**: Pilar Manchas Oscuras | **Tile 23**: Techo Bóveda Cruz |
 | **Fila 6** ($v=0.125$) | **Tile 24**: Techo Artesonado Roble | **Tile 25**: Techo con Fisuras | **Tile 26**: Techo con Musgo | **Tile 27**: Techo Clave Rúnica |
 | **Fila 7** ($v=0.000$) | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* |
@@ -99,13 +99,13 @@ Cuenta con **1 sprite exclusivo** (Tile 11):
 - Vinculado al sonido procedural de campanillas `SoundManager.playRespawn()`.
 
 #### E. Magma Volcánico (`LAVA` — Bloque Tipo 7)
-Cuenta con **5 sprites distintos multicapa** (Tiles 13, 16, 17, 18, 19). Para evitar patrones repetitivos en los lagos y abismos volcánicos, `VoxelMap.selectTile` distribuye deterministamente las 5 variantes mediante `hashCoord(x, y, z) % 5` (~20% de probabilidad por variante):
+Cuenta con **5 sprites con estructura base unificada idéntica** (Tiles 13, 16, 17, 18, 19). Siguiendo la misma filosofía de diseño que los pilares, todos los sprites de lava comparten el 100% de la arquitectura base: fondo profundo de magma fundido (`#450a0a`), gradientes térmicos incandescentes (`lava-core`), canal de flujo magmático en 4 capas de temperatura y 6 placas tectónicas perimetrales de basalto/obsidiana con orillas al rojo vivo. `VoxelMap.selectTile` distribuye deterministamente las 5 variantes mediante `hashCoord(x, y, z) % 5` (~20% de probabilidad por variante), presentando ligeros cambios internos distintivos que enriquecen el bioma sin romper la continuidad del lago volcánico:
 
-1. **Tile 13 (Lava 1: Magma Activo con Afluentes en Y)**: Corrientes de magma divergentes con 4 niveles térmicos concéntricos, 6 placas de basalto periféricas con microfisuras rojas y domo de gas hirviente.
-2. **Tile 16 (Lava 2: Fisuras Magmáticas y Corteza Tectónica)**: Placas oscuras de enfriamiento basáltico dominantes con red de fracturas carmesí vivo y bordes al rojo vivo.
-3. **Tile 17 (Lava 3: Géiseres e Incandescencia Hirviente)**: Foco de ebullición extrema con 3 domos de gas en erupción, reflejo especular esférico 3D y salpicaduras de magma proyectadas al aire.
-4. **Tile 18 (Lava 4: Río Piroclástico Rápido)**: Flujo direccional en diagonal rápida con orillas escarpadas de escoria y micro-estrías de velocidad superficial.
-5. **Tile 19 (Lava 5: Caldera de Fusión Hiper-Térmica)**: Vórtice térmico rotacional con núcleo solar blanco-oro hiper-caliente y ondas de calor concéntricas.
+1. **Tile 13 (Lava 1: Magma Activo / Flujo Base)**: Flujo de magma limpio y constante con canales en equilibrio térmico y ascuas sutiles en suspensión.
+2. **Tile 16 (Lava 2: Magma con Fisuras en la Corteza)**: Misma base unificada enriquecida con una red de micro-fracturas incandescentes (`#fef08a`, `#ea580c`) en las placas de basalto donde brota el magma a presión.
+3. **Tile 17 (Lava 3: Magma con Burbujas en Ebullición)**: Misma base unificada con domos esféricos de gas magmático 3D (`#ffffff`, `#fef08a`) en ebullición sobre el canal de lava y anillos de tensión térmica.
+4. **Tile 18 (Lava 4: Magma con Ascuas y Chispas Volcánicas)**: Misma base unificada con un enjambre activo de chispas ardientes voladoras y micro-destellos térmicos estrellados en los filamentos de mayor calor.
+5. **Tile 19 (Lava 5: Magma con Costra Flotante de Obsidiana)**: Misma base unificada con pequeñas costras y fragmentos de obsidiana/escoria negra en enfriamiento (`#141211`) arrastrados por la corriente con estelas viscosas.
 
 #### F. Plataforma de Salto (`JUMP_PAD` — Bloque Tipo 6)
 Cuenta con **1 sprite exclusivo** (Tile 14):

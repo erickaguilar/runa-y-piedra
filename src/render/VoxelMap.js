@@ -266,12 +266,12 @@ varying vec2 vAtlasOffset;`
       case BLOCK_TYPES.PEDESTAL:
         return 15; // Círculo rúnico arcano con estrella de 8 puntas para el pedestal
       case BLOCK_TYPES.LAVA: {
-        // 5 Variantes de Lava (distribución orgánica determinista):
-        // Tile 13: Magma Activo (corrientes de convección y afluentes)
-        // Tile 16: Corteza de Basalto & Fisuras Tectónicas Ardientes
-        // Tile 17: Géiseres, Domos de Gas & Burbujas Hirvientes
-        // Tile 18: Río Rápido de Magma / Corriente Piroclástica Diagonal
-        // Tile 19: Caldera de Fusión Pura / Núcleo Solar Blanco-Dorado
+        // 5 Variantes de Lava (base común idéntica con sutiles variaciones internas):
+        // Tile 13: Magma Activo (flujo base continuo con ascuas sutiles)
+        // Tile 16: Magma con Fisuras (fracturas incandescentes en la corteza de basalto)
+        // Tile 17: Magma con Burbujas (domos de gas magmático 3D en ebullición)
+        // Tile 18: Magma con Ascuas (enjambre de chispas ardientes y destellos térmicos)
+        // Tile 19: Magma con Costra (placas flotantes de obsidiana y escoria en enfriamiento)
         const lavaPalette = [13, 16, 17, 18, 19];
         return lavaPalette[h % lavaPalette.length];
       }

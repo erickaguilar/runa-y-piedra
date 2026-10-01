@@ -1,15 +1,21 @@
 // src/render/textures/lava.js
 
 /**
- * Tile 13: LAVA 1 — Magma Volcánico Incandescente con Corteza de Basalto y afluentes divergentes.
- * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
- * @returns {string} Fragmento SVG.
+ * Genera la estructura base unificada para todos los sprites de lava:
+ * gradientes térmicos, fondo ígneo incandescente, canales de flujo magmático
+ * en 4 capas de temperatura y placas tectónicas perimetrales de basalto/obsidiana.
+ * Comparte la misma filosofía que los pilares: estructura común idéntica
+ * con ligeros cambios/detalles distintivos en el interior de cada variante.
+ *
+ * @param {string} idSuffix - Sufijo para IDs únicos en defs SVG.
+ * @param {number} S - Tamaño de celda en píxeles.
+ * @returns {string} Fragmento SVG base unificado.
  */
-export function lavaActive(S = 128) {
+function createLavaBaseSvg(idSuffix, S = 128) {
   return `
     <defs>
       <!-- Núcleo ígneo incandescente: transición de blanco-oro a carmesí volcánico -->
-      <radialGradient id="lava-core-13" cx="42%" cy="48%" r="62%">
+      <radialGradient id="lava-core-${idSuffix}" cx="42%" cy="48%" r="62%">
         <stop offset="0%" stop-color="#fffbeb"/>
         <stop offset="14%" stop-color="#fef08a"/>
         <stop offset="30%" stop-color="#f59e0b"/>
@@ -20,7 +26,7 @@ export function lavaActive(S = 128) {
       </radialGradient>
 
       <!-- Corriente secundaria de magma fluido -->
-      <radialGradient id="lava-flow-13" cx="78%" cy="75%" r="50%">
+      <radialGradient id="lava-flow-${idSuffix}" cx="78%" cy="75%" r="50%">
         <stop offset="0%" stop-color="#fef08a"/>
         <stop offset="25%" stop-color="#f97316"/>
         <stop offset="60%" stop-color="#dc2626"/>
@@ -28,29 +34,20 @@ export function lavaActive(S = 128) {
       </radialGradient>
 
       <!-- Corteza de basalto y obsidiana con biselado de enfriamiento -->
-      <linearGradient id="lava-basalt-13" x1="0%" y1="0%" x2="100%" y2="100%">
+      <linearGradient id="lava-basalt-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stop-color="#2d2a29"/>
         <stop offset="40%" stop-color="#1c1917"/>
         <stop offset="75%" stop-color="#141211"/>
         <stop offset="100%" stop-color="#0c0a09"/>
       </linearGradient>
-
-      <!-- Burbuja magmática de gas a presión -->
-      <radialGradient id="lava-bubble-13" cx="35%" cy="30%" r="65%">
-        <stop offset="0%" stop-color="#ffffff"/>
-        <stop offset="25%" stop-color="#fef08a"/>
-        <stop offset="55%" stop-color="#f97316"/>
-        <stop offset="85%" stop-color="#dc2626"/>
-        <stop offset="100%" stop-color="#7f1d1d"/>
-      </radialGradient>
     </defs>
 
-    <!-- Capa 1: Fondo de magma fundido con resonancia térmica -->
+    <!-- Capa 1: Fondo de magma fundido con resonancia térmica unificada -->
     <rect width="${S}" height="${S}" fill="#450a0a"/>
-    <rect width="${S}" height="${S}" fill="url(#lava-core-13)"/>
-    <circle cx="98" cy="92" r="54" fill="url(#lava-flow-13)" opacity="0.85"/>
+    <rect width="${S}" height="${S}" fill="url(#lava-core-${idSuffix})"/>
+    <circle cx="98" cy="92" r="54" fill="url(#lava-flow-${idSuffix})" opacity="0.85"/>
 
-    <!-- Capa 2: Canales y afluentes de magma viscoso en capas térmicas -->
+    <!-- Capa 2: Canales y afluentes de magma viscoso en capas térmicas continuas -->
     <g fill="none" stroke-linecap="round" stroke-linejoin="round">
       <!-- Aura térmica profunda -->
       <path d="M 0,34 Q 32,46 54,42 Q 78,38 98,54 Q 114,64 128,52" stroke="#ea580c" stroke-width="15" opacity="0.65"/>
@@ -73,12 +70,12 @@ export function lavaActive(S = 128) {
       <path d="M 56,86 Q 78,94 102,86 Q 116,80 128,94" stroke="#fffbeb" stroke-width="1.1" opacity="0.85"/>
     </g>
 
-    <!-- Capa 3: Placas tectónicas de basalto y obsidiana con bordes fundidos -->
+    <!-- Capa 3: Placas tectónicas unificadas de basalto y obsidiana con bordes fundidos -->
     <!-- Placa 1: Noroeste / Superior-Izquierda -->
     <g>
       <polygon points="0,0 62,0 52,20 36,30 16,26 0,20" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
       <polygon points="0,0 62,0 52,20 36,30 16,26 0,20" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="0,0 60,0 50,18 35,28 15,24 0,18" fill="url(#lava-basalt-13)"/>
+      <polygon points="0,0 60,0 50,18 35,28 15,24 0,18" fill="url(#lava-basalt-${idSuffix})"/>
       <path d="M 12,2 L 20,10 L 16,18 M 38,4 L 32,12" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.85"/>
       <path d="M 12,2 L 19,9" stroke="#ef4444" stroke-width="0.5" fill="none" opacity="0.7"/>
       <circle cx="28" cy="12" r="2.2" fill="#3f3f46" opacity="0.45"/>
@@ -89,7 +86,7 @@ export function lavaActive(S = 128) {
     <g>
       <polygon points="72,0 128,0 128,42 108,34 86,24 72,8" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
       <polygon points="72,0 128,0 128,42 108,34 86,24 72,8" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="74,0 128,0 128,40 106,32 85,22 74,8" fill="url(#lava-basalt-13)"/>
+      <polygon points="74,0 128,0 128,40 106,32 85,22 74,8" fill="url(#lava-basalt-${idSuffix})"/>
       <path d="M 104,6 L 98,16 L 102,24" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.85"/>
       <path d="M 104,6 L 99,14" stroke="#ef4444" stroke-width="0.5" fill="none" opacity="0.7"/>
       <circle cx="118" cy="18" r="2.5" fill="#3f3f46" opacity="0.5"/>
@@ -99,7 +96,7 @@ export function lavaActive(S = 128) {
     <g>
       <polygon points="86,46 128,58 128,80 110,82 86,68 76,54" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
       <polygon points="86,46 128,58 128,80 110,82 86,68 76,54" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="88,48 128,60 128,78 108,80 88,66 78,54" fill="url(#lava-basalt-13)"/>
+      <polygon points="88,48 128,60 128,78 108,80 88,66 78,54" fill="url(#lava-basalt-${idSuffix})"/>
       <path d="M 112,68 L 102,72" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.8"/>
       <circle cx="98" cy="62" r="2" fill="#3f3f46" opacity="0.4"/>
     </g>
@@ -108,7 +105,7 @@ export function lavaActive(S = 128) {
     <g>
       <polygon points="0,38 24,42 40,64 30,88 0,94" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
       <polygon points="0,38 24,42 40,64 30,88 0,94" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="0,40 22,44 38,64 28,86 0,92" fill="url(#lava-basalt-13)"/>
+      <polygon points="0,40 22,44 38,64 28,86 0,92" fill="url(#lava-basalt-${idSuffix})"/>
       <path d="M 8,58 L 18,64 L 14,76" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.85"/>
       <path d="M 8,58 L 16,63" stroke="#ef4444" stroke-width="0.5" fill="none" opacity="0.7"/>
       <circle cx="16" cy="52" r="2.2" fill="#3f3f46" opacity="0.45"/>
@@ -118,7 +115,7 @@ export function lavaActive(S = 128) {
     <g>
       <polygon points="44,106 68,94 98,100 94,128 30,128 36,114" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
       <polygon points="44,106 68,94 98,100 94,128 30,128 36,114" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="46,108 68,96 96,102 92,128 32,128 38,116" fill="url(#lava-basalt-13)"/>
+      <polygon points="46,108 68,96 96,102 92,128 32,128 38,116" fill="url(#lava-basalt-${idSuffix})"/>
       <path d="M 64,110 L 70,122" stroke="#7f1d1d" stroke-width="1" fill="none" opacity="0.8"/>
       <circle cx="56" cy="118" r="2.2" fill="#3f3f46" opacity="0.45"/>
     </g>
@@ -127,7 +124,7 @@ export function lavaActive(S = 128) {
     <g>
       <polygon points="114,96 128,92 128,128 102,128" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
       <polygon points="114,96 128,92 128,128 102,128" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" opacity="0.8"/>
-      <polygon points="116,98 128,94 128,128 104,128" fill="url(#lava-basalt-13)"/>
+      <polygon points="116,98 128,94 128,128 104,128" fill="url(#lava-basalt-${idSuffix})"/>
       <circle cx="120" cy="116" r="1.8" fill="#3f3f46" opacity="0.5"/>
     </g>
 
@@ -135,56 +132,34 @@ export function lavaActive(S = 128) {
     <g>
       <polygon points="44,52 64,46 72,58 64,72 46,68" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linejoin="round"/>
       <polygon points="44,52 64,46 72,58 64,72 46,68" fill="none" stroke="#f97316" stroke-width="1.2" stroke-linejoin="round" opacity="0.85"/>
-      <polygon points="45,53 63,48 70,58 63,70 47,67" fill="url(#lava-basalt-13)"/>
+      <polygon points="45,53 63,48 70,58 63,70 47,67" fill="url(#lava-basalt-${idSuffix})"/>
       <circle cx="56" cy="58" r="1.6" fill="#3f3f46" opacity="0.6"/>
     </g>
+  `;
+}
 
-    <!-- Capa 4: Vórtices, Burbujas Magmáticas y Domos de Gas -->
-    <!-- Burbuja Grande en ebullición (Centro-Izquierda) -->
-    <g>
-      <circle cx="48" cy="88" r="7.5" fill="#f97316" opacity="0.35"/>
-      <circle cx="48" cy="88" r="5.2" fill="url(#lava-bubble-13)"/>
-      <ellipse cx="46.5" cy="86" rx="2" ry="1.2" fill="#ffffff" opacity="0.9"/>
-    </g>
+/**
+ * Tile 13: LAVA 1 — Magma Activo / Flujo Base.
+ * Estructura base unificada con flujo magmático limpio y ascuas sutiles en suspensión.
+ * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
+ * @returns {string} Fragmento SVG.
+ */
+export function lavaActive(S = 128) {
+  return `
+    ${createLavaBaseSvg('13', S)}
 
-    <!-- Burbuja Mediana (Superior-Derecha) -->
-    <g>
-      <circle cx="106" cy="58" r="5.5" fill="#f97316" opacity="0.35"/>
-      <circle cx="106" cy="58" r="3.8" fill="url(#lava-bubble-13)"/>
-      <ellipse cx="105" cy="56.8" rx="1.4" ry="0.8" fill="#ffffff" opacity="0.9"/>
-    </g>
-
-    <!-- Burbuja Pequeña (Inferior-Derecha) -->
-    <g>
-      <circle cx="82" cy="78" r="4.2" fill="#f97316" opacity="0.3"/>
-      <circle cx="82" cy="78" r="2.8" fill="url(#lava-bubble-13)"/>
-      <circle cx="81.2" cy="77.2" r="0.9" fill="#ffffff" opacity="0.9"/>
-    </g>
-
-    <!-- Cráter de gas recién reventado con centro incandescente -->
-    <g>
-      <circle cx="28" cy="38" r="3.6" fill="#18181b" stroke="#7f1d1d" stroke-width="1"/>
-      <circle cx="28" cy="38" r="1.8" fill="#facc15"/>
-      <circle cx="28" cy="38" r="0.9" fill="#ffffff"/>
-    </g>
-
-    <!-- Capa 5: Chispas y Ascuas Ígneas Volcánicas (Ember Sparks) con aura de luz -->
+    <!-- Detalle Característico 1: Ascuas y chispas sutiles en suspensión continua -->
     <g>
       <circle cx="38" cy="46" r="3.5" fill="#ea580c" opacity="0.35"/>
       <circle cx="38" cy="46" r="1.6" fill="#fffbeb"/>
-      
       <circle cx="78" cy="42" r="4" fill="#f97316" opacity="0.35"/>
       <circle cx="78" cy="42" r="1.8" fill="#ffffff"/>
-
       <circle cx="68" cy="82" r="3.8" fill="#ea580c" opacity="0.35"/>
       <circle cx="68" cy="82" r="1.7" fill="#fef08a"/>
-
       <circle cx="118" cy="72" r="3" fill="#f97316" opacity="0.3"/>
       <circle cx="118" cy="72" r="1.3" fill="#ffffff"/>
-
       <circle cx="18" cy="84" r="3" fill="#ea580c" opacity="0.3"/>
       <circle cx="18" cy="84" r="1.2" fill="#fef08a"/>
-
       <circle cx="88" cy="116" r="3.2" fill="#f97316" opacity="0.3"/>
       <circle cx="88" cy="116" r="1.4" fill="#fffbeb"/>
     </g>
@@ -192,218 +167,217 @@ export function lavaActive(S = 128) {
 }
 
 /**
- * Tile 16: LAVA 2 — Corteza de Basalto Fracturada & Fisuras de Magma Vivo.
+ * Tile 16: LAVA 2 — Magma con Fisuras en la Corteza de Basalto.
+ * Misma base unificada con red de micro-fracturas incandescentes en las placas de roca.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function lavaFissures(S = 128) {
   return `
-    <defs>
-      <radialGradient id="lava-glow-16" cx="50%" cy="50%" r="70%">
-        <stop offset="0%" stop-color="#fffbeb"/>
-        <stop offset="20%" stop-color="#fef08a"/>
-        <stop offset="45%" stop-color="#f97316"/>
-        <stop offset="75%" stop-color="#dc2626"/>
-        <stop offset="100%" stop-color="#450a0a"/>
-      </radialGradient>
-      <linearGradient id="lava-basalt-16" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#262322"/>
-        <stop offset="50%" stop-color="#191716"/>
-        <stop offset="100%" stop-color="#0c0a09"/>
-      </linearGradient>
-    </defs>
+    ${createLavaBaseSvg('16', S)}
 
-    <!-- Fondo incandescente bajo las placas -->
-    <rect width="${S}" height="${S}" fill="url(#lava-glow-16)"/>
-
-    <!-- Gran red de fisuras de magma ardiente (Halo de calor) -->
+    <!-- Detalle Característico 2: Micro-fisuras y fracturas incandescentes en las placas de basalto -->
     <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M 0,28 L 34,36 L 62,24 L 88,48 L 128,40 M 62,24 L 68,64 L 54,92 L 64,128 M 68,64 L 102,74 L 128,88 M 54,92 L 24,104 L 0,96 M 34,36 L 22,68 L 24,104" stroke="#ea580c" stroke-width="12" opacity="0.7"/>
-      <path d="M 0,28 L 34,36 L 62,24 L 88,48 L 128,40 M 62,24 L 68,64 L 54,92 L 64,128 M 68,64 L 102,74 L 128,88 M 54,92 L 24,104 L 0,96 M 34,36 L 22,68 L 24,104" stroke="#f97316" stroke-width="6"/>
-      <path d="M 0,28 L 34,36 L 62,24 L 88,48 L 128,40 M 62,24 L 68,64 L 54,92 L 64,128 M 68,64 L 102,74 L 128,88 M 54,92 L 24,104 L 0,96 M 34,36 L 22,68 L 24,104" stroke="#facc15" stroke-width="2.6"/>
-      <path d="M 0,28 L 34,36 L 62,24 L 88,48 L 128,40 M 62,24 L 68,64 L 54,92 L 64,128 M 68,64 L 102,74 L 128,88 M 54,92 L 24,104 L 0,96 M 34,36 L 22,68 L 24,104" stroke="#ffffff" stroke-width="1.2" opacity="0.9"/>
+      <!-- Fisuras en Placa Noroeste -->
+      <path d="M 6,4 L 18,14 L 32,10 L 44,22" stroke="#ea580c" stroke-width="2.5" opacity="0.85"/>
+      <path d="M 6,4 L 18,14 L 32,10 L 44,22" stroke="#fef08a" stroke-width="1.2"/>
+      <path d="M 18,14 L 14,24" stroke="#f97316" stroke-width="1.2"/>
+      <!-- Fisuras en Placa Noreste -->
+      <path d="M 82,4 L 94,14 L 112,12 L 122,24" stroke="#ea580c" stroke-width="2.5" opacity="0.85"/>
+      <path d="M 82,4 L 94,14 L 112,12 L 122,24" stroke="#fef08a" stroke-width="1.2"/>
+      <path d="M 94,14 L 100,28" stroke="#f97316" stroke-width="1.2"/>
+      <!-- Fisuras en Placa Suroeste -->
+      <path d="M 4,48 L 16,54 L 20,72 L 12,84" stroke="#ea580c" stroke-width="2.5" opacity="0.85"/>
+      <path d="M 4,48 L 16,54 L 20,72 L 12,84" stroke="#fef08a" stroke-width="1.2"/>
+      <!-- Fisuras en Placa Sur -->
+      <path d="M 50,112 L 62,122 L 76,118" stroke="#ea580c" stroke-width="2.2" opacity="0.85"/>
+      <path d="M 50,112 L 62,122 L 76,118" stroke="#fef08a" stroke-width="1.1"/>
+      <!-- Fisura en Islote Central -->
+      <path d="M 48,54 L 56,60 L 66,56" stroke="#f97316" stroke-width="1.4"/>
     </g>
 
-    <!-- Placas tectónicas de basalto oscuro enfriado -->
-    <polygon points="0,0 60,0 58,20 32,32 0,24" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="66,0 128,0 128,36 90,44 64,20" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="0,32 18,34 18,64 20,100 0,92" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="26,40 58,30 64,60 50,88 26,64" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="94,50 128,42 128,84 106,70 74,60" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="0,100 20,108 50,96 58,128 0,128" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-    <polygon points="70,68 102,78 128,92 128,128 68,128 58,96" fill="url(#lava-basalt-16)" stroke="#7f1d1d" stroke-width="1"/>
-
-    <!-- Micro-grietas en las placas con brillo interno -->
-    <g stroke="#ea580c" stroke-width="0.8" fill="none" opacity="0.75">
-      <path d="M 12,6 L 24,14 L 32,10 M 80,8 L 92,16 M 10,114 L 20,122 L 32,118 M 84,104 L 96,112"/>
-    </g>
-    <g fill="#fef08a" opacity="0.85">
-      <circle cx="62" cy="24" r="2"/><circle cx="68" cy="64" r="2.4"/><circle cx="54" cy="92" r="1.8"/>
+    <!-- Puntos de magma vivo brotando de las fisuras -->
+    <g fill="#fffbeb">
+      <circle cx="18" cy="14" r="1.8"/><circle cx="94" cy="14" r="1.8"/>
+      <circle cx="16" cy="54" r="1.8"/><circle cx="62" cy="122" r="1.6"/>
+      <circle cx="56" cy="60" r="1.4"/>
     </g>
   `;
 }
 
 /**
- * Tile 17: LAVA 3 — Géiseres, Domos de Gas & Burbujas Hirvientes en Erupción.
+ * Tile 17: LAVA 3 — Magma con Burbujas en Ebullición.
+ * Misma base unificada con domos de gas volcánico y burbujas magmáticas 3D hirvientes.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function lavaGeysers(S = 128) {
   return `
     <defs>
-      <radialGradient id="lava-base-17" cx="48%" cy="52%" r="65%">
-        <stop offset="0%" stop-color="#fffbeb"/>
-        <stop offset="25%" stop-color="#f97316"/>
-        <stop offset="65%" stop-color="#dc2626"/>
-        <stop offset="100%" stop-color="#450a0a"/>
-      </radialGradient>
-      <radialGradient id="lava-bubble-major-17" cx="30%" cy="30%" r="70%">
+      <!-- Gradiente esférico para burbujas magmáticas 3D -->
+      <radialGradient id="lava-bubble-17" cx="35%" cy="30%" r="65%">
         <stop offset="0%" stop-color="#ffffff"/>
-        <stop offset="20%" stop-color="#fef08a"/>
-        <stop offset="45%" stop-color="#f59e0b"/>
-        <stop offset="70%" stop-color="#ea580c"/>
-        <stop offset="90%" stop-color="#991b1b"/>
-        <stop offset="100%" stop-color="#450a0a"/>
-      </radialGradient>
-      <radialGradient id="lava-bubble-burst-17" cx="40%" cy="40%" r="60%">
-        <stop offset="0%" stop-color="#fffbeb"/>
-        <stop offset="35%" stop-color="#facc15"/>
-        <stop offset="70%" stop-color="#f97316"/>
+        <stop offset="25%" stop-color="#fef08a"/>
+        <stop offset="55%" stop-color="#f97316"/>
+        <stop offset="85%" stop-color="#dc2626"/>
         <stop offset="100%" stop-color="#7f1d1d"/>
       </radialGradient>
     </defs>
+    ${createLavaBaseSvg('17', S)}
 
-    <!-- Base de magma ardiente -->
-    <rect width="${S}" height="${S}" fill="url(#lava-base-17)"/>
+    <!-- Detalle Característico 3: Burbujas de gas magmático en ebullición sobre los canales -->
+    <!-- Burbuja Principal Grande (Canal Central-Izquierdo) -->
+    <g>
+      <circle cx="48" cy="88" r="8" fill="#f97316" opacity="0.35"/>
+      <circle cx="48" cy="88" r="5.6" fill="url(#lava-bubble-17)"/>
+      <ellipse cx="46.5" cy="86" rx="2.2" ry="1.3" fill="#ffffff" opacity="0.95"/>
+    </g>
 
-    <!-- Ondas de choque térmico concéntricas -->
-    <circle cx="44" cy="54" r="38" fill="none" stroke="#ea580c" stroke-width="2" opacity="0.45"/>
-    <circle cx="44" cy="54" r="30" fill="none" stroke="#f97316" stroke-width="1.8" opacity="0.6"/>
-    <circle cx="92" cy="38" r="26" fill="none" stroke="#ea580c" stroke-width="1.5" opacity="0.5"/>
+    <!-- Burbuja Mediana 1 (Canal Superior) -->
+    <g>
+      <circle cx="80" cy="44" r="6.8" fill="#f97316" opacity="0.35"/>
+      <circle cx="80" cy="44" r="4.8" fill="url(#lava-bubble-17)"/>
+      <ellipse cx="78.8" cy="42.5" rx="1.8" ry="1.1" fill="#ffffff" opacity="0.95"/>
+    </g>
 
-    <!-- Gran Domo Alfa (Burbuja Gigante antes de estallar) -->
-    <circle cx="44" cy="54" r="22" fill="url(#lava-bubble-major-17)"/>
-    <path d="M 32,42 Q 40,36 50,40" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
-    <circle cx="34" cy="44" r="2" fill="#ffffff" opacity="0.95"/>
+    <!-- Burbuja Mediana 2 (Canal Este) -->
+    <g>
+      <circle cx="106" cy="58" r="6" fill="#f97316" opacity="0.35"/>
+      <circle cx="106" cy="58" r="4.2" fill="url(#lava-bubble-17)"/>
+      <ellipse cx="104.8" cy="56.8" rx="1.5" ry="0.9" fill="#ffffff" opacity="0.9"/>
+    </g>
 
-    <!-- Domo Beta (En erupción / estallido expulsando salpicaduras) -->
-    <circle cx="92" cy="38" r="15" fill="url(#lava-bubble-burst-17)"/>
-    <path d="M 84,30 Q 90,26 96,28" stroke="#ffffff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.85"/>
-    <circle cx="92" cy="38" r="16" fill="none" stroke="#fef08a" stroke-width="1.5" stroke-dasharray="4,2"/>
-    <circle cx="96" cy="18" r="2.5" fill="#facc15"/><circle cx="108" cy="28" r="2" fill="#f97316"/>
-    <circle cx="80" cy="24" r="1.8" fill="#fffbeb"/><circle cx="106" cy="46" r="2.2" fill="#ea580c"/>
+    <!-- Burbuja Menor 1 (Canal Inferior) -->
+    <g>
+      <circle cx="64" cy="98" r="5.2" fill="#f97316" opacity="0.3"/>
+      <circle cx="64" cy="98" r="3.5" fill="url(#lava-bubble-17)"/>
+      <circle cx="63.2" cy="97" r="1.1" fill="#ffffff" opacity="0.9"/>
+    </g>
 
-    <!-- Burbujas secundarias menores -->
-    <circle cx="32" cy="100" r="12" fill="url(#lava-bubble-burst-17)"/>
-    <path d="M 26,94 Q 30,92 35,93" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8"/>
-    <circle cx="98" cy="98" r="14" fill="url(#lava-bubble-major-17)"/>
-    <path d="M 90,90 Q 95,87 102,89" stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.85"/>
-    <circle cx="70" cy="82" r="8" fill="url(#lava-bubble-burst-17)"/>
+    <!-- Burbuja Menor 2 (Canal Oeste) -->
+    <g>
+      <circle cx="28" cy="38" r="4.5" fill="#f97316" opacity="0.3"/>
+      <circle cx="28" cy="38" r="3" fill="url(#lava-bubble-17)"/>
+      <circle cx="27.3" cy="37.2" r="0.9" fill="#ffffff" opacity="0.9"/>
+    </g>
 
-    <!-- Costras menores de basalto flotante arrastradas -->
-    <polygon points="6,12 18,8 22,20 10,24" fill="#1c1917" stroke="#7f1d1d" stroke-width="0.8"/>
-    <polygon points="112,74 124,70 126,82 116,84" fill="#1c1917" stroke="#7f1d1d" stroke-width="0.8"/>
+    <!-- Anillos concéntricos de tensión térmica -->
+    <circle cx="48" cy="88" r="11" fill="none" stroke="#ea580c" stroke-width="1.2" opacity="0.5"/>
+    <circle cx="80" cy="44" r="9.5" fill="none" stroke="#ea580c" stroke-width="1.2" opacity="0.5"/>
   `;
 }
 
 /**
- * Tile 18: LAVA 4 — Río Rápido de Magma / Corriente Piroclástica Diagonal.
+ * Tile 18: LAVA 4 — Magma con Enjambre de Ascuas y Chispas Volcánicas.
+ * Misma base unificada con lluvia activa de ascuas flotantes y micro-destellos térmicos.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function lavaRiver(S = 128) {
   return `
-    <defs>
-      <linearGradient id="lava-river-18" x1="0%" y1="100%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#450a0a"/>
-        <stop offset="25%" stop-color="#dc2626"/>
-        <stop offset="50%" stop-color="#f97316"/>
-        <stop offset="75%" stop-color="#facc15"/>
-        <stop offset="90%" stop-color="#fef08a"/>
-        <stop offset="100%" stop-color="#fffbeb"/>
-      </linearGradient>
-      <linearGradient id="lava-edge-18" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#1c1917"/>
-        <stop offset="100%" stop-color="#0c0a09"/>
-      </linearGradient>
-    </defs>
+    ${createLavaBaseSvg('18', S)}
 
-    <!-- Base ígnea de gran caudal -->
-    <rect width="${S}" height="${S}" fill="#7f1d1d"/>
-    <rect width="${S}" height="${S}" fill="url(#lava-river-18)" opacity="0.9"/>
+    <!-- Detalle Característico 4: Enjambre de ascuas ardientes, chispas voladoras y micro-destellos térmicos -->
+    <g>
+      <!-- Enjambre de chispas en canal principal -->
+      <circle cx="24" cy="36" r="2.8" fill="#ea580c" opacity="0.4"/>
+      <circle cx="24" cy="36" r="1.4" fill="#ffffff"/>
 
-    <!-- Líneas de corriente fluidodinámica en alta velocidad -->
-    <g fill="none" stroke-linecap="round">
-      <path d="M 0,110 Q 24,96 54,64 Q 84,32 118,10 L 128,0" stroke="#ea580c" stroke-width="14" opacity="0.6"/>
-      <path d="M 4,128 Q 38,104 68,72 Q 98,40 128,16" stroke="#ea580c" stroke-width="12" opacity="0.55"/>
-      <path d="M 0,110 Q 24,96 54,64 Q 84,32 118,10 L 128,0" stroke="#f97316" stroke-width="8"/>
-      <path d="M 4,128 Q 38,104 68,72 Q 98,40 128,16" stroke="#f97316" stroke-width="6"/>
-      <path d="M 0,110 Q 24,96 54,64 Q 84,32 118,10 L 128,0" stroke="#fef08a" stroke-width="3.5"/>
-      <path d="M 4,128 Q 38,104 68,72 Q 98,40 128,16" stroke="#fde047" stroke-width="2.8"/>
-      <path d="M 0,110 Q 24,96 54,64 Q 84,32 118,10 L 128,0" stroke="#ffffff" stroke-width="1.6" opacity="0.95"/>
-      <path d="M 6,128 Q 38,104 68,72 Q 98,40 128,16" stroke="#ffffff" stroke-width="1.3" opacity="0.9"/>
+      <circle cx="42" cy="44" r="3.2" fill="#f97316" opacity="0.4"/>
+      <circle cx="42" cy="44" r="1.6" fill="#fffbeb"/>
+
+      <circle cx="64" cy="40" r="3.5" fill="#ea580c" opacity="0.45"/>
+      <circle cx="64" cy="40" r="1.8" fill="#ffffff"/>
+
+      <circle cx="84" cy="50" r="3.2" fill="#f97316" opacity="0.4"/>
+      <circle cx="84" cy="50" r="1.5" fill="#fef08a"/>
+
+      <circle cx="102" cy="62" r="3" fill="#ea580c" opacity="0.4"/>
+      <circle cx="102" cy="62" r="1.4" fill="#ffffff"/>
+
+      <circle cx="120" cy="54" r="2.6" fill="#f97316" opacity="0.35"/>
+      <circle cx="120" cy="54" r="1.2" fill="#fffbeb"/>
+
+      <!-- Chispas en canal vertical -->
+      <circle cx="56" cy="68" r="3.2" fill="#ea580c" opacity="0.4"/>
+      <circle cx="56" cy="68" r="1.5" fill="#fef08a"/>
+
+      <circle cx="52" cy="90" r="3.5" fill="#f97316" opacity="0.45"/>
+      <circle cx="52" cy="90" r="1.8" fill="#ffffff"/>
+
+      <circle cx="40" cy="112" r="3" fill="#ea580c" opacity="0.4"/>
+      <circle cx="40" cy="112" r="1.4" fill="#fffbeb"/>
+
+      <!-- Chispas en canal sureste -->
+      <circle cx="76" cy="88" r="3.2" fill="#f97316" opacity="0.4"/>
+      <circle cx="76" cy="88" r="1.6" fill="#ffffff"/>
+
+      <circle cx="98" cy="92" r="3.4" fill="#ea580c" opacity="0.45"/>
+      <circle cx="98" cy="92" r="1.7" fill="#fef08a"/>
+
+      <circle cx="116" cy="84" r="2.8" fill="#f97316" opacity="0.35"/>
+      <circle cx="116" cy="84" r="1.3" fill="#ffffff"/>
     </g>
 
-    <!-- Orillas de roca y basalto que canalizan el torrente -->
-    <polygon points="0,0 82,0 52,24 24,44 0,66" fill="url(#lava-edge-18)" stroke="#7f1d1d" stroke-width="1.2"/>
-    <polygon points="66,128 128,128 128,52 108,74 88,104" fill="url(#lava-edge-18)" stroke="#7f1d1d" stroke-width="1.2"/>
-
-    <!-- Estelas de arrastre y vórtices térmicos -->
-    <g stroke="#fef08a" stroke-width="1" fill="none" opacity="0.8">
-      <path d="M 38,52 L 48,42 M 56,76 L 68,64 M 78,44 L 90,32 M 94,68 L 104,58"/>
+    <!-- Micro-destellos de calor extremo en filamentos -->
+    <g stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" opacity="0.9">
+      <line x1="64" y1="36" x2="64" y2="44"/>
+      <line x1="60" y1="40" x2="68" y2="40"/>
+      <line x1="52" y1="86" x2="52" y2="94"/>
+      <line x1="48" y1="90" x2="56" y2="90"/>
     </g>
-    <circle cx="58" cy="50" r="2.2" fill="#fffbeb"/><circle cx="82" cy="28" r="1.8" fill="#fffbeb"/>
-    <circle cx="34" cy="78" r="2" fill="#facc15"/><circle cx="72" cy="88" r="2.4" fill="#facc15"/>
   `;
 }
 
 /**
- * Tile 19: LAVA 5 — Caldera de Fusión Pura / Núcleo Solar Blanco-Dorado.
+ * Tile 19: LAVA 5 — Magma con Costra Flotante de Obsidiana / Escoria en Enfriamiento.
+ * Misma base unificada con placas menores de escoria y obsidiana arrastradas por el flujo.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function lavaCaldera(S = 128) {
   return `
-    <defs>
-      <radialGradient id="lava-hyper-19" cx="50%" cy="50%" r="55%">
-        <stop offset="0%" stop-color="#ffffff"/>
-        <stop offset="25%" stop-color="#fffbeb"/>
-        <stop offset="50%" stop-color="#fef08a"/>
-        <stop offset="72%" stop-color="#f59e0b"/>
-        <stop offset="88%" stop-color="#ea580c"/>
-        <stop offset="100%" stop-color="#991b1b"/>
-      </radialGradient>
-    </defs>
+    ${createLavaBaseSvg('19', S)}
 
-    <!-- Base hiper-térmica cegadora -->
-    <rect width="${S}" height="${S}" fill="#991b1b"/>
-    <rect width="${S}" height="${S}" fill="url(#lava-hyper-19)"/>
-
-    <!-- Espirales de convección rotacional / Vórtice solar -->
-    <g fill="none" stroke-linecap="round">
-      <ellipse cx="64" cy="64" rx="46" ry="46" stroke="#ea580c" stroke-width="10" opacity="0.6"/>
-      <ellipse cx="64" cy="64" rx="34" ry="34" stroke="#f97316" stroke-width="8" opacity="0.75"/>
-      <ellipse cx="64" cy="64" rx="22" ry="22" stroke="#fde047" stroke-width="6"/>
-      <ellipse cx="64" cy="64" rx="10" ry="10" stroke="#ffffff" stroke-width="3.5"/>
-
-      <path d="M 64,18 Q 98,24 104,58 Q 106,92 74,106 Q 38,108 26,76 Q 24,44 54,28" stroke="#ffffff" stroke-width="1.8" opacity="0.9"/>
-      <path d="M 64,28 Q 88,34 94,60 Q 94,84 70,94 Q 44,96 36,72" stroke="#fffbeb" stroke-width="2.5" opacity="0.95"/>
+    <!-- Detalle Característico 5: Costras y fragmentos flotantes de obsidiana en enfriamiento parcial -->
+    <!-- Costra 1: Canal Superior -->
+    <g>
+      <polygon points="68,36 78,32 84,40 76,46 66,42" fill="none" stroke="#b91c1c" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="68,36 78,32 84,40 76,46 66,42" fill="none" stroke="#f97316" stroke-width="1" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="69,37 77,33 83,40 76,45 67,42" fill="#141211"/>
+      <circle cx="74" cy="38" r="1" fill="#3f3f46" opacity="0.6"/>
     </g>
 
-    <!-- Destellos estelares de temperatura límite -->
-    <g stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.95">
-      <line x1="64" y1="46" x2="64" y2="82"/>
-      <line x1="46" y1="64" x2="82" y2="64"/>
-      <line x1="51" y1="51" x2="77" y2="77"/>
-      <line x1="77" y1="51" x2="51" y2="77"/>
+    <!-- Costra 2: Confluencia Media -->
+    <g>
+      <polygon points="50,72 60,68 64,78 56,84 48,80" fill="none" stroke="#b91c1c" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="50,72 60,68 64,78 56,84 48,80" fill="none" stroke="#f97316" stroke-width="1" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="51,73 59,69 63,77 56,83 49,80" fill="#141211"/>
+      <circle cx="56" cy="76" r="1.1" fill="#3f3f46" opacity="0.6"/>
     </g>
-    <circle cx="64" cy="64" r="6" fill="#ffffff"/>
 
-    <!-- Micro-esquirlas minerales flotantes incandescentes -->
-    <polygon points="18,16 26,14 24,22 16,20" fill="#2d2a29" stroke="#ea580c" stroke-width="0.8"/>
-    <polygon points="106,18 114,22 110,28 102,24" fill="#2d2a29" stroke="#ea580c" stroke-width="0.8"/>
-    <polygon points="16,104 24,108 22,116 14,112" fill="#2d2a29" stroke="#ea580c" stroke-width="0.8"/>
-    <polygon points="108,102 116,98 118,108 110,112" fill="#2d2a29" stroke="#ea580c" stroke-width="0.8"/>
+    <!-- Costra 3: Canal Este -->
+    <g>
+      <polygon points="98,72 108,68 112,76 104,82 96,78" fill="none" stroke="#b91c1c" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="98,72 108,68 112,76 104,82 96,78" fill="none" stroke="#f97316" stroke-width="1" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="99,73 107,69 111,75 104,81 97,78" fill="#141211"/>
+      <circle cx="104" cy="74" r="1" fill="#3f3f46" opacity="0.6"/>
+    </g>
+
+    <!-- Costra 4: Canal Inferior-Sur -->
+    <g>
+      <polygon points="40,110 48,106 52,114 46,120 38,116" fill="none" stroke="#b91c1c" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="40,110 48,106 52,114 46,120 38,116" fill="none" stroke="#f97316" stroke-width="1" stroke-linejoin="round" opacity="0.8"/>
+      <polygon points="41,111 47,107 51,113 46,119 39,116" fill="#141211"/>
+      <circle cx="45" cy="112" r="0.9" fill="#3f3f46" opacity="0.6"/>
+    </g>
+
+    <!-- Estelas de arrastre viscoso alrededor de las costras -->
+    <g stroke="#f97316" stroke-width="0.8" fill="none" opacity="0.7">
+      <path d="M 64,38 Q 66,34 72,32"/>
+      <path d="M 46,74 Q 48,70 54,68"/>
+      <path d="M 94,74 Q 96,70 102,68"/>
+    </g>
   `;
 }
 

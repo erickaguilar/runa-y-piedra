@@ -182,6 +182,11 @@ test('los sprites de lava no contienen coordenadas fuera de límites [0, 128] pa
     assert.doesNotMatch(svg, /\bpoints="[^"]*13\d+/, `Lava variante ${i} no debe contener coordenadas de puntos mayores a 128`);
     assert.doesNotMatch(svg, /\bd="[^"]*-\d+/, `Lava variante ${i} no debe contener coordenadas path negativas`);
     assert.doesNotMatch(svg, /\bd="[^"]*13\d+/, `Lava variante ${i} no debe contener coordenadas path mayores a 128`);
+
+    // Validar estructura base unificada idéntica (fondo térmico, canales de flujo y placas de basalto)
+    assert.ok(svg.includes('fill="#450a0a"'), `Lava variante ${i} debe compartir el fondo profundo #450a0a`);
+    assert.ok(svg.includes('stroke-width="15"'), `Lava variante ${i} debe compartir los canales térmicos base`);
+    assert.ok(svg.includes('points="45,53 63,48 70,58 63,70 47,67"'), `Lava variante ${i} debe compartir las placas de basalto base`);
   }
 });
 
