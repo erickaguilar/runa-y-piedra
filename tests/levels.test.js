@@ -10,7 +10,8 @@ import {
   floorSprites,
   pillarSprites,
   lavaSprites,
-  specialSprites
+  specialSprites,
+  ceilingSprites
 } from '../src/render/textures/index.js';
 
 test('floorVariant es determinista y solo da tipos de suelo', () => {
@@ -118,18 +119,36 @@ test('VoxelMap.getTileUVOffset calcula coordenadas UV exactas para la cuadrícul
   assert.deepEqual(VoxelMap.getTileUVOffset(20), { u: 0.0, v: 0.25 });
   assert.deepEqual(VoxelMap.getTileUVOffset(21), { u: 0.25, v: 0.25 });
   assert.deepEqual(VoxelMap.getTileUVOffset(22), { u: 0.5, v: 0.25 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(23), { u: 0.75, v: 0.25 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(24), { u: 0.0, v: 0.125 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(25), { u: 0.25, v: 0.125 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(26), { u: 0.5, v: 0.125 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(27), { u: 0.75, v: 0.125 });
 });
 
-test('createTilesSvgArray y módulos de texturas generan los 23 sprites SVG modulares válidos', () => {
+test('VoxelMap distribuye deterministamente las 5 variantes de sprites para el bloque CEILING', () => {
+  const validTiles = new Set([23, 24, 25, 26, 27]);
+  const seen = new Set();
+  for (let x = 0; x < 24; x++) {
+    for (let z = 0; z < 36; z++) {
+      const tile = VoxelMap.selectTile(x, 6, z, BLOCK_TYPES.CEILING);
+      assert.ok(validTiles.has(tile), `Tile ${tile} debe ser una de las variantes válidas de techo`);
+      seen.add(tile);
+    }
+  }
+  assert.equal(seen.size, 5, 'Debe generar las 5 variantes distintas de techo (bóveda, artesonado, fracturas, musgo, rúnico)');
+});
+
+test('createTilesSvgArray y módulos de texturas generan los 28 sprites SVG modulares válidos', () => {
   const tilesSvg = createTilesSvgArray(128);
   assert.ok(Array.isArray(tilesSvg), 'createTilesSvgArray debe devolver un arreglo');
-  assert.ok(tilesSvg.length >= 23, 'Debe contener al menos 23 casillas con sprites activos');
+  assert.ok(tilesSvg.length >= 28, 'Debe contener al menos 28 casillas con sprites activos');
 
-  // Validar que cada uno de los 23 tiles tiene contenido SVG sustancial
-  for (let i = 0; i <= 22; i++) {
+  // Validar que cada uno de los 28 tiles tiene contenido SVG sustancial
+  for (let i = 0; i <= 27; i++) {
     const tile = tilesSvg[i];
     assert.ok(typeof tile === 'string' && tile.trim().length > 20, `Tile ${i} debe ser un fragmento SVG válido`);
-    assert.ok(tile.includes('<rect') || tile.includes('<circle') || tile.includes('<path') || tile.includes('<defs'), `Tile ${i} debe contener elementos SVG`);
+    assert.ok(tile.includes('<rect') || tile.includes('<circle') || tile.includes('<path') || tile.includes('<defs') || tile.includes('<g'), `Tile ${i} debe contener elementos SVG`);
   }
 
   // Validar módulos individuales
@@ -139,6 +158,11 @@ test('createTilesSvgArray y módulos de texturas generan los 23 sprites SVG modu
   assert.ok(lavaSprites.lavaActive(128).includes('lava-core-13'), 'lavaActive debe tener gradiente');
   assert.ok(specialSprites.respawnPad(128).includes('38bdf8'), 'respawnPad debe tener glifo cian');
   assert.ok(specialSprites.jumpPad(128).includes('d97706'), 'jumpPad debe tener runa ámbar');
+  assert.ok(ceilingSprites.ceilingVault(128).includes('<rect'), 'ceilingVault debe generar SVG');
+  assert.ok(ceilingSprites.ceilingCoffered(128).includes('<rect'), 'ceilingCoffered debe generar SVG');
+  assert.ok(ceilingSprites.ceilingCracked(128).includes('<path'), 'ceilingCracked debe generar SVG');
+  assert.ok(ceilingSprites.ceilingMossy(128).includes('<circle'), 'ceilingMossy debe generar SVG');
+  assert.ok(ceilingSprites.ceilingRunic(128).includes('rotate(45'), 'ceilingRunic debe generar glifo rotado');
 });
 
 test('los sprites de lava no contienen coordenadas fuera de límites [0, 128] para evitar sangrado a celdas adyacentes', () => {
@@ -158,6 +182,25 @@ test('los sprites de lava no contienen coordenadas fuera de límites [0, 128] pa
     assert.doesNotMatch(svg, /\bpoints="[^"]*13\d+/, `Lava variante ${i} no debe contener coordenadas de puntos mayores a 128`);
     assert.doesNotMatch(svg, /\bd="[^"]*-\d+/, `Lava variante ${i} no debe contener coordenadas path negativas`);
     assert.doesNotMatch(svg, /\bd="[^"]*13\d+/, `Lava variante ${i} no debe contener coordenadas path mayores a 128`);
+  }
+});
+
+test('los sprites de techo no contienen coordenadas fuera de límites [0, 128] para evitar sangrado a celdas adyacentes', () => {
+  const S = 128;
+  const ceilingVariants = [
+    ceilingSprites.ceilingVault(S),
+    ceilingSprites.ceilingCoffered(S),
+    ceilingSprites.ceilingCracked(S),
+    ceilingSprites.ceilingMossy(S),
+    ceilingSprites.ceilingRunic(S)
+  ];
+
+  for (let i = 0; i < ceilingVariants.length; i++) {
+    const svg = ceilingVariants[i];
+    assert.doesNotMatch(svg, /\bpoints="[^"]*-\d+/, `Techo variante ${i} no debe contener coordenadas de puntos negativas`);
+    assert.doesNotMatch(svg, /\bpoints="[^"]*13\d+/, `Techo variante ${i} no debe contener coordenadas de puntos mayores a 128`);
+    assert.doesNotMatch(svg, /\bd="[^"]*-\d+/, `Techo variante ${i} no debe contener coordenadas path negativas`);
+    assert.doesNotMatch(svg, /\bd="[^"]*13\d+/, `Techo variante ${i} no debe contener coordenadas path mayores a 128`);
   }
 });
 

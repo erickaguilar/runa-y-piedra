@@ -148,7 +148,7 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Acceso exclusivo desde el modal de Herramientas Dev (`#btn-dev-enter-showroom` y `#btn-dev-exit-showroom`) con soporte de sesión local directa (`startDevShowroomSession`).
 
 23. [**23. Catálogo Técnico de Sprites y Modelos 3D**](./23-catalogo-sprites-y-modelos-3d.md)
-    - Especificación exhaustiva de los **23 sprites procedurales SVG activos** del Texture Atlas en matriz 4x8 (5 de muros, 5 de suelos, 5 de pilares y columnas, losa de respawn, 5 de lava volcánica, jump pad y pedestal).
+    - Especificación exhaustiva de los **28 sprites procedurales SVG activos** del Texture Atlas en matriz 4x8 (5 de muros, 5 de suelos, 5 de pilares y columnas, losa de respawn, 5 de lava volcánica, jump pad, pedestal y 5 de techos/bóvedas).
     - Desglose detallado de los 11 modelos 3D del motor: 5 arquetipos de héroes con kits distintivos, cofre de botín animado a 85°, puertas batientes de doble hoja, altar con orbe flotante en levitación armónica, escalinata ceremonial con losa corrediza y malla instanciada del mundo vóxel.
-    - Modularización atómica de componentes gráficos en `src/render/textures/` (sprites SVG por familia) y `src/render/models/` (constructores paramétricos de héroes y props).
+    - Modularización atómica de componentes gráficos en `src/render/textures/` (sprites SVG por familia, incluyendo `ceilings.js`) y `src/render/models/` (constructores paramétricos de héroes y props).
     - Matriz cuantitativa de geometrías, algoritmos deterministas de selección de tiles y presupuestos de Draw Calls (20-35 DC).

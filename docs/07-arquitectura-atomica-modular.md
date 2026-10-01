@@ -73,6 +73,7 @@ runa-y-piedra/
 │   │   │   ├── pillars.js    # Pilares (5 variantes, Tiles 10, 12, 20-22)
 │   │   │   ├── specials.js   # Especiales (Respawn, Jump Pad, Pedestal, Tiles 11, 14, 15)
 │   │   │   ├── lava.js       # Lava y magma (5 variantes, Tiles 13, 16-19)
+│   │   │   ├── ceilings.js   # Techos y bóvedas (5 variantes, Tiles 23-27)
 │   │   │   └── index.js      # Agregador y ensamblador de la matriz 4x8
 │   │   └── VoxelMap.js       # Terreno InstancedMesh único con pool de slots
 │   ├── simulation/

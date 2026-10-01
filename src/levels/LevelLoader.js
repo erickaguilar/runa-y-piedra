@@ -188,7 +188,7 @@ export class LevelLoader {
 
       case 'ceiling': {
         const y = region.y ?? 6;
-        const blockType = BLOCK_TYPES[region.block] ?? BLOCK_TYPES.WALL;
+        const blockType = BLOCK_TYPES[region.block] ?? BLOCK_TYPES.CEILING;
         const fromX = region.fromX ?? 1;
         const toX = region.toX ?? (sizeX - 2);
         const fromZ = region.fromZ ?? 1;

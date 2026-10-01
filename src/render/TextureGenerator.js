@@ -10,6 +10,7 @@ export class TextureGenerator {
    * - Pilares (5 variaciones, Tiles 10, 12, 20 a 22): Columna monolítica continua base, columna lisa, columna con musgo y líquenes, columna con fracturas y desgaste, y columna con tono oscuro basáltico.
    * - Especial (3 patrones, Tiles 11, 14, 15): Losa rúnica de aparición (Respawn), losa de salto ámbar (Jump Pad) y círculo rúnico (Pedestal).
    * - Lava (5 variaciones, Tiles 13, 16 a 19): Magma activo, corteza de basalto con fisuras, domos de gas hirviente, río piroclástico y caldera de fusión pura.
+   * - Techos (5 variaciones, Tiles 23 a 27): Bóveda de cantería con nervaduras de cruz, artesonado de roble y forja, losa con fisuras y filtraciones, bóveda con musgo colgante y clave rúnica arcana.
    * 
    * Al estar en escala de grises calibrada, Three.js multiplica automáticamente la textura
    * por el color del tipo de bloque (p. ej. slate-700 para muros, slate-600 para suelo, slate-500 para pilares).

@@ -62,6 +62,7 @@ export const BLOCK_TYPES = {
   FLOOR_WORN: 9,
   FLOOR_MOSS: 10,
   RESPAWN_PAD: 11,
+  CEILING: 12,
 };
 
 export const BLOCK_FLOOR_STONE = 8;
@@ -80,6 +81,7 @@ export const BLOCK_COLORS = {
   9: 0xffffff, // Adoquín con grietas
   10: 0xffffff, // Adoquín con musgo
   11: 0xffffff, // Losa de Respawn / Invocación Rúnica (blanco neutro para respetar azul cian radiante y sillar oscuro del SVG)
+  12: 0xffffff, // Techo y bóveda de mazmorra (blanco neutro para respetar los tonos y relieves del SVG)
 };
 
 import heroesData from '../heroes/data/heroes.json' with { type: 'json' };

@@ -4,12 +4,14 @@ export * from './floors.js';
 export * from './pillars.js';
 export * from './specials.js';
 export * from './lava.js';
+export * from './ceilings.js';
 
 import { wallSprites } from './walls.js';
 import { floorSprites } from './floors.js';
 import { pillarSprites } from './pillars.js';
 import { specialSprites } from './specials.js';
 import { lavaSprites } from './lava.js';
+import { ceilingSprites } from './ceilings.js';
 
 /**
  * Ensambla el arreglo de fragmentos SVG para las casillas del Texture Atlas (matriz 4x8, 32 casillas posibles).
@@ -51,6 +53,13 @@ export function createTilesSvgArray(S = 128) {
   tilesSvg[20] = pillarSprites.mossy ? pillarSprites.mossy(S) : pillarSprites.pillarMossy(S);
   tilesSvg[21] = pillarSprites.cracked ? pillarSprites.cracked(S) : pillarSprites.pillarCracked(S);
   tilesSvg[22] = pillarSprites.dark ? pillarSprites.dark(S) : pillarSprites.pillarDark(S);
+
+  // ==================== GRUPO 6: TECHOS / BÓVEDAS (Tiles 23 a 27) ====================
+  tilesSvg[23] = ceilingSprites.ceilingVault(S);
+  tilesSvg[24] = ceilingSprites.ceilingCoffered(S);
+  tilesSvg[25] = ceilingSprites.ceilingCracked(S);
+  tilesSvg[26] = ceilingSprites.ceilingMossy(S);
+  tilesSvg[27] = ceilingSprites.ceilingRunic(S);
 
   return tilesSvg;
 }

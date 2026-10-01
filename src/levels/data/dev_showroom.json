@@ -135,7 +135,7 @@
   "regions": [
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 34] },
     { "type": "perimeter", "height": 6, "block": "WALL" },
-    { "type": "ceiling", "y": 7, "block": "WALL", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+    { "type": "ceiling", "y": 7, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
 
     { "type": "divider", "z": 13, "height": 6, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
     { "type": "divider", "z": 24, "height": 6, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
@@ -151,7 +151,7 @@
     { "type": "fill", "block": "PEDESTAL", "from": [18, 1, 3], "to": [19, 1, 4] },
     { "type": "fill", "block": "WALL", "from": [15, 1, 6], "to": [18, 1, 7] },
     { "type": "fill", "block": "LAVA", "from": [16, 1, 6], "to": [17, 1, 7] },
-    { "type": "fill", "block": "WALL", "from": [15, 1, 9], "to": [16, 1, 10] },
+    { "type": "fill", "block": "CEILING", "from": [15, 1, 9], "to": [16, 1, 10] },
     { "type": "fill", "block": "PILLAR", "from": [18, 1, 9], "to": [19, 2, 10] },
 
     { "type": "pillar", "x": 2, "z": 2, "height": 6, "block": "PILLAR" },

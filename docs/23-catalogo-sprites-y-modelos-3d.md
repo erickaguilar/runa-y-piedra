@@ -29,9 +29,9 @@ Esta arquitectura separa estrictamente el renderizado del mundo en dos subsistem
 
 ---
 
-## 2. Catálogo de Sprites del Texture Atlas (23 Sprites Activos en Matriz 4x8)
+## 2. Catálogo de Sprites del Texture Atlas (28 Sprites Activos en Matriz 4x8)
 
-El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5 de $512 \times 1024$ píxeles dividido en **32 casillas de $128 \times 128$ píxeles** (4 columnas $\times$ 8 filas), de las cuales **23 casillas activas** (Tiles 0 al 22) están implementadas para los tipos de bloques del juego. La textura se calibra en escala de grises para que el shader de Three.js multiplique los valores de luminancia por el color del tipo de bloque (`BLOCK_COLORS`), preservando contrastes, biseles y microtexturas minerales, con la excepción de las losas de respawn y la lava volcánica, que emplean policromía vectorial de alta fidelidad (`0xffffff`).
+El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5 de $512 \times 1024$ píxeles dividido en **32 casillas de $128 \times 128$ píxeles** (4 columnas $\times$ 8 filas), de las cuales **28 casillas activas** (Tiles 0 al 27) están implementadas para los tipos de bloques del juego. La textura se calibra en escala de grises para que el shader de Three.js multiplique los valores de luminancia por el color del tipo de bloque (`BLOCK_COLORS`), preservando contrastes, biseles y microtexturas minerales, con la excepción de las losas de respawn y la lava volcánica, que emplean policromía vectorial de alta fidelidad (`0xffffff`).
 
 ### Matriz de Distribución en el Atlas ($4 \times 8$)
 
@@ -42,8 +42,9 @@ El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5
 | **Fila 2** ($v=0.625$) | **Tile 8**: Suelo Mixto | **Tile 9**: Suelo Santuario | **Tile 10**: Columna Fuste | **Tile 11**: Losa Respawn |
 | **Fila 3** ($v=0.500$) | **Tile 12**: Columna Acanalada | **Tile 13**: Lava 1 (Magma Activo) | **Tile 14**: Salto Jump Pad | **Tile 15**: Pedestal Runa |
 | **Fila 4** ($v=0.375$) | **Tile 16**: Lava 2 (Fisuras Magma) | **Tile 17**: Lava 3 (Géiseres Gas) | **Tile 18**: Lava 4 (Río Piroclástico) | **Tile 19**: Lava 5 (Caldera Hipertérmica) |
-| **Fila 5** ($v=0.250$) | **Tile 20**: Pilar con Musgo | **Tile 21**: Pilar con Desgaste | **Tile 22**: Pilar Tono Oscuro | *(Reservado Expansión)* |
-| **Filas 6-7** ($v \le 0.125$) | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* |
+| **Fila 5** ($v=0.250$) | **Tile 20**: Pilar con Musgo | **Tile 21**: Pilar con Desgaste | **Tile 22**: Pilar Tono Oscuro | **Tile 23**: Techo Bóveda Cruz |
+| **Fila 6** ($v=0.125$) | **Tile 24**: Techo Artesonado Roble | **Tile 25**: Techo con Fisuras | **Tile 26**: Techo con Musgo | **Tile 27**: Techo Clave Rúnica |
+| **Fila 7** ($v=0.000$) | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* |
 
 ### Modularización Atómica del Código de Sprites (`src/render/textures/`)
 
@@ -54,8 +55,9 @@ Para optimizar el mantenimiento, evitar archivos monolíticos de más de 1,000 l
 - [`src/render/textures/pillars.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/pillars.js): Pilares y Columnas (Tiles 10, 12, 20, 21, 22 — monolítica base, acanalada lisa, musgo, desgaste, oscura).
 - [`src/render/textures/specials.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/specials.js): Losas interactivas y ceremoniales (Tiles 11, 14, 15 — Respawn Pad, Jump Pad, Pedestal).
 - [`src/render/textures/lava.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/lava.js): Fluidos volcánicos (Tiles 13, 16, 17, 18, 19 — magma activo, fisuras, géiseres, río piroclástico, caldera).
+- [`src/render/textures/ceilings.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/ceilings.js): Techos y Bóvedas (Tiles 23, 24, 25, 26, 27 — bóveda de crucería, artesonado de roble, fracturas, musgo colgante, clave arcana).
 - [`src/render/textures/index.js`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/index.js): Agregador y ensamblador unificado `createTilesSvgArray(S)`.
-- [`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js): Orquestador desacoplado que renderiza el SVG combinado al canvas HTML5 y crea la instancia de `THREE.CanvasTexture`.
+- [`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js): Orquestador desacoplado con máscara de recorte estricta `clipPath` por celda que renderiza el SVG combinado al canvas HTML5 y crea la instancia de `THREE.CanvasTexture`.
 
 ---
 
@@ -114,6 +116,15 @@ Cuenta con **1 sprite exclusivo** (Tile 14):
 #### G. Pedestal Arcano (`PEDESTAL` — Bloque Tipo 4)
 Cuenta con **1 sprite exclusivo** (Tile 15):
 - Círculo rúnico arcano con estrella mística de 8 puntas (octagrama) y símbolos de protección para la base del altar.
+
+#### H. Techos y Bóvedas Cenitales (`CEILING` — Bloque Tipo 12)
+Cuenta con **5 sprites distintos** (Tiles 23 al 27). Diseñados específicamente para cubrir la parte superior de las salas, bóvedas y galerías de la mazmorra con rica variedad arquitectónica medieval/fantasía oscura. `VoxelMap.selectTile` distribuye deterministamente las 5 variantes mediante la paleta `[23, 23, 24, 25, 26, 27]` evaluada con `hashCoord(x, y, z)`:
+
+1. **Tile 23 (Bóveda de Crucería Gótica - Base)**: Sillar oscuro cenital con arcos fajones diagonales cruzados en relieve, dovelas de piedra y clave de bóveda central circular tallada con aro exterior de soporte.
+2. **Tile 24 (Artesonado de Vigas de Roble y Forja)**: Cuatro casetones rehundidos de madera de roble oscuro estructurados por dos grandes vigas cruzadas centrales y placa de unión de hierro forjado con 4 remaches perimetrales.
+3. **Tile 25 (Losa con Fracturas y Filtraciones)**: Techo de cantería con fisura tectónica profunda ramificada, halo de humedad oscura y micro-estalactitas o concreciones minerales de caliza/salitre con gotas de condensación.
+4. **Tile 26 (Bóveda con Musgo Colgante y Moho)**: Colonización vegetal cenital en tres capas botánicas (humedad umbría en hendiduras `#14532d`, musgo vivo `#16a34a` y esporas claras `#4ade80`) con micro-gotas de agua suspendidas.
+5. **Tile 27 (Clave de Bóveda Rúnica de Contención)**: Gran glifo rúnico arcano concéntrico con estrella/octagrama de contención tectónica, cuatro ménsulas angulares talladas en sillar noble y núcleo solar cálido de protección mágica.
 
 ---
 
@@ -274,7 +285,7 @@ Mecanismo interactivo de descenso entre pisos de la mazmorra:
 
 * **Geometría Base**: `THREE.BoxGeometry(1, 1, 1)` reutilizada en un único `THREE.InstancedMesh`.
 * **Capacidad Máxima**: Hasta 13,824 instancias de bloques por nivel ($24 \times 16 \times 36$ m).
-* **Buffer Atributo `atlasOffset`**: Vector bidimensional `(u, v)` de 2 componentes por instancia inyectado en el vertex shader para mapear cualquier bloque a uno de los 23 sprites activos del Texture Atlas en tiempo constante sin llamadas adicionales a la GPU.
+* **Buffer Atributo `atlasOffset`**: Vector bidimensional `(u, v)` de 2 componentes por instancia inyectado en el vertex shader para mapear cualquier bloque a uno de los 28 sprites activos del Texture Atlas en tiempo constante sin llamadas adicionales a la GPU.
 
 ---
 
@@ -282,7 +293,7 @@ Mecanismo interactivo de descenso entre pisos de la mazmorra:
 
 | Subsistema / Elemento | Tipo de Entidad | N.º Variantes | Geometría / Primitivas | Draw Calls Estimadas |
 | :--- | :--- | :---: | :--- | :---: |
-| **Texture Atlas Procedural** | Textura SVG 512x1024 | **23 Sprites Activos** | 32 casillas (4x8) de 128x128 px | 0 (Memoria Textura) |
+| **Texture Atlas Procedural** | Textura SVG 512x1024 | **28 Sprites Activos** | 32 casillas (4x8) de 128x128 px | 0 (Memoria Textura) |
 | **Mundo Vóxel (`VoxelMap`)** | `InstancedMesh` | **1 Malla global** | Cubos $1 \times 1 \times 1$ m | **1** |
 | **Avatares de Jugadores** | Modelos 3D Vóxel | **5 Clases** | 6 piezas base + kits de clase | **1 - 3** por jugador |
 | **Cofre de Botín** | Modelo 3D Articulado | **1 Modelo completo** | Base hueca + tapa arco + gemas | **2 - 3** por cofre |
@@ -291,4 +302,4 @@ Mecanismo interactivo de descenso entre pisos de la mazmorra:
 | **Escalinata de Descenso** | Modelo 3D Mecánico | **1 Sistema** | Losa corrediza + peldaños + niebla | **3** por escalinata |
 
 ### Conclusión Técnica
-La combinación de **23 sprites procedurales activos** (incluyendo paletas completas de 5 variantes para muros, suelos, lava volcánica y pilares) en un atlas único junto a **11 modelos 3D especializados** permite renderizar una mazmorra multijugador con alta riqueza estética, cinemática física y respuesta táctil, manteniendo el total de Draw Calls entre **20 y 35**, cumpliendo con holgura los presupuestos de hardware móvil a 60 cuadros por segundo.
+La combinación de **28 sprites procedurales activos** (incluyendo paletas completas de 5 variantes para muros, suelos, pilares, techos/bóvedas y lava volcánica) en un atlas único junto a **11 modelos 3D especializados** permite renderizar una mazmorra multijugador con alta riqueza estética, cinemática física y respuesta táctil, manteniendo el total de Draw Calls entre **20 y 35**, cumpliendo con holgura los presupuestos de hardware móvil a 60 cuadros por segundo.

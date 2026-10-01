@@ -14,6 +14,8 @@ const THREE_COLORS = {
   8: new THREE.Color(BLOCK_COLORS[8] || 0xffffff),
   9: new THREE.Color(BLOCK_COLORS[9] || 0xffffff),
   10: new THREE.Color(BLOCK_COLORS[10] || 0xffffff),
+  11: new THREE.Color(BLOCK_COLORS[11] || 0xffffff),
+  12: new THREE.Color(BLOCK_COLORS[12] || 0xffffff),
 };
 
 export class VoxelMap {
@@ -272,6 +274,16 @@ varying vec2 vAtlasOffset;`
         // Tile 19: Caldera de Fusión Pura / Núcleo Solar Blanco-Dorado
         const lavaPalette = [13, 16, 17, 18, 19];
         return lavaPalette[h % lavaPalette.length];
+      }
+      case BLOCK_TYPES.CEILING: {
+        // 5 Variantes de Techo / Bóvedas (distribución orgánica determinista):
+        // Tile 23: Bóveda de Cantería con Nervaduras de Cruz (dominante)
+        // Tile 24: Artesonado de Vigas de Roble y Forja
+        // Tile 25: Losa con Fracturas y Filtraciones
+        // Tile 26: Bóveda con Musgo Colgante y Moho
+        // Tile 27: Clave de Bóveda Rúnica de Contención Arcana
+        const ceilingPalette = [23, 23, 24, 25, 26, 27];
+        return ceilingPalette[h % ceilingPalette.length];
       }
       default:
         return 0;

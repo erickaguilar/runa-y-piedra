@@ -70,7 +70,7 @@
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 34] },
     { "type": "perimeter", "height": 5, "block": "WALL" },
     { "type": "divider", "z": 18, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
-    { "type": "ceiling", "y": 6, "block": "WALL", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
     { "type": "pillar", "x": 5, "z": 5, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 5, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 5, "z": 14, "height": 5, "block": "PILLAR" },
