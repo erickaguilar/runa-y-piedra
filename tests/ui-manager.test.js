@@ -42,6 +42,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       const elementStore = new Map();
       let lastMockButton = null;
       let lastChapterButton = null;
+      let lastChapterCard = null;
       const mockEl = (tag = 'div') => {
         let _id = '';
         const el = {
@@ -72,6 +73,13 @@ describe('UIManager - Contratos de API de Configuración', () => {
               }
               return lastChapterButton;
             }
+            if (sel?.includes('chapter-card')) {
+              if (!lastChapterCard) {
+                lastChapterCard = mockEl('div');
+                lastChapterCard.dataset = { chapterId: 'capitulo_1' };
+              }
+              return lastChapterCard;
+            }
             return mockEl('span');
           },
           querySelectorAll(sel) {
@@ -81,6 +89,13 @@ describe('UIManager - Contratos de API de Configuración', () => {
                 lastChapterButton.dataset = { chapterId: 'capitulo_1' };
               }
               return [lastChapterButton];
+            }
+            if (sel?.includes('chapter-card')) {
+              if (!lastChapterCard) {
+                lastChapterCard = mockEl('div');
+                lastChapterCard.dataset = { chapterId: 'capitulo_1' };
+              }
+              return [lastChapterCard];
             }
             if (sel?.includes('btn-use-potion')) {
               if (!lastMockButton) lastMockButton = mockEl('button');
@@ -584,12 +599,25 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(selectedChapterId, 'capitulo_1');
       assert.equal(ui.isChapterOpen, false);
 
-      // Alternar toggle
-      ui.toggleChapterModal();
+      // Abrir nuevamente para probar selección directa haciendo clic en la tarjeta completa
+      selectedChapterId = null;
+      ui.openChapterModal();
+      const currentOverlay = document.getElementById('modal-chapter-overlay');
+      assert.ok(currentOverlay);
+      const cardUnlocked = currentOverlay.querySelector('.chapter-card.unlocked');
+      assert.ok(cardUnlocked);
+      cardUnlocked.click();
+      assert.equal(selectedChapterId, 'capitulo_1');
+      assert.equal(ui.isChapterOpen, false);
+
+      // Alternar toggle y verificar restauración incondicional de botones de acción
+      ui.currentScreen = 'menu';
+      ui.openChapterModal();
       assert.equal(ui.isChapterOpen, true);
 
       ui.closeChapterModal();
       assert.equal(ui.isChapterOpen, false);
+      assert.equal(ui.currentScreen, 'in_game');
     });
   });
 });

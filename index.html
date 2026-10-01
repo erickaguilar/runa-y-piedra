@@ -1256,10 +1256,19 @@
       transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
       position: relative;
     }
+    .chapter-card.unlocked {
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
     .chapter-card.unlocked:hover {
-      border-color: rgba(56, 189, 248, 0.4);
+      border-color: rgba(56, 189, 248, 0.6);
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(56, 189, 248, 0.2);
+    }
+    .chapter-card.unlocked:active {
+      transform: scale(0.98);
+      border-color: #38bdf8;
     }
     .chapter-card.is-active {
       border-color: #38bdf8;
@@ -1378,6 +1387,39 @@
     .chapter-card-actions {
       margin-top: auto;
       padding-top: 6px;
+    }
+    .chapter-action-pill {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      border-radius: 8px;
+      text-align: center;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    }
+    .chapter-action-pill.is-launch {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.85), rgba(3, 105, 161, 0.95));
+      border: 1px solid #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+    }
+    .chapter-card.unlocked:hover .chapter-action-pill.is-launch {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    }
+    .chapter-action-pill.is-current {
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.85), rgba(180, 83, 9, 0.95));
+      border: 1px solid #fbbf24;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+    }
+    .chapter-action-pill.is-client {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
     }
     .chapter-launch-btn {
       width: 100%;

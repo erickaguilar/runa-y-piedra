@@ -312,7 +312,7 @@ class VoxelSandboxGame {
     this.ui.bindCampaign({
       getChapterRegistry: () => this.chapterRegistry,
       getGameState: () => ({
-        isHost: this.mode === 'host',
+        isHost: this.mode !== 'client',
         currentLevelId: this.world.levelRegistry.currentLevelId,
       }),
       onSelectChapter: (chapterId) => this.selectCampaignChapter(chapterId),
@@ -480,9 +480,18 @@ class VoxelSandboxGame {
   }
 
   selectCampaignChapter(chapterId) {
-    if (this.mode !== 'host') {
+    if (this.mode === 'client') {
       this.ui.showNarrativeMessage('Solo el Anfitrión puede seleccionar el capítulo de la expedición.', 3500);
       return false;
+    }
+    // Si estamos en lobby o práctica local sin haber creado sala de red formal:
+    if (!this.mode) {
+      this.mode = 'host';
+      this.playerManager.setLocalId(0);
+      this.avatars.remove(-1);
+      this.ui.currentScreen = 'in_game';
+      this.ui.setCrosshairVisible(true);
+      this.ui.setActionButtonsVisible(true);
     }
     if (!this.chapterRegistry.isChapterUnlocked(chapterId)) {
       this.ui.showNarrativeMessage('🔒 Este capítulo aún está bloqueado.', 3000);
@@ -493,7 +502,9 @@ class VoxelSandboxGame {
     const firstDungeon = dungeons[0];
     if (!firstDungeon) return false;
 
-    this.network.broadcast(Proto.serializeChapterSelect(chapterId, firstDungeon.id));
+    if (this.network && (this.network.connections?.size > 0 || this.network.isHosting)) {
+      this.network.broadcast(Proto.serializeChapterSelect(chapterId, firstDungeon.id));
+    }
     this.soundManager.playPedestal();
     const ch = this.chapterRegistry.getChapter(chapterId);
     this.ui.showNarrativeMessage(`🗺️ Iniciando Capítulo ${ch.number}: ${ch.name}...`, 3500);

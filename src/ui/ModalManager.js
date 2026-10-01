@@ -1164,7 +1164,7 @@ export const ModalMixin = {
     const state = this.campaignCallbacks?.getGameState ? this.campaignCallbacks.getGameState() : {};
     const registry = this.campaignCallbacks?.getChapterRegistry ? this.campaignCallbacks.getChapterRegistry() : null;
     const chapters = registry?.getAllChapters?.() || CHAPTER_CATALOG;
-    const isHost = state.isHost ?? true;
+    const isHost = state.isHost !== false && state.mode !== 'client';
     const currentChapterId = registry?.currentChapterId || 'capitulo_1';
 
     const overlay = document.createElement('div');
@@ -1233,21 +1233,25 @@ export const ModalMixin = {
 
       const dungeonsList = (ch.dungeons || []).map((d) => escapeHtml(d.name || d.id)).join(' → ');
 
-      let actionBtn = '';
+      let actionPill = '';
       if (isHost) {
-        actionBtn = `
-          <button class="chapter-launch-btn ${isCurrent ? 'btn-current' : ''}" data-chapter-id="${ch.id}">
-            ${isCurrent ? 'Reiniciar Capítulo' : 'Iniciar Expedición'}
+        actionPill = `
+          <button class="chapter-launch-btn chapter-action-pill ${isCurrent ? 'btn-current is-current' : 'is-launch'}" data-chapter-id="${ch.id}">
+            ${isCurrent ? '⚡ En curso (Explorar)' : '▶ Iniciar Expedición'}
           </button>
         `;
       } else {
-        actionBtn = `
-          <div class="chapter-client-info">${isCurrent ? 'Capítulo en curso' : 'Listo para expedición'}</div>
+        actionPill = `
+          <div class="chapter-client-info chapter-action-pill is-client">${isCurrent ? '⚡ En curso' : 'Listo para expedición'}</div>
         `;
       }
 
       return `
-        <div class="chapter-card unlocked ${isCurrent ? 'is-active' : ''} ${isCompleted ? 'is-completed' : ''}">
+        <div class="chapter-card unlocked ${isCurrent ? 'is-active' : ''} ${isCompleted ? 'is-completed' : ''}" 
+             data-chapter-id="${ch.id}" 
+             role="button" 
+             tabindex="0" 
+             title="${isHost ? `Seleccionar Capítulo ${ch.number}: ${escapeHtml(ch.name)}` : `Capítulo ${ch.number}: ${escapeHtml(ch.name)}`}">
           <div class="chapter-card-header">
             <span class="chapter-num-badge">Capítulo ${ch.number}</span>
             ${statusBadge}
@@ -1261,14 +1265,14 @@ export const ModalMixin = {
           ${starsHtml}
           ${recordInfo}
           <div class="chapter-card-actions">
-            ${actionBtn}
+            ${actionPill}
           </div>
         </div>
       `;
     }).join('');
 
     const hostNote = isHost
-      ? '👑 <strong>Anfitrión</strong>: Selecciona un capítulo para iniciar la travesía con tu equipo.'
+      ? '👑 <strong>Anfitrión</strong>: Toca cualquier capítulo disponible para iniciar la travesía con tu equipo.'
       : '🛡️ <strong>Aventurero</strong>: Explora los capítulos de la campaña. Solo el anfitrión puede liderar la expedición.';
 
     overlay.innerHTML = `
@@ -1319,21 +1323,45 @@ export const ModalMixin = {
       }
     };
 
+    const triggerSelect = (chapterId) => {
+      if (!isHost) {
+        soundManager.playClick();
+        return;
+      }
+      soundManager.playClick();
+      if (chapterId && this.campaignCallbacks?.onSelectChapter) {
+        this.closeChapterModal();
+        this.campaignCallbacks.onSelectChapter(chapterId);
+      }
+    };
+
     overlay.querySelectorAll('.chapter-launch-btn').forEach((btn) => {
-      const handleLaunch = (e) => {
+      const handleBtn = (e) => {
         if (e) {
           e.stopPropagation();
           if (e.cancelable) e.preventDefault();
         }
-        soundManager.playClick();
-        const chapterId = btn.dataset.chapterId;
-        if (chapterId && this.campaignCallbacks?.onSelectChapter) {
-          this.closeChapterModal();
-          this.campaignCallbacks.onSelectChapter(chapterId);
+        triggerSelect(btn.dataset.chapterId);
+      };
+      btn.onclick = handleBtn;
+      btn.addEventListener('touchend', handleBtn, { passive: false });
+    });
+
+    overlay.querySelectorAll('.chapter-card.unlocked').forEach((card) => {
+      const handleSelect = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
+        triggerSelect(card.dataset.chapterId);
+      };
+      card.onclick = handleSelect;
+      card.addEventListener('touchend', handleSelect, { passive: false });
+      card.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleSelect(e);
         }
       };
-      btn.onclick = handleLaunch;
-      btn.addEventListener('touchend', handleLaunch, { passive: false });
     });
   },
 
@@ -1343,9 +1371,9 @@ export const ModalMixin = {
     if (overlay) {
       overlay.remove();
     }
-    if (this.currentScreen === 'in_game') {
-      this.setCrosshairVisible(true);
-      this.setActionButtonsVisible(true);
-    }
+    // Restaurar siempre controles de juego y botones de acción
+    this.currentScreen = 'in_game';
+    this.setCrosshairVisible(true);
+    this.setActionButtonsVisible(true);
   },
 };
