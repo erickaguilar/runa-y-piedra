@@ -756,6 +756,36 @@ describe('UIManager - Contratos de API de Configuración', () => {
       ui.closeSaveSlotsModal();
       assert.equal(ui.isSaveSlotsOpen, false);
     });
+
+    it('muestra estado vacío o información de partida en los slots visuales del menú y carga sus datos', async () => {
+      const ui = new UIManager();
+      ui.showMenu({ onHost: () => {}, onJoin: () => {} });
+
+      // Verificar que renderMenuSlotsHtml expone ranuras vacías y ranuras con información
+      const mockSummaries = [
+        { slotId: 'slot_1', isEmpty: false, isActive: true, name: 'Conan', heroIndex: 0, highestChapter: 3 },
+        { slotId: 'slot_2', isEmpty: true, isActive: false, name: 'Ranura Vacía', heroIndex: 0, highestChapter: 1 },
+        { slotId: 'slot_3', isEmpty: false, isActive: false, name: 'Merlin', heroIndex: 1, highestChapter: 2 },
+      ];
+
+      const html = ui.renderMenuSlotsHtml(mockSummaries);
+      // Ranura 1 con datos (Activa)
+      assert.match(html, /Ranura 1/);
+      assert.match(html, /Conan/);
+      assert.match(html, /Cap\. 3/);
+      assert.match(html, /badge-active/);
+
+      // Ranura 2 vacía
+      assert.match(html, /Ranura 2/);
+      assert.match(html, /badge-empty/);
+      assert.match(html, /Vacía/);
+
+      // Ranura 3 con datos (Cargar)
+      assert.match(html, /Ranura 3/);
+      assert.match(html, /Merlin/);
+      assert.match(html, /Cap\. 2/);
+      assert.match(html, /badge-saved/);
+    });
   });
 });
 

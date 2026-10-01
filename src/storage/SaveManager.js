@@ -175,6 +175,7 @@ export class SaveManager {
     this.currentSave = createDefaultSave(this.currentSlotId);
     this.isLoaded = false;
     this.listeners = new Set();
+    this._cachedSummaries = null;
   }
 
   /**
@@ -183,8 +184,18 @@ export class SaveManager {
   async init(slotId = this.currentSlotId) {
     this.currentSlotId = slotId;
     this.currentSave = await this.loadSlot(slotId);
+    // Si la ranura por defecto no existía en almacenamiento, guardarla para inicializar el estado base
+    const activeKey = `save_${slotId}_active`;
+    let exists = null;
+    try {
+      exists = await this.adapter.get(activeKey);
+    } catch {}
+    if (!exists && slotId === DEFAULT_SLOT_ID) {
+      await this.saveSlot(slotId, this.currentSave);
+    }
     this.isLoaded = true;
     this._notifyChange();
+    await this.getAllSlotsSummary();
     return this.currentSave;
   }
 
@@ -251,9 +262,10 @@ export class SaveManager {
       return legacyMigrated;
     }
 
-    // 4. Generar estado inicial limpio
+    // 4. Generar estado inicial limpio en memoria
     const freshSave = createDefaultSave(slotId);
-    await this.saveSlot(slotId, freshSave);
+    this.currentSlotId = slotId;
+    this.currentSave = freshSave;
     return freshSave;
   }
 
@@ -301,6 +313,7 @@ export class SaveManager {
     this.currentSlotId = slotId;
     this.currentSave = prepared;
     this._notifyChange();
+    await this.getAllSlotsSummary();
     return prepared;
   }
 
@@ -362,6 +375,10 @@ export class SaveManager {
         data = await this.adapter.get(activeKey);
       } catch {}
 
+      if (!data && slotId === DEFAULT_SLOT_ID) {
+        data = migrateFromLegacy(slotId);
+      }
+
       if (data && validateSaveData(data)) {
         summaries.push({
           slotId,
@@ -388,7 +405,12 @@ export class SaveManager {
         });
       }
     }
+    this._cachedSummaries = summaries;
     return summaries;
+  }
+
+  getCachedSummaries() {
+    return this._cachedSummaries;
   }
 
   /**
@@ -402,6 +424,11 @@ export class SaveManager {
     this.currentSlotId = slotId;
     this.currentSave = await this.loadSlot(slotId);
     this._writeLegacyMirror(this.currentSave);
+    if (this._cachedSummaries) {
+      for (const s of this._cachedSummaries) {
+        s.isActive = (s.slotId === slotId);
+      }
+    }
     this._notifyChange();
     return this.currentSave;
   }
@@ -431,6 +458,7 @@ export class SaveManager {
         }
       } catch {}
     }
+    await this.getAllSlotsSummary();
     return true;
   }
 

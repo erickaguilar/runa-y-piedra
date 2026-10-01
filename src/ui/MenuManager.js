@@ -65,16 +65,7 @@ export const MenuMixin = {
             </button>
           </div>
           <div class="menu-slots-row" id="menu-slots-row">
-            ${['slot_1', 'slot_2', 'slot_3'].map(id => {
-              const num = id.replace('slot_', '');
-              const isActive = id === (saveManager.currentSlotId || 'slot_1');
-              return `
-                <button class="menu-slot-chip ${isActive ? 'active' : ''}" data-slot-id="${id}" type="button">
-                  <span class="menu-slot-num">Ranura ${num}</span>
-                  <span class="menu-slot-badge">${isActive ? 'Activa' : 'Cargar'}</span>
-                </button>
-              `;
-            }).join('')}
+            ${this.renderMenuSlotsHtml()}
           </div>
         </div>
 
@@ -140,37 +131,8 @@ export const MenuMixin = {
     }
 
     // 6. Ranuras de Guardado en el Menú Principal
-    const slotChips = this.uiEl.querySelectorAll('.menu-slot-chip');
-    slotChips.forEach(chip => {
-      const handleChipClick = async (e) => {
-        if (e) {
-          e.stopPropagation();
-          if (e.cancelable) e.preventDefault();
-        }
-        soundManager.playClick();
-        const slotId = chip.dataset.slotId;
-        if (slotId === saveManager.currentSlotId) {
-          this.openSaveSlotsModal();
-          return;
-        }
-        try {
-          const updatedSave = await saveManager.switchSlot(slotId);
-          this.playerName = updatedSave.profile?.name || 'Aventurero';
-          this.selectedColorIndex = Number.isFinite(updatedSave.profile?.favoriteHero) ? updatedSave.profile.favoriteHero : 0;
-          localStorage.setItem('dungeon_player_name', this.playerName);
-          localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
-          if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-            window.__game.chapterRegistry.load?.();
-          }
-          this.showMenu(this.lastMenuParams);
-          this.showNarrativeMessage(`💾 Ranura ${slotId.replace('slot_', '')} activada y cargada.`, 2500);
-        } catch (err) {
-          console.warn('[MenuManager] Error cambiando ranura:', err);
-        }
-      };
-      chip.onclick = handleChipClick;
-      chip.addEventListener('touchend', handleChipClick, { passive: false });
-    });
+    this.bindMenuSlotsEvents();
+    this.refreshMenuSlots();
 
     const btnSlots = document.getElementById('btn-open-save-slots');
     if (btnSlots) {
@@ -184,6 +146,210 @@ export const MenuMixin = {
       };
       btnSlots.onclick = handleOpenSlots;
       btnSlots.addEventListener('touchend', handleOpenSlots, { passive: false });
+    }
+  },
+
+  renderMenuSlotsHtml(summaries) {
+    const list = summaries || saveManager.getCachedSummaries() || [
+      { slotId: 'slot_1', isEmpty: false, isActive: (saveManager.currentSlotId || 'slot_1') === 'slot_1', name: this.playerName || 'Aventurero', heroIndex: this.selectedColorIndex || 0, highestChapter: 1 },
+      { slotId: 'slot_2', isEmpty: true, isActive: saveManager.currentSlotId === 'slot_2', name: 'Ranura Vacía', heroIndex: 0, highestChapter: 1 },
+      { slotId: 'slot_3', isEmpty: true, isActive: saveManager.currentSlotId === 'slot_3', name: 'Ranura Vacía', heroIndex: 0, highestChapter: 1 },
+    ];
+
+    return list.map(s => {
+      const num = s.slotId.replace('slot_', '');
+      const isActive = s.slotId === (saveManager.currentSlotId || 'slot_1');
+      const isEmpty = !!s.isEmpty;
+      const hero = PLAYER_HEROES[s.heroIndex] || PLAYER_HEROES[0];
+
+      return `
+        <button class="menu-slot-chip ${isActive ? 'active' : ''} ${isEmpty ? 'is-empty' : 'has-data'}" 
+                data-slot-id="${s.slotId}" 
+                type="button"
+                title="${isEmpty ? `Ranura ${num}: Vacía` : `Ranura ${num}: ${escapeHtml(s.name)} (${hero.name} - Cap. ${s.highestChapter})`}">
+          <div class="menu-slot-chip-top">
+            <span class="menu-slot-num">Ranura ${num}</span>
+            <span class="menu-slot-badge ${isActive ? 'badge-active' : (isEmpty ? 'badge-empty' : 'badge-saved')}">
+              ${isActive ? 'Activa' : (isEmpty ? 'Vacía' : 'Cargar')}
+            </span>
+          </div>
+          <div class="menu-slot-chip-body">
+            ${isEmpty ? `
+              <div class="menu-slot-empty-text">${isActive ? 'Vacía (Activa)' : 'Vacía'}</div>
+            ` : `
+              <div class="menu-slot-info-box">
+                <div class="menu-slot-hero-tag" style="color:${hero.color}">
+                  ${renderIcon(hero.icon || 'shield', { size: 12, color: hero.color })}
+                  <span class="menu-slot-name-val">${escapeHtml(s.name)}</span>
+                </div>
+                <div class="menu-slot-meta-tag">
+                  <span class="menu-slot-hero-class">${hero.name}</span> • <span class="menu-slot-chapter-val">Cap. ${s.highestChapter}</span>
+                </div>
+              </div>
+            `}
+          </div>
+        </button>
+      `;
+    }).join('');
+  },
+
+  bindMenuSlotsEvents() {
+    const slotChips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('.menu-slot-chip') : document.querySelectorAll('.menu-slot-chip');
+    if (!slotChips || slotChips.length === 0) return;
+
+    slotChips.forEach(chip => {
+      const handleChipClick = async (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
+        soundManager.playClick();
+        const slotId = chip.dataset.slotId;
+        const num = slotId ? slotId.replace('slot_', '') : '1';
+
+        if (slotId === saveManager.currentSlotId) {
+          this.openSaveSlotsModal();
+          return;
+        }
+
+        try {
+          const updatedSave = await saveManager.switchSlot(slotId);
+          const summaries = await saveManager.getAllSlotsSummary();
+          const targetSummary = summaries.find(s => s.slotId === slotId);
+
+          // Cargar toda la información de la ranura seleccionada
+          this.playerName = updatedSave.profile?.name || 'Aventurero';
+          this.selectedColorIndex = Number.isFinite(updatedSave.profile?.favoriteHero)
+            ? updatedSave.profile.favoriteHero
+            : 0;
+          localStorage.setItem('dungeon_player_name', this.playerName);
+          localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
+
+          // Cargar ajustes del perfil si existen
+          if (updatedSave.profile?.settings) {
+            const s = updatedSave.profile.settings;
+            if (s.camera) {
+              localStorage.setItem('dungeon_camera', s.camera);
+              this.cameraModeUI = s.camera;
+              if (typeof window !== 'undefined' && window.__game?.cameraController) {
+                window.__game.setCameraMode?.(s.camera);
+              }
+            }
+            if (s.soundMuted !== undefined) {
+              soundManager.isMuted = !!s.soundMuted;
+              localStorage.setItem('dungeon_sound_muted', s.soundMuted ? '1' : '0');
+            }
+            if (s.dpr) {
+              localStorage.setItem('dungeon_dpr', String(s.dpr));
+            }
+            if (s.sensitivity) {
+              localStorage.setItem('dungeon_sensitivity', String(s.sensitivity));
+            }
+          }
+
+          // Cargar progreso de campaña en el registro de capítulos
+          if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
+            window.__game.chapterRegistry.load?.();
+          }
+
+          this.settingsCallbacks?.onProfileSave?.({
+            name: this.playerName,
+            colorIndex: this.selectedColorIndex,
+          });
+
+          // Actualizar campos del menú principal en tiempo real
+          const nameInput = document.getElementById('player-name-input');
+          if (nameInput) {
+            nameInput.value = this.playerName;
+          }
+
+          const heroChips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('#heroes-row .hero-chip') : document.querySelectorAll('#heroes-row .hero-chip');
+          if (heroChips) {
+            heroChips.forEach(c => {
+              const idx = parseInt(c.dataset.index, 10);
+              c.classList.toggle('selected', idx === this.selectedColorIndex);
+            });
+          }
+
+          const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
+          const badge = document.getElementById('hero-badge');
+          if (badge) {
+            badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
+            badge.style.color = hero.color;
+          }
+
+          const traitContainer = document.getElementById('hero-trait-container');
+          if (traitContainer) {
+            traitContainer.innerHTML = this.renderHeroTraitCard(hero);
+          }
+
+          // Refrescar los chips visuales de ranura
+          await this.refreshMenuSlots(summaries);
+
+          if (targetSummary && !targetSummary.isEmpty) {
+            this.showNarrativeMessage(`💾 Ranura ${num} cargada: ${escapeHtml(this.playerName)} (${hero.name} • Cap. ${updatedSave.campaign?.highestChapterUnlocked || 1})`, 2800);
+          } else {
+            this.showNarrativeMessage(`💾 Ranura ${num} vacía seleccionada.`, 2500);
+          }
+        } catch (err) {
+          console.warn('[MenuManager] Error cambiando ranura:', err);
+          this.showNarrativeMessage(`Error al cargar ranura: ${err.message}`, 3500);
+        }
+      };
+
+      chip.onclick = handleChipClick;
+      chip.addEventListener('touchend', handleChipClick, { passive: false });
+    });
+  },
+
+  async refreshMenuSlots(providedSummaries = null) {
+    const slotsRow = document.getElementById('menu-slots-row');
+    if (!slotsRow) return;
+
+    try {
+      const summaries = providedSummaries || await saveManager.getAllSlotsSummary();
+      slotsRow.innerHTML = this.renderMenuSlotsHtml(summaries);
+      this.bindMenuSlotsEvents();
+
+      // Si la ranura activa tiene información y el menú difiere, cargar la información del perfil
+      const activeSlot = summaries.find(s => s.isActive);
+      if (activeSlot && !activeSlot.isEmpty && saveManager.currentSave?.profile) {
+        const profile = saveManager.currentSave.profile;
+        let changed = false;
+        if (profile.name && this.playerName !== profile.name) {
+          this.playerName = profile.name;
+          localStorage.setItem('dungeon_player_name', this.playerName);
+          const nameInput = document.getElementById('player-name-input');
+          if (nameInput) nameInput.value = this.playerName;
+          changed = true;
+        }
+        if (Number.isFinite(profile.favoriteHero) && this.selectedColorIndex !== profile.favoriteHero) {
+          this.selectedColorIndex = profile.favoriteHero;
+          localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
+          changed = true;
+        }
+        if (changed) {
+          const heroChips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('#heroes-row .hero-chip') : document.querySelectorAll('#heroes-row .hero-chip');
+          if (heroChips) {
+            heroChips.forEach(c => {
+              const idx = parseInt(c.dataset.index, 10);
+              c.classList.toggle('selected', idx === this.selectedColorIndex);
+            });
+          }
+          const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
+          const badge = document.getElementById('hero-badge');
+          if (badge) {
+            badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
+            badge.style.color = hero.color;
+          }
+          const traitContainer = document.getElementById('hero-trait-container');
+          if (traitContainer) {
+            traitContainer.innerHTML = this.renderHeroTraitCard(hero);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[MenuManager] Error refrescando ranuras:', err);
     }
   },
 

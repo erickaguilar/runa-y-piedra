@@ -33,6 +33,7 @@ import { PerfMonitor } from '../perf/PerfMonitor.js';
 import { InventoryMixin } from '../controllers/InventoryController.js';
 import { SessionMixin } from './SessionManager.js';
 import { NetworkCoordinatorMixin } from '../network/NetworkCoordinator.js';
+import { saveManager } from '../storage/SaveManager.js';
 
 export class VoxelSandboxGame {
   constructor() {
@@ -289,6 +290,11 @@ export class VoxelSandboxGame {
       onHost: (profile) => this.startHost(profile),
       onJoin: (pin, profile) => this.joinRoom(pin, profile),
     });
+
+    // Inicializar y sincronizar saveManager con la UI en el arranque
+    saveManager.init().then(() => {
+      this.ui.refreshMenuSlots?.();
+    }).catch(err => console.warn('[GameApp] Error en saveManager.init:', err));
   }
 
   /** Alterna 1ª/3ª persona (tecla V o ajustes). Persiste la preferencia. */
