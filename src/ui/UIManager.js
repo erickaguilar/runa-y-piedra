@@ -1476,7 +1476,7 @@ export class UIManager {
     }
 
     overlay.innerHTML = `
-      <div id="modal-inventory-panel" class="menu inventory-modal" style="max-height:86vh;overflow-y:auto;width:92vw;max-width:380px;text-align:left;padding:18px 20px;">
+      <div id="modal-inventory-panel" class="inventory-modal" style="max-height:86vh;overflow-y:auto;width:92vw;max-width:380px;text-align:left;padding:18px 20px;">
         <div class="settings-header" style="margin-bottom:14px;">
           <div style="display:flex;align-items:center;gap:8px;">
             <h2 style="display:flex;align-items:center;gap:6px;font-size:15px;">
