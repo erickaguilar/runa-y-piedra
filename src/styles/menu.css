@@ -169,10 +169,61 @@
     }
     .menu-slot-info-box {
       display: flex;
-      flex-direction: column;
-      gap: 1px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2px;
       width: 100%;
       overflow: hidden;
+    }
+    .menu-slot-info-main {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      overflow: hidden;
+      flex: 1;
+      min-width: 0;
+    }
+    .menu-chip-delete-btn {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 4px;
+      padding: 3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #ef4444;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .menu-chip-delete-btn:hover {
+      background: rgba(239, 68, 68, 0.3);
+      border-color: #ef4444;
+      transform: scale(1.1);
+    }
+    .name-input.input-locked {
+      background: rgba(15, 23, 42, 0.6);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #cbd5e1;
+      cursor: not-allowed;
+      opacity: 0.9;
+    }
+    .heroes-row.heroes-locked {
+      opacity: 0.9;
+    }
+    .heroes-row.heroes-locked .hero-chip:not(.selected) {
+      opacity: 0.35;
+      filter: grayscale(0.7);
+      cursor: not-allowed;
+    }
+    .heroes-row.heroes-locked .hero-chip:not(.selected):hover {
+      transform: none;
+      box-shadow: none;
+    }
+    .menu-delete-slot-btn:hover {
+      background: rgba(239, 68, 68, 0.28) !important;
+      border-color: #ef4444 !important;
+      color: #fff !important;
     }
     .menu-slot-hero-tag {
       display: flex;

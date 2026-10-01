@@ -49,6 +49,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       let lastLobbyButton = null;
       let lastChapterCard = null;
       let lastDeleteButton = null;
+      let lastMenuSlotChip = null;
       const mockEl = (tag = 'div') => {
         let _id = '';
         const el = {
@@ -126,9 +127,11 @@ describe('UIManager - Contratos de API de Configuración', () => {
               return [lastDeleteButton];
             }
             if (sel?.includes('menu-slot-chip')) {
-              const chip = mockEl('button');
-              chip.dataset = { slotId: 'slot_1' };
-              return [chip];
+              if (!lastMenuSlotChip) {
+                lastMenuSlotChip = mockEl('button');
+                lastMenuSlotChip.dataset = { slotId: 'slot_1' };
+              }
+              return [lastMenuSlotChip];
             }
             return [];
           },
@@ -785,6 +788,59 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.match(html, /Merlin/);
       assert.match(html, /Cap\. 2/);
       assert.match(html, /badge-saved/);
+    });
+
+    it('bloquea edición de nombre y clase si la ranura está guardada y permite edición si está vacía, con borrado en el menú', async () => {
+      const ui = new UIManager();
+      ui.showMenu({ onHost: () => {}, onJoin: () => {} });
+
+      const nameInput = document.getElementById('player-name-input');
+      assert.ok(nameInput);
+
+      // 1. Ranura con datos guardados: bloquea edición
+      ui.setMenuLockedState(true, { name: 'Conan', heroIndex: 2 });
+      assert.equal(ui.isMenuLocked, true);
+      assert.equal(nameInput.disabled, true);
+      assert.equal(nameInput.value, 'Conan');
+      assert.equal(ui.selectedColorIndex, 2);
+
+      // Intentar cambiar clase con slot bloqueado
+      const chips = ui.uiEl.querySelectorAll ? ui.uiEl.querySelectorAll('.hero-chip') : document.querySelectorAll('.hero-chip');
+      if (chips && chips.length > 0) {
+        chips[0].onclick();
+        // La clase no debe cambiar (permanece en 2)
+        assert.equal(ui.selectedColorIndex, 2);
+      }
+
+      // 2. Ranura vacía: desbloquea edición
+      ui.setMenuLockedState(false);
+      assert.equal(ui.isMenuLocked, false);
+      assert.equal(nameInput.disabled, false);
+
+      // Cambiar clase libremente cuando está desbloqueado
+      if (chips && chips.length > 0) {
+        chips[0].onclick();
+        assert.equal(ui.selectedColorIndex, 0);
+      }
+
+      // 3. Clic en las ranuras del menú NO abre el admin de guardados
+      const slotChips = ui.uiEl.querySelectorAll ? ui.uiEl.querySelectorAll('.menu-slot-chip') : document.querySelectorAll('.menu-slot-chip');
+      if (slotChips && slotChips.length > 0) {
+        await slotChips[0].onclick();
+        assert.equal(ui.isSaveSlotsOpen, false);
+      }
+
+      // 4. Botón de borrado directo desde el menú activa confirmación
+      ui.setMenuLockedState(true, { name: 'Conan', heroIndex: 0 });
+      const deleteActiveBtn = document.getElementById('btn-menu-delete-active-slot');
+      assert.ok(deleteActiveBtn);
+      assert.equal(deleteActiveBtn.style.display, 'inline-flex');
+      deleteActiveBtn.onclick();
+
+      const confirmDialog = document.getElementById('modal-confirm-dialog');
+      assert.ok(confirmDialog);
+      assert.match(confirmDialog.innerHTML, /¿Borrar Ranura 1\?/);
+      ui.closeConfirmDialog();
     });
   });
 });

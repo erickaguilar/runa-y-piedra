@@ -27,13 +27,19 @@ export const MenuMixin = {
         <h1>${renderIcon('raido', { size: 22, color: '#d97706' })} RUNA Y PIEDRA</h1>
         
         <div class="lobby-section">
-          <label class="lobby-label">Tu Aventurero</label>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <label class="lobby-label" style="margin:0">Tu Aventurero</label>
+            <span id="menu-adventurer-lock-badge" class="menu-adventurer-lock-badge" style="font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"></span>
+          </div>
           <input id="player-name-input" class="name-input" maxlength="12" 
                  placeholder="Nombre o Apodo" value="${escapeHtml(this.playerName)}" autocomplete="off" />
         </div>
 
         <div class="lobby-section">
-          <label class="lobby-label">Clase de Héroe</label>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <label class="lobby-label" style="margin:0">Clase de Héroe</label>
+            <span id="menu-hero-lock-badge" class="menu-hero-lock-badge" style="font-size:10px;"></span>
+          </div>
           <div class="heroes-row" id="heroes-row">
             ${heroesHtml}
           </div>
@@ -60,9 +66,14 @@ export const MenuMixin = {
             <label class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
               ${renderIcon('save', { size: 14, color: '#38bdf8' })} Ranuras de Guardado
             </label>
-            <button id="btn-open-save-slots" class="menu-slots-manage-btn" style="background:transparent;border:none;color:#38bdf8;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 4px;">
-              ${renderIcon('settings', { size: 12, color: '#38bdf8' })} Partidas Guardadas (3 Ranuras)
-            </button>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button id="btn-menu-delete-active-slot" class="menu-delete-slot-btn" type="button" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;font-size:10.5px;font-weight:700;cursor:pointer;border-radius:6px;padding:2px 6px;align-items:center;gap:4px;">
+                ${renderIcon('trash', { size: 11, color: '#f87171' })} Borrar Save
+              </button>
+              <button id="btn-open-save-slots" class="menu-slots-manage-btn" style="background:transparent;border:none;color:#38bdf8;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 4px;">
+                ${renderIcon('settings', { size: 12, color: '#38bdf8' })} Partidas Guardadas (3 Ranuras)
+              </button>
+            </div>
           </div>
           <div class="menu-slots-row" id="menu-slots-row">
             ${this.renderMenuSlotsHtml()}
@@ -73,60 +84,81 @@ export const MenuMixin = {
       </div>`;
 
     // 1. Selector de clases de héroe
-    const chips = this.uiEl.querySelectorAll('.hero-chip');
-    chips.forEach(chip => {
-      chip.onclick = () => {
-        soundManager.playClick();
-        chips.forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        const idx = parseInt(chip.dataset.index, 10);
-        this.selectedColorIndex = idx;
-        localStorage.setItem('dungeon_player_color', idx.toString());
+    const chips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('.hero-chip') : document.querySelectorAll('.hero-chip');
+    if (chips) {
+      chips.forEach(chip => {
+        chip.onclick = () => {
+          if (this.isMenuLocked) {
+            soundManager.playHurt?.();
+            const curHero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
+            this.showNarrativeMessage(`🔒 La clase (${curHero.name}) está bloqueada para esta partida guardada. Bórrala desde el menú para cambiar de clase.`, 3200);
+            return;
+          }
+          soundManager.playClick();
+          chips.forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          const idx = parseInt(chip.dataset.index, 10);
+          this.selectedColorIndex = idx;
+          localStorage.setItem('dungeon_player_color', idx.toString());
 
-        const hero = PLAYER_HEROES[idx];
-        const badge = document.getElementById('hero-badge');
-        if (badge) {
-          badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
-          badge.style.color = hero.color;
-        }
-        const traitContainer = document.getElementById('hero-trait-container');
-        if (traitContainer) {
-          traitContainer.innerHTML = this.renderHeroTraitCard(hero);
-        }
-      };
-    });
+          const hero = PLAYER_HEROES[idx];
+          const badge = document.getElementById('hero-badge');
+          if (badge) {
+            badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
+            badge.style.color = hero.color;
+          }
+          const traitContainer = document.getElementById('hero-trait-container');
+          if (traitContainer) {
+            traitContainer.innerHTML = this.renderHeroTraitCard(hero);
+          }
+        };
+      });
+    }
 
     // 2. Guardar nombre
     const nameInput = document.getElementById('player-name-input');
-    nameInput.addEventListener('input', (e) => {
-      const val = e.target.value.trim();
-      this.playerName = val || 'Aventurero';
-      localStorage.setItem('dungeon_player_name', this.playerName);
-    });
+    if (nameInput) {
+      nameInput.addEventListener('input', (e) => {
+        if (this.isMenuLocked) {
+          e.preventDefault();
+          return;
+        }
+        const val = e.target.value.trim();
+        this.playerName = val || 'Aventurero';
+        localStorage.setItem('dungeon_player_name', this.playerName);
+      });
+    }
 
     // 3. Crear sala
-    document.getElementById('btn-host').onclick = () => {
-      const name = nameInput.value.trim() || 'Aventurero';
-      onHost({ name, colorIndex: this.selectedColorIndex });
-    };
+    const btnHost = document.getElementById('btn-host');
+    if (btnHost) {
+      btnHost.onclick = () => {
+        const name = nameInput ? nameInput.value.trim() || 'Aventurero' : 'Aventurero';
+        onHost({ name, colorIndex: this.selectedColorIndex });
+      };
+    }
 
     // 4. Unirse
     const handleJoin = () => {
-      const pin = document.getElementById('pin-input').value.trim();
-      const name = nameInput.value.trim() || 'Aventurero';
+      const pin = document.getElementById('pin-input')?.value?.trim() || '';
+      const name = nameInput ? nameInput.value.trim() || 'Aventurero' : 'Aventurero';
       onJoin(pin, { name, colorIndex: this.selectedColorIndex });
     };
 
-    document.getElementById('btn-join').onclick = handleJoin;
-    document.getElementById('pin-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') handleJoin();
-    });
+    const btnJoin = document.getElementById('btn-join');
+    if (btnJoin) btnJoin.onclick = handleJoin;
+    const pinInput = document.getElementById('pin-input');
+    if (pinInput) {
+      pinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleJoin();
+      });
+    }
 
     // 5. Auto-join si existe parámetro ?join= en la URL
     const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
     const joinParam = urlParams?.get('join');
-    if (joinParam) {
-      document.getElementById('pin-input').value = joinParam;
+    if (joinParam && pinInput) {
+      pinInput.value = joinParam;
       this.setStatus(`Invitación a sala ${joinParam} detectada`);
     }
 
@@ -178,13 +210,18 @@ export const MenuMixin = {
               <div class="menu-slot-empty-text">${isActive ? 'Vacía (Activa)' : 'Vacía'}</div>
             ` : `
               <div class="menu-slot-info-box">
-                <div class="menu-slot-hero-tag" style="color:${hero.color}">
-                  ${renderIcon(hero.icon || 'shield', { size: 12, color: hero.color })}
-                  <span class="menu-slot-name-val">${escapeHtml(s.name)}</span>
+                <div class="menu-slot-info-main">
+                  <div class="menu-slot-hero-tag" style="color:${hero.color}">
+                    ${renderIcon(hero.icon || 'shield', { size: 12, color: hero.color })}
+                    <span class="menu-slot-name-val">${escapeHtml(s.name)}</span>
+                  </div>
+                  <div class="menu-slot-meta-tag">
+                    <span class="menu-slot-hero-class">${hero.name}</span> • <span class="menu-slot-chapter-val">Cap. ${s.highestChapter}</span>
+                  </div>
                 </div>
-                <div class="menu-slot-meta-tag">
-                  <span class="menu-slot-hero-class">${hero.name}</span> • <span class="menu-slot-chapter-val">Cap. ${s.highestChapter}</span>
-                </div>
+                <button class="menu-chip-delete-btn" data-slot-id="${s.slotId}" title="Borrar partida Ranura ${num}" type="button">
+                  ${renderIcon('trash', { size: 11, color: '#ef4444' })}
+                </button>
               </div>
             `}
           </div>
@@ -193,117 +230,272 @@ export const MenuMixin = {
     }).join('');
   },
 
-  bindMenuSlotsEvents() {
-    const slotChips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('.menu-slot-chip') : document.querySelectorAll('.menu-slot-chip');
-    if (!slotChips || slotChips.length === 0) return;
+  setMenuLockedState(isLocked, summary = null) {
+    this.isMenuLocked = !!isLocked;
+    const getEl = (id) => (typeof document !== 'undefined' && document?.getElementById ? document.getElementById(id) : (this.uiEl?.querySelector ? this.uiEl.querySelector('#' + id) : null));
+    const nameInput = getEl('player-name-input');
+    const heroesRow = getEl('heroes-row');
+    const advBadge = getEl('menu-adventurer-lock-badge');
+    const heroLockBadge = getEl('menu-hero-lock-badge');
+    const deleteActiveBtn = getEl('btn-menu-delete-active-slot');
 
-    slotChips.forEach(chip => {
-      const handleChipClick = async (e) => {
+    if (this.isMenuLocked) {
+      if (nameInput) {
+        if (summary?.name) {
+          nameInput.value = summary.name;
+          this.playerName = summary.name;
+        }
+        nameInput.disabled = true;
+        nameInput.classList.add('input-locked');
+        nameInput.title = 'Nombre bloqueado para esta partida guardada. Bórrala desde el menú para cambiar de aventurero.';
+      }
+      if (heroesRow) {
+        heroesRow.classList.add('heroes-locked');
+        heroesRow.title = 'Clase bloqueada para esta partida guardada.';
+      }
+      if (summary && Number.isFinite(summary.heroIndex)) {
+        this.selectedColorIndex = summary.heroIndex;
+        const heroChips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('#heroes-row .hero-chip') : (typeof document !== 'undefined' ? document?.querySelectorAll?.('#heroes-row .hero-chip') : null);
+        if (heroChips) {
+          heroChips.forEach(c => {
+            const idx = parseInt(c.dataset.index, 10);
+            c.classList.toggle('selected', idx === this.selectedColorIndex);
+          });
+        }
+        const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
+        const badge = getEl('hero-badge');
+        if (badge) {
+          badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
+          badge.style.color = hero.color;
+        }
+        const traitContainer = getEl('hero-trait-container');
+        if (traitContainer) {
+          traitContainer.innerHTML = this.renderHeroTraitCard(hero);
+        }
+      }
+      if (advBadge) {
+        advBadge.innerHTML = `${renderIcon('lock', { size: 11, color: '#f59e0b' })} <span style="color:#f59e0b">Guardado</span>`;
+      }
+      if (heroLockBadge) {
+        heroLockBadge.innerHTML = `<span style="color:#f59e0b;font-weight:700;">${renderIcon('lock', { size: 10, color: '#f59e0b' })} Clase fija</span>`;
+      }
+      if (deleteActiveBtn) {
+        deleteActiveBtn.style.display = 'inline-flex';
+        const num = (saveManager.currentSlotId || 'slot_1').replace('slot_', '');
+        deleteActiveBtn.innerHTML = `${renderIcon('trash', { size: 11, color: '#f87171' })} Borrar Ranura ${num}`;
+      }
+    } else {
+      if (nameInput) {
+        nameInput.disabled = false;
+        nameInput.classList.remove('input-locked');
+        nameInput.title = 'Introduce tu nombre o apodo';
+      }
+      if (heroesRow) {
+        heroesRow.classList.remove('heroes-locked');
+        heroesRow.title = 'Selecciona tu clase de héroe';
+      }
+      if (advBadge) {
+        advBadge.innerHTML = `${renderIcon('sparkles', { size: 11, color: '#22c55e' })} <span style="color:#4ade80">Nueva Partida</span>`;
+      }
+      if (heroLockBadge) {
+        heroLockBadge.innerHTML = `<span style="color:#94a3b8">1 por equipo</span>`;
+      }
+      if (deleteActiveBtn) {
+        deleteActiveBtn.style.display = 'none';
+      }
+    }
+  },
+
+  bindMenuSlotsEvents() {
+    const slotChips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('.menu-slot-chip') : (typeof document !== 'undefined' ? document?.querySelectorAll?.('.menu-slot-chip') : null);
+    if (slotChips && slotChips.length > 0) {
+      slotChips.forEach(chip => {
+        const handleChipClick = async (e) => {
+          if (e) {
+            e.stopPropagation();
+            if (e.cancelable) e.preventDefault();
+          }
+          const slotId = chip.dataset.slotId;
+          const num = slotId ? slotId.replace('slot_', '') : '1';
+
+          // Ya no abre el admin de guardados, solo afecta al modal menu
+          if (slotId === saveManager.currentSlotId) {
+            return;
+          }
+
+          soundManager.playClick();
+
+          try {
+            const updatedSave = await saveManager.switchSlot(slotId);
+            const summaries = await saveManager.getAllSlotsSummary();
+            const targetSummary = summaries.find(s => s.slotId === slotId);
+            const isSaved = targetSummary ? !targetSummary.isEmpty : false;
+
+            if (isSaved) {
+              this.playerName = updatedSave.profile?.name || 'Aventurero';
+              this.selectedColorIndex = Number.isFinite(updatedSave.profile?.favoriteHero)
+                ? updatedSave.profile.favoriteHero
+                : 0;
+              localStorage.setItem('dungeon_player_name', this.playerName);
+              localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
+            } else {
+              this.playerName = 'Aventurero';
+              this.selectedColorIndex = 0;
+              localStorage.setItem('dungeon_player_name', this.playerName);
+              localStorage.setItem('dungeon_player_color', '0');
+            }
+
+            if (updatedSave.profile?.settings) {
+              const s = updatedSave.profile.settings;
+              if (s.camera) {
+                localStorage.setItem('dungeon_camera', s.camera);
+                this.cameraModeUI = s.camera;
+                if (typeof window !== 'undefined' && window.__game?.cameraController) {
+                  window.__game.setCameraMode?.(s.camera);
+                }
+              }
+              if (s.soundMuted !== undefined) {
+                soundManager.isMuted = !!s.soundMuted;
+                localStorage.setItem('dungeon_sound_muted', s.soundMuted ? '1' : '0');
+              }
+              if (s.dpr) {
+                localStorage.setItem('dungeon_dpr', String(s.dpr));
+              }
+              if (s.sensitivity) {
+                localStorage.setItem('dungeon_sensitivity', String(s.sensitivity));
+              }
+            }
+
+            if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
+              window.__game.chapterRegistry.load?.();
+            }
+
+            this.settingsCallbacks?.onProfileSave?.({
+              name: this.playerName,
+              colorIndex: this.selectedColorIndex,
+            });
+
+            this.setMenuLockedState(isSaved, targetSummary);
+            await this.refreshMenuSlots(summaries);
+
+            if (isSaved) {
+              const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
+              this.showNarrativeMessage(`💾 Ranura ${num} cargada: ${escapeHtml(this.playerName)} (${hero.name} • Cap. ${updatedSave.campaign?.highestChapterUnlocked || 1})`, 2800);
+            } else {
+              this.showNarrativeMessage(`💾 Ranura ${num} vacía seleccionada. Personaliza tu aventurero y clase.`, 2800);
+            }
+          } catch (err) {
+            console.warn('[MenuManager] Error cambiando ranura:', err);
+            this.showNarrativeMessage(`Error al cargar ranura: ${err.message}`, 3500);
+          }
+        };
+
+        chip.onclick = handleChipClick;
+        chip.addEventListener('touchend', handleChipClick, { passive: false });
+      });
+    }
+
+    // Botones de borrado en chips
+    const chipDeleteBtns = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('.menu-chip-delete-btn') : (typeof document !== 'undefined' ? document?.querySelectorAll?.('.menu-chip-delete-btn') : null);
+    if (chipDeleteBtns && chipDeleteBtns.length > 0) {
+      chipDeleteBtns.forEach(btn => {
+        const handleDeleteChip = (e) => {
+          if (e) {
+            e.stopPropagation();
+            if (e.cancelable) e.preventDefault();
+          }
+          soundManager.playClick();
+          const slotId = btn.dataset.slotId;
+          const num = slotId ? slotId.replace('slot_', '') : '1';
+          const summary = (saveManager.getCachedSummaries() || []).find(s => s.slotId === slotId);
+          const hero = summary ? (PLAYER_HEROES[summary.heroIndex] || PLAYER_HEROES[0]) : PLAYER_HEROES[0];
+
+          this.showConfirmDialog({
+            title: `¿Borrar Ranura ${num}?`,
+            message: `¿Estás seguro de que deseas eliminar la partida de ${escapeHtml(summary?.name || 'Aventurero')} (${hero.name})? Esta acción no se puede deshacer.`,
+            confirmText: 'Borrar Guardado',
+            cancelText: 'Cancelar',
+            icon: 'trash',
+            iconColor: '#ef4444',
+            danger: true,
+            onConfirm: async () => {
+              try {
+                await saveManager.deleteSlot(slotId);
+                if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
+                  window.__game.chapterRegistry.load?.();
+                }
+                if (slotId === saveManager.currentSlotId) {
+                  this.playerName = 'Aventurero';
+                  this.selectedColorIndex = 0;
+                  localStorage.setItem('dungeon_player_name', this.playerName);
+                  localStorage.setItem('dungeon_player_color', '0');
+                  this.setMenuLockedState(false);
+                }
+                this.showNarrativeMessage(`🗑️ Ranura ${num} borrada. Puedes personalizar un nuevo héroe.`, 3000);
+                await this.refreshMenuSlots();
+              } catch (err) {
+                console.error('[MenuManager] Error borrando ranura:', err);
+                this.showNarrativeMessage(`Error al borrar: ${err.message}`, 3500);
+              }
+            },
+          });
+        };
+        btn.onclick = handleDeleteChip;
+        btn.addEventListener('touchend', handleDeleteChip, { passive: false });
+      });
+    }
+
+    // Botón de borrado de la ranura activa en cabecera
+    const getEl = (id) => (typeof document !== 'undefined' && document?.getElementById ? document.getElementById(id) : (this.uiEl?.querySelector ? this.uiEl.querySelector('#' + id) : null));
+    const deleteActiveBtn = getEl('btn-menu-delete-active-slot');
+    if (deleteActiveBtn) {
+      const handleDeleteActive = (e) => {
         if (e) {
           e.stopPropagation();
           if (e.cancelable) e.preventDefault();
         }
         soundManager.playClick();
-        const slotId = chip.dataset.slotId;
-        const num = slotId ? slotId.replace('slot_', '') : '1';
+        const activeSlotId = saveManager.currentSlotId || 'slot_1';
+        const num = activeSlotId.replace('slot_', '');
+        const summary = (saveManager.getCachedSummaries() || []).find(s => s.slotId === activeSlotId);
+        const hero = summary ? (PLAYER_HEROES[summary.heroIndex] || PLAYER_HEROES[0]) : PLAYER_HEROES[0];
 
-        if (slotId === saveManager.currentSlotId) {
-          this.openSaveSlotsModal();
-          return;
-        }
-
-        try {
-          const updatedSave = await saveManager.switchSlot(slotId);
-          const summaries = await saveManager.getAllSlotsSummary();
-          const targetSummary = summaries.find(s => s.slotId === slotId);
-
-          // Cargar toda la información de la ranura seleccionada
-          this.playerName = updatedSave.profile?.name || 'Aventurero';
-          this.selectedColorIndex = Number.isFinite(updatedSave.profile?.favoriteHero)
-            ? updatedSave.profile.favoriteHero
-            : 0;
-          localStorage.setItem('dungeon_player_name', this.playerName);
-          localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
-
-          // Cargar ajustes del perfil si existen
-          if (updatedSave.profile?.settings) {
-            const s = updatedSave.profile.settings;
-            if (s.camera) {
-              localStorage.setItem('dungeon_camera', s.camera);
-              this.cameraModeUI = s.camera;
-              if (typeof window !== 'undefined' && window.__game?.cameraController) {
-                window.__game.setCameraMode?.(s.camera);
+        this.showConfirmDialog({
+          title: `¿Borrar Ranura ${num}?`,
+          message: `¿Estás seguro de que deseas eliminar la partida de ${escapeHtml(summary?.name || this.playerName)} (${hero.name})? Se perderá todo el progreso y se reiniciará la ranura.`,
+          confirmText: 'Borrar Guardado',
+          cancelText: 'Cancelar',
+          icon: 'trash',
+          iconColor: '#ef4444',
+          danger: true,
+          onConfirm: async () => {
+            try {
+              await saveManager.deleteSlot(activeSlotId);
+              if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
+                window.__game.chapterRegistry.load?.();
               }
+              this.playerName = 'Aventurero';
+              this.selectedColorIndex = 0;
+              localStorage.setItem('dungeon_player_name', this.playerName);
+              localStorage.setItem('dungeon_player_color', '0');
+              this.setMenuLockedState(false);
+              this.showNarrativeMessage(`🗑️ Ranura ${num} borrada. Ahora puedes personalizar un nuevo aventurero.`, 3000);
+              await this.refreshMenuSlots();
+            } catch (err) {
+              console.error('[MenuManager] Error borrando ranura activa:', err);
+              this.showNarrativeMessage(`Error al borrar: ${err.message}`, 3500);
             }
-            if (s.soundMuted !== undefined) {
-              soundManager.isMuted = !!s.soundMuted;
-              localStorage.setItem('dungeon_sound_muted', s.soundMuted ? '1' : '0');
-            }
-            if (s.dpr) {
-              localStorage.setItem('dungeon_dpr', String(s.dpr));
-            }
-            if (s.sensitivity) {
-              localStorage.setItem('dungeon_sensitivity', String(s.sensitivity));
-            }
-          }
-
-          // Cargar progreso de campaña en el registro de capítulos
-          if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-            window.__game.chapterRegistry.load?.();
-          }
-
-          this.settingsCallbacks?.onProfileSave?.({
-            name: this.playerName,
-            colorIndex: this.selectedColorIndex,
-          });
-
-          // Actualizar campos del menú principal en tiempo real
-          const nameInput = document.getElementById('player-name-input');
-          if (nameInput) {
-            nameInput.value = this.playerName;
-          }
-
-          const heroChips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('#heroes-row .hero-chip') : document.querySelectorAll('#heroes-row .hero-chip');
-          if (heroChips) {
-            heroChips.forEach(c => {
-              const idx = parseInt(c.dataset.index, 10);
-              c.classList.toggle('selected', idx === this.selectedColorIndex);
-            });
-          }
-
-          const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
-          const badge = document.getElementById('hero-badge');
-          if (badge) {
-            badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
-            badge.style.color = hero.color;
-          }
-
-          const traitContainer = document.getElementById('hero-trait-container');
-          if (traitContainer) {
-            traitContainer.innerHTML = this.renderHeroTraitCard(hero);
-          }
-
-          // Refrescar los chips visuales de ranura
-          await this.refreshMenuSlots(summaries);
-
-          if (targetSummary && !targetSummary.isEmpty) {
-            this.showNarrativeMessage(`💾 Ranura ${num} cargada: ${escapeHtml(this.playerName)} (${hero.name} • Cap. ${updatedSave.campaign?.highestChapterUnlocked || 1})`, 2800);
-          } else {
-            this.showNarrativeMessage(`💾 Ranura ${num} vacía seleccionada.`, 2500);
-          }
-        } catch (err) {
-          console.warn('[MenuManager] Error cambiando ranura:', err);
-          this.showNarrativeMessage(`Error al cargar ranura: ${err.message}`, 3500);
-        }
+          },
+        });
       };
-
-      chip.onclick = handleChipClick;
-      chip.addEventListener('touchend', handleChipClick, { passive: false });
-    });
+      deleteActiveBtn.onclick = handleDeleteActive;
+      deleteActiveBtn.addEventListener('touchend', handleDeleteActive, { passive: false });
+    }
   },
 
   async refreshMenuSlots(providedSummaries = null) {
-    const slotsRow = document.getElementById('menu-slots-row');
+    const getEl = (id) => (typeof document !== 'undefined' && document?.getElementById ? document.getElementById(id) : (this.uiEl?.querySelector ? this.uiEl.querySelector('#' + id) : null));
+    const slotsRow = getEl('menu-slots-row');
     if (!slotsRow) return;
 
     try {
@@ -311,43 +503,9 @@ export const MenuMixin = {
       slotsRow.innerHTML = this.renderMenuSlotsHtml(summaries);
       this.bindMenuSlotsEvents();
 
-      // Si la ranura activa tiene información y el menú difiere, cargar la información del perfil
       const activeSlot = summaries.find(s => s.isActive);
-      if (activeSlot && !activeSlot.isEmpty && saveManager.currentSave?.profile) {
-        const profile = saveManager.currentSave.profile;
-        let changed = false;
-        if (profile.name && this.playerName !== profile.name) {
-          this.playerName = profile.name;
-          localStorage.setItem('dungeon_player_name', this.playerName);
-          const nameInput = document.getElementById('player-name-input');
-          if (nameInput) nameInput.value = this.playerName;
-          changed = true;
-        }
-        if (Number.isFinite(profile.favoriteHero) && this.selectedColorIndex !== profile.favoriteHero) {
-          this.selectedColorIndex = profile.favoriteHero;
-          localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
-          changed = true;
-        }
-        if (changed) {
-          const heroChips = this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('#heroes-row .hero-chip') : document.querySelectorAll('#heroes-row .hero-chip');
-          if (heroChips) {
-            heroChips.forEach(c => {
-              const idx = parseInt(c.dataset.index, 10);
-              c.classList.toggle('selected', idx === this.selectedColorIndex);
-            });
-          }
-          const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
-          const badge = document.getElementById('hero-badge');
-          if (badge) {
-            badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
-            badge.style.color = hero.color;
-          }
-          const traitContainer = document.getElementById('hero-trait-container');
-          if (traitContainer) {
-            traitContainer.innerHTML = this.renderHeroTraitCard(hero);
-          }
-        }
-      }
+      const isSaved = activeSlot ? !activeSlot.isEmpty : false;
+      this.setMenuLockedState(isSaved, activeSlot);
     } catch (err) {
       console.warn('[MenuManager] Error refrescando ranuras:', err);
     }
