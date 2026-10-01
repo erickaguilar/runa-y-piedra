@@ -30,6 +30,9 @@ describe('UIManager - Contratos de API de Configuración', () => {
     assert.equal(typeof UIManager.prototype.hideControlsHud, 'function');
     assert.equal(typeof UIManager.prototype.toggleControlsHud, 'function');
     assert.equal(typeof UIManager.prototype.setTutorialControlsVisible, 'function');
+    assert.equal(typeof UIManager.prototype.openSaveSlotsModal, 'function');
+    assert.equal(typeof UIManager.prototype.closeSaveSlotsModal, 'function');
+    assert.equal(typeof UIManager.prototype.toggleSaveSlotsModal, 'function');
   });
 
   describe('comportamiento con DOM simulado', () => {
@@ -692,6 +695,37 @@ describe('UIManager - Contratos de API de Configuración', () => {
       ui.closeChapterModal();
       assert.equal(ui.isChapterOpen, false);
       assert.equal(ui.currentScreen, 'in_game');
+    });
+
+    it('gestiona el modal de 3 ranuras de guardado y botones de menú/configuración', async () => {
+      const ui = new UIManager();
+
+      // 1. Botón en el menú principal
+      ui.showMenu({ onHost: () => {}, onJoin: () => {} });
+      assert.match(ui.uiEl.innerHTML, /id="btn-open-save-slots"/);
+      assert.match(ui.uiEl.innerHTML, /Partidas Guardadas \(3 Ranuras\)/);
+
+      // 2. Botón en el modal de configuración
+      ui.openSettingsModal();
+      assert.match(ui.uiEl.innerHTML, /id="btn-settings-save-slots"/);
+      assert.match(ui.uiEl.innerHTML, /Administrar Ranuras \(3 Slots\)/);
+      ui.closeSettingsModal();
+
+      // 3. Apertura de modal de ranuras
+      await ui.openSaveSlotsModal();
+      assert.equal(ui.isSaveSlotsOpen, true);
+      const overlay = document.getElementById('modal-save-slots-overlay');
+      assert.ok(overlay);
+      assert.match(overlay.innerHTML, /Ranuras de Guardado/);
+      assert.match(overlay.innerHTML, /Ranura 1/);
+      assert.match(overlay.innerHTML, /Ranura 2/);
+      assert.match(overlay.innerHTML, /Ranura 3/);
+      assert.match(overlay.innerHTML, /Regla de la Mazmorra/);
+      assert.match(overlay.innerHTML, /El progreso y los tesoros solo se guardan de forma permanente al culminar una mazmorra/);
+
+      // 4. Cierre del modal
+      ui.closeSaveSlotsModal();
+      assert.equal(ui.isSaveSlotsOpen, false);
     });
   });
 });

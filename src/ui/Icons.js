@@ -573,6 +573,46 @@ export const ICONS = {
     defaultColor: '#38bdf8',
     body: `<polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="2" x2="8" y2="18" stroke-linecap="round"/><line x1="16" y1="6" x2="16" y2="22" stroke-linecap="round"/>`,
   },
+
+  save: {
+    name: 'save',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17 21 17 13 7 13 7 21" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 3 7 8 15 8" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  trash: {
+    name: 'trash',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#ef4444',
+    body: `<polyline points="3 6 5 6 21 6" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  download: {
+    name: 'download',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 10 12 15 17 10" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+
+  upload: {
+    name: 'upload',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#38bdf8',
+    body: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17 8 12 3 7 8" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
 };
 
 /**
@@ -586,6 +626,11 @@ export const ICON_ALIASES = {
   clock: 'timer',
   atlas: 'map',
   lightning: 'bolt',
+  disk: 'save',
+  floppy: 'save',
+  delete: 'trash',
+  export: 'download',
+  import: 'upload',
 };
 
 /**
@@ -644,6 +689,8 @@ export const EMOJI_TO_ICON_MAP = [
   { regex: /⚡\uFE0F?/g, icon: 'bolt',         defaultColor: '#facc15' },
   { regex: /⏱\uFE0F?/g, icon: 'timer',        defaultColor: '#fbbf24' },
   { regex: /🗺\uFE0F?/g, icon: 'map',          defaultColor: '#38bdf8' },
+  { regex: /💾\uFE0F?/g, icon: 'save',         defaultColor: '#38bdf8' },
+  { regex: /🗑\uFE0F?/g, icon: 'trash',        defaultColor: '#ef4444' },
 ];
 
 /**

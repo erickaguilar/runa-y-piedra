@@ -1,6 +1,7 @@
 import { PLAYER_HEROES } from '../config/constants.js';
 import { renderIcon, escapeHtml } from './Icons.js';
 import { soundManager } from '../audio/SoundManager.js';
+import { saveManager } from '../storage/SaveManager.js';
 
 export const MenuMixin = {
   showMenu({ onHost, onJoin }) {
@@ -51,6 +52,30 @@ export const MenuMixin = {
         <div class="join-container">
           <input id="pin-input" class="join-input" placeholder="0000" maxlength="4" inputmode="numeric" />
           <button id="btn-join" class="btn-join">Unirse</button>
+        </div>
+
+        <!-- Ranuras de Guardado -->
+        <div class="lobby-section">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <label class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
+              ${renderIcon('save', { size: 14, color: '#38bdf8' })} Ranuras de Guardado
+            </label>
+            <button id="btn-open-save-slots" class="menu-slots-manage-btn" style="background:transparent;border:none;color:#38bdf8;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 4px;">
+              ${renderIcon('settings', { size: 12, color: '#38bdf8' })} Partidas Guardadas (3 Ranuras)
+            </button>
+          </div>
+          <div class="menu-slots-row" id="menu-slots-row">
+            ${['slot_1', 'slot_2', 'slot_3'].map(id => {
+              const num = id.replace('slot_', '');
+              const isActive = id === (saveManager.currentSlotId || 'slot_1');
+              return `
+                <button class="menu-slot-chip ${isActive ? 'active' : ''}" data-slot-id="${id}" type="button">
+                  <span class="menu-slot-num">Ranura ${num}</span>
+                  <span class="menu-slot-badge">${isActive ? 'Activa' : 'Cargar'}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
         </div>
 
         <div class="status" id="status"></div>
@@ -107,11 +132,46 @@ export const MenuMixin = {
     });
 
     // 5. Auto-join si existe parámetro ?join= en la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const joinParam = urlParams.get('join');
+    const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
+    const joinParam = urlParams?.get('join');
     if (joinParam) {
       document.getElementById('pin-input').value = joinParam;
       this.setStatus(`Invitación a sala ${joinParam} detectada`);
+    }
+
+    // 6. Ranuras de Guardado en el Menú Principal
+    const slotChips = this.uiEl.querySelectorAll('.menu-slot-chip');
+    slotChips.forEach(chip => {
+      chip.onclick = async () => {
+        soundManager.playClick();
+        const slotId = chip.dataset.slotId;
+        if (slotId === saveManager.currentSlotId) {
+          this.openSaveSlotsModal();
+          return;
+        }
+        try {
+          const updatedSave = await saveManager.switchSlot(slotId);
+          this.playerName = updatedSave.profile?.name || 'Aventurero';
+          this.selectedColorIndex = Number.isFinite(updatedSave.profile?.favoriteHero) ? updatedSave.profile.favoriteHero : 0;
+          localStorage.setItem('dungeon_player_name', this.playerName);
+          localStorage.setItem('dungeon_player_color', this.selectedColorIndex.toString());
+          if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
+            window.__game.chapterRegistry.load();
+          }
+          this.showMenu(this.lastMenuParams);
+          this.showNarrativeMessage(`💾 Ranura ${slotId.replace('slot_', '')} activada y cargada.`, 2500);
+        } catch (err) {
+          console.warn('[MenuManager] Error cambiando ranura:', err);
+        }
+      };
+    });
+
+    const btnSlots = document.getElementById('btn-open-save-slots');
+    if (btnSlots) {
+      btnSlots.onclick = () => {
+        soundManager.playClick();
+        this.openSaveSlotsModal();
+      };
     }
   },
 

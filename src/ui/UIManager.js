@@ -86,6 +86,7 @@ export class UIManager {
     this.currentScreen = 'menu'; // 'menu' | 'in_game'
     this.lastMenuParams = null;
     this.isSettingsOpen = false;
+    this.isSaveSlotsOpen = false;
     this.settingsCallbacks = null;
     this.devCallbacks = null;
     this.descentCard = null;

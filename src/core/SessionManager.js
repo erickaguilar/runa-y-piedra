@@ -8,6 +8,7 @@ import * as Proto from '../network/Protocol.js';
 import { buildWorldSnapshot } from '../network/HostSnapshot.js';
 import { WORLD_CONFIG } from '../config/constants.js';
 import { escapeHtml } from '../ui/Icons.js';
+import { saveManager } from '../storage/SaveManager.js';
 
 export const SessionMixin = {
   async startHost(profile = {}) {
@@ -217,6 +218,38 @@ export const SessionMixin = {
       this.switchLevel(firstDungeon.id, true);
     }, 400);
     return true;
+  },
+
+  /**
+   * Guarda de forma persistente y atómica el avance únicamente al completar una mazmorra.
+   * Invocado en descenso por escalinata o al culminar el altar supremo de capítulo.
+   */
+  saveDungeonCompletion(completedLevelId, isVictory = false) {
+    if (this.mode === 'client') return; // Solo la sesión anfitriona o local persiste el avance canónico
+    if (!completedLevelId || completedLevelId === 'lobby_tutorial' || completedLevelId === 'dev_showroom') {
+      return;
+    }
+
+    try {
+      const curChapter = this.chapterRegistry?.getChapterForLevel(completedLevelId)
+        || this.chapterRegistry?.getCurrentChapter();
+      const progress = this.chapterRegistry?.progress;
+
+      saveManager.saveDungeonCompletion({
+        levelId: completedLevelId,
+        chapterId: curChapter?.id || 'capitulo_1',
+        isVictory,
+        campaign: progress,
+        inventory: {
+          totalGems: this.inventory?.gems || 0,
+          potions: this.inventory?.potions || [],
+        },
+      });
+
+      this.ui.showNarrativeMessage('💾 ¡Mazmorra completada! Progreso guardado con éxito.', 3500);
+    } catch (err) {
+      console.warn('[SessionManager] Error al guardar finalización de mazmorra:', err);
+    }
   },
 
   /** Fase 2 MVP: foto de mazmorra para host-migration (nivel + puertas + cofres + losa). */

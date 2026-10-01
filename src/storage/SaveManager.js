@@ -13,6 +13,7 @@ import { HybridStorageAdapter } from './StorageAdapters.js';
 
 export const SAVE_SCHEMA_VERSION = 2;
 export const DEFAULT_SLOT_ID = 'slot_1';
+export const AVAILABLE_SLOTS = Object.freeze(['slot_1', 'slot_2', 'slot_3']);
 export const LEGACY_CAMPAIGN_KEY = 'runa_campaign_progress_v1';
 
 /**
@@ -346,19 +347,129 @@ export class SaveManager {
     } catch { /* Entorno sin localStorage */ }
   }
 
-  // --- Getters y Actualizadores Síncronos con Auto-Guardado Asíncrono ---
+  // --- Gestión de las 3 Ranuras de Guardado ---
+
+  /**
+   * Obtiene el resumen de estado de las 3 ranuras disponibles.
+   * @returns {Promise<Array<Object>>}
+   */
+  async getAllSlotsSummary() {
+    const summaries = [];
+    for (const slotId of AVAILABLE_SLOTS) {
+      const activeKey = `save_${slotId}_active`;
+      let data = null;
+      try {
+        data = await this.adapter.get(activeKey);
+      } catch {}
+
+      if (data && validateSaveData(data)) {
+        summaries.push({
+          slotId,
+          isEmpty: false,
+          isActive: slotId === this.currentSlotId,
+          name: data.profile?.name || 'Aventurero',
+          heroIndex: Number.isFinite(data.profile?.favoriteHero) ? data.profile.favoriteHero : 0,
+          highestChapter: data.campaign?.highestChapterUnlocked || 1,
+          completedCount: Array.isArray(data.campaign?.completedChapters) ? data.campaign.completedChapters.length : 0,
+          totalGems: data.inventory?.totalGems || 0,
+          updatedAt: data.updatedAt || null,
+        });
+      } else {
+        summaries.push({
+          slotId,
+          isEmpty: true,
+          isActive: slotId === this.currentSlotId,
+          name: 'Ranura Vacía',
+          heroIndex: 0,
+          highestChapter: 1,
+          completedCount: 0,
+          totalGems: 0,
+          updatedAt: null,
+        });
+      }
+    }
+    return summaries;
+  }
+
+  /**
+   * Cambia la ranura de guardado activa cargando sus datos canónicos.
+   * @param {string} slotId - 'slot_1' | 'slot_2' | 'slot_3'
+   */
+  async switchSlot(slotId) {
+    if (!AVAILABLE_SLOTS.includes(slotId)) {
+      throw new Error(`Ranura no válida: ${slotId}`);
+    }
+    this.currentSlotId = slotId;
+    this.currentSave = await this.loadSlot(slotId);
+    this._writeLegacyMirror(this.currentSave);
+    this._notifyChange();
+    return this.currentSave;
+  }
+
+  /**
+   * Reinicia/borra los datos de una ranura de guardado.
+   * @param {string} slotId - 'slot_1' | 'slot_2' | 'slot_3'
+   */
+  async deleteSlot(slotId) {
+    if (!AVAILABLE_SLOTS.includes(slotId)) {
+      throw new Error(`Ranura no válida: ${slotId}`);
+    }
+    const activeKey = `save_${slotId}_active`;
+    const backupKey = `save_${slotId}_backup`;
+    await this.adapter.delete(activeKey);
+    await this.adapter.delete(backupKey);
+
+    if (slotId === this.currentSlotId) {
+      this.currentSave = createDefaultSave(slotId);
+      this._writeLegacyMirror(this.currentSave);
+      this._notifyChange();
+    }
+    return true;
+  }
+
+  /**
+   * Guarda de forma explícita y atómica la partida al terminar una mazmorra.
+   * Regla de negocio: El progreso de campaña solo se persiste en disco al completar con éxito una mazmorra.
+   */
+  async saveDungeonCompletion({ levelId, chapterId, isVictory = false, campaign = null, inventory = null } = {}) {
+    if (campaign && typeof campaign === 'object') {
+      this.currentSave.campaign = {
+        ...this.currentSave.campaign,
+        ...campaign,
+      };
+    }
+    if (inventory && typeof inventory === 'object') {
+      this.currentSave.inventory = {
+        ...this.currentSave.inventory,
+        totalGems: inventory.totalGems ?? this.currentSave.inventory.totalGems ?? 0,
+        potions: Array.isArray(inventory.potions) ? [...inventory.potions] : (this.currentSave.inventory.potions || []),
+      };
+    }
+
+    // Limpiar suspendState ya que la mazmorra se superó
+    this.currentSave.suspendState = null;
+    this.currentSave.updatedAt = Date.now();
+    this.currentSave.checksum = calculateChecksum(this.currentSave);
+
+    await this.saveSlot(this.currentSlotId, this.currentSave);
+    return this.currentSave;
+  }
+
+  // --- Getters y Actualizadores de Memoria ---
 
   getCampaign() {
     return this.currentSave.campaign;
   }
 
-  updateCampaign(partialCampaign) {
+  updateCampaign(partialCampaign, { immediateSave = false } = {}) {
     this.currentSave.campaign = {
       ...this.currentSave.campaign,
       ...partialCampaign,
     };
     this.currentSave.checksum = calculateChecksum(this.currentSave);
-    this.saveCurrent().catch((err) => console.error('[SaveManager] Error en auto-save de campaña:', err));
+    if (immediateSave) {
+      this.saveCurrent().catch((err) => console.error('[SaveManager] Error en auto-save de campaña:', err));
+    }
     return this.currentSave.campaign;
   }
 
@@ -434,6 +545,20 @@ export class SaveManager {
     return JSON.stringify(clean, null, 2);
   }
 
+  async exportSlotJson(slotId = this.currentSlotId) {
+    let save = (slotId === this.currentSlotId) ? this.currentSave : null;
+    if (!save) {
+      save = await this.loadSlot(slotId);
+    }
+    if (!save) return null;
+    const clean = {
+      ...save,
+      updatedAt: Date.now(),
+    };
+    clean.checksum = calculateChecksum(clean);
+    return JSON.stringify(clean, null, 2);
+  }
+
   async importSaveJson(jsonString, targetSlotId = this.currentSlotId) {
     try {
       const parsed = JSON.parse(jsonString);
@@ -456,6 +581,11 @@ export class SaveManager {
       normalized.checksum = calculateChecksum(normalized);
 
       await this.saveSlot(targetSlotId, normalized);
+      if (targetSlotId === this.currentSlotId) {
+        this.currentSave = normalized;
+        this._writeLegacyMirror(normalized);
+        this._notifyChange();
+      }
       return normalized;
     } catch (err) {
       throw new Error(`Error importando partida: ${err?.message || err}`);

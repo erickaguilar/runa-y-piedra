@@ -509,6 +509,10 @@ export class InteractionController {
         }
       }
 
+      if (curLevelId && curLevelId !== 'lobby_tutorial' && curLevelId !== 'dev_showroom') {
+        game.saveDungeonCompletion?.(curLevelId, true);
+      }
+
       const title = curChapter ? `🏆 ¡${curChapter.name} Conquistado!` : '🏆 ¡Mazmorras Conquistadas!';
       const subtitle = `Habéis bendecido todos los altares.${unlockMsg} Regresando al Campamento...`;
 

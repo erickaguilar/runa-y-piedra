@@ -8,6 +8,7 @@ import {
   migrateFromLegacy,
   SAVE_SCHEMA_VERSION,
   DEFAULT_SLOT_ID,
+  AVAILABLE_SLOTS,
   LEGACY_CAMPAIGN_KEY,
 } from '../src/storage/SaveManager.js';
 import { MemoryAdapter, LocalStorageAdapter } from '../src/storage/StorageAdapters.js';
@@ -230,6 +231,106 @@ describe('SaveManager - Persistencia Robusta y SaveSchema v2', () => {
       await assert.rejects(async () => {
         await manager.importSaveJson(tampered, 'slot_1');
       }, /validación de integridad/);
+    });
+  });
+
+  describe('Gestión de 3 Ranuras de Guardado y Persistencia Exclusiva al Terminar Mazmorra', () => {
+    it('dispone de exactamente 3 ranuras disponibles en la constante AVAILABLE_SLOTS', () => {
+      assert.deepEqual(AVAILABLE_SLOTS, ['slot_1', 'slot_2', 'slot_3']);
+      assert.equal(AVAILABLE_SLOTS.length, 3);
+    });
+
+    it('getAllSlotsSummary devuelve el resumen de las 3 ranuras con indicador de ranura activa', async () => {
+      await manager.init('slot_1');
+      const summaries = await manager.getAllSlotsSummary();
+
+      assert.equal(summaries.length, 3);
+      assert.equal(summaries[0].slotId, 'slot_1');
+      assert.equal(summaries[0].isActive, true);
+      assert.equal(summaries[0].isEmpty, false); // inicializado por init
+
+      assert.equal(summaries[1].slotId, 'slot_2');
+      assert.equal(summaries[1].isActive, false);
+      assert.equal(summaries[1].isEmpty, true);
+
+      assert.equal(summaries[2].slotId, 'slot_3');
+      assert.equal(summaries[2].isActive, false);
+      assert.equal(summaries[2].isEmpty, true);
+    });
+
+    it('switchSlot cambia la ranura activa y carga sus datos canónicos', async () => {
+      await manager.init('slot_1');
+      assert.equal(manager.currentSlotId, 'slot_1');
+
+      // Crear y modificar datos en slot_2
+      await manager.switchSlot('slot_2');
+      assert.equal(manager.currentSlotId, 'slot_2');
+      manager.currentSave.profile.name = 'HéroeSlot2';
+
+      await manager.saveDungeonCompletion({
+        levelId: 'crypt_shadows',
+        chapterId: 'capitulo_1',
+        isVictory: true,
+        campaign: { highestChapterUnlocked: 2 },
+        inventory: { totalGems: 45 },
+      });
+
+      // Cambiar de vuelta a slot_1
+      await manager.switchSlot('slot_1');
+      assert.equal(manager.currentSlotId, 'slot_1');
+      assert.equal(manager.currentSave.campaign.highestChapterUnlocked, 1);
+
+      // Regresar a slot_2: debe conservar el progreso guardado
+      await manager.switchSlot('slot_2');
+      assert.equal(manager.currentSlotId, 'slot_2');
+      assert.equal(manager.currentSave.profile.name, 'HéroeSlot2');
+      assert.equal(manager.currentSave.campaign.highestChapterUnlocked, 2);
+      assert.equal(manager.currentSave.inventory.totalGems, 45);
+    });
+
+    it('deleteSlot borra claves activas y de backup y reinicia el slot a valores por defecto', async () => {
+      await manager.init('slot_3');
+      await manager.saveDungeonCompletion({
+        levelId: 'crypt_shadows',
+        campaign: { highestChapterUnlocked: 5 },
+        inventory: { totalGems: 999 },
+      });
+
+      assert.equal(manager.currentSave.campaign.highestChapterUnlocked, 5);
+
+      await manager.deleteSlot('slot_3');
+      assert.equal(manager.currentSave.campaign.highestChapterUnlocked, 1);
+      assert.equal(manager.currentSave.inventory.totalGems, 0);
+
+      const activeKey = await memoryAdapter.get('save_slot_3_active');
+      assert.equal(activeKey, null);
+    });
+
+    it('updateCampaign en memoria no persiste a almacenamiento a menos que se invoque saveDungeonCompletion', async () => {
+      await manager.init('slot_1');
+
+      // Modificación durante el juego en memoria
+      manager.updateCampaign({ highestChapterUnlocked: 4 });
+      assert.equal(manager.getCampaign().highestChapterUnlocked, 4);
+
+      // El almacenamiento persistente NO debe tener el capítulo 4 aún (política estricta al terminar mazmorra)
+      const storedBefore = await memoryAdapter.get('save_slot_1_active');
+      assert.equal(storedBefore.campaign.highestChapterUnlocked, 1);
+
+      // Ahora se completa la mazmorra
+      await manager.saveDungeonCompletion({
+        levelId: 'dungeon_classic',
+        chapterId: 'capitulo_1',
+        isVictory: false,
+        campaign: { highestChapterUnlocked: 2 },
+        inventory: { totalGems: 50 },
+      });
+
+      // Ahora SÍ debe estar persistido en el almacenamiento
+      const storedAfter = await memoryAdapter.get('save_slot_1_active');
+      assert.equal(storedAfter.campaign.highestChapterUnlocked, 2);
+      assert.equal(storedAfter.inventory.totalGems, 50);
+      assert.equal(validateSaveData(storedAfter), true);
     });
   });
 });

@@ -99,6 +99,10 @@ export class DescentManager {
   beginFade(nextName = '') {
     this.transitioning = true;
     this.freezeAllPlayers();
+    const curLevelId = this.game.world?.levelRegistry?.getCurrentLevel()?.id;
+    if (curLevelId && curLevelId !== 'lobby_tutorial' && curLevelId !== 'dev_showroom') {
+      this.game.saveDungeonCompletion?.(curLevelId, false);
+    }
     this.game.ui.hideDescent();
     this.game.ui.hideNarrativeMessage?.();
     this.game.ui.showLevelTransition(nextName || 'Descendiendo...', 'Descendiendo a las profundidades…');
