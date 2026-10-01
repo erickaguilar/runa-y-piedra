@@ -87,11 +87,29 @@ test('VoxelMap distribuye deterministamente las 5 variantes de sprites para el b
   assert.equal(seen.size, 5, 'Debe generar las 5 variantes distintas de lava');
 });
 
+test('VoxelMap distribuye deterministamente las 5 variantes de sprites para el bloque PILLAR', () => {
+  const validTiles = new Set([10, 12, 20, 21, 22]);
+  const seen = new Set();
+  for (let x = 0; x < 24; x++) {
+    for (let z = 0; z < 36; z++) {
+      for (let y = 1; y <= 5; y++) {
+        const tile = VoxelMap.selectTile(x, y, z, BLOCK_TYPES.PILLAR);
+        assert.ok(validTiles.has(tile), `Tile ${tile} debe ser una de las variantes válidas de pilar`);
+        seen.add(tile);
+      }
+    }
+  }
+  assert.equal(seen.size, 5, 'Debe generar las 5 variantes distintas de pilares (base, lisa, musgo, desgaste, oscuro)');
+});
+
 test('VoxelMap.getTileUVOffset calcula coordenadas UV exactas para la cuadrícula 4x8', () => {
   assert.deepEqual(VoxelMap.getTileUVOffset(0), { u: 0.0, v: 0.875 });
   assert.deepEqual(VoxelMap.getTileUVOffset(13), { u: 0.25, v: 0.5 });
   assert.deepEqual(VoxelMap.getTileUVOffset(16), { u: 0.0, v: 0.375 });
   assert.deepEqual(VoxelMap.getTileUVOffset(19), { u: 0.75, v: 0.375 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(20), { u: 0.0, v: 0.25 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(21), { u: 0.25, v: 0.25 });
+  assert.deepEqual(VoxelMap.getTileUVOffset(22), { u: 0.5, v: 0.25 });
 });
 
 test('abyss_throne Sala 1 contiene el cofre con la poción de vida para recuperar 1 corazón', () => {

@@ -221,7 +221,7 @@ varying vec2 vAtlasOffset;`
    * Selecciona deterministamente una de las 5 variantes por grupo de bloque:
    * - Muros (Tiles 0 a 4): Sillar regular, sillar agrietado, mampostería, musgo, glifo rúnico.
    * - Suelo (Tiles 5 a 9): Grandes losas 2x2, losa fracturada, adoquines, losa musgosa, rombo ceremonial.
-   * - Pilares (Tiles 10 a 14): Columna estriada, forja con remaches, almohadillado rústico, salomónica, capitel/base moldurada.
+   * - Pilares (5 variaciones, Tiles 10, 12, 20, 21, 22): Columna monolítica base, columna lisa, columna con musgo, columna con desgaste, columna tono oscuro.
    */
   static selectTile(x, y, z, type) {
     const h = VoxelMap.hashCoord(x, y, z);
@@ -248,8 +248,14 @@ varying vec2 vAtlasOffset;`
         return 7;             // floorTilesMossy
       }
       case BLOCK_TYPES.PILLAR: {
-        // Sprite unificado de columna monolítica continua: fuste oscuro, desgastado y sin costuras horizontales
-        return 10;
+        // 5 Variantes de Pilares / Columnas (distribución orgánica determinista):
+        // Tile 10: Columna Monolítica Continua (fuste estándar con micro-desgaste)
+        // Tile 12: Columna Acanalada Lisa (fuste de cantería limpio)
+        // Tile 20: Columna con Musgo (vegetación y líquenes en hendiduras de estrías)
+        // Tile 21: Columna con Desgaste (fracturas estructurales y mampostería erosionada)
+        // Tile 22: Columna Tono Oscuro (sillar de basalto ensombrecido)
+        const pillarPalette = [10, 12, 20, 21, 22];
+        return pillarPalette[h % pillarPalette.length];
       }
       case BLOCK_TYPES.RESPAWN_PAD:
         return 11; // Losa rúnica de aparición / reaparición con glifo cian celestial

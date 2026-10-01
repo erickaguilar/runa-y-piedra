@@ -6,7 +6,7 @@
 
 Esta arquitectura separa estrictamente el renderizado del mundo en dos subsistemas coordinados:
 
-1. **Mundo Vóxel Instanciado (`VoxelMap.js`)**: Renderizado masivo de hasta 13,824 bloques cúbicos simultáneos mediante un único `THREE.InstancedMesh`. Las texturas no se cargan como archivos PNG/JPG independientes, sino que se muestrean desde un **Texture Atlas vectorial procedural SVG de $512 \times 1024$ píxeles** ($4 \times 8$ casillas, 20 sprites procedurales activos) inyectado directamente en el shader (`onBeforeCompile`), permitiendo renderizar toda la geometría estática en **1 sola llamada de dibujo (Draw Call)**.
+1. **Mundo Vóxel Instanciado (`VoxelMap.js`)**: Renderizado masivo de hasta 13,824 bloques cúbicos simultáneos mediante un único `THREE.InstancedMesh`. Las texturas no se cargan como archivos PNG/JPG independientes, sino que se muestrean desde un **Texture Atlas vectorial procedural SVG de $512 \times 1024$ píxeles** ($4 \times 8$ casillas, 23 sprites procedurales activos) inyectado directamente en el shader (`onBeforeCompile`), permitiendo renderizar toda la geometría estática en **1 sola llamada de dibujo (Draw Call)**.
 2. **Entidades 3D Interactivas y Dinámicas (`AvatarRenderer.js`, `ChestRenderer.js`, `DoorRenderer.js`, `PedestalRenderer.js`, `StairsRenderer.js`)**: Modelos tridimensionales paramétricos con geometrías optimizadas y fusionadas (`BufferGeometryUtils.mergeGeometries`), provistos de simulaciones físicas basadas en resortes (*Spring mechanics*), luces puntuales dinámicas y sistemas de partículas.
 
 ```
@@ -21,7 +21,7 @@ Esta arquitectura separa estrictamente el renderizado del mundo en dos subsistem
      ├─────────────────────────────┤                 ├─────────────────────────────┤
      │ • InstancedMesh (Box 1x1x1) │                 │ • Avatares (5 Clases Héroe) │
      │ • Atlas Vectorial 4x8 SVG   │                 │ • Cofres con apertura 85°   │
-     │ • 20 Sprites Procedurales   │                 │ • Puertas de Doble Hoja     │
+     │ • 23 Sprites Procedurales   │                 │ • Puertas de Doble Hoja     │
      │ • Shaders con Atlas Offset  │                 │ • Altar con Orbe Flotante   │
      │ • Modulación THREE_COLORS   │                 │ • Escalinata con Losa Desl. │
      └─────────────────────────────┘                 └─────────────────────────────┘
@@ -29,9 +29,9 @@ Esta arquitectura separa estrictamente el renderizado del mundo en dos subsistem
 
 ---
 
-## 2. Catálogo de Sprites del Texture Atlas (20 Sprites Activos en Matriz 4x8)
+## 2. Catálogo de Sprites del Texture Atlas (23 Sprites Activos en Matriz 4x8)
 
-El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5 de $512 \times 1024$ píxeles dividido en **32 casillas de $128 \times 128$ píxeles** (4 columnas $\times$ 8 filas), de las cuales **20 casillas activas** (Tiles 0 al 19) están implementadas para los tipos de bloques del juego. La textura se calibra en escala de grises para que el shader de Three.js multiplique los valores de luminancia por el color del tipo de bloque (`BLOCK_COLORS`), preservando contrastes, biseles y microtexturas minerales, con la excepción de las losas de respawn y la lava volcánica, que emplean policromía vectorial de alta fidelidad (`0xffffff`).
+El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5 de $512 \times 1024$ píxeles dividido en **32 casillas de $128 \times 128$ píxeles** (4 columnas $\times$ 8 filas), de las cuales **23 casillas activas** (Tiles 0 al 22) están implementadas para los tipos de bloques del juego. La textura se calibra en escala de grises para que el shader de Three.js multiplique los valores de luminancia por el color del tipo de bloque (`BLOCK_COLORS`), preservando contrastes, biseles y microtexturas minerales, con la excepción de las losas de respawn y la lava volcánica, que emplean policromía vectorial de alta fidelidad (`0xffffff`).
 
 ### Matriz de Distribución en el Atlas ($4 \times 8$)
 
@@ -42,7 +42,8 @@ El Texture Atlas procedural se genera en tiempo de ejecución en un canvas HTML5
 | **Fila 2** ($v=0.625$) | **Tile 8**: Suelo Mixto | **Tile 9**: Suelo Santuario | **Tile 10**: Columna Fuste | **Tile 11**: Losa Respawn |
 | **Fila 3** ($v=0.500$) | **Tile 12**: Columna Acanalada | **Tile 13**: Lava 1 (Magma Activo) | **Tile 14**: Salto Jump Pad | **Tile 15**: Pedestal Runa |
 | **Fila 4** ($v=0.375$) | **Tile 16**: Lava 2 (Fisuras Magma) | **Tile 17**: Lava 3 (Géiseres Gas) | **Tile 18**: Lava 4 (Río Piroclástico) | **Tile 19**: Lava 5 (Caldera Hipertérmica) |
-| **Filas 5-7** ($v \le 0.250$) | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* |
+| **Fila 5** ($v=0.250$) | **Tile 20**: Pilar con Musgo | **Tile 21**: Pilar con Desgaste | **Tile 22**: Pilar Tono Oscuro | *(Reservado Expansión)* |
+| **Filas 6-7** ($v \le 0.125$) | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* | *(Reservado Expansión)* |
 
 ---
 
@@ -67,10 +68,13 @@ Cuenta con **5 sprites distintos** (Tiles 5 al 9). Si el mapa define el bloque g
 5. **Tile 9 (Losa Ceremonial de Santuario)**: Losa noble con grabado de rombo rúnico central para salas de recompensa.
 
 #### C. Pilares y Columnas (`PILLAR` — Bloque Tipo 3)
-Cuenta con **2 sprites diseñados** (Tiles 10 y 12):
+Cuenta con **5 sprites distintos** (Tiles 10, 12, 20, 21, 22). Para garantizar una apariencia rica y orgánica manteniendo continuidad vertical estricta (*seamless vertical tiling*), todos los sprites comparten la misma estructura prismática (3 acanaladuras verticales profundas continuas a X=32, 64 y 96, sombreado cilíndrico lateral y ausencia de juntas horizontales). `VoxelMap.selectTile` distribuye deterministamente las 5 variantes mediante la paleta `[10, 12, 20, 21, 22]` evaluada con `hashCoord(x, y, z)` (~20% por variante):
 
-1. **Tile 10 (Columna Monolítica Continua)**: Textura con fuste sombreado verticalmente y juntas longitudinales continuas. Al apilarse verticalmente (p. ej. altura 6), genera columnas estriadas sin cortes horizontales (*seamless vertical tiling*).
-2. **Tile 12 (Columna con Acanaladuras Clásicas)**: Fuste de cantería con estrías profundas, filetes de iluminación de 1.5 px y sombras laterales de volumen cilíndrico.
+1. **Tile 10 (Columna Monolítica Continua - Base)**: Textura con fuste sombreado verticalmente, bisel lumínico izquierdo, juntas longitudinales continuas y micro-desgaste sutil.
+2. **Tile 12 (Columna Acanalada Lisa)**: Fuste de cantería limpio con estrías profundas, filetes de iluminación de 1.5 px y sombras laterales de volumen cilíndrico, sin grietas.
+3. **Tile 20 (Columna con Musgo y Líquenes)**: Misma estructura geométrica acanalada enriquecida con 3 capas vegetales: humedad verde oscura en hendiduras (`#14532d`), musgo vivo en verde bosque (`#16a34a`) y brotes de líquenes/esporas en resalte claro (`#4ade80`).
+4. **Tile 21 (Columna con Desgaste y Fracturas)**: Fisura diagonal severa que quiebra el fuste, fracturas ramificadas por estrés de carga (`stroke-width="2.2"`), bisel de luz en bordes de roca quebrada y grandes muescas de cantería desprendida.
+5. **Tile 22 (Columna Tono Oscuro / Basalto Sombrío)**: Fuste de basalto y sillar sombrío ~35% más oscuro (`#111419`), realces lumínicos atenuados, sombras derechas más profundas (`#020304`) y densa pátina de hollín volcánico.
 
 #### D. Losa Rúnica de Aparición (`RESPAWN_PAD` — Bloque Tipo 11)
 Cuenta con **1 sprite exclusivo** (Tile 11):
@@ -231,7 +235,7 @@ Mecanismo interactivo de descenso entre pisos de la mazmorra:
 
 * **Geometría Base**: `THREE.BoxGeometry(1, 1, 1)` reutilizada en un único `THREE.InstancedMesh`.
 * **Capacidad Máxima**: Hasta 13,824 instancias de bloques por nivel ($24 \times 16 \times 36$ m).
-* **Buffer Atributo `atlasOffset`**: Vector bidimensional `(u, v)` de 2 componentes por instancia inyectado en el vertex shader para mapear cualquier bloque a uno de los 20 sprites activos del Texture Atlas en tiempo constante sin llamadas adicionales a la GPU.
+* **Buffer Atributo `atlasOffset`**: Vector bidimensional `(u, v)` de 2 componentes por instancia inyectado en el vertex shader para mapear cualquier bloque a uno de los 23 sprites activos del Texture Atlas en tiempo constante sin llamadas adicionales a la GPU.
 
 ---
 
@@ -239,7 +243,7 @@ Mecanismo interactivo de descenso entre pisos de la mazmorra:
 
 | Subsistema / Elemento | Tipo de Entidad | N.º Variantes | Geometría / Primitivas | Draw Calls Estimadas |
 | :--- | :--- | :---: | :--- | :---: |
-| **Texture Atlas Procedural** | Textura SVG 512x1024 | **20 Sprites Activos** | 32 casillas (4x8) de 128x128 px | 0 (Memoria Textura) |
+| **Texture Atlas Procedural** | Textura SVG 512x1024 | **23 Sprites Activos** | 32 casillas (4x8) de 128x128 px | 0 (Memoria Textura) |
 | **Mundo Vóxel (`VoxelMap`)** | `InstancedMesh` | **1 Malla global** | Cubos $1 \times 1 \times 1$ m | **1** |
 | **Avatares de Jugadores** | Modelos 3D Vóxel | **5 Clases** | 6 piezas base + kits de clase | **1 - 3** por jugador |
 | **Cofre de Botín** | Modelo 3D Articulado | **1 Modelo completo** | Base hueca + tapa arco + gemas | **2 - 3** por cofre |
@@ -248,4 +252,4 @@ Mecanismo interactivo de descenso entre pisos de la mazmorra:
 | **Escalinata de Descenso** | Modelo 3D Mecánico | **1 Sistema** | Losa corrediza + peldaños + niebla | **3** por escalinata |
 
 ### Conclusión Técnica
-La combinación de **20 sprites procedurales activos** (incluyendo paletas completas de 5 variantes para muros, suelos y lava volcánica) en un atlas único junto a **11 modelos 3D especializados** permite renderizar una mazmorra multijugador con alta riqueza estética, cinemática física y respuesta táctil, manteniendo el total de Draw Calls entre **20 y 35**, cumpliendo con holgura los presupuestos de hardware móvil a 60 cuadros por segundo.
+La combinación de **23 sprites procedurales activos** (incluyendo paletas completas de 5 variantes para muros, suelos, lava volcánica y pilares) en un atlas único junto a **11 modelos 3D especializados** permite renderizar una mazmorra multijugador con alta riqueza estética, cinemática física y respuesta táctil, manteniendo el total de Draw Calls entre **20 y 35**, cumpliendo con holgura los presupuestos de hardware móvil a 60 cuadros por segundo.

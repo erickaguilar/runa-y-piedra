@@ -24,10 +24,18 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Ajuste de `WORLD_CONFIG.SPAWN_Z` de `4.5` a `2.5` y reubicación de la losa rúnica de aparición `RESPAWN_PAD` a `z = [2, 3]` en todos los niveles.
   - La plataforma queda a exactamente 1 bloque de separación respecto a la pared perimetral trasera (`z = 0`), manteniendo el bloque `z = 1` como pasillo libre de suelo transitable para evitar colisiones con el cuerpo del jugador y permitir que el brazo de la cámara en tercera persona no sufra recortes inmediatos.
   - Actualización de los checkpoints de entrada de Sala 1 en todas las mazmorras y suites de pruebas unitarias.
+- **Paleta de 5 Sprites Procedurales de Pilares / Columnas (`BLOCK_TYPES.PILLAR = 4`) ([`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js), [`src/render/VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js))**:
+  - Incorporación de 3 nuevas variantes de sprites de columnas monolíticas vectoriales SVG de alta definición preservando la misma arquitectura geométrica continua (3 acanaladuras verticales en $X=32, 64, 96$, bisel lateral y sombreado cilíndrico), garantizando un ensamble vertical continuo y sin costuras horizontales (*seamless*):
+    - **Tile 10 (Pilar 1: Columna Monolítica Base)**: Fuste de piedra caliza/granito con sombreado cilíndrico y micro-desgaste sutil.
+    - **Tile 12 (Pilar 2: Columna Acanalada Lisa)**: Fuste pulido de cantería limpia con líneas puras y contraste suave.
+    - **Tile 20 (Pilar 3: Columna con Musgo)**: Colonización vegetal de humedad umbría en hendiduras y estrías verticales (`#14532d`), musgo vivo superficial (`#16a34a`) y esporas/líquenes (`#4ade80`).
+    - **Tile 21 (Pilar 4: Columna con Desgaste Estructural)**: Fractura diagonal severa por fatiga de carga, grietas ramificadas con bisel lumínico 3D (`stroke-width="2.2"`), picado mineral profundo y muescas de mampostería desprendida.
+    - **Tile 22 (Pilar 5: Columna Tono Oscuro)**: Fuste de basalto/sillar sombrío ~35% más oscuro (`#111419`), sombras laterales profundas (`#020304`), reflejos tenues y pátina de hollín volcánico.
+  - Distribución espacial determinista $O(1)$ en `VoxelMap.selectTile` con la paleta `[10, 12, 20, 21, 22]` basada en `VoxelMap.hashCoord(x, y, z)`, completando la simetría de 5 variantes orgánicas para todos los bloques estructurales elementales (Muros, Suelos, Lava y Pilares).
 - **Documentación Técnica y Pruebas Unitarias ([`docs/21-sprite-lava-y-renderizado-igneo.md`](file:///data/data/com.termux/files/home/develop/game/docs/21-sprite-lava-y-renderizado-igneo.md), [`docs/23-catalogo-sprites-y-modelos-3d.md`](file:///data/data/com.termux/files/home/develop/game/docs/23-catalogo-sprites-y-modelos-3d.md), [`docs/README.md`](file:///data/data/com.termux/files/home/develop/game/docs/README.md), [`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js))**:
-  - Documentación de las 5 variantes ígneas, diagramas de flujo y especificación matemática de la matriz 4x8.
-  - Actualización del catálogo de sprites (20 casillas activas en matriz 4x8).
-  - Pruebas unitarias que certifican la selección balanceada de las 5 variantes de lava y la precisión de coordenadas UV en la cuadrícula 4x8.
+  - Documentación de las 5 variantes ígneas y las 5 variantes de columnas monolíticas, diagramas de flujo y especificación matemática de la matriz 4x8.
+  - Actualización del catálogo de sprites (23 casillas activas en matriz 4x8).
+  - Pruebas unitarias que certifican la selección balanceada de las 5 variantes de lava, las 5 variantes de pilares y la precisión de coordenadas UV en la cuadrícula 4x8.
 
 ## [1.28.0] - 2026-10-01
 
