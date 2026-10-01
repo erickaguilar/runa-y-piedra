@@ -62,18 +62,16 @@ export const MenuMixin = {
 
         <!-- Ranuras de Guardado (3 ranuras directas) -->
         <div class="lobby-section">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <label class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
-              ${renderIcon('save', { size: 14, color: '#38bdf8' })} Ranuras de Guardado
-            </label>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button id="btn-menu-delete-active-slot" class="menu-delete-slot-btn" type="button" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;font-size:10.5px;font-weight:700;cursor:pointer;border-radius:6px;padding:2px 6px;align-items:center;gap:4px;">
-                ${renderIcon('trash', { size: 11, color: '#f87171' })} Borrar Save
-              </button>
-            </div>
-          </div>
+          <label class="lobby-label" style="margin:0 0 6px 0;display:flex;align-items:center;gap:6px;">
+            ${renderIcon('save', { size: 14, color: '#38bdf8' })} Ranuras de Guardado
+          </label>
           <div class="menu-slots-row" id="menu-slots-row">
             ${this.renderMenuSlotsHtml()}
+          </div>
+          <div class="menu-slot-actions-row" style="margin-top:6px;">
+            <button id="btn-menu-delete-active-slot" class="menu-delete-slot-btn" type="button" style="display:none;">
+              ${renderIcon('trash', { size: 12, color: '#f87171' })} Borrar Partida
+            </button>
           </div>
         </div>
 
@@ -267,7 +265,7 @@ export const MenuMixin = {
       if (deleteActiveBtn) {
         deleteActiveBtn.style.display = 'inline-flex';
         const num = (saveManager.currentSlotId || 'slot_1').replace('slot_', '');
-        deleteActiveBtn.innerHTML = `${renderIcon('trash', { size: 11, color: '#f87171' })} Borrar Ranura ${num}`;
+        deleteActiveBtn.innerHTML = `${renderIcon('trash', { size: 12, color: '#f87171' })} Borrar Partida (Ranura ${num})`;
       }
     } else {
       if (nameInput) {

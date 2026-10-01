@@ -125,23 +125,6 @@ export const ModalMixin = {
       }
     }
 
-    const settingsHeroesHtml = PLAYER_HEROES.map((h, i) => {
-      const isSelected = i === this.selectedColorIndex;
-      const isOccupied = takenHeroes.has(i);
-      const occupant = takenHeroes.get(i);
-      const titleAttr = isOccupied
-        ? `${h.name} (En uso por ${escapeHtml(occupant)})`
-        : `${h.name} (${h.title || ''})`;
-      return `
-        <div class="hero-chip ${isSelected ? 'selected' : ''} ${isOccupied ? 'occupied' : ''}" 
-             data-index="${i}" 
-             style="background:${h.color}; --hero-color:${h.color}" 
-             title="${titleAttr}">
-          ${renderIcon(h.icon || 'shield', { size: 18, color: '#ffffff' })}
-        </div>
-      `;
-    }).join('');
-
     const currentHero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
 
     // (Selección de mazmorra eliminada: la progresión es lineal por escalinatas)
@@ -157,26 +140,20 @@ export const ModalMixin = {
           <button id="btn-close-settings" class="close-x-btn" title="Cerrar">${renderIcon('x', { size: 18, color: 'currentColor' })}</button>
         </div>
 
-        <!-- 1. Perfil de Aventurero -->
+        <!-- 1. Perfil de Aventurero (Solo lectura) -->
         <div class="settings-group">
           <label class="lobby-label">Tu Aventurero</label>
-          <input id="settings-name-input" class="name-input" maxlength="12" 
-                 placeholder="Nombre o Apodo" value="${escapeHtml(this.playerName)}" autocomplete="off" />
-        </div>
-
-        <div class="settings-group" style="margin-top:10px;">
-          <label class="lobby-label" style="display:flex;justify-content:space-between;align-items:center;">
-            <span>Clase de Héroe (Única por Aventurero)</span>
-            <span style="font-size:10px;color:#94a3b8;font-weight:normal;">1 por equipo</span>
-          </label>
-          <div class="heroes-row" id="settings-heroes-row">
-            ${settingsHeroesHtml}
-          </div>
-          <div id="settings-hero-badge" class="hero-badge" style="color:${currentHero.color}">
-            ${renderIcon(currentHero.icon || 'shield', { size: 15, color: currentHero.color })} <span>${currentHero.name}</span>
-          </div>
-          <div id="settings-hero-trait-container">
-            ${this.renderHeroTraitCard(currentHero)}
+          <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(15,23,42,0.65);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 12px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:${currentHero.color};color:#ffffff;box-shadow:0 0 10px ${currentHero.color}44;">
+                ${renderIcon(currentHero.icon || 'shield', { size: 16, color: '#ffffff' })}
+              </span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#f8fafc;">${escapeHtml(this.playerName)}</div>
+                <div style="font-size:11px;color:${currentHero.color};font-weight:600;">${currentHero.name} (${currentHero.title || 'Clase de Héroe'})</div>
+              </div>
+            </div>
+            <span style="font-size:10px;color:#94a3b8;font-style:italic;">Gestionado en el Menú</span>
           </div>
         </div>
 
@@ -320,35 +297,6 @@ export const ModalMixin = {
     };
 
     // Selector de clases únicas en configuración
-    const settingsChips = (this.uiEl.querySelectorAll ? this.uiEl.querySelectorAll('#settings-heroes-row .hero-chip') : document.querySelectorAll('#settings-heroes-row .hero-chip')) || [];
-    settingsChips.forEach(chip => {
-      chip.onclick = () => {
-        const idx = parseInt(chip.dataset.index, 10);
-        if (chip.classList.contains('occupied')) {
-          soundManager.playHurt();
-          const occupant = takenHeroes.get(idx) || 'otro jugador';
-          const hero = PLAYER_HEROES[idx];
-          this.showNarrativeMessage(`La clase ${hero.name} ya está en uso por ${occupant}.`, 3500);
-          return;
-        }
-        soundManager.playClick();
-        settingsChips.forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        this.selectedColorIndex = idx;
-        localStorage.setItem('dungeon_player_color', idx.toString());
-
-        const hero = PLAYER_HEROES[idx];
-        const badge = document.getElementById('settings-hero-badge');
-        if (badge) {
-          badge.innerHTML = `${renderIcon(hero.icon || 'shield', { size: 15, color: hero.color })} <span>${hero.name}</span>`;
-          badge.style.color = hero.color;
-        }
-        const traitContainer = document.getElementById('settings-hero-trait-container');
-        if (traitContainer) {
-          traitContainer.innerHTML = this.renderHeroTraitCard(hero);
-        }
-      };
-    });
 
     // Slider de sensibilidad
     const sensSlider = document.getElementById('settings-sens-slider');
@@ -471,13 +419,9 @@ export const ModalMixin = {
       });
     });
 
-    // Guardar cambios
+    // Guardar cambios de configuración
     document.getElementById('btn-save-settings').onclick = () => {
       soundManager.playClick();
-      const name = document.getElementById('settings-name-input').value.trim() || 'Aventurero';
-      this.playerName = name;
-      localStorage.setItem('dungeon_player_name', name);
-      this.settingsCallbacks?.onProfileSave?.({ name, colorIndex: this.selectedColorIndex });
       this.showNarrativeMessage('Configuración guardada correctamente.', 2500);
       this.closeSettingsModal();
     };
