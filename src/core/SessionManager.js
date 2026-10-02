@@ -383,8 +383,8 @@ export const SessionMixin = {
           potions: this.inventory?.potions || [],
           relics: this.inventory?.relics || [],
           keys: this.inventory?.keys || [],
-          openedChests: saveManager.serializeOpenedChests(this.openedChestKeys),
-          openedDoors: saveManager.serializeOpenedDoors(this.openedDoorKeys),
+          openedChests: this.openedChestKeys,
+          openedDoors: this.openedDoorKeys,
         },
       });
 

@@ -1,7 +1,7 @@
-// src/controllers/InteractionController.js
 import * as Proto from '../network/Protocol.js';
 import { BLOCK_TYPES, WORLD_CONFIG } from '../config/constants.js';
 import { floorVariant } from '../levels/LevelLoader.js';
+import { getItemDefinition } from '../inventory/ItemRegistry.js';
 
 /**
  * InteractionController - Todas las interacciones del jugador con el mundo:
@@ -175,7 +175,8 @@ export class InteractionController {
 
     // 1. Llaves
     if (chestData.givesKey && game.addInventoryKey) {
-      const keyName = chestData.keyName || 'Llave del Santuario';
+      const def = getItemDefinition(chestData.givesKey);
+      const keyName = chestData.keyName || def?.name || 'Llave del Santuario';
       game.addInventoryKey({ id: chestData.givesKey, name: keyName });
     }
 
@@ -196,7 +197,8 @@ export class InteractionController {
     const textForPotion = `${chestData.message || ''} ${chestData.reward || ''}`;
     const potionDef = chestData.potion || chestData.givesPotion;
     if (potionDef || /Poci[oó]n/i.test(textForPotion)) {
-      const potionData = potionDef || {
+      const canonPotion = getItemDefinition('pocion_vida');
+      const potionData = potionDef || canonPotion || {
         id: 'pocion_vida',
         name: 'Poción de Vida',
         healAmount: 1,
@@ -213,26 +215,29 @@ export class InteractionController {
     if (chestData.relic && game.addInventoryRelic) {
       game.addInventoryRelic(chestData.relic);
     } else if (/C[aá]liz|Reliquia Dorada/i.test(textForRelic)) {
-      game.addInventoryRelic?.({
+      const relicDef = getItemDefinition('caliz_sagrado') || {
         id: 'caliz_sagrado',
         name: 'Cáliz Sagrado',
         icon: 'trophy',
         color: '#eab308'
-      });
+      };
+      game.addInventoryRelic?.(relicDef);
     } else if (/Coraz[oó]n|Volc[aá]n/i.test(textForRelic)) {
-      game.addInventoryRelic?.({
+      const relicDef = getItemDefinition('corazon_volcan') || {
         id: 'corazon_volcan',
         name: 'Corazón del Volcán',
         icon: 'flame',
         color: '#f97316'
-      });
+      };
+      game.addInventoryRelic?.(relicDef);
     } else if (/Corona|Vac[ií]o/i.test(textForRelic)) {
-      game.addInventoryRelic?.({
+      const relicDef = getItemDefinition('corona_vacio') || {
         id: 'corona_vacio',
         name: 'Corona del Vacío',
         icon: 'crown',
         color: '#c084fc'
-      });
+      };
+      game.addInventoryRelic?.(relicDef);
     }
   }
 

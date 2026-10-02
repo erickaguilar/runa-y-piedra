@@ -5,11 +5,12 @@
  * Sincroniza reactivamente el HUD y el modal de inventario.
  */
 import * as Proto from '../network/Protocol.js';
+import { createInventoryItem } from '../inventory/ItemRegistry.js';
 
 export const InventoryMixin = {
   addInventoryKey(key) {
-    const keyObj = typeof key === 'string' ? { id: key, name: key } : (key || {});
-    const keyId = keyObj.id || keyObj.name;
+    const keyObj = createInventoryItem(key, { type: 'key' });
+    const keyId = keyObj.id;
     if (!this.inventory.keys.some(k => (typeof k === 'string' ? k : (k.id || k.name)) === keyId)) {
       this.inventory.keys.push(keyObj);
       this.ui.updateInventory(this.inventory);
@@ -41,8 +42,8 @@ export const InventoryMixin = {
   },
 
   addInventoryRelic(relic) {
-    const relicObj = typeof relic === 'string' ? { id: relic, name: relic } : (relic || {});
-    const relicId = relicObj.id || relicObj.name;
+    const relicObj = createInventoryItem(relic, { type: 'relic' });
+    const relicId = relicObj.id;
     if (!this.inventory.relics.some(r => (r.id || r.name) === relicId)) {
       this.inventory.relics.push(relicObj);
       this.ui.updateInventory(this.inventory);
@@ -65,7 +66,7 @@ export const InventoryMixin = {
   },
 
   addInventoryPotion(potion) {
-    const potionObj = typeof potion === 'string' ? { id: potion, name: potion, icon: 'potion', color: '#f43f5e' } : (potion || {});
+    const potionObj = createInventoryItem(potion, { type: 'potion' });
     if (!this.inventory.potions) this.inventory.potions = [];
     this.inventory.potions.push(potionObj);
     this.ui.updateInventory(this.inventory);

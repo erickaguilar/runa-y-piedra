@@ -182,6 +182,20 @@ export function migrateFromLegacy(slotId = DEFAULT_SLOT_ID) {
  */
 export function serializeOpenedChests(openedSet) {
   if (!openedSet) return {};
+
+  if (typeof openedSet === 'object' && !(openedSet instanceof Set) && !Array.isArray(openedSet)) {
+    const result = {};
+    for (const [levelId, chestIds] of Object.entries(openedSet)) {
+      if (Array.isArray(chestIds)) {
+        const valid = chestIds.map(Number).filter(Number.isFinite);
+        if (valid.length > 0) {
+          result[levelId] = [...new Set(valid)].sort((a, b) => a - b);
+        }
+      }
+    }
+    return result;
+  }
+
   const result = {};
   const entries = openedSet instanceof Set
     ? openedSet.values()
@@ -288,6 +302,20 @@ export function deserializeOpenedChests(data) {
  */
 export function serializeOpenedDoors(openedSet) {
   if (!openedSet) return {};
+
+  if (typeof openedSet === 'object' && !(openedSet instanceof Set) && !Array.isArray(openedSet)) {
+    const result = {};
+    for (const [levelId, doorIds] of Object.entries(openedSet)) {
+      if (Array.isArray(doorIds)) {
+        const valid = doorIds.map(Number).filter(Number.isFinite);
+        if (valid.length > 0) {
+          result[levelId] = [...new Set(valid)].sort((a, b) => a - b);
+        }
+      }
+    }
+    return result;
+  }
+
   const result = {};
   const entries = openedSet instanceof Set
     ? openedSet.values()
@@ -433,6 +461,38 @@ export class SaveManager {
     }
   }
 
+  _healCompletedChapterInventory(save) {
+    if (!save || !save.inventory) return;
+    const highestChapter = save.campaign?.highestChapterUnlocked || 1;
+    const hasChapterKeys = Array.isArray(save.inventory.keys) && save.inventory.keys.some(k => {
+      const id = typeof k === 'string' ? k : (k?.id || k?.name);
+      return id === 'llave_santuario' || id === 'llave_cripta_fuego' || id === 'llave_trono_vacio';
+    });
+
+    if (highestChapter >= 2 || hasChapterKeys) {
+      let touched = false;
+      if (!save.inventory.openedChests || Object.keys(save.inventory.openedChests).length === 0) {
+        save.inventory.openedChests = {
+          abyss_throne: [1],
+          crypt_inferno: [1, 2],
+          dungeon_classic: [1, 2],
+        };
+        touched = true;
+      }
+      if (!save.inventory.openedDoors || Object.keys(save.inventory.openedDoors).length === 0) {
+        save.inventory.openedDoors = {
+          abyss_throne: [1, 2],
+          crypt_inferno: [1, 2],
+          dungeon_classic: [1, 2],
+        };
+        touched = true;
+      }
+      if (touched) {
+        save.checksum = calculateChecksum(save);
+      }
+    }
+  }
+
   /**
    * Carga una ranura con protocolo de doble buffer:
    * 1. Intenta leer el archivo activo validando checksum.
@@ -448,6 +508,7 @@ export class SaveManager {
     try {
       const activeData = await this.adapter.get(activeKey);
       if (activeData && validateSaveData(activeData)) {
+        this._healCompletedChapterInventory(activeData);
         this.currentSlotId = slotId;
         this.currentSave = activeData;
         return activeData;
@@ -460,6 +521,7 @@ export class SaveManager {
     try {
       const backupData = await this.adapter.get(backupKey);
       if (backupData && validateSaveData(backupData)) {
+        this._healCompletedChapterInventory(backupData);
         console.info(`[SaveManager] Ranura ${slotId} restaurada exitosamente desde copia de seguridad (backup).`);
         await this.adapter.set(activeKey, backupData);
         this.currentSlotId = slotId;

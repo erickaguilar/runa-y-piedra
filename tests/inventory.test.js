@@ -665,5 +665,51 @@ describe('Inventario y botín de cofres', () => {
     assert.equal(mockContext.openedDoorKeys.has('dungeon_2_door_1'), false, 'Puertas de la incursión fallida se cierran');
     assert.equal(mockPlayer.keys[0], 'llave_previa', 'Llaves se sincronizan con el guardado');
   });
+
+  it('serializeOpenedChests y serializeOpenedDoors son idempotentes ante diccionarios de objetos ya serializados', () => {
+    const originalSet = new Set(['dungeon_classic_chest_1', 'crypt_inferno:2']);
+    const serializedOnce = serializeOpenedChests(originalSet);
+    assert.deepEqual(serializedOnce, {
+      crypt_inferno: [2],
+      dungeon_classic: [1],
+    });
+
+    // Idempotencia: una segunda serialización NO debe destruir los datos devolviendo {}
+    const serializedTwice = serializeOpenedChests(serializedOnce);
+    assert.deepEqual(serializedTwice, {
+      crypt_inferno: [2],
+      dungeon_classic: [1],
+    });
+
+    const doorsSet = new Set(['dungeon_classic_door_1', 'crypt_inferno:2']);
+    const doorsOnce = serializeOpenedDoors(doorsSet);
+    const doorsTwice = serializeOpenedDoors(doorsOnce);
+    assert.deepEqual(doorsTwice, {
+      crypt_inferno: [2],
+      dungeon_classic: [1],
+    });
+  });
+
+  it('ItemRegistry resuelve llaves, reliquias y genera IDs canonicos unicos', async () => {
+    const { getItemDefinition, createInventoryItem, getChestCanonicalId, getChestShortId } = await import('../src/inventory/ItemRegistry.js');
+    
+    // Verificación de llaves canónicas
+    const keyDef = getItemDefinition('llave_santuario');
+    assert.ok(keyDef, 'Llave del Santuario debe existir en el registro');
+    assert.equal(keyDef.type, 'key');
+    assert.equal(keyDef.name, 'Llave del Santuario Antiguo');
+
+    // Creación de ítem enriquecido desde string
+    const item = createInventoryItem('caliz_sagrado');
+    assert.equal(item.id, 'caliz_sagrado');
+    assert.equal(item.type, 'relic');
+    assert.equal(item.icon, 'trophy');
+    assert.equal(item.name, 'Cáliz Sagrado');
+
+    // Generadores de IDs de cofres
+    assert.equal(getChestCanonicalId('dungeon_classic', 1), 'dungeon_classic_chest_1');
+    assert.equal(getChestShortId('crypt_inferno', 2), 'crypt_inferno:2');
+  });
 });
+
 
