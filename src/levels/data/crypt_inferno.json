@@ -84,6 +84,7 @@
       "x": 18.5,
       "y": 1.0,
       "z": 6.5,
+      "facing": "west",
       "reward": ":key: Llave de la Cripta y :gem: Gemas Ígneas",
       "message": ":chest: ¡Has abierto el Cofre de Brasas! Has obtenido: :key: Llave de la Cripta de Fuego y :gem: 120 Gemas Volcánicas.",
       "givesKey": "llave_cripta_fuego",
@@ -95,6 +96,7 @@
       "x": 4.5,
       "y": 1.0,
       "z": 31.5,
+      "facing": "east",
       "reward": ":volcano: Corazón del Volcán",
       "message": ":chest: ¡Has abierto el Cofre del Altar Ígneo! Has obtenido: :volcano: Corazón del Volcán y :gem: 300 Gemas de Obsidiana."
     }

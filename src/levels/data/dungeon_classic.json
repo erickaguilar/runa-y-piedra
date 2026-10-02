@@ -84,6 +84,7 @@
       "x": 18.5,
       "y": 1.0,
       "z": 8.5,
+      "facing": "west",
       "reward": ":key: Llave Rúnica y :gem: Gemas",
       "message": ":chest: ¡Has abierto el Cofre del Vestíbulo! Has obtenido: :key: Llave Antigua del Santuario y :gem: 100 Gemas.",
       "givesKey": "llave_santuario",
@@ -95,6 +96,7 @@
       "x": 4.5,
       "y": 1.0,
       "z": 27.5,
+      "facing": "east",
       "reward": ":trophy: Reliquia Dorada",
       "message": ":chest: ¡Has abierto el Cofre Secreto del Santuario! Has obtenido: :trophy: Cáliz Sagrado y :gem: 250 Gemas Legendarias."
     }

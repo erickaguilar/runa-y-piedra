@@ -9,6 +9,53 @@ export function floorVariant(x, z) {
   return BLOCK_TYPES.FLOOR_MOSS;              // 10: con musgo (~10%)
 }
 
+export function parseOrientationYaw(cfg = {}) {
+  if (!cfg || typeof cfg !== 'object') return 0;
+
+  const facingRaw = cfg.facing ?? cfg.direction;
+  if (typeof facingRaw === 'string') {
+    const f = facingRaw.trim().toLowerCase();
+    switch (f) {
+      case 's':
+      case 'south':
+      case 'sur':
+        return 0;
+      case 'e':
+      case 'east':
+      case 'este':
+        return Math.PI / 2;
+      case 'n':
+      case 'north':
+      case 'norte':
+        return Math.PI;
+      case 'w':
+      case 'west':
+      case 'o':
+      case 'oeste':
+        return (3 * Math.PI) / 2;
+      default:
+        break;
+    }
+  }
+
+  const rotDeg = cfg.rotation ?? cfg.angle;
+  if (rotDeg !== undefined && rotDeg !== null) {
+    const num = Number(rotDeg);
+    if (Number.isFinite(num)) {
+      return (num * Math.PI) / 180;
+    }
+  }
+
+  if (cfg.yaw !== undefined && cfg.yaw !== null) {
+    const num = Number(cfg.yaw);
+    if (Number.isFinite(num)) {
+      return num;
+    }
+  }
+
+  return 0;
+}
+
 export class LevelLoader {
   /**
    * Carga y construye un nivel en una instancia de World.
@@ -37,7 +84,11 @@ export class LevelLoader {
     world.objectives = levelData.objectives || [];
     world.monoliths = levelData.monoliths || [];
     world.torches = levelData.torches || [];
-    world.chests = (levelData.chests || []).map(c => ({ ...c, isOpen: false }));
+    world.chests = (levelData.chests || []).map(c => ({
+      ...c,
+      yaw: parseOrientationYaw(c),
+      isOpen: false,
+    }));
     // Escalinata de descenso:
     // - Si el nivel define "stairs" explícito se usa (openFromStart para fosa abierta).
     // - "stairs": null la desactiva aunque haya altar (nivel final).

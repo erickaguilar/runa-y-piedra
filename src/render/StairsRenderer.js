@@ -8,6 +8,7 @@ import {
   createStairsMaterials,
   buildStairsMesh,
 } from './models/props/stairsModel.js';
+import { createWoodPlankTexture } from './models/props/doorModel.js';
 
 export class StairsRenderer {
   constructor(scene) {
@@ -18,7 +19,9 @@ export class StairsRenderer {
 
     this.stairs = null; // Solo hay una escalinata por nivel (tras el altar)
 
-    this.mats = createStairsMaterials();
+    this._woodTexture = createWoodPlankTexture(256, 512);
+    this.mats = createStairsMaterials(this._woodTexture);
+    this.woodMat = this.mats.wood;
     this.stoneMat = this.mats.stone;
     this.stoneDarkMat = this.mats.stoneDark;
     this.ironMat = this.mats.iron;
@@ -119,6 +122,10 @@ export class StairsRenderer {
   dispose() {
     this.clear();
     this.scene.remove(this.group);
+    if (this._woodTexture) {
+      this._woodTexture.dispose();
+      this._woodTexture = null;
+    }
     for (const mat of Object.values(this.mats || {})) mat.dispose?.();
   }
 }

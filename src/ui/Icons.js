@@ -346,6 +346,16 @@ export const ICONS = {
     body: `<path d="M4 14l3-6 6-3 6 4 1 6-4 5H8l-4-6z" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 8l4 3 5-2M11 11l-1 9" stroke-linecap="round" stroke-linejoin="round"/>`,
   },
 
+  stairs: {
+    name: 'stairs',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#f59e0b',
+    body: `<path d="M4 19h4v-4h4v-4h4V7h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 19v2h16v-2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 19v-2M12 15v-2M16 11v-2" stroke-linecap="round" opacity="0.6"/>`,
+  },
+
   skull: {
     name: 'skull',
     viewBox: '0 0 24 24',
@@ -643,6 +653,11 @@ export const ICON_ALIASES = {
   import: 'upload',
   prohibited: 'ban',
   noEntry: 'ban',
+  stair: 'stairs',
+  stairwell: 'stairs',
+  losa: 'stairs',
+  ladder: 'stairs',
+  trapdoor: 'stairs',
 };
 
 /**
@@ -673,6 +688,7 @@ export const EMOJI_TO_ICON_MAP = [
   { regex: /🔒\uFE0F?/g, icon: 'lock',         defaultColor: '#f59e0b' },
   { regex: /🌀\uFE0F?/g, icon: 'vortex',       defaultColor: '#38bdf8' },
   { regex: /🪨\uFE0F?/g, icon: 'stone',        defaultColor: '#a8a29e' },
+  { regex: /🪜\uFE0F?/g, icon: 'stairs',       defaultColor: '#f59e0b' },
   { regex: /💀\uFE0F?/g, icon: 'skull',        defaultColor: '#e2e8f0' },
   { regex: /🔊\uFE0F?/g, icon: 'soundOn',      defaultColor: '#fbbf24' },
   { regex: /🔇\uFE0F?/g, icon: 'soundOff',     defaultColor: '#94a3b8' },

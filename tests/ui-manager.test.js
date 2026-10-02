@@ -354,7 +354,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       const requiredIcons = [
         'construction', 'hammer', 'pickaxe', 'droplet', 'anvil',
         'snowflake', 'biohazard', 'orbit', 'sun', 'mapPin',
-        'temple', 'rocket', 'bolt', 'timer', 'map'
+        'temple', 'rocket', 'bolt', 'timer', 'map', 'stairs'
       ];
       for (const iconName of requiredIcons) {
         assert.ok(ICONS[iconName], `ICONS.${iconName} debe existir`);

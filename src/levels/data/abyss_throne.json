@@ -94,6 +94,7 @@
       "x": 5.5,
       "y": 1.0,
       "z": 8.5,
+      "facing": "east",
       "reward": ":key: Llave del Trono, :potion: Poción de Vida y :gem: Gemas Abisales",
       "message": ":chest: ¡Has abierto el Cofre del Umbral! Has obtenido: :key: Llave del Trono del Vacío, :potion: Poción de Vida (+1 :heart:) y :gem: 200 Gemas Abisales.",
       "givesKey": "llave_trono_vacio",
@@ -112,6 +113,7 @@
       "x": 18.5,
       "y": 1.0,
       "z": 26.5,
+      "facing": "west",
       "reward": ":crown: Corona del Vacío",
       "message": ":chest: ¡Has abierto el Cofre del Trono! Has obtenido: :crown: Corona del Vacío y :gem: 500 Gemas Eternas."
     }

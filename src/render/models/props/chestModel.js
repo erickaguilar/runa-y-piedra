@@ -15,6 +15,7 @@ export const CAVITY_DEPTH = 0.18; // Profundidad de la cavidad interior del cofr
  * vetas longitudinales orgánicas, nudos de madera y clavos de hierro forjado.
  */
 export function createChestWoodTexture(width = 256, height = 256) {
+  if (typeof document === 'undefined') return null;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -124,28 +125,61 @@ export function createChestGeometries() {
   // 1. Cuerpo de madera de la base con cavidad interior hueca
   const baseFloorH = CHEST_H - CAVITY_DEPTH; // 0.26m
   const bFloor = new THREE.BoxGeometry(CHEST_W, baseFloorH, CHEST_D).translate(0, baseFloorH / 2, 0);
-  const wFront = new THREE.BoxGeometry(CHEST_W, CAVITY_DEPTH, WALL_T).translate(0, CHEST_H - CAVITY_DEPTH / 2, CHEST_D / 2 - WALL_T / 2);
-  const wBack = new THREE.BoxGeometry(CHEST_W, CAVITY_DEPTH, WALL_T).translate(0, CHEST_H - CAVITY_DEPTH / 2, -CHEST_D / 2 + WALL_T / 2);
-  const wLeft = new THREE.BoxGeometry(WALL_T, CAVITY_DEPTH, CHEST_D - WALL_T * 2).translate(-CHEST_W / 2 + WALL_T / 2, CHEST_H - CAVITY_DEPTH / 2, 0);
-  const wRight = new THREE.BoxGeometry(WALL_T, CAVITY_DEPTH, CHEST_D - WALL_T * 2).translate(CHEST_W / 2 - WALL_T / 2, CHEST_H - CAVITY_DEPTH / 2, 0);
+
+  // Las paredes de madera se detienen intencionalmente a CHEST_H - 0.008
+  // para que el collar de hierro superior las encapsule limpiamente sin Z-fighting coplanar.
+  const wallGap = 0.008; // 8mm por debajo del borde superior
+  const woodWallH = CAVITY_DEPTH - wallGap; // 0.172m
+  const woodWallCenterY = baseFloorH + woodWallH / 2;
+
+  const wFront = new THREE.BoxGeometry(CHEST_W, woodWallH, WALL_T).translate(0, woodWallCenterY, CHEST_D / 2 - WALL_T / 2);
+  const wBack = new THREE.BoxGeometry(CHEST_W, woodWallH, WALL_T).translate(0, woodWallCenterY, -CHEST_D / 2 + WALL_T / 2);
+  const wLeft = new THREE.BoxGeometry(WALL_T, woodWallH, CHEST_D - WALL_T * 2).translate(-CHEST_W / 2 + WALL_T / 2, woodWallCenterY, 0);
+  const wRight = new THREE.BoxGeometry(WALL_T, woodWallH, CHEST_D - WALL_T * 2).translate(CHEST_W / 2 - WALL_T / 2, woodWallCenterY, 0);
 
   const baseWoodGeo = mergeGeometries([bFloor, wFront, wBack, wLeft, wRight]);
   bFloor.dispose(); wFront.dispose(); wBack.dispose(); wLeft.dispose(); wRight.dispose();
 
   // 2. Herrajes de hierro forjado de la base
   const bRim = new THREE.BoxGeometry(CHEST_W + 0.02, 0.06, CHEST_D + 0.02).translate(0, 0.03, 0);
-  const tRimF = new THREE.BoxGeometry(CHEST_W + 0.02, 0.03, 0.04).translate(0, CHEST_H - 0.015, CHEST_D / 2 - 0.01);
-  const tRimB = new THREE.BoxGeometry(CHEST_W + 0.02, 0.03, 0.04).translate(0, CHEST_H - 0.015, -CHEST_D / 2 + 0.01);
-  const tRimL = new THREE.BoxGeometry(0.04, 0.03, CHEST_D - 0.06).translate(-CHEST_W / 2 + 0.01, CHEST_H - 0.015, 0);
-  const tRimR = new THREE.BoxGeometry(0.04, 0.03, CHEST_D - 0.06).translate(CHEST_W / 2 - 0.01, CHEST_H - 0.015, 0);
 
-  const b1 = new THREE.BoxGeometry(0.07, CHEST_H + 0.01, CHEST_D + 0.02).translate(-0.25, CHEST_H / 2, 0);
-  const b2 = new THREE.BoxGeometry(0.07, CHEST_H + 0.01, CHEST_D + 0.02).translate(0.25, CHEST_H / 2, 0);
+  // Collar superior de hierro: corona la base con relieve superior (hasta CHEST_H + 0.004)
+  // y cubre los cantos de madera evitando parpadeos de profundidad con la cámara.
+  const tRimH = 0.026;
+  const tRimCenterY = CHEST_H - 0.009;
+  const rimThick = 0.056;
 
-  const c1 = new THREE.BoxGeometry(0.06, CHEST_H, 0.06).translate(-CHEST_W / 2 + 0.01, CHEST_H / 2, -CHEST_D / 2 + 0.01);
-  const c2 = new THREE.BoxGeometry(0.06, CHEST_H, 0.06).translate(CHEST_W / 2 - 0.01, CHEST_H / 2, -CHEST_D / 2 + 0.01);
-  const c3 = new THREE.BoxGeometry(0.06, CHEST_H, 0.06).translate(-CHEST_W / 2 + 0.01, CHEST_H / 2, CHEST_D / 2 - 0.01);
-  const c4 = new THREE.BoxGeometry(0.06, CHEST_H, 0.06).translate(CHEST_W / 2 - 0.01, CHEST_H / 2, -CHEST_D / 2 + 0.01);
+  const tRimF = new THREE.BoxGeometry(CHEST_W + 0.02, tRimH, rimThick).translate(0, tRimCenterY, CHEST_D / 2 - WALL_T / 2 + 0.002);
+  const tRimB = new THREE.BoxGeometry(CHEST_W + 0.02, tRimH, rimThick).translate(0, tRimCenterY, -CHEST_D / 2 + WALL_T / 2 - 0.002);
+  const tRimL = new THREE.BoxGeometry(rimThick, tRimH, CHEST_D - 0.04).translate(-CHEST_W / 2 + WALL_T / 2 - 0.002, tRimCenterY, 0);
+  const tRimR = new THREE.BoxGeometry(rimThick, tRimH, CHEST_D - 0.04).translate(CHEST_W / 2 - WALL_T / 2 + 0.002, tRimCenterY, 0);
+
+  // Bandas verticales de refuerzo en pared frontal (+Z) y trasera (-Z)
+  // Se montan perimetralmente para no atravesar la cavidad interior del botín
+  const bandW = 0.07;
+  const bandThickness = 0.018; // Grosor exterior del herraje
+  const bandH = CHEST_H + 0.002;
+
+  const b1F = new THREE.BoxGeometry(bandW, bandH, bandThickness)
+    .translate(-0.25, bandH / 2, CHEST_D / 2 + bandThickness / 2 - 0.004);
+  const b2F = new THREE.BoxGeometry(bandW, bandH, bandThickness)
+    .translate(0.25, bandH / 2, CHEST_D / 2 + bandThickness / 2 - 0.004);
+
+  const b1B = new THREE.BoxGeometry(bandW, bandH, bandThickness)
+    .translate(-0.25, bandH / 2, -CHEST_D / 2 - bandThickness / 2 + 0.004);
+  const b2B = new THREE.BoxGeometry(bandW, bandH, bandThickness)
+    .translate(0.25, bandH / 2, -CHEST_D / 2 - bandThickness / 2 + 0.004);
+
+  const b1Bottom = new THREE.BoxGeometry(bandW, 0.02, CHEST_D + 0.02)
+    .translate(-0.25, 0.01, 0);
+  const b2Bottom = new THREE.BoxGeometry(bandW, 0.02, CHEST_D + 0.02)
+    .translate(0.25, 0.01, 0);
+
+  const cornerH = CHEST_H + 0.004;
+  const c1 = new THREE.BoxGeometry(0.06, cornerH, 0.06).translate(-CHEST_W / 2 + 0.01, cornerH / 2, -CHEST_D / 2 + 0.01);
+  const c2 = new THREE.BoxGeometry(0.06, cornerH, 0.06).translate(CHEST_W / 2 - 0.01, cornerH / 2, -CHEST_D / 2 + 0.01);
+  const c3 = new THREE.BoxGeometry(0.06, cornerH, 0.06).translate(-CHEST_W / 2 + 0.01, cornerH / 2, CHEST_D / 2 - 0.01);
+  const c4 = new THREE.BoxGeometry(0.06, cornerH, 0.06).translate(CHEST_W / 2 - 0.01, cornerH / 2, CHEST_D / 2 - 0.01);
 
   const lockPlate = new THREE.BoxGeometry(0.14, 0.16, 0.03).translate(0, CHEST_H - 0.09, CHEST_D / 2 + 0.015);
 
@@ -155,10 +189,11 @@ export function createChestGeometries() {
   const hMountR = new THREE.BoxGeometry(0.02, 0.08, 0.08).translate(CHEST_W / 2 + 0.005, CHEST_H * 0.55, 0);
 
   const baseIronGeo = mergeGeometries([
-    bRim, tRimF, tRimB, tRimL, tRimR, b1, b2, c1, c2, c3, c4, lockPlate, hL, hR, hMountL, hMountR
+    bRim, tRimF, tRimB, tRimL, tRimR, b1F, b2F, b1B, b2B, b1Bottom, b2Bottom, c1, c2, c3, c4, lockPlate, hL, hR, hMountL, hMountR
   ]);
   bRim.dispose(); tRimF.dispose(); tRimB.dispose(); tRimL.dispose(); tRimR.dispose();
-  b1.dispose(); b2.dispose(); c1.dispose(); c2.dispose(); c3.dispose(); c4.dispose();
+  b1F.dispose(); b2F.dispose(); b1B.dispose(); b2B.dispose(); b1Bottom.dispose(); b2Bottom.dispose();
+  c1.dispose(); c2.dispose(); c3.dispose(); c4.dispose();
   lockPlate.dispose(); hL.dispose(); hR.dispose(); hMountL.dispose(); hMountR.dispose();
 
   // 3. Inserto dorado de cerradura

@@ -23,6 +23,8 @@ import {
   createStairsMaterials,
   buildStairsMesh,
 } from '../src/render/models/props/index.js';
+import { ChestRenderer } from '../src/render/ChestRenderer.js';
+import { parseOrientationYaw } from '../src/levels/LevelLoader.js';
 
 test('Modelos Héroes: buildSharedGeometries y buildSharedMaterials generan geometrías y materiales válidos', () => {
   const geos = buildSharedGeometries();
@@ -111,6 +113,12 @@ test('Modelos Props: createDoorGeometries y buildDoorLeaf generan hojas batiente
   assert.ok(leftLeaf instanceof THREE.Group, 'leftLeaf debe ser THREE.Group');
   assert.ok(rightLeaf instanceof THREE.Group, 'rightLeaf debe ser THREE.Group');
   assert.equal(leftLeaf.children.length, 2, 'Hoja debe tener panel de madera y herrajes');
+
+  // El herraje de forja debe terminar antes del canto batiente (1.00m) para evitar Z-fighting
+  geos.leftIron.computeBoundingBox();
+  geos.rightIron.computeBoundingBox();
+  assert.ok(geos.leftIron.boundingBox.max.x < 1.00, 'El herraje izquierdo debe terminar antes del canto (x < 1.00)');
+  assert.ok(geos.rightIron.boundingBox.min.x > -1.00, 'El herraje derecho debe terminar antes del canto (x > -1.00)');
 });
 
 test('Modelos Props: createPedestalGeometries y buildPedestalMesh construyen altar y runas', () => {
@@ -132,6 +140,9 @@ test('Modelos Props: createPedestalGeometries y buildPedestalMesh construyen alt
 
 test('Modelos Props: createStairsMaterials y buildStairsMesh construyen losa y niebla', () => {
   const mats = createStairsMaterials();
+  assert.ok(mats.wood instanceof THREE.MeshLambertMaterial, 'wood material debe existir en los materiales de escaleras');
+  assert.ok(mats.stoneDark instanceof THREE.MeshLambertMaterial, 'stoneDark material debe existir');
+
   const rect = { x1: 11, x2: 12, z1: 31, z2: 33 };
   const { root, slab, pitLight, fog } = buildStairsMesh(rect, mats);
 
@@ -139,4 +150,81 @@ test('Modelos Props: createStairsMaterials y buildStairsMesh construyen losa y n
   assert.ok(slab instanceof THREE.Group, 'slab debe ser THREE.Group');
   assert.ok(pitLight instanceof THREE.PointLight, 'pitLight debe ser THREE.PointLight');
   assert.ok(fog instanceof THREE.Points, 'fog debe ser THREE.Points');
+
+  // La losa debe incluir el cuerpo de tablones de madera estilo puerta
+  const hasWoodMesh = slab.children.some(c => c.isMesh && c.material === mats.wood);
+  assert.ok(hasWoodMesh, 'slab debe contener una malla de tablones de madera estilo puerta');
+});
+
+test('ChestRenderer: parseChestYaw y parseOrientationYaw resuelven orientaciones de 90 grados', () => {
+  // Puntos cardinales en inglés y español
+  assert.equal(parseOrientationYaw({ facing: 'south' }), 0);
+  assert.equal(parseOrientationYaw({ facing: 'sur' }), 0);
+  assert.equal(parseOrientationYaw({ facing: 's' }), 0);
+
+  assert.equal(parseOrientationYaw({ facing: 'east' }), Math.PI / 2);
+  assert.equal(parseOrientationYaw({ facing: 'este' }), Math.PI / 2);
+  assert.equal(parseOrientationYaw({ facing: 'e' }), Math.PI / 2);
+
+  assert.equal(parseOrientationYaw({ facing: 'north' }), Math.PI);
+  assert.equal(parseOrientationYaw({ facing: 'norte' }), Math.PI);
+  assert.equal(parseOrientationYaw({ facing: 'n' }), Math.PI);
+
+  assert.equal(parseOrientationYaw({ facing: 'west' }), (3 * Math.PI) / 2);
+  assert.equal(parseOrientationYaw({ facing: 'oeste' }), (3 * Math.PI) / 2);
+  assert.equal(parseOrientationYaw({ facing: 'w' }), (3 * Math.PI) / 2);
+
+  // Grados sexagesimales (rotation / angle)
+  assert.equal(ChestRenderer.parseChestYaw({ rotation: 0 }), 0);
+  assert.equal(ChestRenderer.parseChestYaw({ rotation: 90 }), Math.PI / 2);
+  assert.equal(ChestRenderer.parseChestYaw({ angle: 180 }), Math.PI);
+  assert.equal(ChestRenderer.parseChestYaw({ rotation: 270 }), (3 * Math.PI) / 2);
+  assert.equal(ChestRenderer.parseChestYaw({ rotation: -90 }), (-90 * Math.PI) / 180);
+
+  // Radianes directos (yaw)
+  assert.equal(ChestRenderer.parseChestYaw({ yaw: 1.23 }), 1.23);
+
+  // Valor por defecto sin configuración
+  assert.equal(ChestRenderer.parseChestYaw({}), 0);
+  assert.equal(ChestRenderer.parseChestYaw(null), 0);
+});
+
+test('ChestRenderer: loadChests aplica rotaciones de 90 grados a chestGroup y preserva yaw', () => {
+  const scene = new THREE.Scene();
+  const renderer = new ChestRenderer(scene);
+
+  const configs = [
+    { id: 1, x: 10, y: 1, z: 10, facing: 'south' },
+    { id: 2, x: 20, y: 1, z: 20, facing: 'east' },
+    { id: 3, x: 30, y: 1, z: 30, rotation: 180 },
+    { id: 4, x: 40, y: 1, z: 40, direction: 'west' },
+  ];
+
+  renderer.loadChests(configs);
+
+  const c1 = renderer.chests.get(1);
+  const c2 = renderer.chests.get(2);
+  const c3 = renderer.chests.get(3);
+  const c4 = renderer.chests.get(4);
+
+  assert.equal(c1.chestGroup.rotation.y, 0, 'Cofre 1 debe mirar al Sur (0 rad)');
+  assert.equal(c1.yaw, 0);
+
+  assert.equal(c2.chestGroup.rotation.y, Math.PI / 2, 'Cofre 2 debe mirar al Este (PI/2 rad)');
+  assert.equal(c2.yaw, Math.PI / 2);
+
+  assert.equal(c3.chestGroup.rotation.y, Math.PI, 'Cofre 3 debe mirar al Norte (PI rad)');
+  assert.equal(c3.yaw, Math.PI);
+
+  assert.equal(c4.chestGroup.rotation.y, (3 * Math.PI) / 2, 'Cofre 4 debe mirar al Oeste (3PI/2 rad)');
+  assert.equal(c4.yaw, (3 * Math.PI) / 2);
+
+  // Apertura y resorte funcionan independientemente de la orientación
+  assert.equal(renderer.isChestOpen(2), false);
+  const opened = renderer.openChest(2);
+  assert.equal(opened, true);
+  assert.equal(renderer.isChestOpen(2), true);
+  assert.equal(c2.chestGroup.rotation.y, Math.PI / 2, 'La rotación del cofre debe conservarse al abrirse');
+
+  renderer.dispose();
 });

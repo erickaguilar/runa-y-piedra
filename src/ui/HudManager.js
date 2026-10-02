@@ -74,7 +74,7 @@ export const HudMixin = {
     const MAP = {
       door: ['door', isTouch ? 'ABRIR' : '[E] ABRIR'],
       chest: ['chest', isTouch ? 'ABRIR' : '[E] ABRIR'],
-      stairs: ['stone', isTouch ? 'EMPUJAR' : '[E] EMPUJAR'],
+      stairs: ['stairs', isTouch ? 'EMPUJAR' : '[E] EMPUJAR'],
       pedestal: ['sparkles', isTouch ? 'ACTIVAR' : '[E] ACTIVAR'],
       cartography: ['compass', isTouch ? 'MAPA' : '[E] MAPA'],
     };

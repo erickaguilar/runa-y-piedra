@@ -328,3 +328,24 @@ test('dev_showroom el punto de spawn no contiene bloques sólidos en el cuerpo d
   assert.equal(world.get(12, 0, 3), BLOCK_TYPES.RESPAWN_PAD);
 });
 
+test('Orientación de cofres: los niveles cargan y calculan yaw en pasos de 90 grados', () => {
+  const world = new World();
+
+  // dungeon_classic: cofre 1 mira al oeste (3PI/2 rad), cofre 2 mira al este (PI/2 rad)
+  world.loadLevel(world.levelRegistry.getLevel('dungeon_classic'));
+  const dc1 = world.chests.find(c => c.id === 1);
+  const dc2 = world.chests.find(c => c.id === 2);
+  assert.equal(dc1.yaw, (3 * Math.PI) / 2);
+  assert.equal(dc2.yaw, Math.PI / 2);
+
+  // dev_showroom: cofre 1 mira al este, cofre 2 al sur, cofre 3 al oeste
+  world.loadLevel(world.levelRegistry.getLevel('dev_showroom'));
+  const s1 = world.chests.find(c => c.id === 1);
+  const s2 = world.chests.find(c => c.id === 2);
+  const s3 = world.chests.find(c => c.id === 3);
+  assert.equal(s1.yaw, Math.PI / 2);
+  assert.equal(s2.yaw, 0);
+  assert.equal(s3.yaw, (3 * Math.PI) / 2);
+});
+
+

@@ -71,6 +71,7 @@
       "x": 6.5,
       "y": 1.0,
       "z": 8.5,
+      "facing": "east",
       "reward": ":key: Llave del Aprendiz",
       "message": ":chest: ¡Has abierto el Cofre de Práctica! Has obtenido: :key: Llave del Aprendiz.",
       "givesKey": "llave_tutorial",

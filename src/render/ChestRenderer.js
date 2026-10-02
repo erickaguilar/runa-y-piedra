@@ -7,6 +7,7 @@ import {
   createChestGeometries,
   buildChestMesh,
 } from './models/props/chestModel.js';
+import { parseOrientationYaw } from '../levels/LevelLoader.js';
 
 const LID_OPEN_ANGLE = 1.48; // ~85 grados de apertura completa
 const LID_SPRING_K = 200;    // Rigidez sub-amortiguada con 1 overshoot visible
@@ -51,6 +52,15 @@ export class ChestRenderer {
     return createChestWoodTexture(width, height);
   }
 
+  /**
+   * Resuelve el ángulo yaw en radianes de un cofre a partir de su configuración.
+   * @param {object} cfg
+   * @returns {number}
+   */
+  static parseChestYaw(cfg = {}) {
+    return parseOrientationYaw(cfg);
+  }
+
   loadChests(chestConfigs = []) {
     this.clear();
 
@@ -63,12 +73,11 @@ export class ChestRenderer {
       const x = cfg.x ?? 4.5;
       const y = cfg.y ?? 1.0;
       const z = cfg.z ?? 5.5;
+      const yaw = ChestRenderer.parseChestYaw(cfg);
 
       const { chestGroup, lidPivot, lootLight } = buildChestMesh(this.geos, this.mats);
       chestGroup.position.set(x, y, z);
-      if (cfg.yaw) {
-        chestGroup.rotation.y = cfg.yaw;
-      }
+      chestGroup.rotation.y = yaw;
       this.group.add(chestGroup);
 
       const isOpen = !!cfg.isOpen;
@@ -89,6 +98,7 @@ export class ChestRenderer {
         x,
         y,
         z,
+        yaw,
         isOpen,
         lidPivot,
         lootLight,

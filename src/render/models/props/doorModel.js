@@ -12,6 +12,7 @@ export const LEAF_HEIGHT    = 1.98; // Ajustado al vano de 2 bloques de altura
  * ranuras profundas y remaches de forja en escala 1:2.
  */
 export function createWoodPlankTexture(width = 256, height = 512) {
+  if (typeof document === 'undefined') return null;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -132,10 +133,15 @@ export function createDoorGeometries() {
   rightWood.translate(-LEAF_WIDTH / 2, 0, 0);
 
   const buildHardwareGeom = (sign) => {
-    const b1 = new THREE.BoxGeometry(LEAF_WIDTH, 0.09, LEAF_THICKNESS + 0.02)
-      .translate(sign * (LEAF_WIDTH / 2), 0.65, 0);
-    const b2 = new THREE.BoxGeometry(LEAF_WIDTH, 0.09, LEAF_THICKNESS + 0.02)
-      .translate(sign * (LEAF_WIDTH / 2), -0.65, 0);
+    // Las bandas horizontales de refuerzo terminan a 4cm del canto batiente (LEAF_WIDTH - 0.04)
+    // para que la arista/canto de la puerta sea 100% madera pura y no exista Z-fighting coplanar.
+    const strapW = LEAF_WIDTH - 0.04;
+    const b1 = new THREE.BoxGeometry(strapW, 0.09, LEAF_THICKNESS + 0.02)
+      .translate(sign * (strapW / 2), 0.65, 0);
+    const b2 = new THREE.BoxGeometry(strapW, 0.09, LEAF_THICKNESS + 0.02)
+      .translate(sign * (strapW / 2), -0.65, 0);
+
+    // Chapa de cerradura: centrada en sign * (LEAF_WIDTH - 0.08) dejando 2cm de margen respecto al canto
     const lk = new THREE.BoxGeometry(0.12, 0.22, LEAF_THICKNESS + 0.04)
       .translate(sign * (LEAF_WIDTH - 0.08), 0, 0);
     const kFront = new THREE.SphereGeometry(0.04, 8, 6)
@@ -143,8 +149,15 @@ export function createDoorGeometries() {
     const kBack = new THREE.SphereGeometry(0.04, 8, 6)
       .translate(sign * (LEAF_WIDTH - 0.08), -0.02, -(LEAF_THICKNESS / 2) - 0.03);
 
-    const merged = mergeGeometries([b1, b2, lk, kFront, kBack]);
+    // Nudillos redondeados de la bisagra en el marco lateral (x = 0)
+    const knuckle1 = new THREE.CylinderGeometry(0.022, 0.022, 0.11, 8)
+      .translate(0, 0.65, 0);
+    const knuckle2 = new THREE.CylinderGeometry(0.022, 0.022, 0.11, 8)
+      .translate(0, -0.65, 0);
+
+    const merged = mergeGeometries([b1, b2, lk, kFront, kBack, knuckle1, knuckle2]);
     b1.dispose(); b2.dispose(); lk.dispose(); kFront.dispose(); kBack.dispose();
+    knuckle1.dispose(); knuckle2.dispose();
     return merged;
   };
 
