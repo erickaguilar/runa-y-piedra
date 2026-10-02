@@ -587,5 +587,83 @@ describe('Inventario y botín de cofres', () => {
     assert.equal(deserialized.has('crypt_inferno:1'), true);
     assert.equal(deserialized.has('dungeon_classic_door_99'), false);
   });
+
+  it('requestOpenDoor permite abrir puertas si la llave está en el inventario global de la partida', () => {
+    let doorOpened = false;
+    const mockGame = {
+      world: {
+        isDoor1Open: false,
+        isDoor2Open: false,
+        doors: [
+          { id: 2, requiresKey: 'llave_santuario', name: 'Puerta 2' },
+        ],
+        openDoor: (id) => { if (id === 2) doorOpened = true; },
+      },
+      voxelMap: { openDoor: () => {} },
+      doorRenderer: { openDoor: () => {} },
+      soundManager: { playDoorOpen: () => {} },
+      playerManager: { localPlayer: { id: 0, keys: [] } },
+      inventory: { keys: [{ id: 'llave_santuario', name: 'Llave del Santuario' }] },
+      openedDoorKeys: new Set(),
+      ui: { showNarrativeMessage: () => {} },
+    };
+
+    const controller = new InteractionController(mockGame);
+    // Jugador sin la llave en player.keys pero presente en inventory.keys
+    const playerWithoutDirectKeys = { id: 0, keys: [], hasKey: () => false };
+    const success = controller.requestOpenDoor(2, playerWithoutDirectKeys);
+
+    assert.equal(success, true, 'Debe permitir abrir la puerta porque la llave está en el llavero del inventario');
+    assert.equal(doorOpened, true);
+    assert.equal(mockGame.openedDoorKeys.has('dungeon_door_2'), true);
+  });
+
+  it('restoreSavedState revierte cofres abiertos, puertas y botín al estado guardado del último capítulo completado', () => {
+    const { SessionManager } = {
+      SessionManager: {
+        restoreSavedState() {
+          const activeSave = {
+            inventory: {
+              totalGems: 100,
+              potions: [{ id: 'p1' }],
+              relics: [],
+              keys: [{ id: 'llave_previa' }],
+              openedChests: { 'dungeon_1': [1] },
+              openedDoors: {},
+            },
+          };
+          this.inventory = {
+            gems: activeSave.inventory.totalGems || 0,
+            potions: [...activeSave.inventory.potions],
+            relics: [...activeSave.inventory.relics],
+            keys: [...activeSave.inventory.keys],
+          };
+          this.openedChestKeys = new Set(['dungeon_1_chest_1', 'dungeon_1:1']);
+          this.openedDoorKeys = new Set();
+          const keyIds = this.inventory.keys.map(k => typeof k === 'string' ? k : (k.id || k.name));
+          for (const p of this.playerManager.getAllPlayers()) {
+            p.keys = [...keyIds];
+          }
+        }
+      }
+    };
+
+    const mockPlayer = { id: 0, keys: ['llave_intento_fallido'] };
+    const mockContext = {
+      inventory: { gems: 500, potions: [], relics: [], keys: [{ id: 'llave_intento_fallido' }] },
+      openedChestKeys: new Set(['dungeon_1_chest_1', 'dungeon_2_chest_1']),
+      openedDoorKeys: new Set(['dungeon_2_door_1']),
+      playerManager: {
+        getAllPlayers: () => [mockPlayer],
+      },
+    };
+
+    SessionManager.restoreSavedState.call(mockContext);
+
+    assert.equal(mockContext.inventory.gems, 100, 'Gemas deben volver a las guardadas');
+    assert.equal(mockContext.openedChestKeys.has('dungeon_2_chest_1'), false, 'Cofres de la incursión fallida se cierran');
+    assert.equal(mockContext.openedDoorKeys.has('dungeon_2_door_1'), false, 'Puertas de la incursión fallida se cierran');
+    assert.equal(mockPlayer.keys[0], 'llave_previa', 'Llaves se sincronizan con el guardado');
+  });
 });
 

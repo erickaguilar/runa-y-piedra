@@ -325,7 +325,11 @@ export const NetworkCoordinatorMixin = {
         if (wasGameOver) {
           this.soundManager.playGameOver();
           this.ui.showGameOver(local.lives, local.maxLives ?? 3);
-          this.resetInventory({ keepGems: false, keepRelics: false });
+          if (typeof this.restoreSavedState === 'function') {
+            this.restoreSavedState();
+          } else {
+            this.resetInventory({ keepGems: false, keepRelics: false });
+          }
         }
       }
     });

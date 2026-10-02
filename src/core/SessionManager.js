@@ -110,8 +110,10 @@ export const SessionMixin = {
       this.input.yaw = Math.PI;
       localInit.yaw = Math.PI;
       localInit.resetLives();
+      const keyIds = this.inventory.keys.map(k => typeof k === 'string' ? k : (k.id || k.name));
+      localInit.keys = [...keyIds];
       this.ui.updateLives(localInit.lives, localInit.maxLives);
-      this.ui.setHasKey(false);
+      this.ui.setHasKey(this.inventory.keys.length > 0);
 
       // Configurar metadatos del avatar local
       const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
@@ -160,13 +162,16 @@ export const SessionMixin = {
     this.world.loadLevel(levelData);
     this.voxelMap.rebuildFromWorld();
 
+    // En Game Over restaurar estado guardado antes de reconstruir el nivel
+    if (isGameOver) {
+      this.restoreSavedState();
+    }
+
     // Sincronizar estado de cofres ya abiertos en este nivel
     for (const c of this.world.chests || []) {
       const chestKey1 = `${levelId}_chest_${c.id ?? 1}`;
       const chestKey2 = `${levelId}:${c.id ?? 1}`;
-      if (this.openedChestKeys?.has(chestKey1) || this.openedChestKeys?.has(chestKey2)) {
-        c.isOpen = true;
-      }
+      c.isOpen = !!(this.openedChestKeys?.has(chestKey1) || this.openedChestKeys?.has(chestKey2));
     }
 
     this.chestRenderer.loadChests(this.world.chests);
@@ -189,7 +194,10 @@ export const SessionMixin = {
     const spawn = levelData.spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
     const allPlayers = this.playerManager.getAllPlayers();
     for (const pl of allPlayers) {
-      pl.clearKeys?.();
+      if (isGameOver) {
+        const keyIds = this.inventory.keys.map(k => typeof k === 'string' ? k : (k.id || k.name));
+        pl.keys = [...keyIds];
+      }
       const spawnZ = pl.id === 0 ? spawn.z : spawn.z + 3.0;
       pl.setCheckpoint(spawn.x, spawn.y, spawnZ, levelData.name, levelData.id);
       pl.pos.x = spawn.x;
@@ -225,13 +233,19 @@ export const SessionMixin = {
     }
 
     const local = this.playerManager.localPlayer;
-    this.resetInventory({ keepGems: true, keepRelics: true, keepPotions: true });
+    if (isGameOver) {
+      this.restoreSavedState();
+    } else {
+      this.resetInventory({ keepGems: true, keepRelics: true, keepPotions: true, keepKeys: true });
+    }
+    const activeKeyIds = this.inventory.keys.map(k => typeof k === 'string' ? k : (k.id || k.name));
+    local.keys = [...activeKeyIds];
     this.ui.setLivesVisible(true);
     this.ui.setActionButtonsVisible(true);
     this.ui.setCrosshairVisible(true);
     this.ui.updateLives(local.lives, local.maxLives);
     this.ui.setTutorialControlsVisible(levelData.id === 'lobby_tutorial');
-    this.ui.setHasKey(false);
+    this.ui.setHasKey(this.inventory.keys.length > 0);
     // Fin de la transición del portal (el velo se retira sobre el nuevo mapa)
     this.ui.hideLevelTransition();
     this.ui.hideNarrativeMessage();
@@ -316,12 +330,41 @@ export const SessionMixin = {
   },
 
   /**
-   * Guarda de forma persistente y atómica el avance únicamente al completar una mazmorra.
-   * Invocado en descenso por escalinata o al culminar el altar supremo de capítulo.
+   * Restaura el inventario y estado del mundo al último capítulo guardado con éxito.
+   * Usado tras Game Over para evitar que cofres queden saqueados o llaves perdidas sin haber culminado el capítulo.
+   */
+  restoreSavedState() {
+    const activeSave = saveManager.currentSave;
+    const inv = activeSave?.inventory || {};
+    this.inventory = {
+      gems: inv.totalGems || 0,
+      potions: Array.isArray(inv.potions) ? [...inv.potions] : [],
+      relics: Array.isArray(inv.relics) ? [...inv.relics] : [],
+      keys: Array.isArray(inv.keys) ? [...inv.keys] : [],
+    };
+    this.openedChestKeys = saveManager.deserializeOpenedChests(inv.openedChests);
+    this.openedDoorKeys = saveManager.deserializeOpenedDoors(inv.openedDoors);
+
+    const keyIds = this.inventory.keys.map(k => typeof k === 'string' ? k : (k.id || k.name));
+    for (const p of this.playerManager.getAllPlayers()) {
+      p.keys = [...keyIds];
+    }
+
+    this.ui.updateInventory(this.inventory);
+    this.ui.setHasKey(this.inventory.keys.length > 0);
+  },
+
+  /**
+   * Guarda de forma persistente y atómica el avance únicamente al completar el capítulo con éxito.
+   * Invocado al culminar el altar supremo de capítulo (isVictory = true).
    */
   saveDungeonCompletion(completedLevelId, isVictory = false) {
     if (this.mode === 'client') return; // Solo la sesión anfitriona o local persiste el avance canónico
     if (!completedLevelId || completedLevelId === 'lobby_tutorial' || completedLevelId === 'dev_showroom') {
+      return;
+    }
+    // Solo persistir a almacenamiento permanente al culminar el capítulo
+    if (!isVictory) {
       return;
     }
 
@@ -345,7 +388,7 @@ export const SessionMixin = {
         },
       });
 
-      this.ui.showNarrativeMessage('💾 ¡Mazmorra completada! Progreso guardado con éxito.', 3500);
+      this.ui.showNarrativeMessage('💾 ¡Capítulo completado! Progreso y tesoros guardados en tu partida.', 4500);
     } catch (err) {
       console.warn('[SessionManager] Error al guardar finalización de mazmorra:', err);
     }

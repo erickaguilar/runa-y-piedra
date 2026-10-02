@@ -82,7 +82,7 @@ export class VoxelSandboxGame {
         if (gameOver) {
           this.soundManager.playGameOver();
           this.ui.showGameOver(lives, maxLives);
-          this.resetInventory({ keepGems: false, keepRelics: false });
+          this.restoreSavedState();
           // Game Over = vuelta al lobby con todo reseteado (hub de la party)
           if (this.mode === 'host') {
             const lobbyId = this.world.levelRegistry.getAllLevels()[0]?.id || 'lobby_tutorial';

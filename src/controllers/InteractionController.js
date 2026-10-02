@@ -47,7 +47,10 @@ export class InteractionController {
       } else {
         // Pre-chequeo local de llave para feedback inmediato sin tráfico de red
         const door = game.world.doors?.find(d => d.id === doorId);
-        if (door?.requiresKey && !local.hasKey?.(door.requiresKey)) {
+        const hasKey = !door?.requiresKey
+          || local.hasKey?.(door.requiresKey)
+          || game.inventory?.keys?.some(k => (typeof k === 'string' ? k : (k.id || k.name)) === door.requiresKey);
+        if (door?.requiresKey && !hasKey) {
           this.doorLockedFeedback(door);
           return;
         }
@@ -120,13 +123,13 @@ export class InteractionController {
     if (game.mode === 'host') {
       game.network.broadcast(Proto.serializeChestOpen(chestId));
       // Otorgamiento autoritativo de llave al jugador que abrió el cofre
-      if (chestData?.givesKey && opener?.addKey) {
-        if (opener.addKey(chestData.givesKey)) {
-          game.network.broadcast(Proto.serializeKeyUpdate(opener.id, chestData.givesKey));
-          if (opener === local) {
-            // Actualizar HUD e inventario sin duplicar la notificación narrativa
-            this.onLocalKeyReceived(chestData, false);
-          }
+      if (chestData?.givesKey) {
+        if (opener?.addKey) opener.addKey(chestData.givesKey);
+        if (local && local !== opener && local.addKey) local.addKey(chestData.givesKey);
+        game.network.broadcast(Proto.serializeKeyUpdate(opener?.id ?? local?.id ?? 0, chestData.givesKey));
+        if (opener === local || !opener) {
+          // Actualizar HUD e inventario sin duplicar la notificación narrativa
+          this.onLocalKeyReceived(chestData, false);
         }
       }
     }
@@ -263,7 +266,11 @@ export class InteractionController {
 
     const door = game.world.doors?.find(d => d.id === doorId);
     const keyId = door?.requiresKey;
-    if (keyId && !(player?.hasKey?.(keyId))) {
+    const hasKey = !keyId
+      || player?.hasKey?.(keyId)
+      || game.inventory?.keys?.some(k => (typeof k === 'string' ? k : (k.id || k.name)) === keyId);
+
+    if (keyId && !hasKey) {
       // Solo el jugador local recibe el aviso; los remotos ya fueron filtrados en su cliente
       if (player === game.playerManager.localPlayer) {
         this.doorLockedFeedback(door);
