@@ -121,6 +121,7 @@ export function migrateFromLegacy(slotId = DEFAULT_SLOT_ID) {
   try {
     const rawStorage = typeof localStorage !== 'undefined' ? localStorage : null;
     if (!rawStorage) return null;
+    if (rawStorage.getItem('runa_legacy_migrated') === 'done') return null;
 
     const rawCampaign = rawStorage.getItem(LEGACY_CAMPAIGN_KEY);
     const rawCamera = rawStorage.getItem('dungeon_camera');
@@ -131,8 +132,8 @@ export function migrateFromLegacy(slotId = DEFAULT_SLOT_ID) {
     const rawName = rawStorage.getItem('dungeon_player_name');
     const rawDismissed = rawStorage.getItem('runa_controls_dismissed');
 
-    // Si no hay ninguna clave legacy registrada, no migrar
-    if (!rawCampaign && !rawCamera && !rawName && rawColor === null && rawMute === null) {
+    // Si no hay campaña ni nombre personalizado registrado, no migrar partida
+    if (!rawCampaign && (!rawName || rawName === 'Aventurero') && (rawColor === null || rawColor === '0')) {
       return null;
     }
 
@@ -593,7 +594,9 @@ export class SaveManager {
       } catch {}
 
       if (!data && slotId === DEFAULT_SLOT_ID) {
-        data = migrateFromLegacy(slotId);
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('runa_legacy_migrated') !== 'done') {
+          data = migrateFromLegacy(slotId);
+        }
       }
 
       if (data && validateSaveData(data)) {
@@ -665,12 +668,12 @@ export class SaveManager {
 
     if (slotId === this.currentSlotId) {
       this.currentSave = createDefaultSave(slotId);
-      this._writeLegacyMirror(this.currentSave);
       this._notifyChange();
     }
     if (slotId === DEFAULT_SLOT_ID) {
       try {
         if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('runa_legacy_migrated', 'done');
           localStorage.removeItem(LEGACY_CAMPAIGN_KEY);
           localStorage.removeItem('dungeon_player_name');
           localStorage.removeItem('dungeon_player_color');

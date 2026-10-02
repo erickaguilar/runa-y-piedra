@@ -196,8 +196,8 @@ export const MenuMixin = {
              title="${isEmpty ? `Ranura ${num}: Vacía` : `Ranura ${num}: ${escapeHtml(s.name)} (${hero.name} - Cap. ${s.highestChapter})`}">
           <div class="menu-slot-chip-top">
             <span class="menu-slot-num">Ranura ${num}</span>
-            <span class="menu-slot-badge ${isActive ? 'badge-active' : (isEmpty ? 'badge-empty' : 'badge-saved')}">
-              ${isActive ? 'Activa' : (isEmpty ? 'Vacía' : 'Cargar')}
+            <span class="menu-slot-badge ${isActive ? (isEmpty ? 'badge-empty' : 'badge-active') : (isEmpty ? 'badge-empty' : 'badge-saved')}">
+              ${isActive ? (isEmpty ? 'Vacía' : 'Activa') : (isEmpty ? 'Vacía' : 'Cargar')}
             </span>
           </div>
           <div class="menu-slot-chip-body">
@@ -451,13 +451,23 @@ export const MenuMixin = {
               if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
                 window.__game.chapterRegistry.load?.();
               }
+              if (typeof window !== 'undefined' && window.__game) {
+                window.__game.inventory = { keys: [], gems: 0, relics: [], potions: [] };
+                window.__game.openedChestKeys = new Set();
+                window.__game.openedDoorKeys = new Set();
+                window.__game.ui?.updateInventory?.(window.__game.inventory);
+              }
               this.playerName = 'Aventurero';
               this.selectedColorIndex = 0;
-              localStorage.setItem('dungeon_player_name', this.playerName);
-              localStorage.setItem('dungeon_player_color', '0');
+              try {
+                localStorage.setItem('dungeon_player_name', this.playerName);
+                localStorage.setItem('dungeon_player_color', '0');
+              } catch {}
+
+              const summaries = await saveManager.getAllSlotsSummary();
+              await this.refreshMenuSlots(summaries);
               this.setMenuLockedState(false);
-              this.showNarrativeMessage(`🗑️ Ranura ${num} borrada. Ahora puedes personalizar un nuevo aventurero.`, 3000);
-              await this.refreshMenuSlots();
+              this.showNarrativeMessage(`🗑️ Ranura ${num} borrada. Puedes modificar tu nombre y elegir tu clase de héroe.`, 3500);
             } catch (err) {
               console.error('[MenuManager] Error borrando ranura activa:', err);
               this.showNarrativeMessage(`Error al borrar: ${err.message}`, 3500);
