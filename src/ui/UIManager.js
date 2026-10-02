@@ -26,7 +26,9 @@ export class UIManager {
     this.settingsBtn = document.getElementById(settingsBtnId);
     this.devBtn = document.getElementById(devBtnId);
     this.inventoryHud = document.getElementById(inventoryHudId);
+    this.keysTagHud = document.getElementById('hud-keys-tag');
     this.inventory = { keys: [], gems: 0, relics: [], potions: [] };
+    this.inventoryFilter = 'all';
     this.inventoryCallbacks = {};
     this.isInventoryOpen = false;
     this.isDevOpen = false;
@@ -43,6 +45,19 @@ export class UIManager {
       };
       this.inventoryHud.onclick = handleOpenLoot;
       this.inventoryHud.addEventListener('touchend', handleOpenLoot, { passive: false });
+    }
+
+    if (this.keysTagHud) {
+      const handleOpenKeys = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
+        soundManager.playClick();
+        this.openInventoryModal('keys');
+      };
+      this.keysTagHud.onclick = handleOpenKeys;
+      this.keysTagHud.addEventListener('touchend', handleOpenKeys, { passive: false });
     }
 
     if (this.devBtn) {

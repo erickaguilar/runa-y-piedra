@@ -47,10 +47,15 @@ export class InteractionController {
       } else {
         // Pre-chequeo local de llave para feedback inmediato sin tráfico de red
         const door = game.world.doors?.find(d => d.id === doorId);
-        const hasKey = !door?.requiresKey
-          || local.hasKey?.(door.requiresKey)
-          || game.inventory?.keys?.some(k => (typeof k === 'string' ? k : (k.id || k.name)) === door.requiresKey);
-        if (door?.requiresKey && !hasKey) {
+        const reqKey = door?.requiresKey;
+        const hasKey = !reqKey
+          || local.hasKey?.(reqKey)
+          || (reqKey !== 'llave_santuario' && local.hasKey?.('llave_santuario'))
+          || game.inventory?.keys?.some(k => {
+            const id = typeof k === 'string' ? k : (k.id || k.name);
+            return id === reqKey || (reqKey !== 'llave_santuario' && id === 'llave_santuario');
+          });
+        if (reqKey && !hasKey) {
           this.doorLockedFeedback(door);
           return;
         }
@@ -268,7 +273,11 @@ export class InteractionController {
     const keyId = door?.requiresKey;
     const hasKey = !keyId
       || player?.hasKey?.(keyId)
-      || game.inventory?.keys?.some(k => (typeof k === 'string' ? k : (k.id || k.name)) === keyId);
+      || (keyId !== 'llave_santuario' && player?.hasKey?.('llave_santuario'))
+      || game.inventory?.keys?.some(k => {
+        const id = typeof k === 'string' ? k : (k.id || k.name);
+        return id === keyId || (keyId !== 'llave_santuario' && id === 'llave_santuario');
+      });
 
     if (keyId && !hasKey) {
       // Solo el jugador local recibe el aviso; los remotos ya fueron filtrados en su cliente

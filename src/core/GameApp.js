@@ -83,10 +83,10 @@ export class VoxelSandboxGame {
           this.soundManager.playGameOver();
           this.ui.showGameOver(lives, maxLives);
           this.restoreSavedState();
-          // Game Over = vuelta al lobby con todo reseteado (hub de la party)
+          // Game Over = reinicio en el spawn de la mazmorra actual con vidas restauradas
           if (this.mode === 'host') {
-            const lobbyId = this.world.levelRegistry.getAllLevels()[0]?.id || 'lobby_tutorial';
-            this.switchLevel(lobbyId, true, { isGameOver: true });
+            const curLevelId = this.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon_classic';
+            this.switchLevel(curLevelId, true, { isGameOver: true });
           }
         } else {
           this.soundManager.playHurt();

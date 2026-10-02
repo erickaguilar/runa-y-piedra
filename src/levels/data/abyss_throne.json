@@ -48,8 +48,8 @@
         { "x": 12, "y": 2, "z": 24 }
       ],
       "openMessage": "🚪 ¡Puerta 2 abierta! ¡Has cruzado el Vacío! El Trono os espera.",
-      "requiresKey": "llave_santuario",
-      "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave del Santuario del Cofre del Umbral."
+      "requiresKey": "llave_trono_vacio",
+      "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave del Trono del Cofre del Umbral."
     }
   ],
   "checkpoints": [
@@ -94,10 +94,10 @@
       "x": 5.5,
       "y": 1.0,
       "z": 8.5,
-      "reward": "🗝️ Llave del Santuario, 🧪 Poción de Vida y 💎 Gemas Abisales",
-      "message": "📦 ¡Has abierto el Cofre del Umbral! Has obtenido: 🗝️ Llave del Santuario, 🧪 Poción de Vida (+1 ❤️) y 💎 200 Gemas Abisales.",
-      "givesKey": "llave_santuario",
-      "keyName": "Llave del Santuario",
+      "reward": "🗝️ Llave del Trono, 🧪 Poción de Vida y 💎 Gemas Abisales",
+      "message": "📦 ¡Has abierto el Cofre del Umbral! Has obtenido: 🗝️ Llave del Trono del Vacío, 🧪 Poción de Vida (+1 ❤️) y 💎 200 Gemas Abisales.",
+      "givesKey": "llave_trono_vacio",
+      "keyName": "Llave del Trono del Vacío",
       "potion": {
         "id": "pocion_vida",
         "name": "Poción de Vida",

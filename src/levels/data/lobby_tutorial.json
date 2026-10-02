@@ -31,8 +31,8 @@
         { "x": 12, "y": 2, "z": 18 }
       ],
       "openMessage": "🚪 ¡Puerta abierta! La zona de entrenamiento y la escalinata sellada te esperan.",
-      "requiresKey": "llave_santuario",
-      "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave del Cofre de Práctica."
+      "requiresKey": "llave_tutorial",
+      "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave del Aprendiz del Cofre de Práctica."
     }
   ],
   "checkpoints": [
@@ -73,7 +73,7 @@
       "z": 8.5,
       "reward": "🗝️ Llave del Aprendiz",
       "message": "📦 ¡Has abierto el Cofre de Práctica! Has obtenido: 🗝️ Llave del Aprendiz.",
-      "givesKey": "llave_santuario",
+      "givesKey": "llave_tutorial",
       "keyName": "Llave del Aprendiz"
     }
   ],

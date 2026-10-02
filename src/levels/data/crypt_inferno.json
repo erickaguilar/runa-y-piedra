@@ -48,8 +48,8 @@
         { "x": 12, "y": 2, "z": 24 }
       ],
       "openMessage": "🔥 ¡Puerta 2 abierta! ¡Has cruzado el Río de Lava! Avanzad al Altar del Fuego.",
-      "requiresKey": "llave_santuario",
-      "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave del Santuario del Cofre del Vestíbulo."
+      "requiresKey": "llave_cripta_fuego",
+      "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave de la Cripta de Fuego del Cofre de Brasas."
     }
   ],
   "checkpoints": [
@@ -84,10 +84,10 @@
       "x": 18.5,
       "y": 1.0,
       "z": 6.5,
-      "reward": "🗝️ Llave del Santuario y 💎 Gemas Ígneas",
-      "message": "📦 ¡Has abierto el Cofre de Brasas! Has obtenido: 🗝️ Llave del Santuario y 💎 120 Gemas Volcánicas.",
-      "givesKey": "llave_santuario",
-      "keyName": "Llave del Santuario"
+      "reward": "🗝️ Llave de la Cripta y 💎 Gemas Ígneas",
+      "message": "📦 ¡Has abierto el Cofre de Brasas! Has obtenido: 🗝️ Llave de la Cripta de Fuego y 💎 120 Gemas Volcánicas.",
+      "givesKey": "llave_cripta_fuego",
+      "keyName": "Llave de la Cripta de Fuego"
     },
     {
       "id": 2,

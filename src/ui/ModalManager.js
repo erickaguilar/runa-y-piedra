@@ -821,6 +821,14 @@ export const ModalMixin = {
    */
   updateInventory({ keys = [], gems = 0, relics = [], potions = [] } = {}) {
     this.inventory = { keys, gems, relics, potions };
+
+    if (this.keysTagHud) {
+      const keysCount = keys?.length || 0;
+      this.keysTagHud.style.display = (keysCount > 0 && this._livesVisible !== false) ? 'flex' : 'none';
+      const countEl = document.getElementById('hud-keys-count');
+      if (countEl) countEl.textContent = keysCount;
+    }
+
     if (!this.inventoryHud) return;
 
     const totalItems = (keys?.length || 0) + (gems > 0 ? 1 : 0) + (relics?.length || 0) + (potions?.length || 0);
@@ -854,8 +862,14 @@ export const ModalMixin = {
 
   /**
    * Abre el modal interactivo de botín recolectado
+   * @param {string|null} filter Filtro opcional ('all' | 'keys' | 'gems' | 'relics' | 'potions')
    */
-  openInventoryModal() {
+  openInventoryModal(filter = null) {
+    if (filter) {
+      this.inventoryFilter = filter;
+    } else if (!this.inventoryFilter) {
+      this.inventoryFilter = 'all';
+    }
     this.closeConfirmDialog();
     if (this.isSettingsOpen) {
       this.closeSettingsModal();
@@ -896,22 +910,7 @@ export const ModalMixin = {
     const totalItems = (keys?.length || 0) + (gems > 0 ? 1 : 0) + (relics?.length || 0) + (potions?.length || 0);
     const hasAny = totalItems > 0;
 
-    let bodyHtml = '';
-
-    if (!hasAny) {
-      bodyHtml = `
-        <div class="inv-modal-empty">
-          <div class="inv-modal-empty-icon">
-            ${renderIcon('chest', { size: 32, color: '#64748b' })}
-          </div>
-          <h3 style="color:#f8fafc;font-size:15px;margin:6px 0 4px;text-align:center;">Cofre de Aventurero Vacío</h3>
-          <p style="color:#94a3b8;font-size:12px;line-height:1.5;text-align:center;margin:0;">
-            Aún no has recolectado botín en esta mazmorra. Explora las cámaras para encontrar cofres antiguos con llaves, gemas, pociones y reliquias míticas.
-          </p>
-        </div>
-      `;
-    } else {
-      let keysHtml = '';
+    let keysHtml = '';
       if (keys.length > 0) {
         keysHtml = `
           <div class="inv-section">
@@ -1016,12 +1015,65 @@ export const ModalMixin = {
         `;
       }
 
+    const activeFilter = this.inventoryFilter || 'all';
+
+    let filterTagsHtml = '';
+    if (hasAny) {
+      filterTagsHtml = `
+        <div class="inv-filter-tags">
+          <button type="button" class="inv-filter-tag ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">Todos (${totalItems})</button>
+          <button type="button" class="inv-filter-tag ${activeFilter === 'keys' ? 'active' : ''}" data-filter="keys">🗝️ Solo Llaves (${keys.length})</button>
+          <button type="button" class="inv-filter-tag ${activeFilter === 'gems' ? 'active' : ''}" data-filter="gems">💎 Gemas (${gems})</button>
+          <button type="button" class="inv-filter-tag ${activeFilter === 'relics' ? 'active' : ''}" data-filter="relics">🏆 Reliquias (${relics.length})</button>
+          <button type="button" class="inv-filter-tag ${activeFilter === 'potions' ? 'active' : ''}" data-filter="potions">🧪 Pociones (${potions.length})</button>
+        </div>
+      `;
+    }
+
+    let bodyHtml = '';
+    if (!hasAny) {
+      bodyHtml = `
+        <div class="inv-modal-empty">
+          <div class="inv-modal-empty-icon">
+            ${renderIcon('chest', { size: 32, color: '#64748b' })}
+          </div>
+          <h3 style="color:#f8fafc;font-size:15px;margin:6px 0 4px;text-align:center;">Cofre de Aventurero Vacío</h3>
+          <p style="color:#94a3b8;font-size:12px;line-height:1.5;text-align:center;margin:0;">
+            Aún no has recolectado botín en esta mazmorra. Explora las cámaras para encontrar cofres antiguos con llaves, gemas, pociones y reliquias míticas.
+          </p>
+        </div>
+      `;
+    } else if (activeFilter === 'keys') {
+      bodyHtml = keysHtml || `
+        <div class="inv-modal-empty" style="padding:16px 10px;">
+          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">No tienes ninguna llave en tu llavero todavía. Abre cofres en las cámaras para obtener llaves de paso.</p>
+        </div>
+      `;
+    } else if (activeFilter === 'gems') {
+      bodyHtml = gemsHtml || `
+        <div class="inv-modal-empty" style="padding:16px 10px;">
+          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">No tienes gemas recolectadas actualmente.</p>
+        </div>
+      `;
+    } else if (activeFilter === 'relics') {
+      bodyHtml = relicsHtml || `
+        <div class="inv-modal-empty" style="padding:16px 10px;">
+          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Aún no has descubierto reliquias arcanas míticas.</p>
+        </div>
+      `;
+    } else if (activeFilter === 'potions') {
+      bodyHtml = potionsHtml || `
+        <div class="inv-modal-empty" style="padding:16px 10px;">
+          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">No tienes pociones de vida disponibles.</p>
+        </div>
+      `;
+    } else {
       bodyHtml = keysHtml + gemsHtml + relicsHtml + potionsHtml;
     }
 
     overlay.innerHTML = `
       <div id="modal-inventory-panel" class="inventory-modal" style="max-height:86vh;overflow-y:auto;width:92vw;max-width:380px;text-align:left;padding:18px 20px;">
-        <div class="settings-header" style="margin-bottom:14px;">
+        <div class="settings-header" style="margin-bottom:12px;">
           <div style="display:flex;align-items:center;gap:8px;">
             <h2 style="display:flex;align-items:center;gap:6px;font-size:15px;">
               ${renderIcon('chest', { size: 18, color: '#f59e0b' })} BOTÍN DE EXPEDICIÓN
@@ -1032,6 +1084,8 @@ export const ModalMixin = {
           </div>
           <button id="btn-close-inventory" class="close-x-btn" title="Cerrar">${renderIcon('x', { size: 18, color: 'currentColor' })}</button>
         </div>
+
+        ${filterTagsHtml}
 
         <div class="inventory-modal-body">
           ${bodyHtml}
@@ -1063,6 +1117,22 @@ export const ModalMixin = {
       closeFooterBtn.onclick = handleClose;
       closeFooterBtn.addEventListener('touchend', handleClose, { passive: false });
     }
+
+    // Pestañas / Tags de filtro (Todos, Solo Llaves, Gemas, Reliquias, Pociones)
+    const filterBtns = (overlay.querySelectorAll ? overlay.querySelectorAll('.inv-filter-tag') : (typeof document !== 'undefined' && document.querySelectorAll ? document.querySelectorAll('.inv-filter-tag') : [])) || [];
+    filterBtns.forEach(btn => {
+      const handleFilter = (e) => {
+        if (e) {
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+        }
+        soundManager.playClick();
+        this.inventoryFilter = btn.dataset.filter || 'all';
+        this.renderInventoryModalContent();
+      };
+      btn.onclick = handleFilter;
+      btn.addEventListener('touchend', handleFilter, { passive: false });
+    });
 
     // Botones de acción manual para beber pociones
     const potionBtns = (overlay.querySelectorAll ? overlay.querySelectorAll('.btn-use-potion') : (typeof document !== 'undefined' && document.querySelectorAll ? document.querySelectorAll('.btn-use-potion') : [])) || [];

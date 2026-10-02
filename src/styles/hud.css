@@ -177,6 +177,97 @@
       box-sizing: border-box;
     }
 
+    /* Tag de solo llaves en el HUD */
+    #hud-keys-tag,
+    .hud-keys-tag {
+      pointer-events: auto;
+      display: none;
+      align-items: center;
+      gap: 5px;
+      height: 38px;
+      padding: 0 10px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 10px rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      animation: uiFadeIn 0.25s ease-out;
+      box-sizing: border-box;
+    }
+    #hud-keys-tag * {
+      pointer-events: none;
+    }
+    #hud-keys-tag:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(251, 191, 36, 0.8);
+      box-shadow: 0 4px 18px rgba(251, 191, 36, 0.4);
+      transform: translateY(-1px);
+    }
+    #hud-keys-tag:active {
+      transform: scale(0.92);
+    }
+    .keys-tag-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.5));
+    }
+    .keys-tag-count {
+      color: #fef08a;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    /* Pestañas / Tags de filtro en el modal de inventario */
+    .inv-filter-tags {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .inv-filter-tags::-webkit-scrollbar {
+      display: none;
+    }
+    .inv-filter-tag {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .inv-filter-tag:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #f8fafc;
+    }
+    .inv-filter-tag.active {
+      background: rgba(251, 191, 36, 0.18);
+      border-color: #fbbf24;
+      color: #fbbf24;
+      font-weight: 700;
+      box-shadow: 0 0 8px rgba(251, 191, 36, 0.25);
+    }
+
     /* HUD de vidas (corazones) */
     /* HUD de vidas (corazones, llaves y gemas) */
     #hud-lives {

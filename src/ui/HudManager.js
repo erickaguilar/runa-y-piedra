@@ -93,12 +93,23 @@ export const HudMixin = {
   },
 
   setLivesVisible(visible) {
+    this._livesVisible = !!visible;
     if (this.livesHud) {
       this.livesHud.style.display = visible ? 'flex' : 'none';
     }
     this.setInventoryVisible(visible);
+    this.setKeysTagVisible(visible);
     if (!visible) {
       this.setTutorialControlsVisible(false);
+    }
+  },
+
+  setKeysTagVisible(visible) {
+    if (this.keysTagHud) {
+      const keysCount = this.inventory?.keys?.length || 0;
+      this.keysTagHud.style.display = (visible && keysCount > 0) ? 'flex' : 'none';
+      const countEl = document.getElementById('hud-keys-count');
+      if (countEl) countEl.textContent = keysCount;
     }
   },
 
@@ -205,16 +216,22 @@ export const HudMixin = {
     this.livesHud.classList.toggle('invuln', !!invulnerable);
   },
 
-  /** Muestra/oculta la insignia de llave (preservado como no-op para compatibilidad). */
+  /** Muestra/oculta el tag de llaves en el HUD según posesión de llaves. */
   setHasKey(hasKey) {
     this._hasKey = !!hasKey;
+    if (this.keysTagHud) {
+      const keysCount = this.inventory?.keys?.length || (hasKey ? 1 : 0);
+      this.keysTagHud.style.display = (hasKey && keysCount > 0 && this._livesVisible !== false) ? 'flex' : 'none';
+      const countEl = document.getElementById('hud-keys-count');
+      if (countEl) countEl.textContent = keysCount;
+    }
   },
 
   showGameOver(lives, maxLives) {
     this.updateLives(lives, maxLives);
     this.showNarrativeMessage(
-      '💀 ¡GAME OVER! Vuelves al lobby con todo reseteado.',
-      5000
+      '💀 ¡GAME OVER! Reapareces al inicio de la mazmorra con tus vidas restauradas.',
+      4500
     );
   },
 
