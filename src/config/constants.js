@@ -72,7 +72,7 @@ export const BLOCK_FLOOR_MOSS  = 10;
 
 export const BLOCK_COLORS = {
   1: 0xffffff, // Suelo de adoquín (blanco neutro para respetar los tonos y el musgo verde del SVG)
-  2: 0x334155, // Muro de mazmorra de piedra labrada (slate-700)
+  2: 0xffffff, // Muro de mazmorra de cripta (blanco neutro para respetar la paleta oscura, óxido y runas del SVG)
   3: 0xd97706, // Puerta de madera y hierro reforzado
   4: 0xffffff, // Columnas y pilares monolíticos (blanco neutro para respetar tonos oscuros y desgaste del SVG)
   5: 0xfbbf24, // Pedestal/Luz rúnica dorada

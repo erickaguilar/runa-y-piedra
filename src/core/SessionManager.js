@@ -105,9 +105,12 @@ export const SessionMixin = {
         }
       }
       this.ui.setTutorialControlsVisible(lvl?.id === 'lobby_tutorial');
+      const spawnYaw = this.world.spawnPoint?.yaw ?? Math.PI;
+      this.input.yaw = spawnYaw;
+      this.input.pitch = 0;
       const localInit = this.playerManager.localPlayer;
-      this.input.yaw = Math.PI;
-      localInit.yaw = Math.PI;
+      localInit.yaw = spawnYaw;
+      localInit.pitch = 0;
       localInit.resetLives();
       const keyIds = this.inventory.keys.map(k => typeof k === 'string' ? k : (k.id || k.name));
       localInit.keys = [...keyIds];
@@ -143,8 +146,11 @@ export const SessionMixin = {
     this.resetInventory({ keepGems: false, keepRelics: false });
 
     const localInit = this.playerManager.localPlayer;
-    this.input.yaw = Math.PI;
-    localInit.yaw = Math.PI;
+    const spawnYaw = this.world.spawnPoint?.yaw ?? Math.PI;
+    this.input.yaw = spawnYaw;
+    this.input.pitch = 0;
+    localInit.yaw = spawnYaw;
+    localInit.pitch = 0;
     localInit.resetLives();
     this.ui.updateLives(localInit.lives, localInit.maxLives);
     this.ui.setHasKey(false);
@@ -191,6 +197,7 @@ export const SessionMixin = {
     this.descent.reset();
 
     const spawn = levelData.spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
+    const spawnYaw = this.world.spawnPoint?.yaw ?? Math.PI;
     const allPlayers = this.playerManager.getAllPlayers();
     for (const pl of allPlayers) {
       if (isGameOver) {
@@ -198,7 +205,7 @@ export const SessionMixin = {
         pl.keys = [...keyIds];
       }
       const spawnZ = pl.id === 0 ? spawn.z : spawn.z + 3.0;
-      pl.setCheckpoint(spawn.x, spawn.y, spawnZ, levelData.name, levelData.id);
+      pl.setCheckpoint(spawn.x, spawn.y, spawnZ, levelData.name, levelData.id, spawnYaw);
       pl.pos.x = spawn.x;
       pl.pos.y = spawn.y;
       pl.pos.z = spawnZ;
@@ -207,6 +214,8 @@ export const SessionMixin = {
         pl.visualPos.y = spawn.y;
         pl.visualPos.z = spawnZ;
       }
+      pl.yaw = spawnYaw;
+      pl.pitch = 0;
       pl.vel.x = 0;
       pl.vel.y = 0;
       pl.vel.z = 0;
@@ -225,10 +234,26 @@ export const SessionMixin = {
       a.target.x = spawn.x;
       a.target.y = spawn.y;
       a.target.z = targetZ;
+      a.target.yaw = spawnYaw;
       a.current.x = spawn.x;
       a.current.y = spawn.y;
       a.current.z = targetZ;
+      a.current.yaw = spawnYaw;
       a.mesh.position.set(spawn.x, spawn.y, targetZ);
+      a.mesh.rotation.y = spawnYaw + Math.PI;
+    }
+
+    if (this.input) {
+      this.input.yaw = spawnYaw;
+      this.input.pitch = 0;
+    }
+    if (this.cameraController && this.playerManager.localPlayer) {
+      this.cameraController.update(
+        this.playerManager.localPlayer,
+        this.playerManager.localPlayer.yaw,
+        this.playerManager.localPlayer.pitch,
+        this.cameraMode
+      );
     }
 
     const local = this.playerManager.localPlayer;

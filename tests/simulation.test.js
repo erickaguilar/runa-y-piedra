@@ -368,5 +368,39 @@ test('Game Over en una mazmorra redirige al lobby_tutorial y restaura las vidas'
   assert.equal(switchOptions?.isGameOver, true, 'Debe activar la bandera isGameOver');
 });
 
+test('Respawn fija la orientación canónica (yaw) del nivel y restablece pitch a 0', () => {
+  const { world, sim } = setup();
+  const p = new Player(0, 12, 1.2, 2.5);
+
+  // Simular que el jugador mira al cielo y girado en un ángulo arbitrario
+  p.yaw = 0.42;
+  p.pitch = -1.25;
+
+  // Respawn manual
+  p.respawn({ x: 12, y: 1.2, z: 2.5, yaw: Math.PI });
+  assert.equal(p.yaw, Math.PI, 'Player.respawn debe alinear yaw al spawn/checkpoint');
+  assert.equal(p.pitch, 0, 'Player.respawn debe resetear pitch a 0 (vista horizontal)');
+
+  // Simular muerte por vacío con orientación desviada
+  p.yaw = 2.15;
+  p.pitch = 0.88;
+  p.invulnTicks = 0;
+  p.pos.y = -10.0;
+  sim.killPlayer(p, 'void');
+  assert.equal(p.yaw, world.spawnPoint.yaw, 'killPlayer debe restablecer yaw a la orientación canónica del spawn');
+  assert.equal(p.pitch, 0, 'killPlayer debe restablecer pitch a 0');
+
+  // Game over también restablece yaw y pitch
+  p.yaw = 1.1;
+  p.pitch = -0.5;
+  p.lives = 1;
+  p.invulnTicks = 0;
+  p.pos.y = -10.0;
+  sim.killPlayer(p, 'void');
+  assert.equal(p.yaw, world.spawnPoint.yaw, 'Game over debe restablecer yaw al spawn');
+  assert.equal(p.pitch, 0, 'Game over debe restablecer pitch a 0');
+});
+
+
 
 

@@ -45,6 +45,8 @@ export function buildSharedMaterials() {
   ctx.fillRect(24, 46, 16, 5);  // boca
   const faceTex = new THREE.CanvasTexture(canvas);
   faceTex.magFilter = THREE.NearestFilter;
+  faceTex.minFilter = THREE.LinearFilter;
+  faceTex.generateMipmaps = false;
   faceTex.colorSpace = THREE.SRGBColorSpace;
   return {
     skin: new THREE.MeshLambertMaterial({ color: 0xe8b98a }),

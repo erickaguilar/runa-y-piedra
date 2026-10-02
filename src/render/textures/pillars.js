@@ -1,366 +1,333 @@
 // src/render/textures/pillars.js
 
 /**
- * Tile 10: Columna monolítica continua — fuste oscuro, desgastado y con continuidad vertical absoluta (seamless).
+ * Tile 10: Pilar de Cripta Regular (pillarRegular)
+ * Fuste acanalado con estrías de cantería, biselado de curvatura cilíndrica,
+ * junta de tambor intermedia y escurrimientos de óxido continuo estilo Heretic.
+ * Ranuras verticales e intermedias ultrafinas de 1 px para máxima definición de cantería.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
-export function pillarMonolith(S = 128) {
+export function pillarRegular(S = 128) {
   return `
-    <!-- Fondo base: Piedra oscura de sillar macizo -->
-    <rect width="${S}" height="${S}" fill="#1c2027"/>
+    <!-- Fondo de mortero carbón (se apreciará como finas ranuras de 1px) -->
+    <rect width="${S}" height="${S}" fill="#0c0a09"/>
 
-    <!-- Sombreado de volumen cilíndrico/prismático continuo (sin cortes horizontales) -->
-    <!-- Realce lumínico en el lateral izquierdo -->
-    <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
-    <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
-    <!-- Sombra en el lateral derecho -->
-    <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
-    <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
+    <!-- Penumbra lateral externa continua (sin marcos negros en x=0 y x=128) -->
+    <rect x="0" y="1" width="14" height="62" fill="#1c1917"/>
+    <rect x="0" y="64" width="14" height="63" fill="#1c1917"/>
+    <rect x="114" y="1" width="14" height="62" fill="#141210"/>
+    <rect x="114" y="64" width="14" height="63" fill="#141210"/>
 
-    <!-- 3 Acanaladuras/Estrías verticales profundas continuas de Y=0 a Y=S -->
-    <!-- Estría 1 (X = 32) -->
-    <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="32"   y1="0" x2="32"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+    <!-- TAMBOR SUPERIOR (y=1 a 63) -->
+    <!-- Estría lateral izquierda (x=15..44, ranura de 1px en x=14) -->
+    <rect x="15" y="1" width="29" height="62" fill="#383431"/>
+    <line x1="15" y1="1" x2="44" y2="1" stroke="#65605b" stroke-width="1.5" opacity="0.6"/>
+    <line x1="15" y1="1" x2="15" y2="63" stroke="#65605b" stroke-width="1.2" opacity="0.6"/>
+    <line x1="15" y1="63" x2="44" y2="63" stroke="#1c1917" stroke-width="1.5"/>
 
-    <!-- Estría 2 (Central, X = 64) -->
-    <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="64"   y1="0" x2="64"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+    <!-- Estría central frontal (x=45..83, ranura de 1px en x=44) -->
+    <rect x="45" y="1" width="38" height="62" fill="#44403c"/>
+    <line x1="45" y1="1" x2="83" y2="1" stroke="#78716c" stroke-width="1.8" opacity="0.75"/>
+    <line x1="45" y1="1" x2="45" y2="63" stroke="#78716c" stroke-width="1.5" opacity="0.7"/>
+    <line x1="83" y1="1" x2="83" y2="63" stroke="#1c1917" stroke-width="1.5"/>
+    <line x1="45" y1="63" x2="83" y2="63" stroke="#1c1917" stroke-width="1.5"/>
 
-    <!-- Estría 3 (X = 96) -->
-    <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="96"   y1="0" x2="96"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+    <!-- Estría lateral derecha (x=84..113, ranura de 1px en x=83 y x=113) -->
+    <rect x="84" y="1" width="29" height="62" fill="#302c29"/>
+    <line x1="84" y1="1" x2="113" y2="1" stroke="#57534e" stroke-width="1.5" opacity="0.5"/>
+    <line x1="84" y1="1" x2="84" y2="63" stroke="#57534e" stroke-width="1.2" opacity="0.5"/>
+    <line x1="113" y1="1" x2="113" y2="63" stroke="#141210" stroke-width="1.5"/>
+    <line x1="84" y1="63" x2="113" y2="63" stroke="#141210" stroke-width="1.5"/>
 
-    <!-- Desgaste y erosión por los siglos (micro-fisuras verticales en cantería) -->
-    <g stroke="#080a0d" stroke-width="1.4" fill="none" opacity="0.75">
-      <path d="M 16,14 L 18,28 L 15,44 L 17,58"/>
-      <path d="M 48,68 L 51,84 L 47,102 L 50,116"/>
-      <path d="M 80,22 L 78,38 L 82,54 L 79,70"/>
-      <path d="M 110,50 L 108,66 L 111,82"/>
+    <!-- TAMBOR INFERIOR (y=64 a 127, ranura horizontal intermedia de 1px en y=63) -->
+    <!-- Estría lateral izquierda -->
+    <rect x="15" y="64" width="29" height="63" fill="#383431"/>
+    <line x1="15" y1="64" x2="44" y2="64" stroke="#65605b" stroke-width="1.5" opacity="0.55"/>
+    <line x1="15" y1="64" x2="15" y2="127" stroke="#65605b" stroke-width="1.2" opacity="0.55"/>
+    <line x1="15" y1="127" x2="44" y2="127" stroke="#1c1917" stroke-width="1.5"/>
+
+    <!-- Estría central frontal -->
+    <rect x="45" y="64" width="38" height="63" fill="#44403c"/>
+    <line x1="45" y1="64" x2="83" y2="64" stroke="#78716c" stroke-width="1.8" opacity="0.7"/>
+    <line x1="45" y1="64" x2="45" y2="127" stroke="#78716c" stroke-width="1.5" opacity="0.65"/>
+    <line x1="83" y1="64" x2="83" y2="127" stroke="#1c1917" stroke-width="1.5"/>
+    <line x1="45" y1="127" x2="83" y2="127" stroke="#1c1917" stroke-width="1.5"/>
+
+    <!-- Estría lateral derecha -->
+    <rect x="84" y="64" width="29" height="63" fill="#302c29"/>
+    <line x1="84" y1="64" x2="113" y2="64" stroke="#57534e" stroke-width="1.5" opacity="0.45"/>
+    <line x1="84" y1="64" x2="84" y2="127" stroke="#57534e" stroke-width="1.2" opacity="0.45"/>
+    <line x1="113" y1="64" x2="113" y2="127" stroke="#141210" stroke-width="1.5"/>
+    <line x1="84" y1="127" x2="113" y2="127" stroke="#141210" stroke-width="1.5"/>
+
+    <!-- Escurrimientos verticales de óxido continuo que bajan por las ranuras de 1px -->
+    <g fill="#78350f" opacity="0.5">
+      <path d="M 44,1 L 45,1 L 45,36 L 44,44 Z"/>
+      <path d="M 83,1 L 84,1 L 84,28 L 83,34 Z"/>
+      <path d="M 44,64 L 45,64 L 45,102 L 44,110 Z"/>
+      <path d="M 83,64 L 84,64 L 84,96 L 83,104 Z"/>
+      <path d="M 62,1 L 64,1 L 65,22 L 63,28 L 62,18 Z"/>
     </g>
-    <g stroke="#454f5d" stroke-width="0.6" fill="none" opacity="0.4">
-      <path d="M 17,14 L 19,28 L 16,44 L 18,58"/>
-      <path d="M 49,68 L 52,84 L 48,102 L 51,116"/>
-      <path d="M 81,22 L 79,38 L 83,54 L 80,70"/>
-    </g>
 
-    <!-- Muescas de piedra desconchada y desgaste en aristas -->
-    <g fill="#080a0d" opacity="0.7">
-      <polygon points="32,36 36,40 32,44"/>
-      <polygon points="64,74 60,78 64,82"/>
-      <polygon points="96,26 92,30 96,34"/>
-      <polygon points="96,90 100,94 96,98"/>
-      <polygon points="16,50 18,54 15,56"/>
-      <polygon points="80,62 83,66 79,68"/>
-    </g>
-
-    <!-- Pátina oscura / hollín vertical acumulado -->
-    <g fill="#080a0d" opacity="0.35">
-      <ellipse cx="32" cy="64" rx="4" ry="18"/>
-      <ellipse cx="64" cy="40" rx="5" ry="22"/>
-      <ellipse cx="96" cy="80" rx="4" ry="20"/>
-      <ellipse cx="122" cy="64" rx="3" ry="30"/>
-    </g>
-
-    <!-- Picado de cantería y textura mineral áspera -->
-    <g fill="#454f5d" opacity="0.3">
-      <circle cx="12" cy="34" r="1.5"/><circle cx="24" cy="86" r="2"/>
-      <circle cx="44" cy="22" r="2"/><circle cx="54" cy="96" r="1.5"/>
-      <circle cx="74" cy="48" r="1.8"/><circle cx="86" cy="104" r="2"/>
-      <circle cx="104" cy="32" r="1.5"/><circle cx="114" cy="78" r="1.8"/>
+    <!-- Piqueteado fino de cincel -->
+    <g fill="#1c1917" opacity="0.6">
+      <rect x="24" y="18" width="3" height="2"/>
+      <rect x="58" y="24" width="3" height="3"/>
+      <rect x="96" y="20" width="3" height="2"/>
+      <rect x="28" y="88" width="3" height="3"/>
+      <rect x="64" y="94" width="3" height="2"/>
+      <rect x="98" y="82" width="2" height="3"/>
     </g>
   `;
 }
 
 /**
- * Tile 12: Columna acanalada lisa — fuste de cantería pulido y limpio.
+ * Tile 12: Pilar con Soporte de Antorcha (pillarTorch)
+ * Soporte de hierro forjado clavado en el sillar central con anillo de sujeción,
+ * remaches y mancha vertical de hollín negro ascendente. Ranuras de 1 px.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
-export function pillarFluted(S = 128) {
+export function pillarTorch(S = 128) {
   return `
-    <rect width="${S}" height="${S}" fill="#1c2027"/>
-    <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
-    <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
-    <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
-    <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
-    <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="32"   y1="0" x2="32"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
-    <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="64"   y1="0" x2="64"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
-    <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="96"   y1="0" x2="96"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+    <!-- Estructura base del pilar con ranuras de 1px -->
+    <rect width="${S}" height="${S}" fill="#0c0a09"/>
+    <rect x="0" y="1" width="14" height="62" fill="#1c1917"/>
+    <rect x="0" y="64" width="14" height="63" fill="#1c1917"/>
+    <rect x="114" y="1" width="14" height="62" fill="#141210"/>
+    <rect x="114" y="64" width="14" height="63" fill="#141210"/>
+
+    <rect x="15" y="1" width="29" height="62" fill="#383431"/>
+    <rect x="45" y="1" width="38" height="62" fill="#44403c"/>
+    <rect x="84" y="1" width="29" height="62" fill="#302c29"/>
+
+    <rect x="15" y="64" width="29" height="63" fill="#383431"/>
+    <rect x="45" y="64" width="38" height="63" fill="#44403c"/>
+    <rect x="84" y="64" width="29" height="63" fill="#302c29"/>
+
+    <line x1="15" y1="1" x2="113" y2="1" stroke="#78716c" stroke-width="1.8" opacity="0.6"/>
+    <line x1="15" y1="64" x2="113" y2="64" stroke="#78716c" stroke-width="1.8" opacity="0.5"/>
+
+    <!-- Mancha vertical de hollín y humo sobre la antorcha -->
+    <path d="M 52,56 C 50,30 46,12 64,2 C 82,12 78,30 76,56 Z" fill="#020617" opacity="0.7"/>
+    <path d="M 56,54 C 54,36 52,18 64,6 C 76,18 74,36 72,54 Z" fill="#0c0a09" opacity="0.85"/>
+
+    <!-- SOPORTE DE HIERRO FORJADO / APLIQUE MEDIEVAL -->
+    <!-- Placa base de hierro clavada al sillar central -->
+    <rect x="59" y="52" width="10" height="34" rx="1" fill="#18181b"/>
+    <rect x="60" y="53" width="8" height="32" fill="#27272a"/>
+    <line x1="60" y1="53" x2="67" y2="53" stroke="#52525b" stroke-width="1.2"/>
+
+    <!-- Clavos de fijación cuadrados -->
+    <rect x="62" y="55" width="4" height="4" fill="#0c0a09"/>
+    <rect x="63" y="56" width="2" height="2" fill="#71717a"/>
+    <rect x="62" y="79" width="4" height="4" fill="#0c0a09"/>
+    <rect x="63" y="80" width="2" height="2" fill="#71717a"/>
+
+    <!-- Brazo angular del soporte -->
+    <path d="M 64,64 L 64,74 L 72,70 Z" fill="#18181b"/>
+    <path d="M 63,65 L 63,73 L 70,70 Z" fill="#3f3f46"/>
+
+    <!-- Anillo / Casquillo receptor de la antorcha -->
+    <ellipse cx="64" cy="62" rx="9" ry="5" fill="#0c0a09"/>
+    <ellipse cx="64" cy="61" rx="8" ry="4" fill="#27272a" stroke="#52525b" stroke-width="1.2"/>
+    <ellipse cx="64" cy="61" rx="5" ry="2.2" fill="#0c0a09"/>
+
+    <!-- Vástago inferior de refuerzo curvado -->
+    <path d="M 64,74 Q 64,88 56,92" stroke="#18181b" stroke-width="3" fill="none"/>
+    <path d="M 64,74 Q 64,88 56,92" stroke="#3f3f46" stroke-width="1.5" fill="none"/>
+
+    <!-- Escurrimiento de óxido bajo la placa de hierro -->
+    <path d="M 62,86 L 66,86 L 65,114 L 63,114 Z" fill="#78350f" opacity="0.5"/>
   `;
 }
 
 /**
- * Tile 20: Columna con musgo — vegetación y líquenes en hendiduras de estrías.
+ * Tile 20: Pilar con Moho y Podredumbre (pillarMossy)
+ * Humedad estancada, líquenes y esporas luminiscentes acumulándose en las estrías y junta central. Ranuras de 1 px.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function pillarMossy(S = 128) {
   return `
-    <!-- Fondo base: Piedra oscura de sillar macizo (mismo tono que Tile 10) -->
-    <rect width="${S}" height="${S}" fill="#1c2027"/>
+    <!-- Base de pilar con ranuras de 1px -->
+    <rect width="${S}" height="${S}" fill="#0c0a09"/>
+    <rect x="0" y="1" width="14" height="62" fill="#1c1917"/>
+    <rect x="0" y="64" width="14" height="63" fill="#1c1917"/>
+    <rect x="114" y="1" width="14" height="62" fill="#141210"/>
+    <rect x="114" y="64" width="14" height="63" fill="#141210"/>
 
-    <!-- Sombreado de volumen cilíndrico continuo -->
-    <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
-    <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
-    <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
-    <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
+    <rect x="15" y="1" width="29" height="62" fill="#383431"/>
+    <rect x="45" y="1" width="38" height="62" fill="#44403c"/>
+    <rect x="84" y="1" width="29" height="62" fill="#302c29"/>
 
-    <!-- 3 Acanaladuras/Estrías verticales profundas continuas de Y=0 a Y=S -->
-    <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="32"   y1="0" x2="32"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+    <rect x="15" y="64" width="29" height="63" fill="#383431"/>
+    <rect x="45" y="64" width="38" height="63" fill="#44403c"/>
+    <rect x="84" y="64" width="29" height="63" fill="#302c29"/>
 
-    <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="64"   y1="0" x2="64"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+    <line x1="15" y1="1" x2="113" y2="1" stroke="#78716c" stroke-width="1.8" opacity="0.4"/>
+    <line x1="15" y1="64" x2="113" y2="64" stroke="#78716c" stroke-width="1.8" opacity="0.4"/>
 
-    <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="96"   y1="0" x2="96"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+    <!-- Manchas oscuras de filtración en las canaladuras -->
+    <path d="M 12,65 Q 24,45 34,65 Q 44,92 24,96 Q 10,88 12,65 Z" fill="#020617" opacity="0.6"/>
+    <path d="M 78,65 Q 92,44 104,65 Q 114,94 92,98 Q 76,88 78,65 Z" fill="#020617" opacity="0.6"/>
 
-    <!-- Desgaste base sutil -->
-    <g stroke="#080a0d" stroke-width="1.2" fill="none" opacity="0.5">
-      <path d="M 18,20 L 16,36 L 19,52"/>
-      <path d="M 80,72 L 78,88 L 82,104"/>
+    <!-- Capa 1: Moho verde oscuro de catacumba -->
+    <g fill="#14532d" opacity="0.9">
+      <circle cx="16" cy="65" r="7"/><circle cx="26" cy="67" r="8"/><circle cx="36" cy="63" r="6"/>
+      <circle cx="86" cy="65" r="8"/><circle cx="98" cy="68" r="7"/><circle cx="108" cy="64" r="6"/>
+      <circle cx="44" cy="38" r="5"/><circle cx="46" cy="94" r="6"/>
     </g>
 
-    <!-- Capa 1 de Musgo: Humedad profunda verde oscura en hendiduras de estrías -->
-    <g fill="#14532d" opacity="0.85">
-      <path d="M 30,18 Q 35,26 31,38 Q 28,48 33,56 L 35,56 Q 30,46 34,36 Q 36,24 33,18 Z"/>
-      <path d="M 29,82 Q 34,92 31,104 Q 28,114 33,124 L 35,124 Q 30,112 34,102 Q 35,90 32,82 Z"/>
-      <path d="M 61,42 Q 67,52 63,68 Q 59,80 66,94 L 68,94 Q 61,78 66,66 Q 69,50 64,42 Z"/>
-      <path d="M 93,12 Q 98,22 95,34 Q 92,44 96,54 L 98,54 Q 94,42 97,32 Q 99,20 95,12 Z"/>
-      <path d="M 92,76 Q 97,88 94,100 Q 91,110 96,120 L 98,120 Q 93,108 97,98 Q 99,86 95,76 Z"/>
-      <ellipse cx="14" cy="98" rx="8" ry="14"/>
-      <ellipse cx="48" cy="112" rx="10" ry="8"/>
-      <ellipse cx="80" cy="28" rx="7" ry="12"/>
-      <ellipse cx="112" cy="88" rx="6" ry="16"/>
+    <!-- Capa 2: Manchas de hongos y líquenes marchitos -->
+    <g fill="#3f6212">
+      <circle cx="15" cy="63" r="5"/><circle cx="25" cy="65" r="6"/><circle cx="35" cy="61" r="4.5"/>
+      <circle cx="85" cy="63" r="6"/><circle cx="97" cy="66" r="5.5"/><circle cx="106" cy="62" r="4.5"/>
+      <circle cx="43" cy="36" r="3.5"/><circle cx="45" cy="92" r="4"/>
     </g>
 
-    <!-- Capa 2 de Musgo: Verde bosque vivo y filamentos vegetales -->
-    <g fill="#16a34a" opacity="0.9">
-      <path d="M 31,24 Q 34,30 32,40 Q 30,48 33,52 L 34,52 Q 31,46 33,38 Q 35,28 32,24 Z"/>
-      <path d="M 30,88 Q 33,96 32,106 Q 30,114 33,120 L 34,120 Q 31,112 33,104 Q 34,94 32,88 Z"/>
-      <path d="M 62,48 Q 66,56 64,70 Q 61,80 65,90 L 66,90 Q 62,78 65,68 Q 67,54 64,48 Z"/>
-      <path d="M 94,18 Q 97,26 95,36 Q 93,44 96,50 L 97,50 Q 95,42 96,34 Q 98,24 95,18 Z"/>
-      <circle cx="14" cy="98" r="5"/>
-      <circle cx="18" cy="106" r="3.5"/>
-      <circle cx="48" cy="112" r="6"/>
-      <circle cx="56" cy="116" r="3.5"/>
-      <circle cx="80" cy="28" r="4.5"/>
-      <circle cx="84" cy="36" r="3"/>
-      <circle cx="112" cy="88" r="4"/>
-      <circle cx="110" cy="98" r="3.5"/>
+    <!-- Capa 3: Esporas luminiscentes -->
+    <g fill="#65a30d" opacity="0.8">
+      <circle cx="14" cy="61" r="2.2"/><circle cx="23" cy="63" r="2.8"/>
+      <circle cx="84" cy="61" r="2.5"/><circle cx="95" cy="64" r="2.4"/>
+      <circle cx="42" cy="34" r="2"/>
     </g>
 
-    <!-- Capa 3 de Musgo: Brotes claros de líquenes / esporas (resalte lumínico) -->
-    <g fill="#4ade80" opacity="0.75">
-      <circle cx="32" cy="32" r="1.8"/>
-      <circle cx="33" cy="46" r="1.5"/>
-      <circle cx="31" cy="96" r="1.8"/>
-      <circle cx="33" cy="112" r="1.5"/>
-      <circle cx="63" cy="58" r="2"/>
-      <circle cx="65" cy="76" r="1.8"/>
-      <circle cx="95" cy="28" r="1.8"/>
-      <circle cx="96" cy="42" r="1.4"/>
-      <circle cx="14" cy="96" r="2.2"/>
-      <circle cx="47" cy="110" r="2.5"/>
-      <circle cx="79" cy="26" r="2"/>
-      <circle cx="111" cy="86" r="1.8"/>
-    </g>
-
-    <!-- Picado mineral residual -->
-    <g fill="#454f5d" opacity="0.25">
-      <circle cx="18" cy="36" r="1.5"/><circle cx="50" cy="32" r="1.8"/>
-      <circle cx="76" cy="82" r="1.6"/><circle cx="106" cy="44" r="1.5"/>
-    </g>
+    <!-- Escurrimiento viscoso en la junta central -->
+    <path d="M 26,74 L 28,74 L 27,104 L 26,104 Z" fill="#14532d" opacity="0.7"/>
+    <path d="M 94,74 L 96,74 L 95,108 L 94,108 Z" fill="#14532d" opacity="0.7"/>
   `;
 }
 
 /**
- * Tile 21: Columna con desgaste estructural — fracturas y erosión de cantería por esfuerzo de carga.
+ * Tile 21: Pilar Agrietado (pillarCracked)
+ * El tambor de la columna sufre una fractura transversal severa que quiebra las estrías y genera desprendimientos. Ranuras de 1 px.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function pillarCracked(S = 128) {
   return `
-    <!-- Fondo base: Piedra oscura de sillar macizo (mismo tono que Tile 10) -->
-    <rect width="${S}" height="${S}" fill="#1c2027"/>
+    <!-- Base estructural idéntica a Tile Regular con ranuras de 1px -->
+    <rect width="${S}" height="${S}" fill="#0c0a09"/>
+    <rect x="0" y="1" width="14" height="62" fill="#1c1917"/>
+    <rect x="0" y="64" width="14" height="63" fill="#1c1917"/>
+    <rect x="114" y="1" width="14" height="62" fill="#141210"/>
+    <rect x="114" y="64" width="14" height="63" fill="#141210"/>
 
-    <!-- Sombreado de volumen cilíndrico continuo -->
-    <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
-    <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
-    <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
-    <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
+    <rect x="15" y="1" width="29" height="62" fill="#383431"/>
+    <rect x="45" y="1" width="38" height="62" fill="#44403c"/>
+    <rect x="84" y="1" width="29" height="62" fill="#302c29"/>
 
-    <!-- 3 Acanaladuras/Estrías verticales profundas continuas de Y=0 a Y=S -->
-    <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="32"   y1="0" x2="32"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+    <rect x="15" y="64" width="29" height="63" fill="#383431"/>
+    <rect x="45" y="64" width="38" height="63" fill="#44403c"/>
+    <rect x="84" y="64" width="29" height="63" fill="#302c29"/>
 
-    <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="64"   y1="0" x2="64"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+    <!-- Biseles superiores y medios -->
+    <line x1="15" y1="1" x2="113" y2="1" stroke="#78716c" stroke-width="1.8" opacity="0.6"/>
+    <line x1="15" y1="64" x2="113" y2="64" stroke="#78716c" stroke-width="1.8" opacity="0.5"/>
 
-    <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="96"   y1="0" x2="96"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+    <!-- Abismo interior de la fractura -->
+    <path d="M 88,1 L 76,24 L 54,42 L 58,62 L 38,82 L 44,104 L 20,126" stroke="#000000" stroke-width="7" stroke-linecap="square" fill="none"/>
+    
+    <!-- Grieta principal oscura dentada -->
+    <path d="M 88,1 L 77,24 L 55,42 L 59,62 L 39,82 L 45,104 L 21,126" stroke="#0c0a09" stroke-width="4.2" stroke-linejoin="bevel" fill="none"/>
 
-    <!-- Fracturas profundas y grietas estructurales severas por estrés de carga -->
-    <g stroke="#080a0d" stroke-width="2.2" fill="none" opacity="0.9">
-      <!-- Gran fisura diagonal que quiebra el fuste izquierdo -->
-      <path d="M 6,32 L 18,38 L 26,34 L 32,46 L 42,42 L 52,54"/>
-      <!-- Fisura central ramificada -->
-      <path d="M 52,54 L 64,50 L 72,62 L 78,58 L 88,72 L 96,66"/>
-      <!-- Rama secundaria hacia abajo -->
-      <path d="M 64,50 L 60,66 L 66,80 L 62,98 L 65,114"/>
-      <!-- Grieta en fuste derecho -->
-      <path d="M 88,72 L 98,84 L 110,80 L 118,92 L 124,90"/>
-      <!-- Grieta vertical profunda en estría 1 -->
-      <path d="M 32,82 L 30,94 L 34,108 L 31,122"/>
-      <!-- Micro-grieta superior -->
-      <path d="M 76,10 L 82,18 L 80,30 L 86,40"/>
-    </g>
+    <!-- Filo iluminado de piedra fracturada -->
+    <path d="M 90,1 L 79,24 L 57,42 L 61,62 L 41,82 L 47,104 L 23,126" stroke="#a8a29e" stroke-width="1.6" opacity="0.8" fill="none"/>
 
-    <!-- Resalte de luz en bordes de roca fracturada (relieve 3D) -->
-    <g stroke="#64748b" stroke-width="0.8" fill="none" opacity="0.6">
-      <path d="M 6,33 L 18,39 L 26,35 L 32,47 L 42,43 L 52,55"/>
-      <path d="M 52,55 L 64,51 L 72,63 L 78,59 L 88,73 L 96,67"/>
-      <path d="M 65,50 L 61,66 L 67,80 L 63,98 L 66,114"/>
-      <path d="M 88,73 L 98,85 L 110,81 L 118,93 L 124,91"/>
-    </g>
+    <!-- Fisuras que cortan las canaladuras -->
+    <path d="M 55,42 L 28,48" stroke="#0c0a09" stroke-width="2.6" fill="none"/>
+    <path d="M 55,43 L 28,49" stroke="#78716c" stroke-width="1" opacity="0.7" fill="none"/>
 
-    <!-- Grandes muescas angulares de piedra desprendida / desconchada -->
-    <g fill="#080a0d" opacity="0.85">
-      <polygon points="32,42 42,46 36,54 30,48"/>
-      <polygon points="64,48 72,52 68,60 60,56"/>
-      <polygon points="96,64 104,70 98,78 92,72"/>
-      <polygon points="18,34 26,38 22,46 14,40"/>
-      <polygon points="86,68 94,74 90,82 82,76"/>
-      <polygon points="30,92 38,96 34,104 26,98"/>
-      <polygon points="114,86 122,90 118,98 110,94"/>
-    </g>
+    <path d="M 59,62 L 86,72" stroke="#0c0a09" stroke-width="2.6" fill="none"/>
+    <path d="M 59,63 L 86,73" stroke="#78716c" stroke-width="1" opacity="0.7" fill="none"/>
 
-    <!-- Fragmentos de piedra suelta en las muescas -->
-    <g fill="#3f4754" opacity="0.5">
-      <polygon points="34,44 40,47 36,52"/>
-      <polygon points="66,50 70,53 67,58"/>
-      <polygon points="98,66 102,71 97,75"/>
-    </g>
-
-    <!-- Picado y escoriación mineral intensa -->
-    <g fill="#080a0d" opacity="0.6">
-      <circle cx="22" cy="62" r="2.5"/><circle cx="28" cy="74" r="2"/>
-      <circle cx="46" cy="24" r="2.2"/><circle cx="58" cy="34" r="2.8"/>
-      <circle cx="76" cy="88" r="2.5"/><circle cx="84" cy="102" r="2"/>
-      <circle cx="106" cy="24" r="2.2"/><circle cx="112" cy="46" r="2.5"/>
-    </g>
-    <g fill="#454f5d" opacity="0.35">
-      <circle cx="24" cy="64" r="1.5"/><circle cx="48" cy="26" r="1.8"/>
-      <circle cx="78" cy="90" r="1.8"/><circle cx="108" cy="26" r="1.5"/>
-    </g>
+    <!-- Fragmentos desprendidos en el canal medio -->
+    <polygon points="45,60 50,60 45,67" fill="#0c0a09"/>
+    <polygon points="46,61 49,61 46,65" fill="#57534e"/>
   `;
 }
 
 /**
- * Tile 22: Columna con manchas oscuras — mismo tono base de cantería (#1c2027) con manchas orgánicas de hollín y humedad profunda.
+ * Tile 22: Pilar Rúnico / Anillo Arcano (pillarRunic)
+ * Collarín de cantería con medallón tallado, runa incandescente de azufre Heretic (#ea580c)
+ * y núcleo ámbar con canales de energía vertical continuo. Ranuras de 1 px.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
-export function pillarDark(S = 128) {
+export function pillarRunic(S = 128) {
   return `
-    <!-- Fondo base: Piedra oscura de sillar macizo (mismo tono unificado #1c2027 que Tile 10, 12, 20 y 21) -->
-    <rect width="${S}" height="${S}" fill="#1c2027"/>
+    <!-- Base de pilar regular con ranuras de 1px -->
+    <rect width="${S}" height="${S}" fill="#0c0a09"/>
+    <rect x="0" y="1" width="14" height="126" fill="#1c1917"/>
+    <rect x="114" y="1" width="14" height="126" fill="#141210"/>
 
-    <!-- Sombreado de volumen cilíndrico continuo (idéntico al resto de columnas) -->
-    <rect x="0" y="0" width="6" height="${S}" fill="#3f4754" opacity="0.5"/>
-    <rect x="6" y="0" width="8" height="${S}" fill="#2a303a" opacity="0.4"/>
-    <rect x="116" y="0" width="6" height="${S}" fill="#12151b" opacity="0.6"/>
-    <rect x="122" y="0" width="6" height="${S}" fill="#0b0d11" opacity="0.85"/>
+    <rect x="15" y="1" width="29" height="126" fill="#383431"/>
+    <rect x="45" y="1" width="38" height="126" fill="#44403c"/>
+    <rect x="84" y="1" width="29" height="126" fill="#302c29"/>
 
-    <!-- 3 Acanaladuras/Estrías verticales profundas continuas de Y=0 a Y=S -->
-    <line x1="30.5" y1="0" x2="30.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="32"   y1="0" x2="32"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="33.5" y1="0" x2="33.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+    <line x1="15" y1="1" x2="113" y2="1" stroke="#78716c" stroke-width="1.8" opacity="0.5"/>
+    <line x1="15" y1="126" x2="113" y2="126" stroke="#1c1917" stroke-width="1.8"/>
 
-    <line x1="62.5" y1="0" x2="62.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="64"   y1="0" x2="64"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="65.5" y1="0" x2="65.5" y2="${S}" stroke="#454f5d" stroke-width="1.5" opacity="0.65"/>
+    <!-- COLLARÍN / ANILLO RÚNICO CENTRAL (y=40 a 88) -->
+    <!-- Sombra del anillo proyectada sobre el fuste -->
+    <rect x="6" y="38" width="116" height="52" fill="#0c0a09" opacity="0.7"/>
+    
+    <!-- Bloque macizo del anillo en bajorrelieve -->
+    <rect x="8" y="40" width="112" height="48" rx="2" fill="#292524"/>
+    <line x1="8" y1="40" x2="120" y2="40" stroke="#65605b" stroke-width="2" opacity="0.8"/>
+    <line x1="8" y1="88" x2="120" y2="88" stroke="#141210" stroke-width="2"/>
 
-    <line x1="94.5" y1="0" x2="94.5" y2="${S}" stroke="#0e1015" stroke-width="2.5" opacity="0.9"/>
-    <line x1="96"   y1="0" x2="96"   y2="${S}" stroke="#080a0d" stroke-width="2"/>
-    <line x1="97.5" y1="0" x2="97.5" y2="${S}" stroke="#363e4a" stroke-width="1.5" opacity="0.55"/>
+    <!-- Medallón circular tallado en el collarín -->
+    <circle cx="64" cy="64" r="22" fill="#1c1917" stroke="#0c0a09" stroke-width="2"/>
+    <circle cx="64" cy="64" r="20" fill="none" stroke="#57534e" stroke-width="1.2" opacity="0.6"/>
 
-    <!-- Desgaste base sutil -->
-    <g stroke="#080a0d" stroke-width="1.2" fill="none" opacity="0.5">
-      <path d="M 18,22 L 20,38 L 17,54"/>
-      <path d="M 76,66 L 79,82 L 75,98"/>
-    </g>
+    <!-- Surco tallado del glifo rúnico -->
+    <polygon points="63,49 79,63 63,77 47,63" stroke="#0c0a09" stroke-width="3.5" fill="none"/>
+    <line x1="63" y1="45" x2="63" y2="81" stroke="#0c0a09" stroke-width="3"/>
+    <line x1="45" y1="63" x2="81" y2="63" stroke="#0c0a09" stroke-width="3"/>
 
-    <!-- MANCHAS OSCURAS (Hollín, pátina de tizne y filtraciones sombrías) -->
-    <!-- Capa 1: Halos exteriores de humedad y pátina difusa -->
-    <g fill="#080a0d" opacity="0.45">
-      <!-- Mancha 1: Fuste y estría izquierda -->
-      <path d="M 24,18 Q 36,12 40,28 Q 44,44 36,60 Q 28,68 22,54 Q 16,36 24,18 Z"/>
-      <!-- Mancha 2: Núcleo central de estría media -->
-      <path d="M 54,48 Q 68,38 76,52 Q 82,68 74,86 Q 64,98 56,88 Q 48,74 54,48 Z"/>
-      <!-- Mancha 3: Zona superior derecha -->
-      <path d="M 88,14 Q 104,10 108,24 Q 112,40 102,52 Q 92,58 86,46 Q 80,30 88,14 Z"/>
-      <!-- Mancha 4: Zona inferior derecha -->
-      <path d="M 82,78 Q 98,70 104,84 Q 108,98 100,114 Q 90,122 84,110 Q 76,96 82,78 Z"/>
-      <!-- Mancha 5: Base inferior izquierda -->
-      <path d="M 12,80 Q 26,76 30,90 Q 32,106 24,118 Q 14,122 10,108 Q 6,94 12,80 Z"/>
-    </g>
+    <!-- Filo iluminado del grabado -->
+    <polygon points="65,51 81,65 65,79 49,65" stroke="#78716c" stroke-width="1.2" opacity="0.7" fill="none"/>
 
-    <!-- Capa 2: Núcleos concentrados de manchas oscuras intensas -->
-    <g fill="#040507" opacity="0.8">
-      <path d="M 27,24 Q 34,20 37,30 Q 39,42 34,52 Q 28,58 25,48 Q 21,36 27,24 Z"/>
-      <path d="M 58,54 Q 68,46 72,56 Q 76,68 70,80 Q 62,88 58,80 Q 52,70 58,54 Z"/>
-      <path d="M 91,18 Q 102,16 104,26 Q 106,38 99,46 Q 91,50 88,40 Q 85,28 91,18 Z"/>
-      <path d="M 85,84 Q 96,78 100,88 Q 103,98 97,108 Q 89,114 85,104 Q 80,94 85,84 Z"/>
-      <path d="M 14,86 Q 23,82 26,92 Q 27,104 21,112 Q 13,114 11,104 Q 8,94 14,86 Z"/>
-    </g>
+    <!-- Runa latente de azufre / fuego arcano (Heretic) -->
+    <polygon points="64,50 80,64 64,78 48,64" stroke="#ea580c" stroke-width="1.8" fill="none"/>
+    <line x1="64" y1="46" x2="64" y2="82" stroke="#ea580c" stroke-width="1.6"/>
+    <line x1="46" y1="64" x2="82" y2="64" stroke="#ea580c" stroke-width="1.6"/>
 
-    <!-- Chorretones / filtraciones verticales de hollín por las estrías -->
-    <g fill="#040507" opacity="0.75">
-      <path d="M 31,58 Q 33,70 31,82 L 33,82 Q 34,70 32,58 Z"/>
-      <path d="M 63,86 Q 65,98 63,110 L 65,110 Q 66,98 64,86 Z"/>
-      <path d="M 95,50 Q 97,64 95,76 L 97,76 Q 98,64 96,50 Z"/>
-    </g>
+    <!-- Núcleo incandescente -->
+    <circle cx="64" cy="64" r="4.5" fill="#7f1d1d" stroke="#0c0a09" stroke-width="1"/>
+    <circle cx="64" cy="64" r="2.5" fill="#f59e0b"/>
+    <circle cx="63.5" cy="63.5" r="1" fill="#fef08a"/>
 
-    <!-- Salpicaduras y motas de pátina sombría -->
-    <g fill="#040507" opacity="0.7">
-      <circle cx="44" cy="72" r="2.2"/>
-      <circle cx="48" cy="80" r="1.5"/>
-      <circle cx="78" cy="40" r="2"/>
-      <circle cx="112" cy="60" r="2.2"/>
-      <circle cx="18" cy="68" r="1.8"/>
-    </g>
+    <!-- Canales de energía vertical que bajan por el pilar de forma continua -->
+    <line x1="64" y1="0" x2="64" y2="38" stroke="#ea580c" stroke-width="1.5" opacity="0.8"/>
+    <line x1="64" y1="90" x2="64" y2="${S}" stroke="#ea580c" stroke-width="1.5" opacity="0.8"/>
+    <line x1="64" y1="0" x2="64" y2="38" stroke="#fef08a" stroke-width="0.8" opacity="0.6"/>
+    <line x1="64" y1="90" x2="64" y2="${S}" stroke="#fef08a" stroke-width="0.8" opacity="0.6"/>
 
-    <!-- Picado de cantería sutil -->
-    <g fill="#454f5d" opacity="0.25">
-      <circle cx="12" cy="30" r="1.5"/><circle cx="24" cy="82" r="2"/>
-      <circle cx="44" cy="18" r="2"/><circle cx="54" cy="92" r="1.5"/>
-      <circle cx="74" cy="44" r="1.8"/><circle cx="86" cy="100" r="2"/>
-      <circle cx="104" cy="28" r="1.5"/><circle cx="114" cy="74" r="1.8"/>
-    </g>
+    <!-- Remaches de fijación del anillo -->
+    <rect x="16" y="62" width="4" height="4" fill="#0c0a09"/>
+    <rect x="17" y="63" width="2" height="2" fill="#71717a"/>
+    <rect x="108" y="62" width="4" height="4" fill="#0c0a09"/>
+    <rect x="109" y="63" width="2" height="2" fill="#71717a"/>
   `;
 }
 
+// Compatibilidad retroactiva de nombres
+export const pillarMonolith = pillarRegular;
+export const pillarFluted = pillarTorch;
+export const pillarDark = pillarRunic;
+
 export const pillarSprites = {
+  pillarRegular,
+  pillarCracked,
+  pillarTorch,
+  pillarMossy,
+  pillarRunic,
+  // Alias de compatibilidad
   pillarMonolith,
   pillarFluted,
-  pillarMossy,
-  pillarCracked,
   pillarDark
 };

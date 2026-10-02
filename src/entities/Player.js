@@ -1,7 +1,7 @@
 import { WORLD_CONFIG, PLAYER_HEROES } from '../config/constants.js';
 
 export class Player {
-  constructor(id, x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z, name = 'Aventurero', colorIndex = 0) {
+  constructor(id, x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z, name = 'Aventurero', colorIndex = 0, yaw = Math.PI) {
     this.id = id;
     this.name = name;
     this.colorIndex = colorIndex;
@@ -13,13 +13,13 @@ export class Player {
     this.visualPos = { x, y, z };
 
     this.vel = { x: 0, y: 0, z: 0 };
-    this.yaw = Math.PI;
+    this.yaw = yaw;
     this.pitch = 0;
     this.onGround = false;
     this.inputForward = 0;
     this.inputRight = 0;
     this.lastInputSeq = 0;
-    this.checkpoint = { x, y: 1.2, z, roomName: 'Sala 1 (Vestíbulo)' };
+    this.checkpoint = { x, y: 1.2, z, roomName: 'Sala 1 (Vestíbulo)', yaw };
 
     // Sistema de vidas: 3 corazones, muerte instantánea en lava/vacío
     this.maxLives = 3;
@@ -57,8 +57,8 @@ export class Player {
     this.visualPos.z += (this.pos.z - this.visualPos.z) * t;
   }
 
-  setCheckpoint(x, y, z, roomName = 'Punto de Control', levelId = '') {
-    this.checkpoint = { x, y, z, roomName, levelId };
+  setCheckpoint(x, y, z, roomName = 'Punto de Control', levelId = '', yaw = Math.PI) {
+    this.checkpoint = { x, y, z, roomName, levelId, yaw };
   }
 
   startLavaSinking(ticks = 36) {
@@ -89,6 +89,7 @@ export class Player {
       y: 1.2,
       z: WORLD_CONFIG.SPAWN_Z,
       roomName: 'Sala 1 (Vestíbulo)',
+      yaw: Math.PI,
     };
     this.pos.x = cp.x;
     this.pos.y = cp.y;
@@ -96,6 +97,8 @@ export class Player {
     this.visualPos.x = cp.x;
     this.visualPos.y = cp.y;
     this.visualPos.z = cp.z;
+    this.yaw = (cp.yaw !== undefined && cp.yaw !== null) ? cp.yaw : (fallbackSpawn?.yaw ?? Math.PI);
+    this.pitch = 0;
     this.vel.x = 0;
     this.vel.y = 0;
     this.vel.z = 0;
@@ -149,19 +152,22 @@ export class Player {
    * Las llaves se conservan para no bloquear la partida (el cofre ya se abrió).
    */
   fullResetToSpawn(spawn) {
-    const s = spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
-    this.checkpoint = { x: s.x, y: s.y, z: s.z, roomName: 'Sala 1 (Vestíbulo)' };
+    const s = spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z, yaw: Math.PI };
+    const spawnYaw = (s.yaw !== undefined && s.yaw !== null) ? s.yaw : Math.PI;
+    this.checkpoint = { x: s.x, y: s.y, z: s.z, roomName: 'Sala 1 (Vestíbulo)', yaw: spawnYaw };
     this.lives = this.maxLives;
-    return this.respawn();
+    return this.respawn(s);
   }
 
-  reset(x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z) {
+  reset(x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z, yaw = Math.PI) {
     this.pos.x = x;
     this.pos.y = y;
     this.pos.z = z;
     this.visualPos.x = x;
     this.visualPos.y = y;
     this.visualPos.z = z;
+    this.yaw = yaw;
+    this.pitch = 0;
     this.vel.x = 0;
     this.vel.y = 0;
     this.vel.z = 0;

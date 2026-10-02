@@ -143,12 +143,19 @@ export class ClientReconciler {
           localPlayer.visualPos.y = localEntry.y;
           localPlayer.visualPos.z = localEntry.z;
         }
+        if (localEntry.yaw !== undefined) {
+          localPlayer.yaw = localEntry.yaw;
+          localPlayer.pitch = 0;
+        }
         localPlayer.vel.x = 0;
         localPlayer.vel.y = localEntry.velY !== undefined ? localEntry.velY : 0;
         localPlayer.vel.z = 0;
         localPlayer.onGround = localEntry.onGround !== undefined ? localEntry.onGround : false;
         this.pendingInputs.length = 0;
         this._recordTeleport();
+        if (typeof this.onTeleport === 'function') {
+          this.onTeleport(localEntry);
+        }
       } else {
         // En TODAS las zonas de error normal (<= 2.5 m), la posición y velocidad LÓGICA
         // adoptan SIEMPRE e incondicionalmente el resultado exacto del replay autoritativo.

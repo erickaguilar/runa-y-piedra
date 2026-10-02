@@ -36,9 +36,9 @@ export function createTilesSvgArray(S = 128) {
   tilesSvg[9] = floorSprites.floorSanctuary(S);
 
   // ==================== GRUPO 3: PILARES & ESPECIALES (Tiles 10 a 15) ====================
-  tilesSvg[10] = pillarSprites.pillarMonolith(S);
+  tilesSvg[10] = pillarSprites.pillarRegular ? pillarSprites.pillarRegular(S) : pillarSprites.pillarMonolith(S);
   tilesSvg[11] = specialSprites.respawnPad(S);
-  tilesSvg[12] = pillarSprites.pillarFluted(S);
+  tilesSvg[12] = pillarSprites.pillarTorch ? pillarSprites.pillarTorch(S) : pillarSprites.pillarFluted(S);
   tilesSvg[13] = lavaSprites.lavaActive(S);
   tilesSvg[14] = specialSprites.jumpPad(S);
   tilesSvg[15] = specialSprites.pedestalOctagram(S);
@@ -50,9 +50,9 @@ export function createTilesSvgArray(S = 128) {
   tilesSvg[19] = lavaSprites.lavaCaldera(S);
 
   // ==================== GRUPO 5: PILARES EXPANDIDOS (Tiles 20 a 22) ====================
-  tilesSvg[20] = pillarSprites.mossy ? pillarSprites.mossy(S) : pillarSprites.pillarMossy(S);
-  tilesSvg[21] = pillarSprites.cracked ? pillarSprites.cracked(S) : pillarSprites.pillarCracked(S);
-  tilesSvg[22] = pillarSprites.dark ? pillarSprites.dark(S) : pillarSprites.pillarDark(S);
+  tilesSvg[20] = pillarSprites.pillarMossy(S);
+  tilesSvg[21] = pillarSprites.pillarCracked(S);
+  tilesSvg[22] = pillarSprites.pillarRunic ? pillarSprites.pillarRunic(S) : pillarSprites.pillarDark(S);
 
   // ==================== GRUPO 6: TECHOS / BÓVEDAS (Tiles 23 a 27) ====================
   tilesSvg[23] = ceilingSprites.ceilingVault(S);

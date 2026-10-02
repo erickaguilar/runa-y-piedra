@@ -56,15 +56,16 @@ export class SimulationEngine {
     let cp;
     let gameOver = false;
     const currentSpawn = this.world.spawnPoint || {
-      x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z,
+      x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z, yaw: Math.PI,
     };
+    const spawnYaw = currentSpawn.yaw ?? Math.PI;
     if (res.gameOver) {
       cp = p.fullResetToSpawn ? p.fullResetToSpawn(currentSpawn) : p.respawn(currentSpawn);
       gameOver = true;
     } else {
       const currentLevelId = this.world.currentLevel?.id || this.world.levelRegistry?.getCurrentLevel()?.id;
       // Seguridad y consistencia: reaparición en el spawn único de la mazmorra
-      p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, p.checkpoint?.roomName || 'Entrada', currentLevelId);
+      p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, p.checkpoint?.roomName || 'Entrada', currentLevelId, spawnYaw);
       cp = p.respawn(currentSpawn);
     }
     if (this.onPlayerRespawn) {
@@ -171,13 +172,15 @@ export class SimulationEngine {
     if (p.onGround && p.pos.y >= 0.95 && !p.isSinkingInLava && !inLava) {
       const currentLevelId = this.world.currentLevel?.id || this.world.levelRegistry?.getCurrentLevel()?.id || '';
       const currentSpawn = this.world.spawnPoint || {
-        x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z,
+        x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z, yaw: Math.PI,
       };
+      const spawnYaw = currentSpawn.yaw ?? Math.PI;
       if (Array.isArray(this.world.checkpoints) && this.world.checkpoints.length > 0) {
         for (const cp of this.world.checkpoints) {
           if (p.pos.z >= cp.minZ && p.pos.z <= cp.maxZ) {
             if (!p.checkpoint || p.checkpoint.roomName !== cp.name || p.checkpoint.levelId !== currentLevelId) {
-              p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, cp.name, currentLevelId);
+              const cpYaw = cp.yaw ?? cp.respawn?.yaw ?? spawnYaw;
+              p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, cp.name, currentLevelId, cpYaw);
             }
             break;
           }
@@ -185,15 +188,15 @@ export class SimulationEngine {
       } else {
         if (p.pos.z >= 24.5) {
           if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 3 (Santuario Ancestral)' || p.checkpoint.levelId !== currentLevelId) {
-            p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, 'Sala 3 (Santuario Ancestral)', currentLevelId);
+            p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, 'Sala 3 (Santuario Ancestral)', currentLevelId, spawnYaw);
           }
         } else if (p.pos.z >= 11.5 && p.pos.z < 24.0) {
           if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 2 (El Abismo)' || p.checkpoint.levelId !== currentLevelId) {
-            p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, 'Sala 2 (El Abismo)', currentLevelId);
+            p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, 'Sala 2 (El Abismo)', currentLevelId, spawnYaw);
           }
         } else if (p.pos.z < 11.0) {
           if (!p.checkpoint || p.checkpoint.roomName !== 'Sala 1 (Vestíbulo)' || p.checkpoint.levelId !== currentLevelId) {
-            p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, 'Sala 1 (Vestíbulo)', currentLevelId);
+            p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, 'Sala 1 (Vestíbulo)', currentLevelId, spawnYaw);
           }
         }
       }
@@ -234,9 +237,10 @@ export class SimulationEngine {
     const limitZ = this.world?.sizeZ ?? WORLD_CONFIG.SIZE_Z;
     if (p.pos.y >= 6.0 || (p.pos.y >= 5.0 && (p.pos.x <= 1.0 || p.pos.x >= limitX - 2.0 || p.pos.z <= 1.0 || p.pos.z >= limitZ - 2.0))) {
       const currentSpawn = this.world.spawnPoint || {
-        x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z,
+        x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z, yaw: Math.PI,
       };
-      p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, p.checkpoint?.roomName || 'Entrada', this.world.currentLevel?.id || '');
+      const spawnYaw = currentSpawn.yaw ?? Math.PI;
+      p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, p.checkpoint?.roomName || 'Entrada', this.world.currentLevel?.id || '', spawnYaw);
       const cp = p.respawn(currentSpawn);
       if (this.onPlayerRespawn) {
         this.onPlayerRespawn(p, cp, { cause: 'fence', lives: p.lives, maxLives: p.maxLives ?? 3, gameOver: false, noPenalty: true });

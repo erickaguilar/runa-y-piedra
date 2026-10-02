@@ -232,9 +232,11 @@ varying vec2 vAtlasOffset;`
 
     switch (type) {
       case BLOCK_TYPES.WALL: {
-        // Ponderado arquitectónico: sillar regular dominante, grietas, mampostería y musgo orgánicos, glifos ancestrales
-        const wallPalette = [0, 0, 0, 0, 1, 1, 2, 2, 3, 4];
-        return wallPalette[h % wallPalette.length];
+        // 5 Variantes de Muros: 80% sillar regular limpio (Tile 0), 20% variantes (agrietado Tile 1, mampostería Tile 2, musgo Tile 3, glifo Tile 4)
+        const r = h % 100;
+        if (r < 80) return 0; // sillar regular limpio (~80%)
+        const decorVariants = [1, 2, 3, 4];
+        return decorVariants[(h >>> 8) % decorVariants.length];
       }
       case BLOCK_TYPES.STONE_FLOOR:
       case BLOCK_TYPES.FLOOR_STONE:
@@ -244,12 +246,12 @@ varying vec2 vAtlasOffset;`
         if (type === BLOCK_TYPES.FLOOR_WORN) return 6;  // floorTilesWorn (con grietas)
         if (type === BLOCK_TYPES.FLOOR_MOSS) return 7;  // floorTilesMossy (con musgo)
 
-        // Si es STONE_FLOOR genérico (tipo 1): distribución determinista estable (70% limpio, 20% con grietas, 10% con musgo)
+        // Si es STONE_FLOOR genérico (tipo 1): distribución determinista estable (90% limpio, 6% con grietas, 4% con musgo)
         const hFloor = ((x * 374761393) ^ (z * 668265263)) >>> 0;
         const r = hFloor % 100;
-        if (r < 70) return 5; // floorTiles
-        if (r < 90) return 6; // floorTilesWorn
-        return 7;             // floorTilesMossy
+        if (r < 90) return 5; // floorClean (losas limpias ~90%)
+        if (r < 96) return 6; // floorTilesWorn (~6%)
+        return 7;             // floorTilesMossy (~4%)
       }
       case BLOCK_TYPES.PILLAR: {
         // 5 Variantes de Pilares / Columnas (distribución orgánica determinista):
@@ -278,14 +280,11 @@ varying vec2 vAtlasOffset;`
         return lavaPalette[h % lavaPalette.length];
       }
       case BLOCK_TYPES.CEILING: {
-        // 5 Variantes de Techo (base común idéntica con sutiles variaciones internas):
-        // Tile 23: Bóveda de Cantería con Nervaduras de Cruz (base limpia)
-        // Tile 24: Bóveda con Refuerzos de Hierro Forjado y Remaches
-        // Tile 25: Bóveda con Fracturas Tectónicas y Filtraciones Minerales
-        // Tile 26: Bóveda con Musgo Colgante y Gotas de Humedad
-        // Tile 27: Bóveda con Clave Rúnica de Contención Arcana
-        const ceilingPalette = [23, 23, 24, 25, 26, 27];
-        return ceilingPalette[h % ceilingPalette.length];
+        // 5 Variantes de Techo: 90% base limpia (Tile 23), 10% variantes con adornos / fisuras / musgo / runa (Tiles 24-27)
+        const r = h % 100;
+        if (r < 90) return 23; // ceilingVault (base limpia ~90%)
+        const decorVariants = [24, 25, 26, 27];
+        return decorVariants[(h >>> 8) % decorVariants.length];
       }
       default:
         return 0;

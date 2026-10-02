@@ -372,8 +372,11 @@ export const NetworkCoordinatorMixin = {
         local.visualPos.y = WORLD_CONFIG.SPAWN_Y;
         local.visualPos.z = spawnZ;
       }
-      local.yaw = Math.PI;
-      this.input.yaw = Math.PI;
+      const spawnYaw = this.world?.spawnPoint?.yaw ?? Math.PI;
+      local.yaw = spawnYaw;
+      local.pitch = 0;
+      this.input.yaw = spawnYaw;
+      this.input.pitch = 0;
 
       // El avatar 0 es el anfitrión: asegurar que exista, sea visible y esté en el spawn del anfitrión
       const hostAvatar = this.avatars.ensure(0);

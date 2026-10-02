@@ -72,7 +72,19 @@ export class VoxelSandboxGame {
       },
       onPlayerRespawn: (p, cp, info = {}) => {
         const { cause = 'void', lives = 3, maxLives = 3, gameOver = false, noPenalty = false } = info;
+        const targetYaw = cp?.yaw ?? this.world?.spawnPoint?.yaw ?? Math.PI;
+        p.yaw = targetYaw;
+        p.pitch = 0;
         if (p === this.playerManager.localPlayer) {
+          this.input.yaw = targetYaw;
+          this.input.pitch = 0;
+          if (this.avatars) {
+            const hero = p.hero || PLAYER_HEROES[p.colorIndex] || PLAYER_HEROES[0];
+            this.avatars.updateLocal(p.id, p.visualPos.x, p.visualPos.y, p.visualPos.z, p.yaw, hero.hex || hero.color, hero.id || null);
+          }
+          if (this.cameraController) {
+            this.cameraController.update(p, p.yaw, p.pitch, this.cameraMode);
+          }
           if (noPenalty) {
             this.soundManager.playRespawn();
             this.ui.showNarrativeMessage(':warning: ¡Zona restringida! Reapareces en la Losa de Respawn.', 2500);
@@ -97,14 +109,19 @@ export class VoxelSandboxGame {
               this.ui.showNarrativeMessage(`:warning: ¡Caíste al abismo! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
             }
           }
-        } else if (gameOver && this.mode === 'host') {
-          // Si un compañero en coop sufre Game Over en una mazmorra, la expedición completa regresa al lobby
-          const curLevelId = this.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon_classic';
-          const targetLevelId = (curLevelId === 'dev_showroom') ? 'dev_showroom' : 'lobby_tutorial';
-          this.soundManager.playGameOver();
-          this.ui.showGameOver(this.playerManager.localPlayer?.lives ?? 3, this.playerManager.localPlayer?.maxLives ?? 3);
-          this.restoreSavedState();
-          this.switchLevel(targetLevelId, true, { isGameOver: true });
+        } else {
+          if (this.avatars) {
+            this.avatars.setTarget(p.id, p.pos.x, p.pos.y, p.pos.z, targetYaw);
+          }
+          if (gameOver && this.mode === 'host') {
+            // Si un compañero en coop sufre Game Over en una mazmorra, la expedición completa regresa al lobby
+            const curLevelId = this.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon_classic';
+            const targetLevelId = (curLevelId === 'dev_showroom') ? 'dev_showroom' : 'lobby_tutorial';
+            this.soundManager.playGameOver();
+            this.ui.showGameOver(this.playerManager.localPlayer?.lives ?? 3, this.playerManager.localPlayer?.maxLives ?? 3);
+            this.restoreSavedState();
+            this.switchLevel(targetLevelId, true, { isGameOver: true });
+          }
         }
       },
     });
@@ -167,6 +184,20 @@ export class VoxelSandboxGame {
     this.snapshotSeq = 0;
     this.inputQueue = new InputQueue();
     this.reconciler = new ClientReconciler();
+    this.reconciler.onTeleport = (entry) => {
+      if (entry && entry.yaw !== undefined) {
+        this.input.yaw = entry.yaw;
+        this.input.pitch = 0;
+        const local = this.playerManager?.localPlayer;
+        if (local) {
+          local.yaw = entry.yaw;
+          local.pitch = 0;
+          if (this.cameraController) {
+            this.cameraController.update(local, local.yaw, local.pitch, this.cameraMode);
+          }
+        }
+      }
+    };
     this.perf = new PerfMonitor();
     this._perfAcc = 0;
     // Salto con perdón: buffer 150ms + coyote time 120ms

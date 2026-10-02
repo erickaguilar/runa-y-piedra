@@ -9,8 +9,8 @@ export function floorVariant(x, z) {
   return BLOCK_TYPES.FLOOR_MOSS;              // 10: con musgo (~10%)
 }
 
-export function parseOrientationYaw(cfg = {}) {
-  if (!cfg || typeof cfg !== 'object') return 0;
+export function parseOrientationYaw(cfg = {}, defaultYaw = 0) {
+  if (!cfg || typeof cfg !== 'object') return defaultYaw;
 
   const facingRaw = cfg.facing ?? cfg.direction;
   if (typeof facingRaw === 'string') {
@@ -53,7 +53,7 @@ export function parseOrientationYaw(cfg = {}) {
     }
   }
 
-  return 0;
+  return defaultYaw;
 }
 
 export class LevelLoader {
@@ -80,7 +80,31 @@ export class LevelLoader {
     world.sizeZ = sizeZ;
     world.currentLevel = levelData;
     world.doors = levelData.doors || [];
-    world.checkpoints = levelData.checkpoints || [];
+    const spawnYaw = parseOrientationYaw(levelData.spawn, Math.PI);
+    world.spawnPoint = {
+      x: levelData.spawn?.x ?? WORLD_CONFIG.SPAWN_X,
+      y: levelData.spawn?.y ?? 1.2,
+      z: levelData.spawn?.z ?? WORLD_CONFIG.SPAWN_Z,
+      ...(levelData.spawn || {}),
+      yaw: spawnYaw,
+    };
+    world.checkpoints = (levelData.checkpoints || []).map(cp => {
+      const respawn = cp.respawn || {};
+      const cpYaw = parseOrientationYaw(
+        (respawn.yaw !== undefined || respawn.facing !== undefined || respawn.rotation !== undefined)
+          ? respawn
+          : (cp.yaw !== undefined || cp.facing !== undefined || cp.rotation !== undefined ? cp : {}),
+        world.spawnPoint.yaw
+      );
+      return {
+        ...cp,
+        respawn: {
+          ...respawn,
+          yaw: cpYaw,
+        },
+        yaw: cpYaw,
+      };
+    });
     world.objectives = levelData.objectives || [];
     world.monoliths = levelData.monoliths || [];
     world.torches = levelData.torches || [];
@@ -108,7 +132,6 @@ export class LevelLoader {
         });
     }
     world.stairsOpen = world.stairwells.some(w => w.open);
-    world.spawnPoint = levelData.spawn || { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
 
     // 3. Procesar regiones declarativas
     if (Array.isArray(levelData.regions)) {
