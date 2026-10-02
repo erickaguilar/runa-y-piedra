@@ -100,6 +100,9 @@ export function createDefaultSave(slotId = DEFAULT_SLOT_ID) {
     inventory: {
       totalGems: 0,
       potions: [],
+      relics: [],
+      keys: [],
+      openedChests: {},
     },
     suspendState: null,
   };
@@ -166,6 +169,112 @@ export function migrateFromLegacy(slotId = DEFAULT_SLOT_ID) {
   } catch {
     return null;
   }
+}
+
+/**
+ * Serializa un Set o Array de claves de cofres abiertos a un diccionario sparse por mazmorra
+ * `{ [levelId]: number[] }`, optimizado para compresión extrema y escalabilidad a 1000+ cofres.
+ * 
+ * @param {Set<string>|Array<string>} openedSet
+ * @returns {Object.<string, number[]>} Diccionario compacto indexado por nivel
+ */
+export function serializeOpenedChests(openedSet) {
+  if (!openedSet) return {};
+  const result = {};
+  const entries = openedSet instanceof Set
+    ? openedSet.values()
+    : (Array.isArray(openedSet) ? openedSet : []);
+
+  for (const entry of entries) {
+    if (typeof entry !== 'string') continue;
+    let levelId = '';
+    let chestId = null;
+
+    if (entry.includes(':')) {
+      const parts = entry.split(':');
+      levelId = parts[0];
+      chestId = parseInt(parts[1], 10);
+    } else {
+      const match = entry.match(/^(.+)_chest_(\d+)$/);
+      if (match) {
+        levelId = match[1];
+        chestId = parseInt(match[2], 10);
+      }
+    }
+
+    if (levelId && Number.isFinite(chestId)) {
+      if (!result[levelId]) result[levelId] = [];
+      if (!result[levelId].includes(chestId)) {
+        result[levelId].push(chestId);
+      }
+    }
+  }
+
+  // Ordenar numéricamente para determinismo en el checksum FNV-1a
+  for (const lvl of Object.keys(result)) {
+    result[lvl].sort((a, b) => a - b);
+  }
+  return result;
+}
+
+/**
+ * Deserializa un diccionario sparse, array o Set de cofres a un Set en memoria
+ * para comprobación O(1) inmediata en 60 FPS en el motor de juego.
+ * 
+ * @param {Object|Array|Set} data
+ * @returns {Set<string>} Set de identificadores canónicos
+ */
+export function deserializeOpenedChests(data) {
+  const set = new Set();
+  if (!data) return set;
+
+  if (data instanceof Set) {
+    for (const v of data) {
+      if (typeof v === 'string') {
+        set.add(v);
+        if (v.includes(':')) {
+          const [lvl, id] = v.split(':');
+          set.add(`${lvl}_chest_${id}`);
+        } else {
+          const match = v.match(/^(.+)_chest_(\d+)$/);
+          if (match) set.add(`${match[1]}:${match[2]}`);
+        }
+      }
+    }
+    return set;
+  }
+
+  if (Array.isArray(data)) {
+    for (const item of data) {
+      if (typeof item === 'string') {
+        set.add(item);
+        if (item.includes(':')) {
+          const [lvl, id] = item.split(':');
+          set.add(`${lvl}_chest_${id}`);
+        } else {
+          const match = item.match(/^(.+)_chest_(\d+)$/);
+          if (match) set.add(`${match[1]}:${match[2]}`);
+        }
+      }
+    }
+    return set;
+  }
+
+  if (typeof data === 'object') {
+    for (const [levelId, chestIds] of Object.entries(data)) {
+      if (Array.isArray(chestIds)) {
+        for (const cid of chestIds) {
+          const numId = Number(cid);
+          if (Number.isFinite(numId)) {
+            set.add(`${levelId}_chest_${numId}`);
+            set.add(`${levelId}:${numId}`);
+          }
+        }
+      }
+    }
+  }
+
+  return set;
 }
 
 export class SaveManager {
@@ -466,9 +575,17 @@ export class SaveManager {
     return true;
   }
 
+  serializeOpenedChests(openedSet) {
+    return serializeOpenedChests(openedSet);
+  }
+
+  deserializeOpenedChests(data) {
+    return deserializeOpenedChests(data);
+  }
+
   /**
    * Guarda de forma explícita y atómica la partida al terminar una mazmorra.
-   * Regla de negocio: El progreso de campaña solo se persiste en disco al completar con éxito una mazmorra.
+   * Regla de negocio: El progreso de campaña y el botín recolectado solo se persisten en disco al completar con éxito una mazmorra.
    */
   async saveDungeonCompletion({ levelId, chapterId, isVictory = false, campaign = null, inventory = null } = {}) {
     if (campaign && typeof campaign === 'object') {
@@ -478,10 +595,18 @@ export class SaveManager {
       };
     }
     if (inventory && typeof inventory === 'object') {
+      const curInv = this.currentSave.inventory || {};
+      const newOpened = inventory.openedChests !== undefined
+        ? serializeOpenedChests(inventory.openedChests)
+        : (curInv.openedChests || {});
+
       this.currentSave.inventory = {
-        ...this.currentSave.inventory,
-        totalGems: inventory.totalGems ?? this.currentSave.inventory.totalGems ?? 0,
-        potions: Array.isArray(inventory.potions) ? [...inventory.potions] : (this.currentSave.inventory.potions || []),
+        ...curInv,
+        totalGems: inventory.totalGems ?? curInv.totalGems ?? 0,
+        potions: Array.isArray(inventory.potions) ? [...inventory.potions] : (curInv.potions || []),
+        relics: Array.isArray(inventory.relics) ? [...inventory.relics] : (curInv.relics || []),
+        keys: Array.isArray(inventory.keys) ? [...inventory.keys] : (curInv.keys || []),
+        openedChests: newOpened,
       };
     }
 

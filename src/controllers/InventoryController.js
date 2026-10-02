@@ -117,14 +117,14 @@ export const InventoryMixin = {
     return true;
   },
 
-  resetInventory({ keepGems = false, keepRelics = false, keepPotions = false } = {}) {
+  resetInventory({ keepGems = false, keepRelics = false, keepPotions = false, keepKeys = false, keepChests = true } = {}) {
     this.inventory = {
-      keys: [],
+      keys: keepKeys ? [...(this.inventory?.keys || [])] : [],
       gems: keepGems ? (this.inventory?.gems || 0) : 0,
       relics: keepRelics ? [...(this.inventory?.relics || [])] : [],
       potions: keepPotions ? [...(this.inventory?.potions || [])] : [],
     };
-    if (!keepGems && !keepRelics && !keepPotions) {
+    if (!keepChests) {
       this.openedChestKeys?.clear();
     }
     this.ui.updateInventory(this.inventory);

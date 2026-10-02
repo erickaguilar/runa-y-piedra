@@ -71,8 +71,15 @@ export class ChestRenderer {
       }
       this.group.add(chestGroup);
 
+      const isOpen = !!cfg.isOpen;
       const lidSpring = new Spring(LID_SPRING_K, LID_SPRING_C, 0);
-      lidSpring.snap(0);
+      if (isOpen) {
+        lidSpring.snap(LID_OPEN_ANGLE);
+        lidPivot.rotation.x = -LID_OPEN_ANGLE;
+        if (lootLight) lootLight.intensity = 1.0;
+      } else {
+        lidSpring.snap(0);
+      }
 
       this.chests.set(chestId, {
         id: chestId,
@@ -82,7 +89,7 @@ export class ChestRenderer {
         x,
         y,
         z,
-        isOpen: false,
+        isOpen,
         lidPivot,
         lootLight,
         chestGroup,

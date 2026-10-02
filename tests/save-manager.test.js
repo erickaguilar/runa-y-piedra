@@ -354,5 +354,42 @@ describe('SaveManager - Persistencia Robusta y SaveSchema v2', () => {
       assert.equal(slot3.isEmpty, true);
       assert.equal(slot3.highestChapter, 1);
     });
+
+    it('persiste inventario completo (gemas, pociones, reliquias, llaves y cofres abiertos) en saveDungeonCompletion', async () => {
+      await manager.init('slot_2');
+      const openedSet = new Set(['dungeon_classic_chest_1', 'crypt_inferno:2']);
+      await manager.saveDungeonCompletion({
+        levelId: 'dungeon_classic',
+        chapterId: 'capitulo_1',
+        isVictory: true,
+        campaign: { highestChapterUnlocked: 2 },
+        inventory: {
+          totalGems: 350,
+          potions: [{ id: 'pocion_vida', name: 'Poción de Vida', healAmount: 1 }],
+          relics: [{ id: 'caliz_sagrado', name: 'Cáliz Sagrado' }],
+          keys: [{ id: 'llave_santuario', name: 'Llave del Santuario' }],
+          openedChests: openedSet,
+        },
+      });
+
+      const inv = manager.currentSave.inventory;
+      assert.equal(inv.totalGems, 350);
+      assert.equal(inv.potions.length, 1);
+      assert.equal(inv.relics.length, 1);
+      assert.equal(inv.relics[0].name, 'Cáliz Sagrado');
+      assert.equal(inv.keys.length, 1);
+      assert.deepEqual(inv.openedChests, {
+        crypt_inferno: [2],
+        dungeon_classic: [1],
+      });
+
+      // Recargar desde almacenamiento y validar recuperación íntegra
+      const reloaded = await manager.loadSlot('slot_2');
+      assert.equal(reloaded.inventory.totalGems, 350);
+      assert.equal(reloaded.inventory.relics[0].id, 'caliz_sagrado');
+      const restoredSet = manager.deserializeOpenedChests(reloaded.inventory.openedChests);
+      assert.equal(restoredSet.has('dungeon_classic_chest_1'), true);
+      assert.equal(restoredSet.has('crypt_inferno:2'), true);
+    });
   });
 });

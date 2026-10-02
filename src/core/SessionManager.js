@@ -70,17 +70,32 @@ export const SessionMixin = {
       this.ui.setActionButtonsVisible(true);
       this.ui.setLivesVisible(true);
 
-      // Cargar inventario persistido (gemas y pociones) desde el save activo
-      this.resetInventory({ keepGems: false, keepRelics: false, keepPotions: false });
+      // Cargar inventario persistido (gemas, pociones, reliquias, llaves y cofres abiertos)
+      this.resetInventory({ keepGems: false, keepRelics: false, keepPotions: false, keepChests: false });
       if (activeSave?.inventory) {
         this.inventory.gems = activeSave.inventory.totalGems || 0;
         if (Array.isArray(activeSave.inventory.potions)) {
           this.inventory.potions = [...activeSave.inventory.potions];
         }
+        if (Array.isArray(activeSave.inventory.relics)) {
+          this.inventory.relics = [...activeSave.inventory.relics];
+        }
+        if (Array.isArray(activeSave.inventory.keys)) {
+          this.inventory.keys = [...activeSave.inventory.keys];
+        }
+        this.openedChestKeys = saveManager.deserializeOpenedChests(activeSave.inventory.openedChests);
         this.ui.updateInventory(this.inventory);
       }
 
       const lvl = this.world.levelRegistry.getCurrentLevel();
+      for (const c of this.world.chests || []) {
+        const chestKey1 = `${lvl?.id}_chest_${c.id ?? 1}`;
+        const chestKey2 = `${lvl?.id}:${c.id ?? 1}`;
+        if (this.openedChestKeys?.has(chestKey1) || this.openedChestKeys?.has(chestKey2)) {
+          c.isOpen = true;
+        }
+      }
+      this.chestRenderer.loadChests(this.world.chests);
       this.ui.setTutorialControlsVisible(lvl?.id === 'lobby_tutorial');
       const localInit = this.playerManager.localPlayer;
       this.input.yaw = Math.PI;
@@ -135,6 +150,16 @@ export const SessionMixin = {
     this.world.levelRegistry.setCurrentLevel(levelId);
     this.world.loadLevel(levelData);
     this.voxelMap.rebuildFromWorld();
+
+    // Sincronizar estado de cofres ya abiertos en este nivel
+    for (const c of this.world.chests || []) {
+      const chestKey1 = `${levelId}_chest_${c.id ?? 1}`;
+      const chestKey2 = `${levelId}:${c.id ?? 1}`;
+      if (this.openedChestKeys?.has(chestKey1) || this.openedChestKeys?.has(chestKey2)) {
+        c.isOpen = true;
+      }
+    }
+
     this.chestRenderer.loadChests(this.world.chests);
     this.doorRenderer.loadDoors(this.world.doors);
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
@@ -294,6 +319,9 @@ export const SessionMixin = {
         inventory: {
           totalGems: this.inventory?.gems || 0,
           potions: this.inventory?.potions || [],
+          relics: this.inventory?.relics || [],
+          keys: this.inventory?.keys || [],
+          openedChests: saveManager.serializeOpenedChests(this.openedChestKeys),
         },
       });
 

@@ -1,6 +1,7 @@
 import { test, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { InteractionController } from '../src/controllers/InteractionController.js';
+import { serializeOpenedChests, deserializeOpenedChests } from '../src/storage/SaveManager.js';
 
 describe('Inventario y botín de cofres', () => {
   it('collectChestLoot extrae llaves, gemas y reliquias míticas', () => {
@@ -452,6 +453,120 @@ describe('Inventario y botín de cofres', () => {
     assert.equal(inventory.keys.length, 1);
     assert.equal(inventory.gems, 100);
     assert.equal(hasKeyFlag, true);
+  });
+
+  it('openChest rechaza interacción y no entrega botín si el cofre ya fue saqueado', () => {
+    const inventory = { keys: [], gems: 0, relics: [], potions: [] };
+    const openedChestKeys = new Set(['dungeon_classic_chest_1']);
+    const narrativeMessages = [];
+    let soundClicks = 0;
+
+    const mockChestRenderer = {
+      isOpen: false,
+      openChest() {
+        this.isOpen = true;
+        return true;
+      },
+      isChestOpen() {
+        return this.isOpen;
+      },
+    };
+
+    const mockGame = {
+      world: {
+        levelRegistry: {
+          getCurrentLevel: () => ({ id: 'dungeon_classic' }),
+        },
+        chests: [
+          { id: 1, name: 'Cofre del Vestíbulo', reward: '100 Gemas' },
+        ],
+      },
+      chestRenderer: mockChestRenderer,
+      inventory,
+      openedChestKeys,
+      soundManager: {
+        playClick: () => { soundClicks++; },
+        playChestOpen: () => {},
+      },
+      ui: {
+        showNarrativeMessage: (msg) => { narrativeMessages.push(msg); },
+      },
+      playerManager: {
+        localPlayer: { id: 0, pos: { x: 0, y: 0, z: 0 } },
+      },
+    };
+
+    const controller = new InteractionController(mockGame);
+
+    // Intentar abrir el cofre ya saqueado
+    controller.openChest(1);
+
+    // Debe emitir retroalimentación de cofre saqueado
+    assert.equal(soundClicks, 1);
+    assert.equal(narrativeMessages.length, 1);
+    assert.ok(narrativeMessages[0].includes('Este cofre ya ha sido saqueado'));
+
+    // No debe haber modificado el inventario ni la tapa
+    assert.equal(inventory.gems, 0);
+    assert.equal(mockChestRenderer.isOpen, false);
+  });
+
+  it('serializeOpenedChests y deserializeOpenedChests comprimen y escalan eficientemente a 1000 cofres', () => {
+    const totalChests = 1000;
+    const dungeonsCount = 50;
+    const chestsPerDungeon = totalChests / dungeonsCount; // 20 cofres por mazmorra
+    const mockOpenedSet = new Set();
+
+    for (let d = 1; d <= dungeonsCount; d++) {
+      const dungeonId = `dungeon_chapter_${d}`;
+      for (let c = 1; c <= chestsPerDungeon; c++) {
+        // Mezclamos formatos: algunos con _chest_ y otros con :
+        if (c % 2 === 0) {
+          mockOpenedSet.add(`${dungeonId}_chest_${c}`);
+        } else {
+          mockOpenedSet.add(`${dungeonId}:${c}`);
+        }
+      }
+    }
+
+    assert.equal(mockOpenedSet.size, 1000);
+
+    const startTime = performance.now();
+    const serialized = serializeOpenedChests(mockOpenedSet);
+    const serializeDuration = performance.now() - startTime;
+
+    // Verificar que se serializó instantáneamente (< 25ms)
+    assert.ok(serializeDuration < 25, `Serialización tardó demasiado: ${serializeDuration}ms`);
+
+    // Verificar estructura sparse agrupada por 50 mazmorras
+    const levelKeys = Object.keys(serialized);
+    assert.equal(levelKeys.length, dungeonsCount);
+    for (const lvl of levelKeys) {
+      assert.equal(serialized[lvl].length, chestsPerDungeon);
+      // Cada lista de cofres está numéricamente ordenada
+      for (let i = 0; i < chestsPerDungeon; i++) {
+        assert.equal(serialized[lvl][i], i + 1);
+      }
+    }
+
+    // Comprobar tamaño en JSON: para 1000 cofres debe ser ultra-compacto (< 10 KB)
+    const jsonStr = JSON.stringify(serialized);
+    const byteSize = new TextEncoder().encode(jsonStr).length;
+    assert.ok(byteSize < 10000, `Tamaño excesivo: ${byteSize} bytes`);
+
+    // Deserializar de vuelta y comprobar comprobaciones O(1)
+    const startDeserTime = performance.now();
+    const restoredSet = deserializeOpenedChests(serialized);
+    const deserDuration = performance.now() - startDeserTime;
+
+    assert.ok(deserDuration < 25, `Deserialización tardó demasiado: ${deserDuration}ms`);
+
+    // Comprobar que contiene consultas en ambos formatos
+    assert.equal(restoredSet.has('dungeon_chapter_1_chest_1'), true);
+    assert.equal(restoredSet.has('dungeon_chapter_1:1'), true);
+    assert.equal(restoredSet.has('dungeon_chapter_50_chest_20'), true);
+    assert.equal(restoredSet.has('dungeon_chapter_50:20'), true);
+    assert.equal(restoredSet.has('dungeon_chapter_1_chest_999'), false);
   });
 });
 

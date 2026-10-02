@@ -294,6 +294,23 @@ export class VoxelSandboxGame {
     // Inicializar y sincronizar saveManager con la UI en el arranque
     saveManager.init().then(() => {
       this.ui.refreshMenuSlots?.();
+      const current = saveManager.currentSave;
+      if (current?.inventory) {
+        this.inventory.gems = current.inventory.totalGems || 0;
+        this.inventory.potions = Array.isArray(current.inventory.potions) ? [...current.inventory.potions] : [];
+        this.inventory.relics = Array.isArray(current.inventory.relics) ? [...current.inventory.relics] : [];
+        this.inventory.keys = Array.isArray(current.inventory.keys) ? [...current.inventory.keys] : [];
+        this.openedChestKeys = saveManager.deserializeOpenedChests(current.inventory.openedChests);
+        this.ui.updateInventory(this.inventory);
+
+        const lvlId = this.world?.levelRegistry?.getCurrentLevel()?.id || 'lobby_tutorial';
+        for (const c of this.world?.chests || []) {
+          if (this.openedChestKeys.has(`${lvlId}_chest_${c.id ?? 1}`) || this.openedChestKeys.has(`${lvlId}:${c.id ?? 1}`)) {
+            c.isOpen = true;
+          }
+        }
+        this.chestRenderer?.loadChests(this.world.chests);
+      }
     }).catch(err => console.warn('[GameApp] Error en saveManager.init:', err));
   }
 

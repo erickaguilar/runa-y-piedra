@@ -90,8 +90,22 @@ export class InteractionController {
 
   openChest(chestId = 1, opener = null) {
     const game = this.game;
+    const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
+    const chestKey = `${currentLevelId}_chest_${chestId}`;
+    const chestKeyShort = `${currentLevelId}:${chestId}`;
+
+    if (game.openedChestKeys?.has(chestKey) || game.openedChestKeys?.has(chestKeyShort)) {
+      game.soundManager?.playClick?.();
+      game.ui?.showNarrativeMessage?.('📦 Este cofre ya ha sido saqueado.', 3000);
+      return;
+    }
+
     const opened = game.chestRenderer.openChest(chestId);
-    if (!opened) return;
+    if (!opened) {
+      game.soundManager?.playClick?.();
+      game.ui?.showNarrativeMessage?.('📦 Este cofre ya ha sido saqueado.', 3000);
+      return;
+    }
 
     const chestData = game.world.chests?.find(c => c.id === chestId);
     if (chestData) chestData.isOpen = true;
@@ -143,11 +157,13 @@ export class InteractionController {
     const game = this.game;
     const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
     const chestKey = `${currentLevelId}_chest_${chestData.id ?? 1}`;
+    const chestKeyShort = `${currentLevelId}:${chestData.id ?? 1}`;
 
-    if (game.openedChestKeys?.has(chestKey)) {
+    if (game.openedChestKeys?.has(chestKey) || game.openedChestKeys?.has(chestKeyShort)) {
       return;
     }
     game.openedChestKeys?.add(chestKey);
+    game.openedChestKeys?.add(chestKeyShort);
 
     // 1. Llaves
     if (chestData.givesKey && game.addInventoryKey) {
