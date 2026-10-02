@@ -486,10 +486,9 @@ describe('UIManager - Contratos de API de Configuración', () => {
       // El SVG del corazón perdido debe tener fill="none" (outline)
       assert.match(ui.livesHud.innerHTML, /fill="none"/);
 
-      // Obtiene llave del santuario
+      // Obtiene llave del santuario (las llaves se gestionan en inventario, nunca en los corazones)
       ui.setHasKey(true);
-      assert.match(ui.livesHud.innerHTML, /key-badge/);
-      assert.match(ui.livesHud.innerHTML, /title="Llave de la Mazmorra"/);
+      assert.doesNotMatch(ui.livesHud.innerHTML, /key-badge/);
 
       // Recolecta gemas: actualiza automáticamente el contador en el HUD
       ui.updateInventory({
@@ -498,9 +497,9 @@ describe('UIManager - Contratos de API de Configuración', () => {
         relics: [],
       });
       assert.match(ui.livesHud.innerHTML, /<span class="gems-count">100<\/span>/);
-      assert.match(ui.livesHud.innerHTML, /key-badge/);
+      assert.doesNotMatch(ui.livesHud.innerHTML, /key-badge/);
 
-      // Consume la llave (puerta abierta)
+      // Consume/usa la llave: el HUD de corazones y gemas sigue intacto y libre de llaves
       ui.setHasKey(false);
       assert.doesNotMatch(ui.livesHud.innerHTML, /key-badge/);
       // Las gemas y corazones se conservan

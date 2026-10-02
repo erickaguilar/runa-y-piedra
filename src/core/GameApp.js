@@ -110,6 +110,7 @@ export class VoxelSandboxGame {
     this.soundManager = soundManager;
     this.inventory = { keys: [], gems: 0, relics: [], potions: [] };
     this.openedChestKeys = new Set();
+    this.openedDoorKeys = new Set();
     this.network.stats.setRenderer(this.sceneManager.renderer);
     this.inputMode = new InputMode();
 
@@ -301,6 +302,7 @@ export class VoxelSandboxGame {
         this.inventory.relics = Array.isArray(current.inventory.relics) ? [...current.inventory.relics] : [];
         this.inventory.keys = Array.isArray(current.inventory.keys) ? [...current.inventory.keys] : [];
         this.openedChestKeys = saveManager.deserializeOpenedChests(current.inventory.openedChests);
+        this.openedDoorKeys = saveManager.deserializeOpenedDoors(current.inventory.openedDoors);
         this.ui.updateInventory(this.inventory);
 
         const lvlId = this.world?.levelRegistry?.getCurrentLevel()?.id || 'lobby_tutorial';
@@ -310,6 +312,12 @@ export class VoxelSandboxGame {
           }
         }
         this.chestRenderer?.loadChests(this.world.chests);
+
+        for (const d of this.world?.doors || []) {
+          if (this.openedDoorKeys.has(`${lvlId}_door_${d.id ?? 1}`) || this.openedDoorKeys.has(`${lvlId}:${d.id ?? 1}`)) {
+            this.openDoorInstant(d.id);
+          }
+        }
       }
     }).catch(err => console.warn('[GameApp] Error en saveManager.init:', err));
   }

@@ -1,7 +1,12 @@
 import { test, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { InteractionController } from '../src/controllers/InteractionController.js';
-import { serializeOpenedChests, deserializeOpenedChests } from '../src/storage/SaveManager.js';
+import {
+  serializeOpenedChests,
+  deserializeOpenedChests,
+  serializeOpenedDoors,
+  deserializeOpenedDoors,
+} from '../src/storage/SaveManager.js';
 
 describe('Inventario y botín de cofres', () => {
   it('collectChestLoot extrae llaves, gemas y reliquias míticas', () => {
@@ -263,13 +268,13 @@ describe('Inventario y botín de cofres', () => {
     assert.match(narrativeMessage, /máximo/);
   });
 
-  it('openDoor consume la llave del jugador y del inventario al abrir puerta sellada', () => {
+  it('openDoor conserva la llave en el llavero permanente y registra la puerta en openedDoorKeys', () => {
     const inventory = {
       keys: [{ id: 'llave_santuario', name: 'Llave del Santuario' }],
       gems: 100,
       relics: [],
     };
-    let hasKeyFlag = true;
+    const openedDoorKeys = new Set();
     let narrativeMsg = '';
 
     const mockPlayer = {
@@ -315,19 +320,8 @@ describe('Inventario y botín de cofres', () => {
         localPlayer: mockPlayer,
       },
       inventory,
-      removeInventoryKey(keyId) {
-        const targetId = typeof keyId === 'object' ? (keyId.id || keyId.name) : keyId;
-        const idx = inventory.keys.findIndex(k => (typeof k === 'string' ? k : (k.id || k.name)) === targetId);
-        if (idx !== -1) {
-          inventory.keys.splice(idx, 1);
-          return true;
-        }
-        return false;
-      },
+      openedDoorKeys,
       ui: {
-        setHasKey(val) {
-          hasKeyFlag = val;
-        },
         showNarrativeMessage(msg) {
           narrativeMsg = msg;
         },
@@ -347,12 +341,14 @@ describe('Inventario y botín de cofres', () => {
     assert.equal(res, true);
     assert.equal(mockGame.world.isDoor2Open, true);
 
-    // La llave fue consumida de la entidad Jugador y del inventario
-    assert.equal(mockPlayer.hasKey('llave_santuario'), false);
-    assert.equal(mockPlayer.keys.length, 0);
-    assert.equal(inventory.keys.length, 0);
-    assert.equal(hasKeyFlag, false);
-    assert.ok(narrativeMsg.includes('🗝️ ¡Llave consumida!'));
+    // Llavero permanente: la llave NO se consume y permanece en el inventario
+    assert.equal(mockPlayer.hasKey('llave_santuario'), true);
+    assert.equal(mockPlayer.keys.length, 1);
+    assert.equal(inventory.keys.length, 1);
+    assert.ok(narrativeMsg.includes('🗝️ (Llave en tu llavero)'));
+
+    // La puerta queda registrada para persistencia
+    assert.equal(openedDoorKeys.has('dungeon_door_2') || openedDoorKeys.has('dungeon:2'), true);
   });
 
   it('openChest unifica el botín, la llave y el desbloqueo de puertas en una única notificación narrativa', () => {
@@ -567,6 +563,29 @@ describe('Inventario y botín de cofres', () => {
     assert.equal(restoredSet.has('dungeon_chapter_50_chest_20'), true);
     assert.equal(restoredSet.has('dungeon_chapter_50:20'), true);
     assert.equal(restoredSet.has('dungeon_chapter_1_chest_999'), false);
+  });
+
+  it('serializeOpenedDoors y deserializeOpenedDoors gestionan puertas abiertas de forma compacta', () => {
+    const doorsSet = new Set([
+      'dungeon_classic_door_1',
+      'dungeon_classic:2',
+      'crypt_inferno_door_1',
+    ]);
+
+    const serialized = serializeOpenedDoors(doorsSet);
+    assert.deepEqual(serialized, {
+      crypt_inferno: [1],
+      dungeon_classic: [1, 2],
+    });
+
+    const deserialized = deserializeOpenedDoors(serialized);
+    assert.equal(deserialized.has('dungeon_classic_door_1'), true);
+    assert.equal(deserialized.has('dungeon_classic:1'), true);
+    assert.equal(deserialized.has('dungeon_classic_door_2'), true);
+    assert.equal(deserialized.has('dungeon_classic:2'), true);
+    assert.equal(deserialized.has('crypt_inferno_door_1'), true);
+    assert.equal(deserialized.has('crypt_inferno:1'), true);
+    assert.equal(deserialized.has('dungeon_classic_door_99'), false);
   });
 });
 

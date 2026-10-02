@@ -84,6 +84,7 @@ export const SessionMixin = {
           this.inventory.keys = [...activeSave.inventory.keys];
         }
         this.openedChestKeys = saveManager.deserializeOpenedChests(activeSave.inventory.openedChests);
+        this.openedDoorKeys = saveManager.deserializeOpenedDoors(activeSave.inventory.openedDoors);
         this.ui.updateInventory(this.inventory);
       }
 
@@ -96,6 +97,14 @@ export const SessionMixin = {
         }
       }
       this.chestRenderer.loadChests(this.world.chests);
+
+      for (const d of this.world.doors || []) {
+        const doorKey1 = `${lvl?.id}_door_${d.id ?? 1}`;
+        const doorKey2 = `${lvl?.id}:${d.id ?? 1}`;
+        if (this.openedDoorKeys?.has(doorKey1) || this.openedDoorKeys?.has(doorKey2)) {
+          this.openDoorInstant(d.id);
+        }
+      }
       this.ui.setTutorialControlsVisible(lvl?.id === 'lobby_tutorial');
       const localInit = this.playerManager.localPlayer;
       this.input.yaw = Math.PI;
@@ -162,6 +171,16 @@ export const SessionMixin = {
 
     this.chestRenderer.loadChests(this.world.chests);
     this.doorRenderer.loadDoors(this.world.doors);
+
+    // Sincronizar estado de puertas ya abiertas en este nivel
+    for (const d of this.world.doors || []) {
+      const doorKey1 = `${levelId}_door_${d.id ?? 1}`;
+      const doorKey2 = `${levelId}:${d.id ?? 1}`;
+      if (this.openedDoorKeys?.has(doorKey1) || this.openedDoorKeys?.has(doorKey2)) {
+        this.openDoorInstant(d.id);
+      }
+    }
+
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
     this.interaction.ensureStairsState();
     // Reset del descenso sincronizado al cambiar de mapa
@@ -322,6 +341,7 @@ export const SessionMixin = {
           relics: this.inventory?.relics || [],
           keys: this.inventory?.keys || [],
           openedChests: saveManager.serializeOpenedChests(this.openedChestKeys),
+          openedDoors: saveManager.serializeOpenedDoors(this.openedDoorKeys),
         },
       });
 
@@ -329,6 +349,13 @@ export const SessionMixin = {
     } catch (err) {
       console.warn('[SessionManager] Error al guardar finalización de mazmorra:', err);
     }
+  },
+
+  /** Abre instantáneamente una puerta en el mundo físico, vóxeles y renderizado 3D. */
+  openDoorInstant(doorId = 1) {
+    this.world?.openDoor?.(doorId);
+    this.voxelMap?.openDoor?.(doorId);
+    this.doorRenderer?.setOpenInstant?.(doorId);
   },
 
   /** Fase 2 MVP: foto de mazmorra para host-migration (nivel + puertas + cofres + losa). */

@@ -103,6 +103,7 @@ export function createDefaultSave(slotId = DEFAULT_SLOT_ID) {
       relics: [],
       keys: [],
       openedChests: {},
+      openedDoors: {},
     },
     suspendState: null,
   };
@@ -267,6 +268,111 @@ export function deserializeOpenedChests(data) {
           const numId = Number(cid);
           if (Number.isFinite(numId)) {
             set.add(`${levelId}_chest_${numId}`);
+            set.add(`${levelId}:${numId}`);
+          }
+        }
+      }
+    }
+  }
+
+  return set;
+}
+
+/**
+ * Serializa un Set o Array de claves de puertas abiertas a un diccionario sparse por mazmorra
+ * `{ [levelId]: number[] }`.
+ * 
+ * @param {Set<string>|Array<string>} openedSet
+ * @returns {Object.<string, number[]>} Diccionario compacto indexado por nivel
+ */
+export function serializeOpenedDoors(openedSet) {
+  if (!openedSet) return {};
+  const result = {};
+  const entries = openedSet instanceof Set
+    ? openedSet.values()
+    : (Array.isArray(openedSet) ? openedSet : []);
+
+  for (const entry of entries) {
+    if (typeof entry !== 'string') continue;
+    let levelId = '';
+    let doorId = null;
+
+    if (entry.includes(':')) {
+      const parts = entry.split(':');
+      levelId = parts[0];
+      doorId = parseInt(parts[1], 10);
+    } else {
+      const match = entry.match(/^(.+)_door_(\d+)$/);
+      if (match) {
+        levelId = match[1];
+        doorId = parseInt(match[2], 10);
+      }
+    }
+
+    if (levelId && Number.isFinite(doorId)) {
+      if (!result[levelId]) result[levelId] = [];
+      if (!result[levelId].includes(doorId)) {
+        result[levelId].push(doorId);
+      }
+    }
+  }
+
+  for (const lvl of Object.keys(result)) {
+    result[lvl].sort((a, b) => a - b);
+  }
+  return result;
+}
+
+/**
+ * Deserializa un diccionario sparse, array o Set de puertas abiertas a un Set en memoria
+ * para comprobación O(1) inmediata en 60 FPS en el motor de juego.
+ * 
+ * @param {Object|Array|Set} data
+ * @returns {Set<string>} Set de identificadores canónicos
+ */
+export function deserializeOpenedDoors(data) {
+  const set = new Set();
+  if (!data) return set;
+
+  if (data instanceof Set) {
+    for (const v of data) {
+      if (typeof v === 'string') {
+        set.add(v);
+        if (v.includes(':')) {
+          const [lvl, id] = v.split(':');
+          set.add(`${lvl}_door_${id}`);
+        } else {
+          const match = v.match(/^(.+)_door_(\d+)$/);
+          if (match) set.add(`${match[1]}:${match[2]}`);
+        }
+      }
+    }
+    return set;
+  }
+
+  if (Array.isArray(data)) {
+    for (const item of data) {
+      if (typeof item === 'string') {
+        set.add(item);
+        if (item.includes(':')) {
+          const [lvl, id] = item.split(':');
+          set.add(`${lvl}_door_${id}`);
+        } else {
+          const match = item.match(/^(.+)_door_(\d+)$/);
+          if (match) set.add(`${match[1]}:${match[2]}`);
+        }
+      }
+    }
+    return set;
+  }
+
+  if (typeof data === 'object') {
+    for (const [levelId, doorIds] of Object.entries(data)) {
+      if (Array.isArray(doorIds)) {
+        for (const did of doorIds) {
+          const numId = Number(did);
+          if (Number.isFinite(numId)) {
+            set.add(`${levelId}_door_${numId}`);
             set.add(`${levelId}:${numId}`);
           }
         }
@@ -583,6 +689,14 @@ export class SaveManager {
     return deserializeOpenedChests(data);
   }
 
+  serializeOpenedDoors(openedSet) {
+    return serializeOpenedDoors(openedSet);
+  }
+
+  deserializeOpenedDoors(data) {
+    return deserializeOpenedDoors(data);
+  }
+
   /**
    * Guarda de forma explícita y atómica la partida al terminar una mazmorra.
    * Regla de negocio: El progreso de campaña y el botín recolectado solo se persisten en disco al completar con éxito una mazmorra.
@@ -599,6 +713,9 @@ export class SaveManager {
       const newOpened = inventory.openedChests !== undefined
         ? serializeOpenedChests(inventory.openedChests)
         : (curInv.openedChests || {});
+      const newOpenedDoors = inventory.openedDoors !== undefined
+        ? serializeOpenedDoors(inventory.openedDoors)
+        : (curInv.openedDoors || {});
 
       this.currentSave.inventory = {
         ...curInv,
@@ -607,6 +724,7 @@ export class SaveManager {
         relics: Array.isArray(inventory.relics) ? [...inventory.relics] : (curInv.relics || []),
         keys: Array.isArray(inventory.keys) ? [...inventory.keys] : (curInv.keys || []),
         openedChests: newOpened,
+        openedDoors: newOpenedDoors,
       };
     }
 

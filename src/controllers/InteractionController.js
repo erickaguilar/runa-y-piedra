@@ -293,29 +293,17 @@ export class InteractionController {
       game.soundManager.playDoorOpen();
     }
 
-    // Si la puerta requería una llave, consumirla del jugador y del inventario
-    let keyConsumed = false;
-    if (door?.requiresKey) {
-      const keyId = door.requiresKey;
-      if (opener?.removeKey) {
-        opener.removeKey(keyId);
-      }
-      if (local && local !== opener && local.hasKey?.(keyId)) {
-        local.removeKey(keyId);
-      }
-      if (game.removeInventoryKey) {
-        keyConsumed = game.removeInventoryKey(keyId);
-      }
-      if (local && (!local.keys || local.keys.length === 0)) {
-        game.ui?.setHasKey(false);
-      }
-    }
+    // Registrar la puerta abierta en el registro persistente de puertas
+    const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
+    game.openedDoorKeys?.add(`${currentLevelId}_door_${doorId}`);
+    game.openedDoorKeys?.add(`${currentLevelId}:${doorId}`);
 
+    // Llavero permanente: las llaves no se consumen ni se eliminan del inventario
     const defaultMsg = doorId === 1
       ? '🚪 ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!'
       : '🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.';
-    const consumedSuffix = keyConsumed ? ' 🗝️ ¡Llave consumida!' : '';
-    const msg = (door?.openMessage || defaultMsg) + consumedSuffix;
+    const keySuffix = door?.requiresKey ? ' 🗝️ (Llave en tu llavero)' : '';
+    const msg = (door?.openMessage || defaultMsg) + keySuffix;
     game.ui.showNarrativeMessage(msg, 6000);
 
     if (game.mode === 'host') {

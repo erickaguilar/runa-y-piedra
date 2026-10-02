@@ -199,21 +199,15 @@ export const HudMixin = {
       const color = alive ? '#ef4444' : '#64748b';
       html += `<span class="${cls}${lost && !alive ? ' hurt' : ''}">${renderIcon(iconName, { size: 18, color })}</span>`;
     }
-    if (this._hasKey) {
-      html += `<span class="key-badge" title="Llave de la Mazmorra">${renderIcon('key', { size: 18, color: '#fbbf24' })}</span>`;
-    }
     const currentGems = gems !== null ? gems : (this.inventory?.gems ?? 0);
     html += `<span class="gems-badge" title="${currentGems} Gemas recolectadas">${renderIcon('gem', { size: 16, color: '#38bdf8' })}<span class="gems-count">${currentGems}</span></span>`;
     this.livesHud.innerHTML = html;
     this.livesHud.classList.toggle('invuln', !!invulnerable);
   },
 
-  /** Muestra/oculta la insignia de llave en el HUD (sin tocar los corazones). */
+  /** Muestra/oculta la insignia de llave (preservado como no-op para compatibilidad). */
   setHasKey(hasKey) {
     this._hasKey = !!hasKey;
-    if (this._lastLives >= 0) {
-      this.updateLives(this._lastLives, this._lastMaxLives);
-    }
   },
 
   showGameOver(lives, maxLives) {
