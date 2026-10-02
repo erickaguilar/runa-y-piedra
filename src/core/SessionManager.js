@@ -32,7 +32,7 @@ export const SessionMixin = {
     if (activeSave?.profile?.settings) {
       const s = activeSave.profile.settings;
       if (s.camera && typeof this.setCameraMode === 'function') {
-        this.setCameraMode(s.camera);
+        this.setCameraMode(s.camera, true);
       }
       if (Number.isFinite(s.sensitivity) && this.input) {
         this.input.cameraSensitivity = s.sensitivity;
@@ -121,7 +121,7 @@ export const SessionMixin = {
 
       const highestChap = activeSave?.campaign?.highestChapterUnlocked || 1;
       const gemsMsg = this.inventory.gems > 0 ? ` • ${this.inventory.gems}💎` : '';
-      this.ui.showNarrativeMessage(`🏰 ${lvl.name} (Sala PIN: ${pin}) — ${name} (${hero.name} • Cap. ${highestChap}${gemsMsg}).`, 5500);
+      this.ui.showNarrativeMessage(`🏰 Mazmorra creada: ${lvl?.name || 'Campamento'} (PIN: ${pin}) — ${name} (${hero.name} • Capítulo ${highestChap}${gemsMsg})`, 5500);
 
       this.broadcastRoster();
       this.network.startWorldSnapshot(() => this.collectWorldSnapshot());
@@ -254,7 +254,9 @@ export const SessionMixin = {
     this.reconciler.reset(this.reconciler.lastProcessedSimTime);
     this.inputQueue.clear();
 
-    if (levelData.id === 'dev_showroom') {
+    if (isGameOver) {
+      this.ui.showNarrativeMessage('💀 ¡GAME OVER! Has caído en la expedición. Regresas al Campamento con tus vidas restauradas.', 5000);
+    } else if (levelData.id === 'dev_showroom') {
       this.ui.showNarrativeMessage('🧪 Showroom de Desarrollo: Galería completa de bloques y físicas.', 5500);
     } else if (levelData.id === 'lobby_tutorial') {
       const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'

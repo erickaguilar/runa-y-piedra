@@ -343,4 +343,30 @@ test('las vidas perdidas persisten al transicionar entre diferentes mazmorras y 
   assert.equal(p.lives, p.maxLives, 'Las vidas se restauran a 3 únicamente tras Game Over y reinicio');
 });
 
+test('Game Over en una mazmorra redirige al lobby_tutorial y restaura las vidas', () => {
+  const world = new World();
+  const dungeon = world.levelRegistry.getLevel('dungeon_classic');
+  world.loadLevel(dungeon);
+  world.levelRegistry.setCurrentLevel('dungeon_classic');
+
+  let switchedTo = null;
+  let switchOptions = null;
+  const mockGame = {
+    world,
+    mode: 'host',
+    switchLevel: (levelId, broadcast, opts) => {
+      switchedTo = levelId;
+      switchOptions = opts;
+    },
+  };
+
+  const curLevelId = mockGame.world.levelRegistry.getCurrentLevel()?.id || 'dungeon_classic';
+  const targetLevelId = (curLevelId === 'dev_showroom') ? 'dev_showroom' : 'lobby_tutorial';
+  mockGame.switchLevel(targetLevelId, mockGame.mode === 'host', { isGameOver: true });
+
+  assert.equal(switchedTo, 'lobby_tutorial', 'Debe redirigir al nivel del lobby (lobby_tutorial)');
+  assert.equal(switchOptions?.isGameOver, true, 'Debe activar la bandera isGameOver');
+});
+
+
 

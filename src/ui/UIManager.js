@@ -116,6 +116,7 @@ export class UIManager {
     }
     this.playerName = localStorage.getItem('dungeon_player_name') || 'Aventurero';
     this.setActionButtonsVisible(false);
+    this.setSettingsButtonVisible(false);
     this.updateInventory(this.inventory);
 
     // Estado del panel superpuesto de controles (HUD)

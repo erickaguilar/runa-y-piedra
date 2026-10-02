@@ -6,8 +6,8 @@
 
 > Mazmorra vóxel cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
-[![Version](https://img.shields.io/badge/version-1.35.0-blue.svg)](package.json)
-[![Tests](https://img.shields.io/badge/tests-163%20passed-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-1.37.0-blue.svg)](package.json)
+[![Tests](https://img.shields.io/badge/tests-199%20passed-brightgreen.svg)](tests/)
 
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-Dual%20Channels-green.svg)](https://webrtc.org/)
@@ -46,14 +46,15 @@ La interfaz móvil está calibrada para pantallas táctiles de 60–120 Hz sin n
   * **Curva de Aprendizaje Amigable**: Se muestra automáticamente para nuevos jugadores la primera vez.
   * **Ocultable al Instante**: Dispone de un botón de cierre rápido `(×)` que memoriza la preferencia en `localStorage` (`runa_controls_dismissed`).
   * **Siempre Recuperable**: Puede alternarse en cualquier momento pulsando la tecla `H` en el teclado, tocando el botón de ayuda o desde el menú de Ajustes (`⚙️`).
-* **HUD Compacto de Explorador**: Corazones vectoriales con contorno estilizado para vidas perdidas, insignia de llaves activas, contador de gemas recolectadas y botón de acceso rápido al inventario de botín (`#hud-inventory`).
+* **HUD Compacto de Explorador**: Corazones vectoriales con contorno estilizado para vidas perdidas, contador de gemas recolectadas en vivo y botón de acceso rápido al inventario de botín (`#hud-inventory`) con gestión completa de llaves, pociones y reliquias en modal.
+* **Interfaz de Menú Limpia**: El botón flotante de configuración (`⚙️`) se oculta automáticamente durante el menú principal y selector de ranuras, emergiendo únicamente al iniciar la expedición.
 
 ---
 
 ## 🌟 Características Principales
 
-* **Progresión de Mazmorra por Niveles**: Sistema de niveles modular ([`src/levels/`](file:///data/data/com.termux/files/home/develop/game/src/levels/)) con transiciones fluidas:
-  * **Lobby / Tutorial**: Vestíbulo seguro con cofre de prueba, puerta con cerradura y escalinata introductoria.
+* **Progresión de Mazmorra por Niveles y Capítulos**: Sistema de niveles modular ([`src/levels/`](file:///data/data/com.termux/files/home/develop/game/src/levels/)) con transiciones fluidas y progresión lineal:
+  * **Lobby / Campamento Central**: Hub seguro y zona de práctica con cofre, puerta sellada, monolito de cartografía y escalinata de descenso.
   * **Calabozo Clásico**: Salas de sillar, fosa de lava ardiente sobre el abismo, plataformas de salto rúnicas y laberinto de puertas.
   * **Trono del Abismo**: Desafío final con altar ancestral y ceremonia de victoria cooperativa.
 * **Mecánicas Cooperativas e Interacción**:
@@ -64,18 +65,23 @@ La interfaz móvil está calibrada para pantallas táctiles de 60–120 Hz sin n
   * **Escalinatas de descenso y Pedestales**: Descenso coordinado entre jugadores y ritual de victoria en el altar final.
 * **HUD Expandido, Vidas y Botín**:
   * **Vidas con Contorno (*Outline*)**: Corazones llenos en carmesí para vidas activas y contorno estilizado vectorial (`heartOutline`) para vidas perdidas, con animación de sacudida (*shake*).
-  * **Insignia de Llaves y Gemas en el HUD**: Insignia dorada de llave activa y contador numérico en vivo de gemas (`.gems-badge`), interactivos al clic/toque.
-  * **Botón de Inventario Compacto (`#hud-inventory`)**: Icono botón a la izquierda de las vidas con contador badge dinámico y modal interactivo de botín (atajo tecla `B`).
+  * **Contador de Gemas en el HUD**: Contador numérico en vivo de gemas (`.gems-badge`), interactivo al clic/toque.
+  * **Botón de Inventario Compacto (`#hud-inventory`)**: Icono botón con modal interactivo de botín (atajo tecla `B`) para consultar llaves de mazmorra, pociones, reliquias y gemas.
+* **Persistencia Robusta SaveSchema v2 y Gestión de Ranuras**:
+  * **3 Ranuras de Guardado**: Selector de slots en el menú principal con bloqueo de edición en partidas activas y borrado seguro.
+  * **Doble Buffer Atómico**: Resguardo automático (`active`/`backup`), checksum determinista FNV-1a y motor híbrido IndexedDB / localStorage.
+  * **Regla de Incursión**: El progreso de expedición y tesoros se consolidan en disco exclusivamente al consagrar con éxito el altar final de capítulo.
 * **Herramientas de Desarrollo y UX Pulida**:
   * **Panel de Controles Superpuesto**: Guía en pantalla minimizable con botón `(×)`, atajo `H` y persistencia de estado.
   * **Modal Dev (`#modal-dev`)**: Herramientas exclusivas en modo local (`npm run dev`) con reinicio rápido (F5 táctil) y monitor de telemetría WebRTC.
   * **Diálogo Temático de Confirmación**: Sustitución de `confirm()` por modales oscuros con bordes rúnicos y audio procedural para salir al menú.
   * **Orientación Inicial a 180°**: El héroe inicia mirando hacia el pasillo de la mazmorra (`Math.PI`), evitando encarar la pared de spawn.
   * **Scrollbars Dark Fantasy**: Barras de desplazamiento estilizadas en obsidiana y ámbar.
-* **Sistema de Peligros y Checkpoints**:
+* **Sistema de Peligros, Checkpoints y Game Over**:
   * 3 vidas por héroe con indicador HUD reactivo.
-  * Peligros letales: fosa de lava y caída al vacío con penalización de vida y reaparición en el último checkpoint seguro.
-  * Período de invulnerabilidad post-reaparición y Game Over sincronizado.
+  * Peligros letales: fosa de lava y caída al vacío con penalización de vida y reaparición en el spawn único de la mazmorra.
+  * Período de invulnerabilidad post-reaparición (3 segundos).
+  * **Retorno al Campamento en Game Over**: Al agotarse las 3 vidas en un capítulo, la expedición completa regresa de forma coordinada al Campamento (Lobby) con vidas restauradas y restablecimiento del estado no consolidado.
 * **Canales Duales WebRTC de Alto Rendimiento**:
   * **Canal Seguro (`game-safe`, `reliable: true`)**: Transmisión garantizada de eventos críticos (`INIT`, `DOOR`, `CHEST`, `KEY`, `LEVEL_CHANGE`, `PLAYER_META`, `HOST_CLOSING`).
   * **Canal Caliente (`game-hot`, `reliable: false`)**: Tráfico de alta frecuencia tolerante a pérdida (`INPUT` a 30 Hz, `SNAPSHOT` a 20 Hz, `PING`/`PONG` a 1 Hz) para eliminar el *head-of-line blocking*.

@@ -5,6 +5,36 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.37.0] - 2026-10-02
+
+### Added
+- **Redirección al Campamento (Lobby) en Game Over (`src/core/GameApp.js`, `src/core/SessionManager.js`, `src/ui/HudManager.js`)**:
+  - Al agotarse las 3 vidas durante una expedición en cualquier mazmorra de capítulo, la expedición completa (tanto en individual como party cooperativa) regresa de forma coordinada al Campamento Central (`lobby_tutorial`).
+  - Restauración completa de vidas (3 corazones) y reversión del inventario y cofres de la incursión al estado guardado anterior consolidado (`restoreSavedState`).
+  - Mensaje temático prioritario en pantalla: `"💀 ¡GAME OVER! Has caído en la expedición. Regresas al Campamento con tus vidas restauradas."`.
+- **Persistencia Robusta SaveSchema v2 y 3 Ranuras de Guardado (`src/storage/SaveManager.js`, `src/storage/StorageAdapters.js`, `src/ui/MenuManager.js`, `src/ui/ModalManager.js`)**:
+  - Arquitectura de persistencia con doble buffer atómico (`active` y `backup`), validación de integridad mediante Checksum determinista FNV-1a de 32 bits y almacenamiento híbrido asíncrono con `IndexedDBAdapter` + `LocalStorageAdapter` (cero bloqueo en el hilo de render a 60 FPS).
+  - Selector interactivo de 3 ranuras independientes en el menú principal con visualización de héroe, gemas y capítulos completados.
+  - Bloqueo de edición de nombre y clase de héroe en ranuras con partida guardada activa y flujo de borrado seguro con confirmación modal.
+  - Regla de negocio de mazmorra: el botín (gemas, cofres y llaves) solo se consolida en disco al culminar con éxito el altar supremo final de capítulo (`saveDungeonCompletion`).
+- **Biblioteca Canónica de Ítems y Compresión Sparse (`src/inventory/ItemRegistry.js`, `src/storage/SaveManager.js`)**:
+  - Catálogo centralizado `ItemRegistry` para llaves, reliquias y pociones.
+  - Serialización sparse de cofres y puertas abiertas indexada por nivel (`{ [levelId]: number[] }`), comprimiendo el almacenamiento y escalando a más de 1000 cofres sin duplicación de botín al reentrar en mazmorras previas.
+- **Control Contextual del Botón de Configuración (`src/ui/MenuManager.js`, `src/ui/HudManager.js`, `src/ui/UIManager.js`, `index.html`)**:
+  - Método `setSettingsButtonVisible(visible)` en `HudManager`.
+  - Ocultación automática del botón flotante `#btn-settings` durante la estancia en el menú principal y selección de ranura, mostrándose únicamente al ingresar a la partida.
+- **Ampliación de Suite de Pruebas (`tests/simulation.test.js`, `tests/ui-manager.test.js`, `tests/save-manager.test.js`)**:
+  - 36 nuevas pruebas unitarias cubriendo redirección en Game Over, doble buffer de guardado, compresión sparse de cofres, validación de checksum y visibilidad del botón de configuración en menú. Cobertura incrementada a **199 pruebas pasando al 100%**.
+
+### Changed
+- **Depuración del HUD Superior: Retiro del Botón Llavero (`index.html`, `src/ui/UIManager.js`, `src/ui/HudManager.js`)**:
+  - Eliminado el botón flotante `#hud-keys-tag` contiguo al indicador de corazones y gemas en la barra superior izquierda, logrando una interfaz limpia y minimalista.
+  - Toda la inspección de llaves de mazmorra se centraliza en el modal interactivo de Botín e Inventario (`B`).
+- **Puntuación y Parser de Notificaciones Protegido (`src/ui/HudManager.js`, `src/core/SessionManager.js`, `src/core/GameApp.js`)**:
+  - Formulación clara de la notificación al crear sala: `"🏰 Mazmorra creada: [Nivel] (PIN: [Código]) — [Nombre] ([Clase] • Capítulo [N])"`.
+  - Silenciado de notificaciones redundantes de cámara durante el arranque interno de `startHost` mediante el parámetro `silent` en `setCameraMode`.
+  - Regla de corte de oraciones en `parseMessageToList` mejorada con lookbehind negativo para proteger abreviaturas comunes (`Cap.`, etc.) y periodos dentro de expresiones entre paréntesis, impidiendo la fragmentación errónea en viñetas sueltas.
+
 ## [1.35.0] - 2026-10-01
 
 ### Added

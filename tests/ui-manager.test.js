@@ -30,6 +30,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
     assert.equal(typeof UIManager.prototype.hideControlsHud, 'function');
     assert.equal(typeof UIManager.prototype.toggleControlsHud, 'function');
     assert.equal(typeof UIManager.prototype.setTutorialControlsVisible, 'function');
+    assert.equal(typeof UIManager.prototype.setSettingsButtonVisible, 'function');
     assert.equal(typeof UIManager.prototype.openSaveSlotsModal, 'function');
     assert.equal(typeof UIManager.prototype.closeSaveSlotsModal, 'function');
     assert.equal(typeof UIManager.prototype.toggleSaveSlotsModal, 'function');
@@ -515,6 +516,27 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(res.items[0], '🗝️ Llave Antigua del Santuario');
       assert.equal(res.items[1], '💎 100 Gemas');
       assert.equal(res.items[2], '🚪 Ahora puedes abrir: Puerta del Santuario');
+    });
+
+    it('parseMessageToList no divide oraciones en abreviaturas como Cap. o puntos en paréntesis', () => {
+      const ui = new UIManager();
+      const res = ui.parseMessageToList('🏰 Mazmorra creada: Lobby: Sala de Práctica (PIN: 1234) — Aventurero (Guerrero • Cap. 1).');
+      assert.equal(res.items.length, 0, 'No debe generar viñetas cortadas');
+      assert.match(res.title, /Cap\. 1/);
+    });
+
+    it('oculta el botón de configuración en el menú y lo muestra en partida', () => {
+      const ui = new UIManager();
+      assert.equal(ui.settingsBtn.style.display, 'none');
+
+      ui.showMenu({ onHost: () => {}, onJoin: () => {} });
+      assert.equal(ui.settingsBtn.style.display, 'none');
+
+      ui.hideMenu();
+      assert.equal(ui.settingsBtn.style.display, 'flex');
+
+      ui.showMenu({ onHost: () => {}, onJoin: () => {} });
+      assert.equal(ui.settingsBtn.style.display, 'none');
     });
 
     it('gestiona la tarjeta de descenso unificada con temporizador de 5 segundos', () => {

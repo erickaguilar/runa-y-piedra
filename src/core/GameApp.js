@@ -71,32 +71,40 @@ export class VoxelSandboxGame {
         this.ui.showNarrativeMessage('🔥 ¡Caíste en la lava! Hundiéndote en el magma incandescente...', 1800);
       },
       onPlayerRespawn: (p, cp, info = {}) => {
-        if (p !== this.playerManager.localPlayer) return;
         const { cause = 'void', lives = 3, maxLives = 3, gameOver = false, noPenalty = false } = info;
-        if (noPenalty) {
-          this.soundManager.playRespawn();
-          this.ui.showNarrativeMessage('⚠️ ¡Zona restringida! Reapareces en la Losa de Respawn.', 2500);
-          return;
-        }
-        this.ui.updateLives(lives, maxLives);
-        if (gameOver) {
-          this.soundManager.playGameOver();
-          this.ui.showGameOver(lives, maxLives);
-          this.restoreSavedState();
-          // Game Over = reinicio en el spawn de la mazmorra actual con vidas restauradas
-          if (this.mode === 'host') {
+        if (p === this.playerManager.localPlayer) {
+          if (noPenalty) {
+            this.soundManager.playRespawn();
+            this.ui.showNarrativeMessage('⚠️ ¡Zona restringida! Reapareces en la Losa de Respawn.', 2500);
+            return;
+          }
+          this.ui.updateLives(lives, maxLives);
+          if (gameOver) {
+            this.soundManager.playGameOver();
+            this.ui.showGameOver(lives, maxLives);
+            this.restoreSavedState();
+            // Game Over en un capítulo = traslado al campamento/lobby con vidas restauradas
             const curLevelId = this.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon_classic';
-            this.switchLevel(curLevelId, true, { isGameOver: true });
-          }
-        } else {
-          this.soundManager.playHurt();
-          setTimeout(() => this.soundManager.playRespawn(), 300);
-          const roomMsg = cp?.roomName ? ` en ${cp.roomName}` : '';
-          if (cause === 'lava') {
-            this.ui.showNarrativeMessage(`🔥 ¡Te consumió la lava! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
+            const targetLevelId = (curLevelId === 'dev_showroom') ? 'dev_showroom' : 'lobby_tutorial';
+            this.switchLevel(targetLevelId, this.mode === 'host', { isGameOver: true });
           } else {
-            this.ui.showNarrativeMessage(`⚠️ ¡Caíste al abismo! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
+            this.soundManager.playHurt();
+            setTimeout(() => this.soundManager.playRespawn(), 300);
+            const roomMsg = cp?.roomName ? ` en ${cp.roomName}` : '';
+            if (cause === 'lava') {
+              this.ui.showNarrativeMessage(`🔥 ¡Te consumió la lava! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
+            } else {
+              this.ui.showNarrativeMessage(`⚠️ ¡Caíste al abismo! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
+            }
           }
+        } else if (gameOver && this.mode === 'host') {
+          // Si un compañero en coop sufre Game Over en una mazmorra, la expedición completa regresa al lobby
+          const curLevelId = this.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon_classic';
+          const targetLevelId = (curLevelId === 'dev_showroom') ? 'dev_showroom' : 'lobby_tutorial';
+          this.soundManager.playGameOver();
+          this.ui.showGameOver(this.playerManager.localPlayer?.lives ?? 3, this.playerManager.localPlayer?.maxLives ?? 3);
+          this.restoreSavedState();
+          this.switchLevel(targetLevelId, true, { isGameOver: true });
         }
       },
     });
@@ -340,14 +348,16 @@ export class VoxelSandboxGame {
     }
   }
 
-  setCameraMode(mode) {
+  setCameraMode(mode, silent = false) {
     this.cameraMode = mode === 'third' ? 'third' : 'first';
     localStorage.setItem('dungeon_camera', this.cameraMode);
     const local = this.playerManager.localPlayer;
     if (local) this.avatars.setLocalVisible(local.id, this.cameraMode === 'third');
-    this.ui.showNarrativeMessage(
-      this.cameraMode === 'third' ? '📷 Vista en tercera persona.' : '📷 Vista en primera persona.', 2000
-    );
+    if (!silent) {
+      this.ui.showNarrativeMessage(
+        this.cameraMode === 'third' ? '📷 Vista en tercera persona.' : '📷 Vista en primera persona.', 2000
+      );
+    }
   }
 
   /** Tema visual del altar según la mazmorra activa (dorado / brasa / amatista). */

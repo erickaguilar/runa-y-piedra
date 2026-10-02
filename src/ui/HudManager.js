@@ -26,6 +26,12 @@ export const HudMixin = {
     }
   },
 
+  setSettingsButtonVisible(visible) {
+    if (this.settingsBtn) {
+      this.settingsBtn.style.display = visible ? 'flex' : 'none';
+    }
+  },
+
   setActionButtonsVisible(visible) {
     const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? (window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0))
@@ -230,7 +236,7 @@ export const HudMixin = {
   showGameOver(lives, maxLives) {
     this.updateLives(lives, maxLives);
     this.showNarrativeMessage(
-      '💀 ¡GAME OVER! Reapareces al inicio de la mazmorra con tus vidas restauradas.',
+      '💀 ¡GAME OVER! Has caído en la expedición. Regresando al Campamento con tus vidas restauradas.',
       4500
     );
   },
@@ -380,8 +386,9 @@ export const HudMixin = {
     }
 
     // 3. Múltiples oraciones separadas por delimitadores (. ! ?)
+    // Evitar dividir en abreviaturas comunes (Cap., pág., etc.) o puntos dentro de paréntesis
     const sentences = text
-      .split(/(?<=[.!?])\s+/)
+      .split(/(?<=[!?]|\b(?<!Cap|pág|etc|ej|Dr|Sr|Sra)\.)\s+(?![^(]*\))/i)
       .map(s => s.trim())
       .filter(Boolean);
 

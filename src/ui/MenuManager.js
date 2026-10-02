@@ -10,6 +10,7 @@ export const MenuMixin = {
     this.setCrosshairVisible(false);
     this.setActionButtonsVisible(false);
     this.setLivesVisible(false);
+    this.setSettingsButtonVisible(false);
 
     const heroesHtml = PLAYER_HEROES.map((h, i) => `
       <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
@@ -500,6 +501,7 @@ export const MenuMixin = {
 
   hideMenu() {
     this.uiEl.innerHTML = '';
+    this.setSettingsButtonVisible(true);
   },
 
   setStatus(msg) {
