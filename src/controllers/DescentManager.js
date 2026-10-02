@@ -1,6 +1,5 @@
 // src/controllers/DescentManager.js
 import * as Proto from '../network/Protocol.js';
-import { escapeHtml } from '../ui/Icons.js';
 
 /**
  * DescentManager - Descenso sincronizado por la escalinata (5s, estilo Deep Rock).

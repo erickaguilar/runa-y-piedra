@@ -302,4 +302,34 @@ varying vec2 vAtlasOffset;`
     const v = (7 - row) * 0.125;
     return { u, v };
   }
+
+  /**
+   * Libera recursos WebGL (geometría, texturas, shaders y buffers instanciados).
+   */
+  dispose() {
+    if (this.scene && this.mesh) {
+      this.scene.remove(this.mesh);
+    }
+    if (this.mesh) {
+      if (this.mesh.geometry) {
+        this.mesh.geometry.dispose();
+      }
+      if (this.mesh.material) {
+        if (this.mesh.material.map) {
+          this.mesh.material.map.dispose();
+        }
+        this.mesh.material.dispose();
+      }
+    }
+    this.blockToInst = null;
+    this.instToBlock = null;
+    this.freeSlots = null;
+    this.atlasOffsets = null;
+    this.atlasAttr = null;
+    this.mesh = null;
+    this.dummy = null;
+    this.world = null;
+    this.scene = null;
+  }
 }
+

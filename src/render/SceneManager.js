@@ -32,7 +32,8 @@ export class SceneManager {
     const hemi = new THREE.HemisphereLight(0xffffff, 0x64748b, 0.45);
     this.scene.add(hemi);
 
-    window.addEventListener('resize', () => this._onResize());
+    this._resizeHandler = () => this._onResize();
+    window.addEventListener('resize', this._resizeHandler);
   }
   _onResize() {
     const w = window.innerWidth, h = window.innerHeight;
@@ -46,4 +47,11 @@ export class SceneManager {
     this._onResize();
   }
   render() { this.renderer.render(this.scene, this.camera); }
+
+  dispose() {
+    if (typeof window !== 'undefined' && this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+    }
+    this.renderer?.dispose();
+  }
 }

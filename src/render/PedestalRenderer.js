@@ -5,7 +5,6 @@ import {
   BLESSED_LIGHT,
   FLASH_LIGHT,
   PARTICLE_COUNT,
-  THEMES,
   createPedestalMaterials,
   createPedestalGeometries,
   buildPedestalMesh,

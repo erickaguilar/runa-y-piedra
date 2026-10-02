@@ -830,6 +830,7 @@ export class SaveManager {
       ...partialProfile,
     };
     this.currentSave.checksum = calculateChecksum(this.currentSave);
+    this._writeLegacyMirror(this.currentSave);
     this.saveCurrent().catch((err) => console.error('[SaveManager] Error en auto-save de perfil:', err));
     return this.currentSave.profile;
   }
@@ -844,6 +845,7 @@ export class SaveManager {
       ...partialSettings,
     };
     this.currentSave.checksum = calculateChecksum(this.currentSave);
+    this._writeLegacyMirror(this.currentSave);
     this.saveCurrent().catch((err) => console.error('[SaveManager] Error en auto-save de ajustes:', err));
     return this.currentSave.profile.settings;
   }

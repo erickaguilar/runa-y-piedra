@@ -1,5 +1,6 @@
 import { renderIcon, replaceEmojisWithSvg } from './Icons.js';
 import { soundManager } from '../audio/SoundManager.js';
+import { saveManager } from '../storage/SaveManager.js';
 
 export const HudMixin = {
   _bindControlsHud() {
@@ -152,6 +153,7 @@ export const HudMixin = {
     if (userAction) {
       this.isControlsDismissed = false;
       try {
+        saveManager.updateSettings({ controlsDismissed: false });
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem('runa_controls_dismissed');
         }
@@ -171,6 +173,7 @@ export const HudMixin = {
     if (userAction) {
       this.isControlsDismissed = true;
       try {
+        saveManager.updateSettings({ controlsDismissed: true });
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('runa_controls_dismissed', 'true');
         }

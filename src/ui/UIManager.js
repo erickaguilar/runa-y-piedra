@@ -4,6 +4,7 @@ import { MenuMixin } from './MenuManager.js';
 import { HudMixin } from './HudManager.js';
 import { ModalMixin } from './ModalManager.js';
 import { HeroMixin } from './HeroManager.js';
+import { saveManager } from '../storage/SaveManager.js';
 
 export class UIManager {
   constructor({
@@ -109,20 +110,24 @@ export class UIManager {
     this.descentOnNow = null;
     this._descentInterval = null;
 
-    // Cargar perfil guardado del jugador
-    this.selectedColorIndex = parseInt(localStorage.getItem('dungeon_player_color') || '0', 10);
+    // Cargar perfil guardado del jugador desde saveManager con fallback legacy
+    const profile = saveManager.getProfile?.() || {};
+    const settings = saveManager.getSettings?.() || {};
+
+    const rawColor = profile.favoriteHero ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('dungeon_player_color') : null);
+    this.selectedColorIndex = parseInt(rawColor || '0', 10);
     if (this.selectedColorIndex < 0 || this.selectedColorIndex >= PLAYER_HEROES.length) {
       this.selectedColorIndex = 0;
     }
-    this.playerName = localStorage.getItem('dungeon_player_name') || 'Aventurero';
+    this.playerName = profile.name || (typeof localStorage !== 'undefined' ? localStorage.getItem('dungeon_player_name') : null) || 'Aventurero';
     this.setActionButtonsVisible(false);
     this.setSettingsButtonVisible(false);
     this.updateInventory(this.inventory);
 
     // Estado del panel superpuesto de controles (HUD)
-    this.isControlsDismissed = typeof localStorage !== 'undefined'
+    this.isControlsDismissed = settings.controlsDismissed ?? (typeof localStorage !== 'undefined'
       ? localStorage.getItem('runa_controls_dismissed') === 'true'
-      : false;
+      : false);
     this.isControlsHudVisible = false;
     this._bindControlsHud();
   }

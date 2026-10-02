@@ -57,8 +57,7 @@ export const SessionMixin = {
       this.playerManager.setLocalId(0);
       this.avatars.remove(-1);
 
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const hostAddr = isLocal ? (localStorage.getItem('dungeon_lan_ip') || '192.168.100.28:5173') : window.location.host;
+      const hostAddr = localStorage.getItem('dungeon_lan_ip') || window.location.host;
       const joinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
       this.currentJoinUrl = joinUrl;
       this.lastConnectedPin = pin;
@@ -458,8 +457,7 @@ export const SessionMixin = {
       const colorIndex = this.playerManager.localPlayer?.colorIndex ?? this.ui.selectedColorIndex ?? 0;
       this.playerManager.setLocalProfile(name, colorIndex);
 
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const hostAddr = isLocal ? (localStorage.getItem('dungeon_lan_ip') || '192.168.100.28:5173') : window.location.host;
+      const hostAddr = localStorage.getItem('dungeon_lan_ip') || window.location.host;
       this.currentJoinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
 
       this.applyWorldSnapshot(snap);
@@ -479,8 +477,7 @@ export const SessionMixin = {
       this.ui.showNarrativeMessage(`🏰 Mazmorra reanudada como Host (sala migrada: ${pin}). Comparte el enlace desde ⚙️.`, 6000);
     } catch (e) {
       this.ui.showNarrativeMessage('⚠️ No se pudo reanudar como Host: ' + (e?.message || e), 5000);
-      this.mode = null;
-      window.location.href = window.location.origin + window.location.pathname;
+      this.leaveSession();
     }
   },
 
@@ -542,4 +539,55 @@ export const SessionMixin = {
     this.ui.setHasKey(false);
     this.ui.showNarrativeMessage(`Conectado como ${escapeHtml(name)}. Explorad juntos.`, 5000);
   },
+
+  /**
+   * Cierra limpiamente la sesión activa (Host, Cliente o Showroom) sin recargar la página.
+   * Desconecta red, limpia avatares, jugadores e inventario de sesión, restaura la URL y abre el menú principal.
+   */
+  leaveSession() {
+    try {
+      this.network?.stopWorldSnapshot?.();
+      this.network?.disconnect?.();
+    } catch (err) {
+      console.warn('[SessionManager] Error al desconectar red:', err);
+    }
+
+    this.mode = null;
+    this.currentJoinUrl = null;
+    this.lastConnectedPin = null;
+
+    if (this.input?.reset) {
+      this.input.reset();
+    }
+
+    if (this.descent?.reset) {
+      this.descent.reset();
+    }
+
+    if (this.avatars?.clear) {
+      this.avatars.clear();
+    }
+
+    if (this.playerManager?.reset) {
+      this.playerManager.reset();
+    }
+
+    // Limpiar parámetros de consulta (?join=...) sin provocar recarga de página WebGL
+    if (typeof window !== 'undefined' && window.history?.replaceState && window.location) {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+
+    // Regresar la interfaz al menú principal
+    if (this.ui) {
+      this.ui.currentScreen = 'menu';
+      this.ui.setCrosshairVisible?.(false);
+      this.ui.setActionButtonsVisible?.(false);
+      this.ui.setLivesVisible?.(false);
+      this.ui.setTutorialControlsVisible?.(false);
+      this.ui.updatePartyList?.([]);
+      this.ui.showMenu?.(this.ui.lastMenuParams || {});
+    }
+  },
 };
+

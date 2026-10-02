@@ -146,4 +146,16 @@ export class PlayerManager {
   getSnapshots() {
     return Array.from(this.players.values()).map(p => p.toSnapshot());
   }
+
+  /**
+   * Limpia todos los jugadores y conexiones remotas, restaurando el jugador local por defecto.
+   */
+  reset() {
+    this.connToPlayerId.clear();
+    this.players.clear();
+    this.localPlayer = new Player(-1, WORLD_CONFIG.SPAWN_X, WORLD_CONFIG.SPAWN_Y, WORLD_CONFIG.SPAWN_Z);
+    this.players.set(-1, this.localPlayer);
+    this.nextPlayerId = 1;
+  }
 }
+

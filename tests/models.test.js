@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import {
   buildSharedGeometries,
   buildSharedMaterials,
-  createNameSprite,
   buildBaseAvatarMesh,
   GEAR_BUILDERS,
 } from '../src/render/models/heroes/index.js';

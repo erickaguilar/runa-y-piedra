@@ -1,4 +1,5 @@
 import nipplejs from 'nipplejs';
+import { saveManager } from '../storage/SaveManager.js';
 
 export class InputManager {
   constructor({ canvas, inputMode = null, isGameActive = null, onJump, onInteract, onCameraToggle, onSettingsToggle, onInventoryToggle, onUsePotion, onControlsToggle, onChapterMapToggle }) {
@@ -31,9 +32,12 @@ export class InputManager {
       : false;
     let sens = 1.0;
     try {
-      sens = parseFloat(localStorage.getItem('dungeon_sensitivity') || '1.0');
+      const savedSens = saveManager.getSettings?.()?.sensitivity ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('dungeon_sensitivity') : null);
+      if (savedSens !== null && savedSens !== undefined) {
+        sens = parseFloat(savedSens);
+      }
     } catch { /* ignore */ }
-    this.sensitivity = sens;
+    this.sensitivity = Number.isFinite(sens) ? sens : 1.0;
 
     this.initKeyboard();
     this.initMouseLook();
@@ -262,6 +266,6 @@ export class InputManager {
 
   setSensitivity(val) {
     this.sensitivity = Math.max(0.3, Math.min(3.0, val));
-    localStorage.setItem('dungeon_sensitivity', this.sensitivity.toString());
+    saveManager.updateSettings({ sensitivity: this.sensitivity });
   }
 }

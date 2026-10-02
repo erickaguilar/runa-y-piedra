@@ -27,13 +27,13 @@ import { InteractionController } from '../controllers/InteractionController.js';
 import { DescentManager } from '../controllers/DescentManager.js';
 import { soundManager } from '../audio/SoundManager.js';
 import { InputMode } from '../ui/InputMode.js';
-import { NET_CONFIG, PHYSICS_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from '../config/constants.js';
+import { saveManager } from '../storage/SaveManager.js';
+import { NET_CONFIG, PHYSICS_CONFIG, PLAYER_HEROES } from '../config/constants.js';
 import { PerfMonitor } from '../perf/PerfMonitor.js';
 
 import { InventoryMixin } from '../controllers/InventoryController.js';
 import { SessionMixin } from './SessionManager.js';
 import { NetworkCoordinatorMixin } from '../network/NetworkCoordinator.js';
-import { saveManager } from '../storage/SaveManager.js';
 
 export class VoxelSandboxGame {
   constructor() {
@@ -139,7 +139,8 @@ export class VoxelSandboxGame {
       },
       onChapterMapToggle: () => this.ui.toggleChapterModal(),
     });
-    this.cameraMode = localStorage.getItem('dungeon_camera') || 'first';
+    const initialSettings = saveManager.getSettings();
+    this.cameraMode = initialSettings.camera || (typeof localStorage !== 'undefined' ? localStorage.getItem('dungeon_camera') : null) || 'first';
 
     // Banner flotante de controles para PC
     let pcHintTimer = null;
@@ -173,7 +174,8 @@ export class VoxelSandboxGame {
     this.lastGroundTime = 0;
 
     // Aplicar calidad gráfica guardada
-    const savedDpr = parseFloat(localStorage.getItem('dungeon_dpr') || '1.5');
+    const rawDpr = initialSettings.dpr ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('dungeon_dpr') : null);
+    const savedDpr = parseFloat(rawDpr || '1.5');
     this.sceneManager.setQuality(savedDpr);
 
     this.initNetworkEvents();
@@ -213,7 +215,7 @@ export class VoxelSandboxGame {
         this.setCameraMode(mode);
       },
       onLeaveGame: () => {
-        window.location.href = window.location.origin + window.location.pathname;
+        this.leaveSession();
       },
       getGameState: () => ({
         inGame: this.mode !== null,
@@ -239,6 +241,9 @@ export class VoxelSandboxGame {
       }),
       onToggleDebug: (enable) => {
         this.network.stats.setEnabled(enable);
+      },
+      onChapterReload: async () => {
+        await this.chapterRegistry?.load?.();
       },
     });
   }
@@ -280,6 +285,9 @@ export class VoxelSandboxGame {
       onToggleDebug: (enable) => {
         this.network.stats.setEnabled(enable);
       },
+      onPrintNetAudit: () => {
+        this.network?.printAudit?.();
+      },
     });
   }
 
@@ -291,6 +299,9 @@ export class VoxelSandboxGame {
         currentLevelId: this.world.levelRegistry.currentLevelId,
       }),
       onSelectChapter: (chapterId) => this.selectCampaignChapter(chapterId),
+      onReloadCatalog: async () => {
+        await this.chapterRegistry?.load?.();
+      },
     });
     this.ui.bindInventory({
       onUsePotion: (potion, idx) => this.usePotion(potion, idx),
@@ -298,6 +309,15 @@ export class VoxelSandboxGame {
     this.ui.showMenu({
       onHost: (profile) => this.startHost(profile),
       onJoin: (pin, profile) => this.joinRoom(pin, profile),
+      onSlotChanged: async () => {
+        await this.chapterRegistry?.load?.();
+      },
+      onResetSessionProgress: () => {
+        this.resetInventory({ keepGems: false, keepRelics: false, keepPotions: false, keepChests: false });
+        this.openedChestKeys = new Set();
+        this.openedDoorKeys = new Set();
+        this.ui.updateInventory(this.inventory);
+      },
     });
 
     // Inicializar y sincronizar saveManager con la UI en el arranque
@@ -350,7 +370,7 @@ export class VoxelSandboxGame {
 
   setCameraMode(mode, silent = false) {
     this.cameraMode = mode === 'third' ? 'third' : 'first';
-    localStorage.setItem('dungeon_camera', this.cameraMode);
+    saveManager.updateSettings({ camera: this.cameraMode });
     const local = this.playerManager.localPlayer;
     if (local) this.avatars.setLocalVisible(local.id, this.cameraMode === 'third');
     if (!silent) {
@@ -371,7 +391,7 @@ export class VoxelSandboxGame {
   initGameLoop() {
     const loop = new GameLoop({
       tickHz: PHYSICS_CONFIG.TICK_HZ,
-      onTick: (dt) => {
+      onTick: (_dt) => {
         const FIXED_DT = 1 / PHYSICS_CONFIG.TICK_HZ;
         const local = this.playerManager.localPlayer;
         const inTransition = !!(this.descent?.transitioning || this.interaction?.isTransitioning?.());
@@ -499,7 +519,23 @@ export class VoxelSandboxGame {
       },
     });
 
+    this.loop = loop;
     loop.start();
+  }
+
+  /**
+   * Libera todos los recursos WebGL, la escena, renderizadores y controladores del juego.
+   */
+  dispose() {
+    this.loop?.stop?.();
+    this.leaveSession?.();
+    this.voxelMap?.dispose?.();
+    this.chestRenderer?.dispose?.();
+    this.doorRenderer?.dispose?.();
+    this.pedestalRenderer?.dispose?.();
+    this.stairsRenderer?.dispose?.();
+    this.avatars?.dispose?.();
+    this.sceneManager?.dispose?.();
   }
 }
 

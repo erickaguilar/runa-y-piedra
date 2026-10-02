@@ -95,7 +95,12 @@ export const MenuMixin = {
           chip.classList.add('selected');
           const idx = parseInt(chip.dataset.index, 10);
           this.selectedColorIndex = idx;
-          localStorage.setItem('dungeon_player_color', idx.toString());
+          try {
+            saveManager.updateProfile({ favoriteHero: idx });
+          } catch {}
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('dungeon_player_color', idx.toString());
+          }
 
           const hero = PLAYER_HEROES[idx];
           const badge = document.getElementById('hero-badge');
@@ -121,7 +126,12 @@ export const MenuMixin = {
         }
         const val = e.target.value.trim();
         this.playerName = val || 'Aventurero';
-        localStorage.setItem('dungeon_player_name', this.playerName);
+        try {
+          saveManager.updateProfile({ name: this.playerName });
+        } catch {}
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('dungeon_player_name', this.playerName);
+        }
       });
     }
 
@@ -362,11 +372,8 @@ export const MenuMixin = {
               const s = updatedSave.profile.settings;
               try {
                 if (s.camera) {
-                  localStorage.setItem('dungeon_camera', s.camera);
                   this.cameraModeUI = s.camera;
-                  if (typeof window !== 'undefined' && window.__game?.cameraController) {
-                    window.__game.setCameraMode?.(s.camera);
-                  }
+                  this.settingsCallbacks?.onCameraChange?.(s.camera);
                 }
                 if (s.soundMuted !== undefined) {
                   soundManager.isMuted = !!s.soundMuted;
@@ -381,11 +388,13 @@ export const MenuMixin = {
               } catch {}
             }
 
-            if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-              try {
-                window.__game.chapterRegistry.load?.();
-              } catch {}
-            }
+            try {
+              if (this.lastMenuParams?.onSlotChanged) {
+                await this.lastMenuParams.onSlotChanged(slotId, updatedSave);
+              } else {
+                await this.campaignCallbacks?.onReloadCatalog?.();
+              }
+            } catch {}
 
             try {
               this.settingsCallbacks?.onProfileSave?.({
@@ -449,15 +458,12 @@ export const MenuMixin = {
           onConfirm: async () => {
             try {
               await saveManager.deleteSlot(activeSlotId);
-              if (typeof window !== 'undefined' && window.__game?.chapterRegistry) {
-                window.__game.chapterRegistry.load?.();
-              }
-              if (typeof window !== 'undefined' && window.__game) {
-                window.__game.inventory = { keys: [], gems: 0, relics: [], potions: [] };
-                window.__game.openedChestKeys = new Set();
-                window.__game.openedDoorKeys = new Set();
-                window.__game.ui?.updateInventory?.(window.__game.inventory);
-              }
+              try {
+                if (this.lastMenuParams?.onResetSessionProgress) {
+                  this.lastMenuParams.onResetSessionProgress();
+                }
+                await this.campaignCallbacks?.onReloadCatalog?.();
+              } catch {}
               this.playerName = 'Aventurero';
               this.selectedColorIndex = 0;
               try {

@@ -154,3 +154,17 @@ test('unicidad absoluta de razas/héroes: no permite clases duplicadas en el equ
   assert.equal(availForP1, 1, 'debe permitirle mantener su clase asignada');
 });
 
+test('PlayerManager.reset() limpia todas las conexiones y restaura jugador local id -1', () => {
+  const pm = new PlayerManager();
+  pm.setLocalId(0);
+  pm.setLocalProfile('Leader', 3);
+  pm.addRemotePlayer({ peer: 'peer-1' }, 'Guest', 1);
+  assert.equal(pm.getAllPlayers().length, 2);
+
+  pm.reset();
+  assert.equal(pm.getAllPlayers().length, 1);
+  assert.equal(pm.localPlayer.id, -1);
+  assert.equal(pm.connToPlayerId.size, 0);
+});
+
+

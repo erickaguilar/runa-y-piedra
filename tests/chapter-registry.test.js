@@ -4,7 +4,6 @@ import {
   ChapterRegistry,
   CHAPTER_CATALOG,
   CAMPAIGN_PROGRESS_STORAGE_KEY,
-  createInitialCampaignProgress,
 } from '../src/levels/ChapterRegistry.js';
 
 describe('ChapterRegistry - Catálogo y Progresión de Campaña', () => {

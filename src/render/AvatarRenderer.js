@@ -2,7 +2,6 @@
 import * as THREE from 'three';
 import { PLAYER_PALETTE } from '../config/constants.js';
 import {
-  AVATAR_H,
   buildSharedGeometries,
   buildSharedMaterials,
   createNameSprite,
@@ -133,6 +132,26 @@ export class AvatarRenderer {
     this.scene.remove(a.mesh);
     for (const m of a.mats || []) m.dispose();
     this.avatars.delete(id);
+  }
+
+  /**
+   * Elimina todos los avatares activos liberando sus mallas y materiales individuales.
+   */
+  clear() {
+    for (const id of Array.from(this.avatars.keys())) {
+      this.remove(id);
+    }
+  }
+
+  /**
+   * Libera por completo los avatares y el caché de geometrías/materiales compartidos.
+   */
+  dispose() {
+    this.clear();
+    for (const g of Object.values(this._geoCache || {})) g?.dispose?.();
+    for (const m of Object.values(this._sharedMats || {})) m?.dispose?.();
+    this._geoCache = null;
+    this._sharedMats = null;
   }
 
   setTarget(id, x, y, z, yaw, color = AvatarRenderer.colorFor(id)) {

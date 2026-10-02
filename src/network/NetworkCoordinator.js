@@ -180,17 +180,15 @@ export const NetworkCoordinatorMixin = {
           danger: false,
           onConfirm: () => this.resumeAsHostFromSnapshot(snap),
           onCancel: () => {
-            this.mode = null;
-            this.network.disconnect();
             clearWorldSnapshot();
-            window.location.href = window.location.origin + window.location.pathname;
+            this.leaveSession?.();
           },
         });
         return;
       }
       this.ui.showNarrativeMessage('🏰 El anfitrión ha abandonado o cerrado la partida.', 5000);
       setTimeout(() => {
-        window.location.href = window.location.origin + window.location.pathname;
+        this.leaveSession?.();
       }, 1500);
     });
 

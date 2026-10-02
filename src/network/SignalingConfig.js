@@ -1,27 +1,7 @@
 export const ICE_SERVERS = [
-  { urls: 'stun:stun.relay.metered.ca:80' },
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
-  {
-    urls: 'turn:global.relay.metered.ca:80',
-    username: '520abdc449e671e900251fc6',
-    credential: 'ML25kOXmKOcfSLFO',
-  },
-  {
-    urls: 'turn:global.relay.metered.ca:80?transport=tcp',
-    username: '520abdc449e671e900251fc6',
-    credential: 'ML25kOXmKOcfSLFO',
-  },
-  {
-    urls: 'turn:global.relay.metered.ca:443',
-    username: '520abdc449e671e900251fc6',
-    credential: 'ML25kOXmKOcfSLFO',
-  },
-  {
-    urls: 'turns:global.relay.metered.ca:443?transport=tcp',
-    username: '520abdc449e671e900251fc6',
-    credential: 'ML25kOXmKOcfSLFO',
-  },
+  { urls: 'stun:stun.relay.metered.ca:80' },
 ];
 
 function getTurnOverride() {
@@ -41,9 +21,10 @@ function getTurnOverride() {
 function getEnvTurnCredentials() {
   try {
     if (typeof import.meta !== 'undefined' && import.meta.env) {
+      const url = import.meta.env.VITE_TURN_URL;
       const user = import.meta.env.VITE_TURN_USERNAME;
       const pass = import.meta.env.VITE_TURN_CREDENTIAL;
-      if (user || pass) return { user, pass };
+      if (user || pass || url) return { url, user, pass };
     }
   } catch { /* ignore */ }
   return {};
@@ -56,17 +37,14 @@ export function getIceConfig() {
     iceServers.unshift(override);
     return { iceServers, iceCandidatePoolSize: 10 };
   }
-  // Aplicar credenciales de entorno a las entradas Metered por defecto
-  const { user, pass } = getEnvTurnCredentials();
-  if (user || pass) {
-    return {
-      iceServers: iceServers.map((s) =>
-        String(s.urls || '').includes('relay.metered.ca')
-          ? { ...s, username: user || s.username, credential: pass || s.credential }
-          : s
-      ),
-      iceCandidatePoolSize: 10,
-    };
+
+  const { url, user, pass } = getEnvTurnCredentials();
+  if (user && pass) {
+    const turnUrl = url || 'turn:global.relay.metered.ca:80';
+    iceServers.unshift(
+      { urls: turnUrl, username: user, credential: pass },
+      { urls: `${turnUrl}?transport=tcp`, username: user, credential: pass }
+    );
   }
   return { iceServers, iceCandidatePoolSize: 10 };
 }

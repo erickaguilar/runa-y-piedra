@@ -12,6 +12,8 @@
  * y mantiene consumo Zero-GC reutilizando buffers de ruido estáticos.
  */
 
+import { saveManager } from '../storage/SaveManager.js';
+
 export class SoundManager {
   constructor() {
     this.ctx = null;
@@ -22,10 +24,15 @@ export class SoundManager {
     this._brownNoiseBuffer = null;
     this._initialized = false;
 
-    // Cargar preferencia de mute desde localStorage
-    if (typeof localStorage !== 'undefined') {
-      this._isMuted = localStorage.getItem('dungeon_sound_muted') === '1';
-    }
+    // Cargar preferencia de mute desde saveManager o fallback legacy
+    try {
+      const settings = saveManager.getSettings?.() || {};
+      if (typeof settings.soundMuted === 'boolean') {
+        this._isMuted = settings.soundMuted;
+      } else if (typeof localStorage !== 'undefined') {
+        this._isMuted = localStorage.getItem('dungeon_sound_muted') === '1';
+      }
+    } catch { /* ignore */ }
 
     this._setupUnlockListeners();
   }
@@ -103,9 +110,9 @@ export class SoundManager {
 
   toggleMute() {
     this._isMuted = !this._isMuted;
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('dungeon_sound_muted', this._isMuted ? '1' : '0');
-    }
+    try {
+      saveManager.updateSettings({ soundMuted: this._isMuted });
+    } catch { /* ignore */ }
     if (this.masterGain && this.ctx) {
       const targetGain = this._isMuted ? 0 : this._volume;
       this.masterGain.gain.setValueAtTime(targetGain, this.ctx.currentTime);
