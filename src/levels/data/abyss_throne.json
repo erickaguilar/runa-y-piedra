@@ -30,7 +30,7 @@
         { "x": 12, "y": 1, "z": 11 },
         { "x": 12, "y": 2, "z": 11 }
       ],
-      "openMessage": "🚪 ¡Puerta 1 abierta! Sala 2: El Vacío. ¡Saltos estrechos sobre la nada, que no te trague!"
+      "openMessage": ":door: ¡Puerta 1 abierta! Sala 2: El Vacío. ¡Saltos estrechos sobre la nada, que no te trague!"
     },
     {
       "id": 2,
@@ -47,9 +47,9 @@
         { "x": 12, "y": 1, "z": 24 },
         { "x": 12, "y": 2, "z": 24 }
       ],
-      "openMessage": "🚪 ¡Puerta 2 abierta! ¡Has cruzado el Vacío! El Trono os espera.",
+      "openMessage": ":door: ¡Puerta 2 abierta! ¡Has cruzado el Vacío! El Trono os espera.",
       "requiresKey": "llave_trono_vacio",
-      "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave del Trono del Cofre del Umbral."
+      "lockedMessage": ":lock: ¡Puerta sellada! Necesitas la :key: Llave del Trono del Cofre del Umbral."
     }
   ],
   "checkpoints": [
@@ -83,7 +83,7 @@
       "y": 1,
       "z": 30,
       "triggerRadius": 3.2,
-      "completeMessage": "👑 ¡Trono del Vacío Reclamado! Sois leyendas de la mazmorra cooperativa."
+      "completeMessage": ":crown: ¡Trono del Vacío Reclamado! Sois leyendas de la mazmorra cooperativa."
     }
   ],
   "stairs": null,
@@ -94,8 +94,8 @@
       "x": 5.5,
       "y": 1.0,
       "z": 8.5,
-      "reward": "🗝️ Llave del Trono, 🧪 Poción de Vida y 💎 Gemas Abisales",
-      "message": "📦 ¡Has abierto el Cofre del Umbral! Has obtenido: 🗝️ Llave del Trono del Vacío, 🧪 Poción de Vida (+1 ❤️) y 💎 200 Gemas Abisales.",
+      "reward": ":key: Llave del Trono, :potion: Poción de Vida y :gem: Gemas Abisales",
+      "message": ":chest: ¡Has abierto el Cofre del Umbral! Has obtenido: :key: Llave del Trono del Vacío, :potion: Poción de Vida (+1 :heart:) y :gem: 200 Gemas Abisales.",
       "givesKey": "llave_trono_vacio",
       "keyName": "Llave del Trono del Vacío",
       "potion": {
@@ -112,8 +112,8 @@
       "x": 18.5,
       "y": 1.0,
       "z": 26.5,
-      "reward": "👑 Corona del Vacío",
-      "message": "📦 ¡Has abierto el Cofre del Trono! Has obtenido: 👑 Corona del Vacío y 💎 500 Gemas Eternas."
+      "reward": ":crown: Corona del Vacío",
+      "message": ":chest: ¡Has abierto el Cofre del Trono! Has obtenido: :crown: Corona del Vacío y :gem: 500 Gemas Eternas."
     }
   ],
   "regions": [

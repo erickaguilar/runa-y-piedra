@@ -247,7 +247,7 @@ test('abyss_throne Sala 1 contiene el cofre con la poción de vida para recupera
   assert.equal(chest1.potion.id, 'pocion_vida');
   assert.equal(chest1.potion.healAmount, 1);
   assert.ok(chest1.reward.includes('Poción de Vida'));
-  assert.ok(chest1.message.includes('+1 ❤️'));
+  assert.ok(chest1.message.includes('+1 :heart:'));
 });
 
 test('dev_showroom está registrado pero aislado de la campaña regular', () => {

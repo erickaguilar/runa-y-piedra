@@ -30,7 +30,7 @@ export const NetworkCoordinatorMixin = {
 
       // 0. Control de aforo autoritativo: máximo 5 jugadores por partida
       if (this.playerManager.isFull(NET_CONFIG.MAX_PLAYERS || 5)) {
-        console.warn(`[Network] 🚫 Rechazando conexión de ${conn?.peer}: Sala llena (máximo ${NET_CONFIG.MAX_PLAYERS || 5} aventureros).`);
+        console.warn(`[Network] [BLOCKED] Rechazando conexión de ${conn?.peer}: Sala llena (máximo ${NET_CONFIG.MAX_PLAYERS || 5} aventureros).`);
         this.network.sendTo(conn, Proto.serializeHostClosing(NET_CONFIG.CLOSE_REASON?.ROOM_FULL ?? 1));
         setTimeout(() => {
           try { conn.close(); } catch {}
@@ -40,7 +40,7 @@ export const NetworkCoordinatorMixin = {
 
       const remotePlayer = this.playerManager.addRemotePlayer(conn);
       if (!remotePlayer) {
-        console.warn(`[Network] 🚫 No se pudo registrar jugador remoto (aforo completo).`);
+        console.warn('[Network] [BLOCKED] No se pudo registrar jugador remoto (aforo completo).');
         return;
       }
 
@@ -110,7 +110,7 @@ export const NetworkCoordinatorMixin = {
       const removedPlayer = this.playerManager.removeByConnection(e.detail.conn);
       if (removedPlayer) {
         this.avatars.remove(removedPlayer.id);
-        this.ui.showNarrativeMessage(`⚠️ ${escapeHtml(removedPlayer.name)} ha abandonado la partida.`, 4000);
+        this.ui.showNarrativeMessage(`:warning: ${escapeHtml(removedPlayer.name)} ha abandonado la partida.`, 4000);
         this.ui.updatePartyList(this.playerManager.getAllPlayers());
         this.broadcastRoster();
       }
@@ -133,7 +133,7 @@ export const NetworkCoordinatorMixin = {
       const reason = e?.detail?.reason;
       if (reason === (NET_CONFIG.CLOSE_REASON?.ROOM_FULL ?? 1)) {
         this.ui.setStatus('La sala está llena (máximo 5 aventureros)');
-        this.ui.showNarrativeMessage('🚫 La sala está llena (máximo 5 jugadores). No se admiten más aventureros.', 6000);
+        this.ui.showNarrativeMessage(':ban: La sala está llena (máximo 5 jugadores). No se admiten más aventureros.', 6000);
         this.soundManager.playHurt();
         setTimeout(() => {
           this.mode = null;
@@ -152,14 +152,14 @@ export const NetworkCoordinatorMixin = {
 
         if (election.isLeader) {
           const migrationPin = deriveMigrationPin(this.lastConnectedPin || this.ui.pinInput || '4821');
-          this.ui.showNarrativeMessage(`👑 Has sido elegido como nuevo Líder de la expedición. Reanudando sala ${migrationPin}...`, 6000);
+          this.ui.showNarrativeMessage(`:crown: Has sido elegido como nuevo Líder de la expedición. Reanudando sala ${migrationPin}...`, 6000);
           this.soundManager.playVictory?.();
           this.resumeAsHostFromSnapshot(snap, migrationPin);
           return;
         } else if (election.leader) {
           const leaderName = election.leader.name || 'el nuevo anfitrión';
           const migrationPin = deriveMigrationPin(this.lastConnectedPin || this.ui.pinInput || '4821');
-          this.ui.showNarrativeMessage(`👑 ${escapeHtml(leaderName)} es el nuevo anfitrión. Reconectando a ${migrationPin}...`, 6000);
+          this.ui.showNarrativeMessage(`:crown: ${escapeHtml(leaderName)} es el nuevo anfitrión. Reconectando a ${migrationPin}...`, 6000);
           this.soundManager.playHurt();
           setTimeout(() => {
             this.reconnectToMigratedHost(migrationPin);
@@ -168,7 +168,7 @@ export const NetworkCoordinatorMixin = {
         }
 
         // Si no hay otros compañeros en el roster: ofrecer reanudación manual como anfitrión
-        this.ui.showNarrativeMessage('🏰 El anfitrión ha abandonado. Puedes reanudar la mazmorra como Host.', 5000);
+        this.ui.showNarrativeMessage(':castle: El anfitrión ha abandonado. Puedes reanudar la mazmorra como Host.', 5000);
         this.soundManager.playHurt();
         this.ui.showConfirmDialog({
           title: '¿Reanudar como Anfitrión?',
@@ -186,7 +186,7 @@ export const NetworkCoordinatorMixin = {
         });
         return;
       }
-      this.ui.showNarrativeMessage('🏰 El anfitrión ha abandonado o cerrado la partida.', 5000);
+      this.ui.showNarrativeMessage(':castle: El anfitrión ha abandonado o cerrado la partida.', 5000);
       setTimeout(() => {
         this.leaveSession?.();
       }, 1500);
@@ -206,7 +206,7 @@ export const NetworkCoordinatorMixin = {
         this.chapterRegistry.setCurrentChapter(chapterId);
         const ch = this.chapterRegistry.getChapter(chapterId);
         if (ch) {
-          this.ui.showNarrativeMessage(`🗺️ El anfitrión ha elegido: Capítulo ${ch.number} - ${ch.name}`, 4000);
+          this.ui.showNarrativeMessage(`:map: El anfitrión ha elegido: Capítulo ${ch.number} - ${ch.name}`, 4000);
         }
       }
     });
@@ -223,13 +223,13 @@ export const NetworkCoordinatorMixin = {
           if (uniqueColor !== colorIndex) {
             const reqHero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
             const assignedHero = PLAYER_HEROES[uniqueColor] || PLAYER_HEROES[0];
-            console.log(`[Host] ℹ️ Clase ${reqHero.name} duplicada. Reasignada a ${assignedHero.name} para ${name}.`);
+            console.log(`[Host] [INFO] Clase ${reqHero.name} duplicada. Reasignada a ${assignedHero.name} para ${name}.`);
           }
           player.name = name;
           player.colorIndex = uniqueColor;
           const hero = PLAYER_HEROES[uniqueColor] || PLAYER_HEROES[0];
           this.avatars.setMetadata(player.id, name, hero.hex, hero.id || null);
-          this.ui.showNarrativeMessage(`🛡️ ¡${escapeHtml(name)} (${hero.name}) se unió a la partida!`, 4500);
+          this.ui.showNarrativeMessage(`:shield: ¡${escapeHtml(name)} (${hero.name}) se unió a la partida!`, 4500);
 
           // Transmitir metadatos oficiales del jugador a todos los clientes (incluyendo al emisor)
           this.network.broadcast(Proto.serializePlayerMeta(player.id, uniqueColor, name));
@@ -254,7 +254,7 @@ export const NetworkCoordinatorMixin = {
           if (oldColor !== null && oldColor !== colorIndex) {
             this.ui.selectedColorIndex = colorIndex;
             localStorage.setItem('dungeon_player_color', colorIndex.toString());
-            this.ui.showNarrativeMessage(`⚠️ Tu clase elegida ya estaba en uso. El anfitrión te asignó: ${hero.name}.`, 5000);
+            this.ui.showNarrativeMessage(`:warning: Tu clase elegida ya estaba en uso. El anfitrión te asignó: ${hero.name}.`, 5000);
           }
         } else {
           this.avatars.setMetadata(playerId, name, hero.hex, hero.id || null);
@@ -264,9 +264,9 @@ export const NetworkCoordinatorMixin = {
             av.mesh.visible = true;
           }
           if (playerId === 0) {
-            this.ui.showNarrativeMessage(`🏰 Mazmorra de ${escapeHtml(name)} (${hero.name})`, 4000);
+            this.ui.showNarrativeMessage(`:castle: Mazmorra de ${escapeHtml(name)} (${hero.name})`, 4000);
           } else {
-            this.ui.showNarrativeMessage(`🛡️ ¡${escapeHtml(name)} (${hero.name}) se unió!`, 4000);
+            this.ui.showNarrativeMessage(`:shield: ¡${escapeHtml(name)} (${hero.name}) se unió!`, 4000);
           }
         }
         this.ui.updatePartyList(this.playerManager.getAllPlayers());

@@ -63,19 +63,19 @@ export class VoxelSandboxGame {
       onJumpPad: (p) => {
         if (p !== this.playerManager.localPlayer) return;
         this.soundManager.playJump();
-        this.ui.showNarrativeMessage('⚡ ¡Impulso rúnico vertical!', 1000);
+        this.ui.showNarrativeMessage(':bolt: ¡Impulso rúnico vertical!', 1000);
       },
       onPlayerLavaSink: (p) => {
         if (p !== this.playerManager.localPlayer) return;
         this.soundManager.playHurt();
-        this.ui.showNarrativeMessage('🔥 ¡Caíste en la lava! Hundiéndote en el magma incandescente...', 1800);
+        this.ui.showNarrativeMessage(':flame: ¡Caíste en la lava! Hundiéndote en el magma incandescente...', 1800);
       },
       onPlayerRespawn: (p, cp, info = {}) => {
         const { cause = 'void', lives = 3, maxLives = 3, gameOver = false, noPenalty = false } = info;
         if (p === this.playerManager.localPlayer) {
           if (noPenalty) {
             this.soundManager.playRespawn();
-            this.ui.showNarrativeMessage('⚠️ ¡Zona restringida! Reapareces en la Losa de Respawn.', 2500);
+            this.ui.showNarrativeMessage(':warning: ¡Zona restringida! Reapareces en la Losa de Respawn.', 2500);
             return;
           }
           this.ui.updateLives(lives, maxLives);
@@ -92,9 +92,9 @@ export class VoxelSandboxGame {
             setTimeout(() => this.soundManager.playRespawn(), 300);
             const roomMsg = cp?.roomName ? ` en ${cp.roomName}` : '';
             if (cause === 'lava') {
-              this.ui.showNarrativeMessage(`🔥 ¡Te consumió la lava! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
+              this.ui.showNarrativeMessage(`:flame: ¡Te consumió la lava! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
             } else {
-              this.ui.showNarrativeMessage(`⚠️ ¡Caíste al abismo! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
+              this.ui.showNarrativeMessage(`:warning: ¡Caíste al abismo! Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}. Reapareciendo en la Losa Rúnica${roomMsg}...`, 3200);
             }
           }
         } else if (gameOver && this.mode === 'host') {
@@ -374,9 +374,10 @@ export class VoxelSandboxGame {
     const local = this.playerManager.localPlayer;
     if (local) this.avatars.setLocalVisible(local.id, this.cameraMode === 'third');
     if (!silent) {
-      this.ui.showNarrativeMessage(
-        this.cameraMode === 'third' ? '📷 Vista en tercera persona.' : '📷 Vista en primera persona.', 2000
-      );
+      // Se elimina la notificación de vista en primera persona por solicitud del usuario
+      if (this.cameraMode === 'third') {
+        this.ui.showNarrativeMessage(':camera: Vista en tercera persona.', 1400);
+      }
     }
   }
 

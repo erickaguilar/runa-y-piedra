@@ -28,15 +28,15 @@ export function initNetAudit() {
         if (ev.type === 'snapshot') {
           const count = window.__netEventCounts['snapshot'];
           if (count <= 3 || count % 20 === 0) {
-            console.log(`📨 [snapshot] (#${count} @ 20Hz)`, ev.detail);
+            console.log(`[MSG] [snapshot] (#${count} @ 20Hz)`, ev.detail);
           }
         } else {
-          console.log(`📨 [${ev.type}]`, ev.detail);
+          console.log(`[MSG] [${ev.type}]`, ev.detail);
         }
       }
       return origDispatch.call(this, ev);
     };
-    console.log('✅ Interceptor de auditoría WebRTC instalado.');
+    console.log('[OK] Interceptor de auditoría WebRTC instalado.');
   }
 
   window.printNetAudit = () => {

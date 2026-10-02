@@ -138,7 +138,7 @@ export const ChapterModalMixin = {
       } else if (isCurrent) {
         statusBadge = `<span class="chapter-status-badge current">${renderIcon('bolt', { size: 12, color: '#38bdf8' })} Activo</span>`;
       } else {
-        statusBadge = `<span class="chapter-status-badge available">Disponible</span>`;
+        statusBadge = `<span class="chapter-status-badge available">${renderIcon('compass', { size: 12, color: '#94a3b8' })} Disponible</span>`;
       }
 
       let starsHtml = '';
@@ -212,7 +212,9 @@ export const ChapterModalMixin = {
             <div class="modal-chapter-icon">${renderIcon('compass', { size: 24, color: '#38bdf8' })}</div>
             <div>
               <div class="modal-chapter-title">Atlas de Expedición</div>
-              <div class="modal-chapter-subtitle">Campaña de los 10 Capítulos Primordiales</div>
+              <div class="modal-chapter-subtitle" style="display:flex;align-items:center;gap:6px;">
+                ${renderIcon('map', { size: 12, color: '#94a3b8' })} <span>Campaña de los 10 Capítulos Primordiales</span>
+              </div>
             </div>
           </div>
           <button class="modal-chapter-close" id="btn-close-chapter" aria-label="Cerrar">

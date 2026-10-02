@@ -51,12 +51,25 @@ describe('UIManager - Contratos de API de Configuración', () => {
       let lastChapterCard = null;
       let lastDeleteButton = null;
       let lastMenuSlotChip = null;
+      let lastFilterTag = null;
       const mockEl = (tag = 'div') => {
         let _id = '';
+        const classes = new Set();
         const el = {
           tagName: tag.toUpperCase(),
           style: {},
-          classList: { add() {}, remove() {}, toggle() {} },
+          className: '',
+          classList: {
+            add(c) { classes.add(c); el.className = Array.from(classes).join(' '); },
+            remove(c) { classes.delete(c); el.className = Array.from(classes).join(' '); },
+            toggle(c, force) {
+              const has = force !== undefined ? !!force : !classes.has(c);
+              if (has) classes.add(c); else classes.delete(c);
+              el.className = Array.from(classes).join(' ');
+              return has;
+            },
+            contains(c) { return classes.has(c); },
+          },
           innerHTML: '',
           value: '',
           dataset: { potionIndex: '0', index: '0' },
@@ -67,6 +80,10 @@ describe('UIManager - Contratos de API de Configuración', () => {
             if (val) elementStore.set(val, el);
           },
           addEventListener(evt, fn) { this['on' + evt] = fn; },
+          dispatchEvent(evt) {
+            const fn = this['on' + (evt?.type || evt)];
+            if (typeof fn === 'function') fn(evt);
+          },
           click() { this.onclick?.(); },
           appendChild(child) { this.children.push(child); return child; },
           querySelector(sel) {
@@ -95,6 +112,13 @@ describe('UIManager - Contratos de API de Configuración', () => {
               }
               return lastChapterCard;
             }
+            if (sel?.includes('inv-filter-tag')) {
+              if (!lastFilterTag) {
+                lastFilterTag = mockEl('button');
+                lastFilterTag.dataset = { filter: 'keys' };
+              }
+              return lastFilterTag;
+            }
             return mockEl('span');
           },
           querySelectorAll(sel) {
@@ -115,6 +139,13 @@ describe('UIManager - Contratos de API de Configuración', () => {
                 lastChapterCard.dataset = { chapterId: 'capitulo_1' };
               }
               return [lastChapterCard];
+            }
+            if (sel?.includes('inv-filter-tag')) {
+              if (!lastFilterTag) {
+                lastFilterTag = mockEl('button');
+                lastFilterTag.dataset = { filter: 'keys' };
+              }
+              return [lastFilterTag];
             }
             if (sel?.includes('btn-use-potion')) {
               if (!lastMockButton) lastMockButton = mockEl('button');
@@ -470,6 +501,64 @@ describe('UIManager - Contratos de API de Configuración', () => {
       ui.closeInventoryModal();
     });
 
+    it('discrimina entre scroll táctil y pulsación en las tags del modal de inventario sin selección accidental', () => {
+      const ui = new UIManager();
+      ui.updateInventory({
+        keys: [{ id: 'k1', name: 'Llave del Santuario' }],
+        gems: 100,
+        relics: [],
+        potions: [],
+      });
+
+      ui.openInventoryModal();
+      assert.equal(ui.inventoryFilter, 'all');
+
+      const overlay = document.getElementById('modal-inventory-overlay');
+      assert.ok(overlay);
+
+      const keysTag = overlay.querySelector('.inv-filter-tag');
+      assert.ok(keysTag, 'Debe existir la tag de filtro');
+      keysTag.dataset.filter = 'keys';
+
+      // 1. Simular desplazamiento / scroll táctil sobre la tag (dx = -60px)
+      keysTag.dispatchEvent({
+        type: 'touchstart',
+        touches: [{ clientX: 100, clientY: 200 }],
+      });
+      keysTag.dispatchEvent({
+        type: 'touchmove',
+        touches: [{ clientX: 40, clientY: 200 }],
+      });
+      keysTag.dispatchEvent({
+        type: 'touchend',
+        cancelable: true,
+      });
+
+      // No debe haberse seleccionado la tag durante el scroll
+      assert.equal(ui.inventoryFilter, 'all', 'El scroll táctil no debe activar la tag');
+      assert.doesNotMatch(keysTag.className, /\bactive\b/);
+
+      // 2. Simular pulsación limpia (tap) sin movimiento
+      keysTag.dispatchEvent({
+        type: 'touchstart',
+        touches: [{ clientX: 100, clientY: 200 }],
+      });
+      keysTag.dispatchEvent({
+        type: 'touchend',
+        cancelable: true,
+      });
+
+      // El tap limpio sí activa la tag
+      assert.equal(ui.inventoryFilter, 'keys', 'El tap limpio debe activar la tag');
+      assert.match(keysTag.className, /\bactive\b/);
+
+      // 3. setInventoryFilter actualiza la clase y el filtro
+      ui.setInventoryFilter('gems');
+      assert.equal(ui.inventoryFilter, 'gems');
+
+      ui.closeInventoryModal();
+    });
+
     it('renderiza contorno en corazones perdidos, conserva la llave y muestra las gemas en el HUD de vidas', () => {
       const ui = new UIManager();
       assert.ok(ui.livesHud);
@@ -510,12 +599,12 @@ describe('UIManager - Contratos de API de Configuración', () => {
 
     it('parseMessageToList unifica el botín de cofre y el desbloqueo de puertas en una lista estructurada', () => {
       const ui = new UIManager();
-      const res = ui.parseMessageToList('📦 ¡Has abierto el Cofre del Vestíbulo! Has obtenido: 🗝️ Llave Antigua del Santuario y 💎 100 Gemas. Ahora puedes abrir: Puerta del Santuario.');
-      assert.equal(res.title, '📦 ¡Has abierto el Cofre del Vestíbulo!');
+      const res = ui.parseMessageToList(':chest: ¡Has abierto el Cofre del Vestíbulo! Has obtenido: :key: Llave Antigua del Santuario y :gem: 100 Gemas. Ahora puedes abrir: Puerta del Santuario.');
+      assert.equal(res.title, ':chest: ¡Has abierto el Cofre del Vestíbulo!');
       assert.equal(res.items.length, 3);
-      assert.equal(res.items[0], '🗝️ Llave Antigua del Santuario');
-      assert.equal(res.items[1], '💎 100 Gemas');
-      assert.equal(res.items[2], '🚪 Ahora puedes abrir: Puerta del Santuario');
+      assert.equal(res.items[0], ':key: Llave Antigua del Santuario');
+      assert.equal(res.items[1], ':gem: 100 Gemas');
+      assert.equal(res.items[2], ':door: Ahora puedes abrir: Puerta del Santuario');
     });
 
     it('parseMessageToList no divide oraciones en abreviaturas como Cap. o puntos en paréntesis', () => {

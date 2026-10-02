@@ -82,7 +82,7 @@ export const SaveSlotsModalMixin = {
           <div class="slot-card-header">
             <div class="slot-title-wrap">
               <span class="slot-number">Ranura ${num}</span>
-              ${s.isActive ? `<span class="slot-badge active">${renderIcon('check', { size: 11, color: '#22c55e' })} Activa</span>` : `<span class="slot-badge ready">Guardada</span>`}
+              ${s.isActive ? `<span class="slot-badge active">${renderIcon('check', { size: 11, color: '#22c55e' })} Activa</span>` : `<span class="slot-badge ready">${renderIcon('save', { size: 11, color: '#94a3b8' })} Guardada</span>`}
             </div>
           </div>
           <div class="slot-card-body">
@@ -135,7 +135,9 @@ export const SaveSlotsModalMixin = {
             <div class="modal-slots-icon">${renderIcon('save', { size: 24, color: '#38bdf8' })}</div>
             <div>
               <div class="modal-slots-title">Ranuras de Guardado</div>
-              <div class="modal-slots-subtitle">Gestión de Partidas (3 Slots Disponibles)</div>
+              <div class="modal-slots-subtitle" style="display:flex;align-items:center;gap:6px;">
+                ${renderIcon('save', { size: 12, color: '#94a3b8' })} <span>Gestión de Partidas (3 Slots Disponibles)</span>
+              </div>
             </div>
           </div>
           <button class="modal-slots-close" id="btn-close-save-slots" aria-label="Cerrar">
@@ -209,7 +211,7 @@ export const SaveSlotsModalMixin = {
           } catch {}
           this.settingsCallbacks?.onProfileSave?.({ name: this.playerName, colorIndex: this.selectedColorIndex });
           const num = slotId.replace('slot_', '');
-          this.showNarrativeMessage(`💾 Ranura ${num} activada y cargada.`, 3000);
+          this.showNarrativeMessage(`:save: Ranura ${num} activada y cargada.`, 3000);
           await this.openSaveSlotsModal();
         } catch (err) {
           this.showNarrativeMessage(`Error al cargar ranura: ${err.message}`, 3500);
@@ -243,7 +245,7 @@ export const SaveSlotsModalMixin = {
           } catch {}
           this.settingsCallbacks?.onProfileSave?.({ name: this.playerName, colorIndex: this.selectedColorIndex });
           const num = slotId.replace('slot_', '');
-          this.showNarrativeMessage(`💾 Nueva partida iniciada en Ranura ${num}.`, 3000);
+          this.showNarrativeMessage(`:save: Nueva partida iniciada en Ranura ${num}.`, 3000);
           await this.openSaveSlotsModal();
         } catch (err) {
           this.showNarrativeMessage(`Error al inicializar ranura: ${err.message}`, 3500);
@@ -274,7 +276,7 @@ export const SaveSlotsModalMixin = {
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          this.showNarrativeMessage('💾 Archivo de guardado exportado con éxito.', 3000);
+          this.showNarrativeMessage(':save: Archivo de guardado exportado con éxito.', 3000);
         } catch (err) {
           this.showNarrativeMessage(`Error al exportar: ${err.message}`, 3500);
         }
@@ -318,7 +320,7 @@ export const SaveSlotsModalMixin = {
                 } catch {}
                 this.settingsCallbacks?.onProfileSave?.({ name: this.playerName, colorIndex: this.selectedColorIndex });
               }
-              this.showNarrativeMessage(`💾 Ranura ${num} reiniciada.`, 3000);
+              this.showNarrativeMessage(`:save: Ranura ${num} reiniciada.`, 3000);
               await this.openSaveSlotsModal();
             } catch (err) {
               console.error('[SaveSlotsModal] Error borrando ranura:', err);
@@ -360,7 +362,7 @@ export const SaveSlotsModalMixin = {
           const text = await file.text();
           await saveManager.importSaveJson(text, pendingImportSlotId);
           const num = pendingImportSlotId.replace('slot_', '');
-          this.showNarrativeMessage(`💾 Partida importada con éxito en Ranura ${num}.`, 3000);
+          this.showNarrativeMessage(`:save: Partida importada con éxito en Ranura ${num}.`, 3000);
           if (pendingImportSlotId === saveManager.currentSlotId) {
             const cur = saveManager.currentSave;
             this.playerName = cur.profile?.name || 'Aventurero';

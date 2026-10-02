@@ -30,9 +30,9 @@
         { "x": 12, "y": 1, "z": 18 },
         { "x": 12, "y": 2, "z": 18 }
       ],
-      "openMessage": "🚪 ¡Puerta abierta! La zona de entrenamiento y la escalinata sellada te esperan.",
+      "openMessage": ":door: ¡Puerta abierta! La zona de entrenamiento y la escalinata sellada te esperan.",
       "requiresKey": "llave_tutorial",
-      "lockedMessage": "🔒 ¡Puerta sellada! Necesitas la 🗝️ Llave del Aprendiz del Cofre de Práctica."
+      "lockedMessage": ":lock: ¡Puerta sellada! Necesitas la :key: Llave del Aprendiz del Cofre de Práctica."
     }
   ],
   "checkpoints": [
@@ -71,8 +71,8 @@
       "x": 6.5,
       "y": 1.0,
       "z": 8.5,
-      "reward": "🗝️ Llave del Aprendiz",
-      "message": "📦 ¡Has abierto el Cofre de Práctica! Has obtenido: 🗝️ Llave del Aprendiz.",
+      "reward": ":key: Llave del Aprendiz",
+      "message": ":chest: ¡Has abierto el Cofre de Práctica! Has obtenido: :key: Llave del Aprendiz.",
       "givesKey": "llave_tutorial",
       "keyName": "Llave del Aprendiz"
     }

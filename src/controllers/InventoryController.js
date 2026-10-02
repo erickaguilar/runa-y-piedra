@@ -84,7 +84,7 @@ export const InventoryMixin = {
     // Si ya tiene todas las vidas, no desperdiciar la poción
     if (local.lives >= (local.maxLives ?? 3)) {
       this.soundManager.playClick?.();
-      this.ui.showNarrativeMessage('❤️ ¡Tu salud ya está al máximo (3/3 corazones)!', 3000);
+      this.ui.showNarrativeMessage(':heart: ¡Tu salud ya está al máximo (3/3 corazones)!', 3000);
       return false;
     }
 
@@ -103,7 +103,7 @@ export const InventoryMixin = {
     // Audio y retroalimentación en HUD
     this.soundManager.playPotion?.();
     this.ui.updateLives(local.lives, local.maxLives ?? 3);
-    this.ui.showNarrativeMessage(`🧪 ¡Has bebido ${potionObj?.name || 'la Poción de Vida'}! +${healResult.recovered} ❤️ corazón restaurado.`, 3500);
+    this.ui.showNarrativeMessage(`:potion: ¡Has bebido ${potionObj?.name || 'la Poción de Vida'}! +${healResult.recovered} :heart: corazón restaurado.`, 3500);
 
     this.ui.updateInventory(this.inventory);
     if (this.ui.isInventoryOpen) {

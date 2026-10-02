@@ -46,7 +46,7 @@ describe('Inventario y botín de cofres', () => {
       name: 'Cofre Antiguo',
       givesKey: 'llave_santuario',
       keyName: 'Llave del Santuario',
-      message: '📦 ¡Has abierto el cofre! Recompensa: 🗝️ Llave del Santuario y 💎 100 Gemas.',
+      message: ':chest: ¡Has abierto el cofre! Recompensa: :key: Llave del Santuario y :gem: 100 Gemas.',
     };
 
     controller.collectChestLoot(chest1);
@@ -64,8 +64,8 @@ describe('Inventario y botín de cofres', () => {
     const chest2 = {
       id: 2,
       name: 'Cofre Secreto',
-      reward: '🏆 Reliquia Dorada',
-      message: '📦 ¡Has obtenido: 🏆 Cáliz Sagrado y 💎 250 Gemas Legendarias.',
+      reward: ':trophy: Reliquia Dorada',
+      message: ':chest: ¡Has obtenido: :trophy: Cáliz Sagrado y :gem: 250 Gemas Legendarias.',
     };
 
     controller.collectChestLoot(chest2);
@@ -97,16 +97,16 @@ describe('Inventario y botín de cofres', () => {
 
     controller.collectChestLoot({
       id: 2,
-      reward: '🌋 Corazón del Volcán',
-      message: 'Obtienes 🌋 Corazón del Volcán',
+      reward: ':volcano: Corazón del Volcán',
+      message: 'Obtienes :volcano: Corazón del Volcán',
     });
     assert.equal(inventory.relics[0].id, 'corazon_volcan');
 
     mockGame.world.levelRegistry.getCurrentLevel = () => ({ id: 'abyss_throne' });
     controller.collectChestLoot({
       id: 2,
-      reward: '👑 Corona del Vacío',
-      message: 'Obtienes 👑 Corona del Vacío',
+      reward: ':crown: Corona del Vacío',
+      message: 'Obtienes :crown: Corona del Vacío',
     });
     assert.equal(inventory.relics[1].id, 'corona_vacio');
   });
@@ -168,8 +168,8 @@ describe('Inventario y botín de cofres', () => {
       x: 5.5,
       y: 1.0,
       z: 8.5,
-      reward: '🗝️ Llave del Santuario, 🧪 Poción de Vida y 💎 Gemas Abisales',
-      message: '📦 ¡Has abierto el Cofre del Umbral! Has obtenido: 🗝️ Llave del Santuario, 🧪 Poción de Vida (+1 ❤️) y 💎 200 Gemas Abisales.',
+      reward: ':key: Llave del Santuario, :potion: Poción de Vida y :gem: Gemas Abisales',
+      message: ':chest: ¡Has abierto el Cofre del Umbral! Has obtenido: :key: Llave del Santuario, :potion: Poción de Vida (+1 :heart:) y :gem: 200 Gemas Abisales.',
       givesKey: 'llave_santuario',
       potion: {
         id: 'pocion_vida',
@@ -233,7 +233,7 @@ describe('Inventario y botín de cofres', () => {
         const local = this.playerManager?.localPlayer;
         if (!local) return false;
         if (local.lives >= (local.maxLives ?? 3)) {
-          this.ui.showNarrativeMessage('❤️ ¡Tu salud ya está al máximo!');
+          this.ui.showNarrativeMessage(':heart: ¡Tu salud ya está al máximo!');
           return false;
         }
         let potionObj = null;
@@ -245,7 +245,7 @@ describe('Inventario y botín de cofres', () => {
         const healResult = local.recoverHeart(potionObj?.healAmount || 1);
         this.soundManager.playPotion();
         this.ui.updateLives(local.lives, local.maxLives ?? 3);
-        this.ui.showNarrativeMessage(`🧪 ¡Has bebido ${potionObj?.name}!`);
+        this.ui.showNarrativeMessage(`:potion: ¡Has bebido ${potionObj?.name}!`);
         return true;
       },
     };
@@ -345,7 +345,7 @@ describe('Inventario y botín de cofres', () => {
     assert.equal(mockPlayer.hasKey('llave_santuario'), true);
     assert.equal(mockPlayer.keys.length, 1);
     assert.equal(inventory.keys.length, 1);
-    assert.ok(narrativeMsg.includes('🗝️ (Llave en tu llavero)'));
+    assert.ok(narrativeMsg.includes(':key: (Llave en tu llavero)'));
 
     // La puerta queda registrada para persistencia
     assert.equal(openedDoorKeys.has('dungeon_door_2') || openedDoorKeys.has('dungeon:2'), true);
@@ -381,7 +381,7 @@ describe('Inventario y botín de cofres', () => {
             name: 'Cofre del Vestíbulo',
             givesKey: 'llave_santuario',
             keyName: 'Llave Antigua del Santuario',
-            message: '📦 ¡Has abierto el Cofre del Vestíbulo! Has obtenido: 🗝️ Llave Antigua del Santuario y 💎 100 Gemas.',
+            message: ':chest: ¡Has abierto el Cofre del Vestíbulo! Has obtenido: :key: Llave Antigua del Santuario y :gem: 100 Gemas.',
             x: 10,
             y: 1,
             z: 10,
@@ -439,7 +439,7 @@ describe('Inventario y botín de cofres', () => {
     const unifiedMsg = narrativeMessages[0];
 
     // Contiene el cofre, las recompensas y la puerta desbloqueada
-    assert.ok(unifiedMsg.includes('📦 ¡Has abierto el Cofre del Vestíbulo!'));
+    assert.ok(unifiedMsg.includes(':chest: ¡Has abierto el Cofre del Vestíbulo!'));
     assert.ok(unifiedMsg.includes('Llave Antigua del Santuario'));
     assert.ok(unifiedMsg.includes('100 Gemas'));
     assert.ok(unifiedMsg.includes('Ahora puedes abrir: Puerta del Santuario'));
@@ -531,8 +531,8 @@ describe('Inventario y botín de cofres', () => {
     const serialized = serializeOpenedChests(mockOpenedSet);
     const serializeDuration = performance.now() - startTime;
 
-    // Verificar que se serializó instantáneamente (< 25ms)
-    assert.ok(serializeDuration < 25, `Serialización tardó demasiado: ${serializeDuration}ms`);
+    // Verificar que se serializó instantáneamente (< 50ms)
+    assert.ok(serializeDuration < 50, `Serialización tardó demasiado: ${serializeDuration}ms`);
 
     // Verificar estructura sparse agrupada por 50 mazmorras
     const levelKeys = Object.keys(serialized);

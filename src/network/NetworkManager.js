@@ -122,7 +122,7 @@ export class NetworkManager extends EventTarget {
       const onOpen = () => {
         this.peer?.off?.('open', onOpen);
         this.peer?.off?.('error', onError);
-        console.log(`[WebRTC] 🏰 Host listo en sala ${this.roomId}. Escuchando conexiones entrantes...`);
+        console.log(`[WebRTC] [HOST] Host listo en sala ${this.roomId}. Escuchando conexiones entrantes...`);
         this._setupHostSignalingLifecycle();
         resolve(pin);
       };
@@ -137,7 +137,7 @@ export class NetworkManager extends EventTarget {
         reject(new Error(NetworkManager.translatePeerError(e)));
       };
       const onConn = (conn) => {
-        console.log(`[WebRTC] 📥 Host recibió conexión entrante:`, conn?.peer, conn?.label);
+        console.log(`[WebRTC] [INCOMING] Host recibió conexión entrante:`, conn?.peer, conn?.label);
         this._setupHostChannel(conn);
       };
       const cleanup = () => {
@@ -157,32 +157,32 @@ export class NetworkManager extends EventTarget {
     if (!this.peer) return;
 
     this.peer.on('disconnected', () => {
-      console.warn(`[PeerJS] ⚠️ Host desconectado del servidor de señalización (${this.roomId}). Intentando reconectar...`);
+      console.warn(`[PeerJS] [WARN] Host desconectado del servidor de señalización (${this.roomId}). Intentando reconectar...`);
       this.dispatchEvent(new CustomEvent('signaling-disconnected', { detail: { roomId: this.roomId } }));
       this._reconnectSignaling();
     });
 
     this.peer.on('close', () => {
-      console.warn('[PeerJS] 🔌 Host Peer cerrado definitivamente.');
+      console.warn('[PeerJS] [CLOSED] Host Peer cerrado definitivamente.');
       this.dispatchEvent(new CustomEvent('host-offline', { detail: { roomId: this.roomId } }));
     });
 
     this.peer.on('error', (err) => {
-      console.warn('[PeerJS] ⚠️ Error en Host Peer:', err?.type || err?.message || err);
+      console.warn('[PeerJS] [WARN] Error en Host Peer:', err?.type || err?.message || err);
       if (err?.type === 'network' || err?.type === 'server-error' || /disconnected/i.test(err?.message || '')) {
         this._reconnectSignaling();
       }
     });
 
     this.peer.on('open', (id) => {
-      console.log(`[PeerJS] ✅ Host registrado en servidor de señalización. Sala ID: ${id}`);
+      console.log(`[PeerJS] [OK] Host registrado en servidor de señalización. Sala ID: ${id}`);
       this.dispatchEvent(new CustomEvent('signaling-connected', { detail: { id } }));
     });
 
     if (this._signalingHeartbeat) clearInterval(this._signalingHeartbeat);
     this._signalingHeartbeat = setInterval(() => {
       if (this.isHost && this.peer && !this.peer.destroyed && this.peer.disconnected) {
-        console.log('[PeerJS] 💓 Heartbeat: Host desconectado de señalización. Reconectando...');
+        console.log('[PeerJS] [HEARTBEAT] Host desconectado de señalización. Reconectando...');
         this._reconnectSignaling();
       }
     }, 6000);
@@ -195,7 +195,7 @@ export class NetworkManager extends EventTarget {
       this._reconnectTimer = null;
       if (this.peer && !this.peer.destroyed && this.peer.disconnected) {
         try {
-          console.log(`[PeerJS] 🔄 Reconectando sala ${this.roomId || this.peer.id} a 0.peerjs.com...`);
+          console.log(`[PeerJS] [RECONNECT] Reconectando sala ${this.roomId || this.peer.id} a 0.peerjs.com...`);
           this.peer.reconnect();
         } catch (e) {
           console.warn('[PeerJS] Fallo al invocar reconnect():', e);
@@ -207,7 +207,7 @@ export class NetworkManager extends EventTarget {
   _checkSignalingHealth() {
     if (!this.peer || this.peer.destroyed) return;
     if (this.peer.disconnected) {
-      console.warn(`[WebRTC] 🔄 Peer desconectado de señalización (${this.roomId || this.peer.id || 'cliente'}). Reconectando...`);
+      console.warn(`[WebRTC] [RECONNECT] Peer desconectado de señalización (${this.roomId || this.peer.id || 'cliente'}). Reconectando...`);
       this._reconnectSignaling();
     }
   }
@@ -233,16 +233,16 @@ export class NetworkManager extends EventTarget {
       if (!pc || pc._diagHooked || typeof pc.addEventListener !== 'function') return;
       pc._diagHooked = true;
       registerPc(pc);
-      console.log(`[WebRTC] 🔗 ICE connection state (${label}):`, pc.iceConnectionState);
+      console.log(`[WebRTC] [ICE] Connection state (${label}):`, pc.iceConnectionState);
       pc.addEventListener('iceconnectionstatechange', () => {
-        console.log(`[WebRTC] 🔗 ICE connection state (${label}):`, pc.iceConnectionState);
+        console.log(`[WebRTC] [ICE] Connection state (${label}):`, pc.iceConnectionState);
       });
       pc.addEventListener('connectionstatechange', () => {
-        console.log(`[WebRTC] 🌐 Peer connection state (${label}):`, pc.connectionState);
+        console.log(`[WebRTC] [PEER] Connection state (${label}):`, pc.connectionState);
       });
       pc.addEventListener('icecandidateerror', (e) => {
         if (e.errorCode >= 300) {
-          console.warn(`[WebRTC] ⚠️ ICE candidate error (${label} / ${e.url}):`, e.errorCode, e.errorText);
+          console.warn(`[WebRTC] [WARN] ICE candidate error (${label} / ${e.url}):`, e.errorCode, e.errorText);
         }
       });
     };
@@ -273,7 +273,7 @@ export class NetworkManager extends EventTarget {
     const handleOpen = () => {
       if (opened) return;
       opened = true;
-      console.log(`[WebRTC] ✅ DataChannel ABIERTO [${label}] con peer:`, conn.peer);
+      console.log(`[WebRTC] [OK] DataChannel ABIERTO [${label}] con peer:`, conn.peer);
       const link = this._trackLink(conn, isHot ? 'hot' : 'safe');
       if (isHot) {
         // El canal hot es oportunista: no dispara peer-joined, solo se enlaza.
@@ -284,7 +284,7 @@ export class NetworkManager extends EventTarget {
       }
       const alreadyConnected = this.connections.some(c => c.peer === conn.peer);
       if (alreadyConnected) {
-        console.log(`[WebRTC] ℹ️ Peer ${conn.peer} ya tiene un canal safe registrado. Ignorando evento duplicado.`);
+        console.log(`[WebRTC] [INFO] Peer ${conn.peer} ya tiene un canal safe registrado. Ignorando evento duplicado.`);
         return;
       }
       this.connections.push(conn);
@@ -299,7 +299,7 @@ export class NetworkManager extends EventTarget {
     }
     conn.on('data', (data) => this._handleIncoming(data, conn));
     conn.on('close', () => {
-      console.log(`[WebRTC] 🔌 DataChannel CERRADO [${label}] con peer:`, conn?.peer);
+      console.log(`[WebRTC] [CLOSED] DataChannel CERRADO [${label}] con peer:`, conn?.peer);
       if (isHot) {
         const link = this._links?.get(conn?.peer);
         if (link) {
@@ -315,7 +315,7 @@ export class NetworkManager extends EventTarget {
       this.dispatchEvent(new CustomEvent('peer-left', { detail: { conn } }));
     });
     conn.on('error', (err) => {
-      console.error(`[WebRTC] ❌ Error en DataChannel [${label}] con peer ${conn?.peer}:`, err);
+      console.error(`[WebRTC] [ERROR] Error en DataChannel [${label}] con peer ${conn?.peer}:`, err);
     });
   }
 
@@ -348,7 +348,7 @@ export class NetworkManager extends EventTarget {
 
       this.peer.on('open', () => {
         const room = String(pin).startsWith('VOXELSALA-') ? String(pin) : 'VOXELSALA-' + pin;
-        console.log(`[WebRTC] 📡 Peer cliente abierto con ID: ${this.peer.id}. Conectando a sala ${room}...`);
+        console.log(`[WebRTC] [CLIENT] Peer cliente abierto con ID: ${this.peer.id}. Conectando a sala ${room}...`);
 
         // Canal fiable para eventos (INIT, DOOR, CHEST, ...)
         const safe = this.peer.connect(room, {
@@ -375,20 +375,20 @@ export class NetworkManager extends EventTarget {
         // Escuchar datos de inmediato para no perder paquetes de negociación inicial
         safe.on('data', (d) => this._handleIncoming(d, safe));
         safe.on('error', (e) => {
-          console.error('[WebRTC] ❌ Error en DataChannel safe:', e);
+          console.error('[WebRTC] [ERROR] Error en DataChannel safe:', e);
           done(reject, new Error(NetworkManager.translatePeerError(e)));
         });
 
         hot.on('data', (d) => this._handleIncoming(d, hot));
         hot.on('error', (e) => {
-          console.warn('[WebRTC] ⚠️ Error en DataChannel hot (fallback a safe activo):', e);
+          console.warn('[WebRTC] [WARN] Error en DataChannel hot (fallback a safe activo):', e);
         });
 
         let safeOpened = false;
         const handleSafeOpen = () => {
           if (safeOpened) return;
           safeOpened = true;
-          console.log('[WebRTC] ✅ DataChannel ABIERTO con el host (game-safe)');
+          console.log('[WebRTC] [OK] DataChannel ABIERTO con el host (game-safe)');
           this.hostConn = safe;
           this._trackLink(safe, 'safe');
           this.stats.setMode('CLIENT', 1);
@@ -413,7 +413,7 @@ export class NetworkManager extends EventTarget {
         const handleHotOpen = () => {
           if (hotOpened) return;
           hotOpened = true;
-          console.log('[WebRTC] ✅ DataChannel ABIERTO con el host (game-hot)');
+          console.log('[WebRTC] [OK] DataChannel ABIERTO con el host (game-hot)');
           this.hostHotConn = hot;
           this._trackLink(hot, 'hot');
         };
@@ -424,11 +424,11 @@ export class NetworkManager extends EventTarget {
           hot.on('open', handleHotOpen);
         }
         hot.on('close', () => {
-          console.log('[WebRTC] 🔌 DataChannel hot cerrado (fallback a safe)');
+          console.log('[WebRTC] [CLOSED] DataChannel hot cerrado (fallback a safe)');
           if (this.hostHotConn === hot) this.hostHotConn = null;
         });
         safe.on('close', () => {
-          console.log('[WebRTC] 🔌 DataChannel safe cerrado con el host');
+          console.log('[WebRTC] [CLOSED] DataChannel safe cerrado con el host');
           if (!this.isHost && !this._hostClosingHandled) {
             this._hostClosingHandled = true;
             this.dispatchEvent(new CustomEvent('host-closing', { detail: { reason: 0 } }));
@@ -436,7 +436,7 @@ export class NetworkManager extends EventTarget {
         });
       });
       this.peer.on('error', (e) => {
-        console.error('[WebRTC] ❌ Error en instancia Peer cliente:', e);
+        console.error('[WebRTC] [ERROR] Error en instancia Peer cliente:', e);
         done(reject, new Error(NetworkManager.translatePeerError(e)));
       });
     });

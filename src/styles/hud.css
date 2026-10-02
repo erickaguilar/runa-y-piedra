@@ -238,6 +238,9 @@
       padding-bottom: 6px;
       margin-bottom: 12px;
       scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x;
+      overscroll-behavior-x: contain;
     }
     .inv-filter-tags::-webkit-scrollbar {
       display: none;
@@ -252,9 +255,11 @@
       padding: 5px 11px;
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.15s ease;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
       user-select: none;
       -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: pan-x;
     }
     .inv-filter-tag:hover {
       background: rgba(255, 255, 255, 0.1);
@@ -561,37 +566,37 @@
     /* Contenedor y Pila en Lista para Alertas y Mensajes Narrativos (por encima de todo) */
     #hud-message {
       position: fixed;
-      top: max(12px, env(safe-area-inset-top));
+      top: max(10px, env(safe-area-inset-top));
       left: 50%;
       transform: translateX(-50%);
-      width: calc(100vw - 110px);
-      max-width: 380px;
+      width: min(calc(100vw - 120px), 340px);
+      max-width: 340px;
       display: none;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       z-index: 9999;
       pointer-events: none;
     }
     .hud-alert-card {
       width: 100%;
-      background: rgba(15, 23, 42, 0.96);
+      background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(217, 119, 6, 0.65);
-      border-radius: 12px;
-      padding: 9px 12px;
+      border: 1px solid rgba(217, 119, 6, 0.55);
+      border-radius: 10px;
+      padding: 7px 11px;
       color: #fff;
-      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.75), 0 0 14px rgba(245, 158, 11, 0.25);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 10px rgba(245, 158, 11, 0.2);
       /* Curva ease-out-expo asintótica (alta suavidad perceptual sin rebase) */
-      animation: alertSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: alertSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       pointer-events: auto;
       box-sizing: border-box;
       text-align: left;
       cursor: pointer;
     }
     .hud-alert-card.fade-out {
-      animation: alertFadeOut 0.22s ease-out forwards;
+      animation: alertFadeOut 0.20s ease-out forwards;
     }
     @keyframes alertSlideDown {
       from { opacity: 0; transform: translateY(-8px) scale(0.97); }
@@ -605,7 +610,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 700;
       color: #fbbf24;
       line-height: 1.3;

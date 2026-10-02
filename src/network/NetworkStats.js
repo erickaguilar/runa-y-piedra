@@ -226,8 +226,8 @@ export class NetworkStats {
       ${audit ? `
         <div style="margin-top:4px;border-top:1px dashed rgba(56,189,248,0.3);padding-top:3px;font-size:10px;color:#cbd5e1;">
           <div>Audit: 
-            ${audit['init'] ? '<span style="color:#4ade80">INIT:✔</span> ' : ''}
-            ${audit['peer-joined'] ? '<span style="color:#4ade80">JOIN:✔</span> ' : ''}
+            ${audit['init'] ? '<span style="color:#4ade80">INIT:OK</span> ' : ''}
+            ${audit['peer-joined'] ? '<span style="color:#4ade80">JOIN:OK</span> ' : ''}
             ${audit['input'] ? `<span style="color:#38bdf8">IN:${audit['input']}</span> ` : ''}
             ${audit['snapshot'] ? `<span style="color:#fbbf24">SNAP:${audit['snapshot']}</span> ` : ''}
           </div>

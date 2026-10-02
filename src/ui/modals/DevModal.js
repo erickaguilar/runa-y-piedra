@@ -66,13 +66,18 @@ export const DevModalMixin = {
     this.uiEl.innerHTML = `
       <div id="modal-dev" class="menu dev-modal" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
         <div class="settings-header">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <h2 style="display:flex;align-items:center;gap:6px;color:#34d399;">
-              ${renderIcon('terminal', { size: 18, color: '#10b981' })} HERRAMIENTAS DEV
-            </h2>
-            <span class="settings-version-pill" style="color:#34d399;background:rgba(16, 185, 129, 0.15);border-color:rgba(16, 185, 129, 0.35);">
-              DEV MODE
-            </span>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h2 style="display:flex;align-items:center;gap:6px;color:#34d399;margin:0;">
+                ${renderIcon('terminal', { size: 18, color: '#10b981' })} HERRAMIENTAS DEV
+              </h2>
+              <span class="settings-version-pill" style="color:#34d399;background:rgba(16, 185, 129, 0.15);border-color:rgba(16, 185, 129, 0.35);">
+                DEV MODE
+              </span>
+            </div>
+            <div class="settings-subtitle" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#94a3b8;margin-top:4px;">
+              ${renderIcon('sparkles', { size: 12, color: '#34d399' })} <span>Panel de Pruebas y Diagnóstico en Vivo</span>
+            </div>
           </div>
           <button id="btn-close-dev" class="close-x-btn" title="Cerrar">${renderIcon('x', { size: 18, color: 'currentColor' })}</button>
         </div>
@@ -124,7 +129,7 @@ export const DevModalMixin = {
         <div class="settings-group" style="background:rgba(15, 23, 42, 0.6);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;margin-bottom:12px;">
           <div class="setting-row">
             <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;color:#f8fafc;">
-              ${renderIcon('sparkles', { size: 15, color: '#34d399' })} Telemetría de Red WebRTC
+              ${renderIcon('bolt', { size: 15, color: '#38bdf8' })} Telemetría de Red WebRTC
             </span>
             <span class="settings-version-pill" style="color:#38bdf8;background:rgba(56, 189, 248, 0.12);border-color:rgba(56, 189, 248, 0.28);font-size:9px;">
               ?debug=1

@@ -104,14 +104,14 @@ export class InteractionController {
 
     if (game.openedChestKeys?.has(chestKey) || game.openedChestKeys?.has(chestKeyShort)) {
       game.soundManager?.playClick?.();
-      game.ui?.showNarrativeMessage?.('📦 Este cofre ya ha sido saqueado.', 3000);
+      game.ui?.showNarrativeMessage?.(':chest: Este cofre ya ha sido saqueado.', 3000);
       return;
     }
 
     const opened = game.chestRenderer.openChest(chestId);
     if (!opened) {
       game.soundManager?.playClick?.();
-      game.ui?.showNarrativeMessage?.('📦 Este cofre ya ha sido saqueado.', 3000);
+      game.ui?.showNarrativeMessage?.(':chest: Este cofre ya ha sido saqueado.', 3000);
       return;
     }
 
@@ -145,7 +145,7 @@ export class InteractionController {
     // Unificación de la notificación del cofre:
     // Presenta una única tarjeta narrativa estructurada con el cofre abierto,
     // el botín obtenido y la puerta que ahora se puede abrir si incluía llave.
-    let msg = chestData?.message || `📦 ¡Has abierto el ${chestData?.name || 'Cofre'}! Recompensa: ${chestData?.reward || 'Tesoros de la Mazmorra'}`;
+    let msg = chestData?.message || `:chest: ¡Has abierto el ${chestData?.name || 'Cofre'}! Recompensa: ${chestData?.reward || 'Tesoros de la Mazmorra'}`;
     if (chestData?.givesKey) {
       const door = game.world.doors?.find(d => d.requiresKey === chestData.givesKey);
       if (door?.name && !msg.includes(door.name)) {
@@ -253,14 +253,14 @@ export class InteractionController {
     if (showNotification) {
       const door = game.world.doors?.find(d => d.requiresKey === chestData.givesKey);
       const doorMsg = door?.name ? ` Ahora puedes abrir: ${door.name}.` : '';
-      game.ui.showNarrativeMessage(`🗝️ ¡${keyName} conseguida!${doorMsg}`, 4500);
+      game.ui.showNarrativeMessage(`:key: ¡${keyName} conseguida!${doorMsg}`, 4500);
     }
   }
 
   /** Puerta bloqueada por falta de llave: mensaje + sonido metálico (solo jugador local). */
   doorLockedFeedback(door) {
     const game = this.game;
-    const msg = door?.lockedMessage || '🔒 ¡Puerta sellada! Necesitas una llave.';
+    const msg = door?.lockedMessage || ':lock: ¡Puerta sellada! Necesitas una llave.';
     game.soundManager.playLocked();
     game.ui.showNarrativeMessage(msg, 4000);
   }
@@ -321,9 +321,9 @@ export class InteractionController {
 
     // Llavero permanente: las llaves no se consumen ni se eliminan del inventario
     const defaultMsg = doorId === 1
-      ? '🚪 ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!'
-      : '🚪 ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.';
-    const keySuffix = door?.requiresKey ? ' 🗝️ (Llave en tu llavero)' : '';
+      ? ':door: ¡Puerta 1 abierta! Sala 2: El Abismo. ¡Usa el botón SALTAR para cruzar las plataformas!'
+      : ':door: ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.';
+    const keySuffix = door?.requiresKey ? ' :key: (Llave en tu llavero)' : '';
     const msg = (door?.openMessage || defaultMsg) + keySuffix;
     game.ui.showNarrativeMessage(msg, 6000);
 
@@ -425,7 +425,7 @@ export class InteractionController {
     }
     this.game.stairsRenderer.open();
     this.game.soundManager.playSlabGrind();
-    this.game.ui.showNarrativeMessage('🪨 ¡La losa cede! Una escalinata desciende a la oscuridad. ¡Bajad!', 4500);
+    this.game.ui.showNarrativeMessage(':stone: ¡La losa cede! Una escalinata desciende a la oscuridad. ¡Bajad!', 4500);
   }
 
   /** Oscurece el pozo (serpentina en degradado + fondo y muros casi negros). */
@@ -530,7 +530,7 @@ export class InteractionController {
       if (curChapter && game.chapterRegistry) {
         const result = game.chapterRegistry.completeChapter(curChapter.id);
         if (result?.nextChapter) {
-          unlockMsg = ` 🌟 ¡Capítulo ${result.nextChapter.number} desbloqueado: ${result.nextChapter.name}!`;
+          unlockMsg = ` :star: ¡Capítulo ${result.nextChapter.number} desbloqueado: ${result.nextChapter.name}!`;
         }
       }
 
@@ -538,7 +538,7 @@ export class InteractionController {
         game.saveDungeonCompletion?.(curLevelId, true);
       }
 
-      const title = curChapter ? `🏆 ¡${curChapter.name} Conquistado!` : '🏆 ¡Mazmorras Conquistadas!';
+      const title = curChapter ? `:trophy: ¡${curChapter.name} Conquistado!` : ':trophy: ¡Mazmorras Conquistadas!';
       const subtitle = `Habéis bendecido todos los altares.${unlockMsg} Regresando al Campamento...`;
 
       game.ui.showLevelTransition(

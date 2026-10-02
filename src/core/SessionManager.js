@@ -119,8 +119,8 @@ export const SessionMixin = {
       this.avatars.setMetadata(0, name, hero.hex || hero.color, hero.id || null);
 
       const highestChap = activeSave?.campaign?.highestChapterUnlocked || 1;
-      const gemsMsg = this.inventory.gems > 0 ? ` • ${this.inventory.gems}💎` : '';
-      this.ui.showNarrativeMessage(`🏰 Mazmorra creada: ${lvl?.name || 'Campamento'} (PIN: ${pin}) — ${name} (${hero.name} • Capítulo ${highestChap}${gemsMsg})`, 5500);
+      const gemsMsg = this.inventory.gems > 0 ? ` • ${this.inventory.gems} :gem:` : '';
+      this.ui.showNarrativeMessage(`:castle: Mazmorra creada: ${lvl?.name || 'Campamento'} (PIN: ${pin}) — ${name} (${hero.name} • Capítulo ${highestChap}${gemsMsg})`, 5500);
 
       this.broadcastRoster();
       this.network.startWorldSnapshot(() => this.collectWorldSnapshot());
@@ -151,7 +151,7 @@ export const SessionMixin = {
 
     // Cargar directamente el nivel dev_showroom sin sincronizar por red
     this.switchLevel('dev_showroom', false);
-    this.ui.showNarrativeMessage('🧪 Sesión local iniciada en Showroom de Desarrollo.', 4500);
+    this.ui.showNarrativeMessage(':potion: Sesión local iniciada en Showroom de Desarrollo.', 4500);
   },
 
   switchLevel(levelId, broadcast = true, { isGameOver = false } = {}) {
@@ -254,20 +254,20 @@ export const SessionMixin = {
     this.inputQueue.clear();
 
     if (isGameOver) {
-      this.ui.showNarrativeMessage('💀 ¡GAME OVER! Has caído en la expedición. Regresas al Campamento con tus vidas restauradas.', 5000);
+      this.ui.showNarrativeMessage(':skull: ¡GAME OVER! Has caído en la expedición. Regresas al Campamento con tus vidas restauradas.', 5000);
     } else if (levelData.id === 'dev_showroom') {
-      this.ui.showNarrativeMessage('🧪 Showroom de Desarrollo: Galería completa de bloques y físicas.', 5500);
+      this.ui.showNarrativeMessage(':potion: Showroom de Desarrollo: Galería completa de bloques y físicas.', 5500);
     } else if (levelData.id === 'lobby_tutorial') {
       const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
         ? window.matchMedia('(pointer: coarse)').matches
         : false;
       if (!isTouch) {
-        this.ui.showNarrativeMessage('🎮 Controles: WASD mover · Click apuntar · Espacio saltar · E interactuar / bajar · V cámara', 7500);
+        this.ui.showNarrativeMessage(':gamepad: Controles: WASD mover · Click apuntar · Espacio saltar · E interactuar / bajar · V cámara', 7500);
       } else {
-        this.ui.showNarrativeMessage('🎯 Practica: salta las losas ámbar, abre el 📦 cofre, usa la 🗝️ llave en la 🚪 puerta, empuja la 🪨 losa y baja.', 6500);
+        this.ui.showNarrativeMessage(':target: Practica: salta las losas ámbar, abre el :chest: cofre, usa la :key: llave en la :door: puerta, empuja la :stone: losa y baja.', 6500);
       }
     } else {
-      this.ui.showNarrativeMessage(`🏰 Has descendido a: ${levelData.name}`, 3500);
+      this.ui.showNarrativeMessage(`:castle: Has descendido a: ${levelData.name}`, 3500);
     }
 
     if (broadcast && this.mode === 'host') {
@@ -293,11 +293,11 @@ export const SessionMixin = {
     if (chapterId === 'lobby' || chapterId === 'lobby_tutorial') {
       const currentLevel = this.world?.levelRegistry?.currentLevelId;
       if (currentLevel === 'lobby_tutorial') {
-        this.ui.showNarrativeMessage('📍 Ya te encuentras en el Campamento Central.', 2500);
+        this.ui.showNarrativeMessage(':mapPin: Ya te encuentras en el Campamento Central.', 2500);
         return true;
       }
       this.soundManager.playPedestal();
-      this.ui.showNarrativeMessage('🏛️ Regresando al Campamento Central...', 3000);
+      this.ui.showNarrativeMessage(':temple: Regresando al Campamento Central...', 3000);
       setTimeout(() => {
         this.switchLevel('lobby_tutorial', true);
       }, 400);
@@ -305,11 +305,11 @@ export const SessionMixin = {
     }
     const targetChapter = this.chapterRegistry.getChapter(chapterId);
     if (targetChapter?.underConstruction || (targetChapter && targetChapter.number >= 2)) {
-      this.ui.showNarrativeMessage('🚧 Este capítulo se encuentra en construcción.', 3000);
+      this.ui.showNarrativeMessage(':construction: Este capítulo se encuentra en construcción.', 3000);
       return false;
     }
     if (!this.chapterRegistry.isChapterUnlocked(chapterId)) {
-      this.ui.showNarrativeMessage('🔒 Este capítulo aún está bloqueado.', 3000);
+      this.ui.showNarrativeMessage(':lock: Este capítulo aún está bloqueado.', 3000);
       return false;
     }
     this.chapterRegistry.setCurrentChapter(chapterId);
@@ -322,7 +322,7 @@ export const SessionMixin = {
     }
     this.soundManager.playPedestal();
     const ch = this.chapterRegistry.getChapter(chapterId);
-    this.ui.showNarrativeMessage(`🗺️ Iniciando Capítulo ${ch.number}: ${ch.name}...`, 3500);
+    this.ui.showNarrativeMessage(`:map: Iniciando Capítulo ${ch.number}: ${ch.name}...`, 3500);
 
     setTimeout(() => {
       this.switchLevel(firstDungeon.id, true);
@@ -389,7 +389,7 @@ export const SessionMixin = {
         },
       });
 
-      this.ui.showNarrativeMessage('💾 ¡Capítulo completado! Progreso y tesoros guardados en tu partida.', 4500);
+      this.ui.showNarrativeMessage(':save: ¡Capítulo completado! Progreso y tesoros guardados en tu partida.', 4500);
     } catch (err) {
       console.warn('[SessionManager] Error al guardar finalización de mazmorra:', err);
     }
@@ -474,9 +474,9 @@ export const SessionMixin = {
       this.ui.setHasKey(false);
       this.broadcastRoster();
       this.network.startWorldSnapshot(() => this.collectWorldSnapshot());
-      this.ui.showNarrativeMessage(`🏰 Mazmorra reanudada como Host (sala migrada: ${pin}). Comparte el enlace desde ⚙️.`, 6000);
+      this.ui.showNarrativeMessage(`:castle: Mazmorra reanudada como Host (sala migrada: ${pin}). Comparte el enlace desde :settings:.`, 6000);
     } catch (e) {
-      this.ui.showNarrativeMessage('⚠️ No se pudo reanudar como Host: ' + (e?.message || e), 5000);
+      this.ui.showNarrativeMessage(':warning: No se pudo reanudar como Host: ' + (e?.message || e), 5000);
       this.leaveSession();
     }
   },
@@ -485,7 +485,7 @@ export const SessionMixin = {
   async reconnectToMigratedHost(migrationPin) {
     try {
       this.network.disconnect();
-      this.ui.showNarrativeMessage(`⏳ Reconectando con el nuevo líder en sala ${migrationPin}...`, 4000);
+      this.ui.showNarrativeMessage(`:timer: Reconectando con el nuevo líder en sala ${migrationPin}...`, 4000);
       const profile = {
         name: this.playerManager.localPlayer?.name || this.ui.playerName || 'Aventurero',
         colorIndex: this.playerManager.localPlayer?.colorIndex ?? this.ui.selectedColorIndex ?? 1,
@@ -493,7 +493,7 @@ export const SessionMixin = {
       await this.joinRoom(migrationPin, profile, 4);
     } catch (e) {
       console.warn('[HostMigration] Fallo al reconectar con el nuevo líder:', e);
-      this.ui.showNarrativeMessage('⚠️ No se pudo reconectar con el nuevo anfitrión.', 5000);
+      this.ui.showNarrativeMessage(':warning: No se pudo reconectar con el nuevo anfitrión.', 5000);
       this.ui.showMenu(this.ui.lastMenuParams || {});
     }
   },

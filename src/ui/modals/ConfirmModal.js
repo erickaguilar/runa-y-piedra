@@ -27,7 +27,10 @@ export const ConfirmModalMixin = {
           ${renderIcon(icon, { size: 28, color: iconColor })}
         </div>
         <h3 class="confirm-title">${escapeHtml(title)}</h3>
-        <p class="confirm-message">${escapeHtml(message)}</p>
+        <p class="confirm-message" style="display:flex;align-items:center;justify-content:center;gap:6px;">
+          ${renderIcon('compass', { size: 13, color: '#94a3b8' })}
+          <span>${escapeHtml(message)}</span>
+        </p>
         <div class="confirm-actions">
           <button id="btn-confirm-cancel" class="btn-secondary">${escapeHtml(cancelText)}</button>
           <button id="btn-confirm-accept" class="btn-danger">${escapeHtml(confirmText)}</button>

@@ -32,7 +32,7 @@
         { "x": 12, "y": 1, "z": 13 },
         { "x": 12, "y": 2, "z": 13 }
       ],
-      "openMessage": "🚪 ¡Puerta 1 abierta! Acceso al Laboratorio de Físicas, Jump Pads, Lava y Cofres."
+      "openMessage": ":door: ¡Puerta 1 abierta! Acceso al Laboratorio de Físicas, Jump Pads, Lava y Cofres."
     },
     {
       "id": 2,
@@ -49,9 +49,9 @@
         { "x": 12, "y": 1, "z": 24 },
         { "x": 12, "y": 2, "z": 24 }
       ],
-      "openMessage": "🚪 ¡Puerta 2 abierta! Has usado la 🗝️ Llave Maestra. Avanza al Altar Supremo y Escalinata.",
+      "openMessage": ":door: ¡Puerta 2 abierta! Has usado la :key: Llave Maestra. Avanza al Altar Supremo y Escalinata.",
       "requiresKey": "llave_showroom",
-      "lockedMessage": "🔒 ¡Puerta sellada! Requiere la 🗝️ Llave Maestra del Cofre 1 en el Laboratorio."
+      "lockedMessage": ":lock: ¡Puerta sellada! Requiere la :key: Llave Maestra del Cofre 1 en el Laboratorio."
     }
   ],
   "checkpoints": [
@@ -112,8 +112,8 @@
       "x": 10.5,
       "y": 1.0,
       "z": 17.5,
-      "reward": "🗝️ Llave Maestra del Showroom",
-      "message": "📦 ¡Has abierto el Cofre 1! Obtenida: 🗝️ Llave Maestra del Showroom para desbloquear la Puerta 2.",
+      "reward": ":key: Llave Maestra del Showroom",
+      "message": ":chest: ¡Has abierto el Cofre 1! Obtenida: :key: Llave Maestra del Showroom para desbloquear la Puerta 2.",
       "givesKey": "llave_showroom",
       "keyName": "Llave Maestra del Showroom"
     },
@@ -123,8 +123,8 @@
       "x": 12.0,
       "y": 1.0,
       "z": 20.5,
-      "reward": "💎 250 Gemas Arcanas",
-      "message": "📦 ¡Has abierto el Cofre 2! Has recolectado: 💎 250 Gemas Arcanas.",
+      "reward": ":gem: 250 Gemas Arcanas",
+      "message": ":chest: ¡Has abierto el Cofre 2! Has recolectado: :gem: 250 Gemas Arcanas.",
       "gems": 250
     },
     {
@@ -133,8 +133,8 @@
       "x": 13.5,
       "y": 1.0,
       "z": 17.5,
-      "reward": "🧪 Poción de Vida (+1 ❤️)",
-      "message": "📦 ¡Has abierto el Cofre 3! Obtenida: 🧪 Poción de Vida (+1 ❤️). Pulsa P o usa el inventario (B) para beberla.",
+      "reward": ":potion: Poción de Vida (+1 :heart:)",
+      "message": ":chest: ¡Has abierto el Cofre 3! Obtenida: :potion: Poción de Vida (+1 :heart:). Pulsa P o usa el inventario (B) para beberla.",
       "potion": {
         "id": "pocion_vida",
         "name": "Poción de Vida",

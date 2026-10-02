@@ -391,5 +391,51 @@ describe('SaveManager - Persistencia Robusta y SaveSchema v2', () => {
       assert.equal(restoredSet.has('dungeon_classic_chest_1'), true);
       assert.equal(restoredSet.has('crypt_inferno:2'), true);
     });
+
+    it('las ranuras vacías no se autoguardan al modificar perfil o ajustes hasta culminar una expedición', async () => {
+      await manager.init('slot_1');
+      await manager.switchSlot('slot_2');
+
+      // Verificar que slot_2 arranca vacía
+      let summaries = await manager.getAllSlotsSummary();
+      let slot2 = summaries.find(s => s.slotId === 'slot_2');
+      assert.equal(slot2.isEmpty, true);
+      assert.equal(manager.isSlotEmpty('slot_2'), true);
+
+      // Modificar perfil y ajustes en el menú
+      manager.updateProfile({ name: 'AventureroFantasma', favoriteHero: 3 });
+      manager.updateSettings({ sensitivity: 1.8 });
+      await manager.saveCurrent();
+
+      // El almacenamiento persistente NO debe contener save_slot_2_active aún
+      const storedActive = await memoryAdapter.get('save_slot_2_active');
+      assert.equal(storedActive, null);
+
+      // Sigue apareciendo como vacía en los resúmenes del menú
+      summaries = await manager.getAllSlotsSummary();
+      slot2 = summaries.find(s => s.slotId === 'slot_2');
+      assert.equal(slot2.isEmpty, true);
+
+      // Ahora se culmina con éxito una expedición
+      await manager.saveDungeonCompletion({
+        levelId: 'dungeon_classic',
+        chapterId: 'capitulo_1',
+        isVictory: true,
+        campaign: { highestChapterUnlocked: 2 },
+        inventory: { totalGems: 100 },
+      });
+
+      // Ahora SÍ debe estar persistida en almacenamiento
+      const savedAfter = await memoryAdapter.get('save_slot_2_active');
+      assert.ok(savedAfter);
+      assert.equal(savedAfter.profile.name, 'AventureroFantasma');
+      assert.equal(savedAfter.profile.favoriteHero, 3);
+      assert.equal(savedAfter.campaign.highestChapterUnlocked, 2);
+
+      summaries = await manager.getAllSlotsSummary();
+      slot2 = summaries.find(s => s.slotId === 'slot_2');
+      assert.equal(slot2.isEmpty, false);
+      assert.equal(manager.isSlotEmpty('slot_2'), false);
+    });
   });
 });

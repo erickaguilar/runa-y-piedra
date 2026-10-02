@@ -613,6 +613,16 @@ export const ICONS = {
     defaultColor: '#38bdf8',
     body: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17 8 12 3 7 8" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke-linecap="round" stroke-linejoin="round"/>`,
   },
+
+  ban: {
+    name: 'ban',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    defaultColor: '#ef4444',
+    body: `<circle cx="12" cy="12" r="10" stroke-linecap="round" stroke-linejoin="round"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
 };
 
 /**
@@ -631,6 +641,8 @@ export const ICON_ALIASES = {
   delete: 'trash',
   export: 'download',
   import: 'upload',
+  prohibited: 'ban',
+  noEntry: 'ban',
 };
 
 /**
@@ -691,6 +703,8 @@ export const EMOJI_TO_ICON_MAP = [
   { regex: /🗺\uFE0F?/g, icon: 'map',          defaultColor: '#38bdf8' },
   { regex: /💾\uFE0F?/g, icon: 'save',         defaultColor: '#38bdf8' },
   { regex: /🗑\uFE0F?/g, icon: 'trash',        defaultColor: '#ef4444' },
+  { regex: /🚫\uFE0F?/g, icon: 'ban',          defaultColor: '#ef4444' },
+  { regex: /⏳\uFE0F?/g, icon: 'timer',        defaultColor: '#fbbf24' },
 ];
 
 /**
@@ -740,19 +754,34 @@ export function renderIcon(nameOrEmoji, options = {}) {
 }
 
 /**
- * Converts all known emojis inside a text string into crisp inline SVG icons.
+ * Converts all icon shortcodes (:icon:) and known emojis inside a text string into crisp inline SVG icons.
  * Perfect for narrative HUD messages, level rewards, descriptions and buttons.
  * 
- * @param {string} text - Input text containing emojis
+ * @param {string} text - Input text containing :shortcodes: or emojis
  * @param {Object} [options] - Options passed to renderIcon
  * @param {number} [options.size=16] - SVG icon size
- * @returns {string} Text with emojis replaced by inline SVGs
+ * @returns {string} Text with icon shortcodes and emojis replaced by inline SVGs
  */
 export function replaceEmojisWithSvg(text, options = {}) {
   if (!text || typeof text !== 'string') return text || '';
   const size = options.size || 16;
 
   let result = text;
+
+  // 1. Reemplazo de shortcodes canónicos de la biblioteca SVG (:castle:, :key:, etc.)
+  result = result.replace(/:([a-zA-Z0-9_-]+):/g, (match, iconName) => {
+    if (ICONS[iconName] || ICON_ALIASES[iconName]) {
+      return renderIcon(iconName, {
+        size,
+        color: options.color,
+        className: options.className || 'narrative-icon',
+        style: options.style || 'margin:0 3px; vertical-align:-2px;',
+      });
+    }
+    return match;
+  });
+
+  // 2. Retrocompatibilidad para cualquier emoji residual
   for (const item of EMOJI_TO_ICON_MAP) {
     result = result.replace(item.regex, () => {
       return renderIcon(item.icon, {
@@ -766,6 +795,8 @@ export function replaceEmojisWithSvg(text, options = {}) {
 
   return result;
 }
+
+export const replaceIconsWithSvg = replaceEmojisWithSvg;
 
 /**
  * Escapa texto controlado por el usuario para interpolarlo en HTML

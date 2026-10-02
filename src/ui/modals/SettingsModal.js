@@ -112,16 +112,67 @@ export const SettingsModalMixin = {
     this.uiEl.innerHTML = `
       <div id="modal-settings" class="menu" style="max-height:86vh;overflow-y:auto;padding-bottom:18px;">
         <div class="settings-header">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <h2 style="display:flex;align-items:center;gap:6px;">${renderIcon('settings', { size: 18, color: '#cbd5e1' })} CONFIGURACIÓN</h2>
-            <span class="settings-version-pill">v${APP_CONFIG.VERSION}</span>
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h2 style="display:flex;align-items:center;gap:6px;">${renderIcon('settings', { size: 18, color: '#cbd5e1' })} CONFIGURACIÓN</h2>
+              <span class="settings-version-pill">v${APP_CONFIG.VERSION}</span>
+            </div>
+            <div class="settings-subtitle" style="font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:5px;margin-top:2px;">
+              ${renderIcon('compass', { size: 12, color: '#38bdf8' })}
+              <span>Ajustes de Expedición, Gráficos y Sonido</span>
+            </div>
           </div>
           <button id="btn-close-settings" class="close-x-btn" title="Cerrar">${renderIcon('x', { size: 18, color: 'currentColor' })}</button>
         </div>
 
-        <!-- 1. Perfil de Aventurero (Solo lectura) -->
+        <!-- 1. SALA DE EXPEDICIÓN (En primer lugar si está en partida con sala activa) -->
+        ${inGame && state.roomPin ? `
+          <div class="settings-group" style="background:rgba(11,17,32,0.85);border-radius:14px;padding:14px;border:1px solid #1e293b;text-align:center;margin-top:4px;margin-bottom:12px;">
+            <div class="lobby-label" style="text-align:center;margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:6px;">${renderIcon('castle', { size: 15, color: '#fbbf24' })} SALA DE EXPEDICIÓN</div>
+            <div class="room-pin-display" style="font-size:32px;letter-spacing:6px;margin:2px 0;">${state.roomPin}</div>
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:5px;">
+              ${renderIcon('key', { size: 12, color: '#fbbf24' })}
+              <span>PIN de 4 dígitos para unirse</span>
+            </div>
+
+            <button id="btn-settings-share" class="share-btn">
+              ${renderIcon('share', { size: 18, color: '#fff' })}
+              <span>Compartir en Mensajería</span>
+            </button>
+
+            <button id="btn-settings-copy" class="copy-btn" style="margin-bottom:10px">
+              ${renderIcon('copy', { size: 16, color: '#cbd5e1' })}
+              <span id="copy-btn-text">Copiar Enlace</span>
+            </button>
+
+            <canvas id="settings-qr-canvas" style="border-radius:8px;margin:6px auto;background:#fff;padding:4px;display:block;"></canvas>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:4px;">
+              ${renderIcon('camera', { size: 12, color: '#94a3b8' })}
+              <span>O escanea el código con la cámara</span>
+            </div>
+
+            <div class="party-box" style="margin-top:12px;text-align:left">
+              <div class="party-title" style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="display:flex;align-items:center;gap:5px;">
+                  ${renderIcon('shield', { size: 13, color: '#38bdf8' })} Compañeros en la Mazmorra
+                </span>
+                <span class="party-count-pill" style="font-size:11px;color:${playersList.length >= 5 ? '#f59e0b' : '#38bdf8'};font-weight:700;">
+                  ${playersList.length >= 5 ? `${renderIcon('lock', { size: 11, color: '#f59e0b' })} 5/5 Llena` : `${playersList.length}/5 Jugadores`}
+                </span>
+              </div>
+              <div id="settings-party-list">
+                ${partyHtml}
+              </div>
+            </div>
+          </div>
+          <div class="divider" style="margin:10px 0 12px"></div>
+        ` : ''}
+
+        <!-- 2. Perfil de Aventurero (Solo lectura) -->
         <div class="settings-group">
-          <label class="lobby-label">Tu Aventurero</label>
+          <label class="lobby-label" style="display:flex;align-items:center;gap:6px;">
+            ${renderIcon('shield', { size: 14, color: '#38bdf8' })} Tu Aventurero
+          </label>
           <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(15,23,42,0.65);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 12px;">
             <div style="display:flex;align-items:center;gap:10px;">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:${currentHero.color};color:#ffffff;box-shadow:0 0 10px ${currentHero.color}44;">
@@ -138,20 +189,24 @@ export const SettingsModalMixin = {
 
         <div class="divider" style="margin:10px 0"></div>
 
-        <!-- 2. Controles -->
+        <!-- 3. Controles -->
         <div class="settings-group">
           <div class="setting-row">
-            <span class="lobby-label" style="margin:0">Sensibilidad de Mirada</span>
+            <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
+              ${renderIcon('target', { size: 14, color: '#38bdf8' })} Sensibilidad de Mirada
+            </span>
             <span id="sens-val-display" style="font-size:12px;color:#38bdf8;font-weight:700">${sens.toFixed(1)}x</span>
           </div>
           <input id="settings-sens-slider" type="range" min="0.4" max="2.5" step="0.1" value="${sens}" 
                  style="width:100%;accent-color:#38bdf8;cursor:pointer;margin-top:4px;" />
         </div>
 
-        <!-- 2b. Cámara -->
+        <!-- 4. Cámara -->
         <div class="settings-group">
           <div class="setting-row">
-            <span class="lobby-label" style="margin:0">Vista de Cámara (V)</span>
+            <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
+              ${renderIcon('camera', { size: 14, color: '#38bdf8' })} Vista de Cámara (V)
+            </span>
           </div>
           <div class="quality-selector">
             <button class="quality-btn ${this.cameraModeUI !== 'third' ? 'active' : ''}" id="btn-cam-first">
@@ -163,10 +218,12 @@ export const SettingsModalMixin = {
           </div>
         </div>
 
-        <!-- 3. Gráficos & Rendimiento -->
+        <!-- 5. Gráficos & Rendimiento -->
         <div class="settings-group">
           <div class="setting-row">
-            <span class="lobby-label" style="margin:0">Rendimiento Gráfico</span>
+            <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
+              ${renderIcon('bolt', { size: 14, color: '#facc15' })} Rendimiento Gráfico
+            </span>
           </div>
           <div class="quality-selector">
             <button class="quality-btn ${dpr <= 1.0 ? 'active' : ''}" id="btn-dpr-1" data-dpr="1.0">
@@ -178,11 +235,11 @@ export const SettingsModalMixin = {
           </div>
         </div>
 
-        <!-- 4. Efectos de Sonido Procedurales -->
+        <!-- 6. Efectos de Sonido Procedurales -->
         <div class="settings-group" style="margin-top:10px;">
           <div class="setting-row">
             <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
-              ${renderIcon('sparkles', { size: 14, color: '#fbbf24' })} Efectos de Sonido (Web Audio)
+              ${renderIcon('soundOn', { size: 14, color: '#fbbf24' })} Efectos de Sonido (Web Audio)
             </span>
           </div>
           <div class="quality-selector">
@@ -195,11 +252,11 @@ export const SettingsModalMixin = {
           </div>
         </div>
 
-        <!-- 5. Guía de Controles en Pantalla -->
+        <!-- 7. Guía de Controles en Pantalla -->
         <div class="settings-group" style="margin-top:10px;">
           <div class="setting-row">
             <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
-              ${renderIcon('sparkles', { size: 14, color: '#38bdf8' })} Guía de Controles (HUD)
+              ${renderIcon('gamepad', { size: 14, color: '#a855f7' })} Guía de Controles (HUD)
             </span>
           </div>
           <div class="quality-selector">
@@ -212,7 +269,7 @@ export const SettingsModalMixin = {
           </div>
         </div>
 
-        <!-- 6. Gestión de Partidas Guardadas -->
+        <!-- 8. Gestión de Partidas Guardadas -->
         <div class="settings-group" style="margin-top:10px;">
           <div class="setting-row">
             <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;">
@@ -223,41 +280,6 @@ export const SettingsModalMixin = {
             ${renderIcon('save', { size: 15, color: '#38bdf8' })} Administrar Ranuras (3 Slots)
           </button>
         </div>
-
-        <!-- 7. SALA DE EXPEDICIÓN (si está en partida) -->
-        ${inGame && state.roomPin ? `
-          <div class="divider" style="margin:12px 0"></div>
-          <div class="settings-group" style="background:rgba(11,17,32,0.85);border-radius:14px;padding:14px;border:1px solid #1e293b;text-align:center;">
-            <div class="lobby-label" style="text-align:center;margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:6px;">${renderIcon('castle', { size: 15, color: '#fbbf24' })} SALA DE EXPEDICIÓN</div>
-            <div class="room-pin-display" style="font-size:32px;letter-spacing:6px;margin:2px 0;">${state.roomPin}</div>
-            <div style="font-size:11px;color:#64748b;margin-bottom:12px">PIN de 4 dígitos para unirse</div>
-
-            <button id="btn-settings-share" class="share-btn">
-              ${renderIcon('share', { size: 18, color: '#fff' })}
-              <span>Compartir en Mensajería</span>
-            </button>
-
-            <button id="btn-settings-copy" class="copy-btn" style="margin-bottom:10px">
-              ${renderIcon('copy', { size: 16, color: '#cbd5e1' })}
-              <span id="copy-btn-text">Copiar Enlace</span>
-            </button>
-
-            <canvas id="settings-qr-canvas" style="border-radius:8px;margin:6px auto;background:#fff;padding:4px;display:block;"></canvas>
-            <div style="font-size:10px;color:#94a3b8;margin-top:2px;margin-bottom:8px">O escanea el código con la cámara</div>
-
-            <div class="party-box" style="margin-top:12px;text-align:left">
-              <div class="party-title" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>Compañeros en la Mazmorra</span>
-                <span class="party-count-pill" style="font-size:11px;color:${playersList.length >= 5 ? '#f59e0b' : '#38bdf8'};font-weight:700;">
-                  ${playersList.length >= 5 ? `${renderIcon('lock', { size: 11, color: '#f59e0b' })} 5/5 Llena` : `${playersList.length}/5 Jugadores`}
-                </span>
-              </div>
-              <div id="settings-party-list">
-                ${partyHtml}
-              </div>
-            </div>
-          </div>
-        ` : ''}
 
         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
           ${inGame ? `<button id="btn-leave-game" class="btn-danger" style="flex:1">Salir al Menú</button>` : ''}

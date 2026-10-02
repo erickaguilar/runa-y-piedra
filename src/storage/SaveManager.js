@@ -420,6 +420,7 @@ export class SaveManager {
     this.isLoaded = false;
     this.listeners = new Set();
     this._cachedSummaries = null;
+    this._persistedSlots = new Set();
   }
 
   /**
@@ -511,6 +512,7 @@ export class SaveManager {
         this._healCompletedChapterInventory(activeData);
         this.currentSlotId = slotId;
         this.currentSave = activeData;
+        this._persistedSlots.add(String(slotId));
         return activeData;
       }
     } catch (err) {
@@ -526,6 +528,7 @@ export class SaveManager {
         await this.adapter.set(activeKey, backupData);
         this.currentSlotId = slotId;
         this.currentSave = backupData;
+        this._persistedSlots.add(String(slotId));
         return backupData;
       }
     } catch (err) {
@@ -546,6 +549,7 @@ export class SaveManager {
     const freshSave = createDefaultSave(slotId);
     this.currentSlotId = slotId;
     this.currentSave = freshSave;
+    this._persistedSlots.delete(String(slotId));
     return freshSave;
   }
 
@@ -587,6 +591,8 @@ export class SaveManager {
     await this.adapter.set(activeKey, prepared);
     await this.adapter.delete(tempKey);
 
+    this._persistedSlots.add(String(slotId));
+
     // 5. Espejo de compatibilidad legacy para tests y módulos existentes
     this._writeLegacyMirror(prepared);
 
@@ -599,9 +605,18 @@ export class SaveManager {
 
   /**
    * Guarda el estado actual en memoria en la ranura activa de forma asíncrona.
+   * Regla de negocio: Si la ranura actual está vacía en disco, no se autoguarda
+   * hasta culminar con éxito una expedición (saveDungeonCompletion).
    */
   async saveCurrent() {
+    if (!this._persistedSlots.has(String(this.currentSlotId))) {
+      return this.currentSave;
+    }
     return this.saveSlot(this.currentSlotId, this.currentSave);
+  }
+
+  isSlotEmpty(slotId = this.currentSlotId) {
+    return !this._persistedSlots.has(String(slotId));
   }
 
   /**
@@ -662,6 +677,7 @@ export class SaveManager {
       }
 
       if (data && validateSaveData(data)) {
+        this._persistedSlots.add(String(slotId));
         summaries.push({
           slotId,
           isEmpty: false,
@@ -674,6 +690,7 @@ export class SaveManager {
           updatedAt: data.updatedAt || null,
         });
       } else {
+        this._persistedSlots.delete(String(slotId));
         summaries.push({
           slotId,
           isEmpty: true,
@@ -727,6 +744,8 @@ export class SaveManager {
     const backupKey = `save_${slotId}_backup`;
     await this.adapter.delete(activeKey);
     await this.adapter.delete(backupKey);
+
+    this._persistedSlots.delete(String(slotId));
 
     if (slotId === this.currentSlotId) {
       this.currentSave = createDefaultSave(slotId);

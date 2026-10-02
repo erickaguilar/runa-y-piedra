@@ -25,58 +25,72 @@ export const MenuMixin = {
 
     this.uiEl.innerHTML = `
       <div class="menu">
-        <h1>${renderIcon('raido', { size: 22, color: '#d97706' })} RUNA Y PIEDRA</h1>
+        <div class="menu-header">
+          <h1>${renderIcon('raido', { size: 22, color: '#d97706' })} RUNA Y PIEDRA</h1>
+          <div class="menu-subtitle">
+            ${renderIcon('compass', { size: 12, color: '#94a3b8' })} <span>Mazmorra Cooperativa P2P</span>
+          </div>
+        </div>
         
-        <div class="lobby-section">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <label class="lobby-label" style="margin:0">Tu Aventurero</label>
-            <span id="menu-adventurer-lock-badge" class="menu-adventurer-lock-badge" style="font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"></span>
+        <div class="menu-body-grid">
+          <div class="menu-col menu-col-left">
+            <div class="lobby-section">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <label class="lobby-label" style="margin:0">Tu Aventurero</label>
+                <span id="menu-adventurer-lock-badge" class="menu-adventurer-lock-badge" style="font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"></span>
+              </div>
+              <input id="player-name-input" class="name-input" maxlength="12" 
+                     placeholder="Nombre o Apodo" value="${escapeHtml(this.playerName)}" autocomplete="off"
+                     autocapitalize="words" spellcheck="false" enterkeyhint="done" />
+            </div>
+
+            <div class="lobby-section">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <label class="lobby-label" style="margin:0">Clase de Héroe</label>
+                <span id="menu-hero-lock-badge" class="menu-hero-lock-badge" style="font-size:10px;"></span>
+              </div>
+              <div class="heroes-row" id="heroes-row">
+                ${heroesHtml}
+              </div>
+              <div id="hero-badge" class="hero-badge" style="color:${currentHero.color}">
+                ${renderIcon(currentHero.icon || 'shield', { size: 15, color: currentHero.color })} <span>${currentHero.name}</span>
+              </div>
+              <div id="hero-trait-container">
+                ${this.renderHeroTraitCard(currentHero)}
+              </div>
+            </div>
           </div>
-          <input id="player-name-input" class="name-input" maxlength="12" 
-                 placeholder="Nombre o Apodo" value="${escapeHtml(this.playerName)}" autocomplete="off" />
+
+          <div class="menu-col menu-col-right">
+            <div class="menu-actions-group">
+              <button id="btn-host" class="btn-primary">${renderIcon('castle', { size: 18, color: '#fff' })} Crear Mazmorra</button>
+              
+              <div class="join-container">
+                <input id="pin-input" class="join-input" placeholder="PIN (4 dig.)" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" enterkeyhint="go" />
+                <button id="btn-join" class="btn-join">${renderIcon('door', { size: 15, color: '#fff' })} Unirse</button>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Ranuras de Guardado (3 ranuras directas) -->
+            <div class="lobby-section">
+              <label class="lobby-label" style="margin:0 0 6px 0;display:flex;align-items:center;gap:6px;">
+                ${renderIcon('save', { size: 14, color: '#38bdf8' })} Ranuras de Guardado
+              </label>
+              <div class="menu-slots-row" id="menu-slots-row">
+                ${this.renderMenuSlotsHtml()}
+              </div>
+              <div class="menu-slot-actions-row" style="margin-top:6px;">
+                <button id="btn-menu-delete-active-slot" class="menu-delete-slot-btn" type="button" style="display:none;">
+                  ${renderIcon('trash', { size: 12, color: '#f87171' })} Borrar Partida
+                </button>
+              </div>
+            </div>
+
+            <div class="status" id="status"></div>
+          </div>
         </div>
-
-        <div class="lobby-section">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <label class="lobby-label" style="margin:0">Clase de Héroe</label>
-            <span id="menu-hero-lock-badge" class="menu-hero-lock-badge" style="font-size:10px;"></span>
-          </div>
-          <div class="heroes-row" id="heroes-row">
-            ${heroesHtml}
-          </div>
-          <div id="hero-badge" class="hero-badge" style="color:${currentHero.color}">
-            ${renderIcon(currentHero.icon || 'shield', { size: 15, color: currentHero.color })} <span>${currentHero.name}</span>
-          </div>
-          <div id="hero-trait-container">
-            ${this.renderHeroTraitCard(currentHero)}
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <button id="btn-host" class="btn-primary">${renderIcon('castle', { size: 18, color: '#fff' })} Crear Mazmorra</button>
-        
-        <div class="join-container">
-          <input id="pin-input" class="join-input" placeholder="0000" maxlength="4" inputmode="numeric" />
-          <button id="btn-join" class="btn-join">Unirse</button>
-        </div>
-
-        <!-- Ranuras de Guardado (3 ranuras directas) -->
-        <div class="lobby-section">
-          <label class="lobby-label" style="margin:0 0 6px 0;display:flex;align-items:center;gap:6px;">
-            ${renderIcon('save', { size: 14, color: '#38bdf8' })} Ranuras de Guardado
-          </label>
-          <div class="menu-slots-row" id="menu-slots-row">
-            ${this.renderMenuSlotsHtml()}
-          </div>
-          <div class="menu-slot-actions-row" style="margin-top:6px;">
-            <button id="btn-menu-delete-active-slot" class="menu-delete-slot-btn" type="button" style="display:none;">
-              ${renderIcon('trash', { size: 12, color: '#f87171' })} Borrar Partida
-            </button>
-          </div>
-        </div>
-
-        <div class="status" id="status"></div>
       </div>`;
 
     // 1. Selector de clases de héroe
@@ -87,7 +101,7 @@ export const MenuMixin = {
           if (this.isMenuLocked) {
             soundManager.playHurt?.();
             const curHero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
-            this.showNarrativeMessage(`🔒 La clase (${curHero.name}) está bloqueada para esta partida guardada. Bórrala desde el menú para cambiar de clase.`, 3200);
+            this.showNarrativeMessage(`:lock: La clase (${curHero.name}) está bloqueada para esta partida guardada. Bórrala desde el menú para cambiar de clase.`, 3200);
             return;
           }
           soundManager.playClick();
@@ -146,6 +160,10 @@ export const MenuMixin = {
         const colorIndex = (this.isMenuLocked && Number.isFinite(activeSave?.profile?.favoriteHero))
           ? activeSave.profile.favoriteHero
           : (this.selectedColorIndex ?? 0);
+        if (activeSave?.profile) {
+          activeSave.profile.name = name;
+          activeSave.profile.favoriteHero = colorIndex;
+        }
         onHost({ name, colorIndex });
       };
     }
@@ -160,6 +178,10 @@ export const MenuMixin = {
       const colorIndex = (this.isMenuLocked && Number.isFinite(activeSave?.profile?.favoriteHero))
         ? activeSave.profile.favoriteHero
         : (this.selectedColorIndex ?? 0);
+      if (activeSave?.profile) {
+        activeSave.profile.name = name;
+        activeSave.profile.favoriteHero = colorIndex;
+      }
       onJoin(pin, { name, colorIndex });
     };
 
@@ -409,9 +431,9 @@ export const MenuMixin = {
             const num = slotId.replace('slot_', '');
             if (isSaved) {
               const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
-              this.showNarrativeMessage(`💾 Ranura ${num} cargada: ${escapeHtml(this.playerName)} (${hero.name} • Cap. ${updatedSave.campaign?.highestChapterUnlocked || 1})`, 2800);
+              this.showNarrativeMessage(`:save: Ranura ${num} cargada: ${escapeHtml(this.playerName)} (${hero.name} • Cap. ${updatedSave.campaign?.highestChapterUnlocked || 1})`, 2800);
             } else {
-              this.showNarrativeMessage(`💾 Ranura ${num} vacía seleccionada. Personaliza tu aventurero y clase.`, 2800);
+              this.showNarrativeMessage(`:save: Ranura ${num} vacía seleccionada. Personaliza tu aventurero y clase.`, 2800);
             }
           } catch (err) {
             console.warn('[MenuManager] Error cambiando ranura:', err);
@@ -474,7 +496,7 @@ export const MenuMixin = {
               const summaries = await saveManager.getAllSlotsSummary();
               await this.refreshMenuSlots(summaries);
               this.setMenuLockedState(false);
-              this.showNarrativeMessage(`🗑️ Ranura ${num} borrada. Puedes modificar tu nombre y elegir tu clase de héroe.`, 3500);
+              this.showNarrativeMessage(`:trash: Ranura ${num} borrada. Puedes modificar tu nombre y elegir tu clase de héroe.`, 3500);
             } catch (err) {
               console.error('[MenuManager] Error borrando ranura activa:', err);
               this.showNarrativeMessage(`Error al borrar: ${err.message}`, 3500);

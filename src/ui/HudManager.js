@@ -239,7 +239,7 @@ export const HudMixin = {
   showGameOver(lives, maxLives) {
     this.updateLives(lives, maxLives);
     this.showNarrativeMessage(
-      '💀 ¡GAME OVER! Has caído en la expedición. Regresando al Campamento con tus vidas restauradas.',
+      ':skull: ¡GAME OVER! Has caído en la expedición. Regresando al Campamento con tus vidas restauradas.',
       4500
     );
   },
@@ -360,7 +360,7 @@ export const HudMixin = {
     const text = String(content || '').trim();
     if (!text) return { title: '', items: [] };
 
-    // 1. Mensajes de cofre o recompensas: "📦 ¡Has abierto...! Has obtenido: 🗝️ Llave... y 💎 100..."
+    // 1. Mensajes de cofre o recompensas: ":chest: ¡Has abierto...! Has obtenido: :key: Llave... y :gem: 100..."
     if (/Has obtenido:|Recompensa:/i.test(text)) {
       const match = text.split(/Has obtenido:|Recompensa:/i);
       const title = match[0].trim();
@@ -376,7 +376,7 @@ export const HudMixin = {
         .map(i => i.trim().replace(/^\.*|\.*$/g, ''))
         .filter(Boolean);
       if (extraInstruction) {
-        const prefix = /^🚪/.test(extraInstruction) ? '' : '🚪 ';
+        const prefix = /^(:door:|\u{1F6AA})/u.test(extraInstruction) ? '' : ':door: ';
         items.push(`${prefix}${extraInstruction}`);
       }
       return { title, items };
@@ -405,10 +405,22 @@ export const HudMixin = {
     return { title: text, items: [] };
   },
 
-  showNarrativeMessage(content, durationMs = 4500) {
+  showNarrativeMessage(content, durationMs = 2400) {
     if (!this.hudMessage) return;
     const { title, items } = this.parseMessageToList(content);
     if (!title && items.length === 0) return;
+
+    // Deduplicación para no saturar con notificaciones idénticas consecutivas
+    const cleanContent = typeof content === 'string' ? content.trim() : '';
+    const now = Date.now();
+    if (this._lastNarrativeText === cleanContent && now - (this._lastNarrativeTime || 0) < 2000) {
+      return;
+    }
+    this._lastNarrativeText = cleanContent;
+    this._lastNarrativeTime = now;
+
+    // Acotar y reducir la duración para no obstruir la visión de juego
+    const effectiveDuration = Math.min(Math.max(durationMs ? Math.round(durationMs * 0.6) : 2400, 1400), 2800);
 
     this.hudMessage.style.display = 'flex';
 
@@ -449,8 +461,8 @@ export const HudMixin = {
       }, 200);
     };
 
-    // Mantener como máximo 3 alertas activas simultáneas en la lista vertical
-    while (this.hudMessage.children.length >= 3) {
+    // Mantener como máximo 2 alertas activas simultáneas en la lista vertical
+    while (this.hudMessage.children.length >= 2) {
       this.hudMessage.removeChild(this.hudMessage.firstElementChild);
     }
 
@@ -467,7 +479,7 @@ export const HudMixin = {
           }
         }
       }, 240);
-    }, durationMs);
+    }, effectiveDuration);
   },
 
   // Alias usado por DevTools para logs rápidos
