@@ -232,15 +232,16 @@ export class SimulationEngine {
       }
     }
 
-    // 5b. Sensor de losas de presión mecánicas (Pressure Plates):
+    // 5b. Sensor de Pad Losa de Presión (Pressure Pad):
+    // Se activa exclusivamente al estar físicamente encima del bloque pad (sin interacción de botón)
     if (this.onPressurePlateStep && Array.isArray(this.world.pressurePlates)) {
       for (const plate of this.world.pressurePlates) {
         if (plate.isPressed) continue;
-        const dx = p.pos.x - plate.x;
-        const dz = p.pos.z - plate.z;
-        const distSq = dx * dx + dz * dz;
-        const radius = plate.radius || 0.85;
-        if (distSq <= radius * radius && Math.abs(p.pos.y - (plate.y ?? 1.0)) < 1.0) {
+        const dx = Math.abs(p.pos.x - plate.x);
+        const dz = Math.abs(p.pos.z - plate.z);
+        const padRadius = plate.radius || 0.65;
+        // Debe encontrarse directamente encima del área física del bloque pad
+        if (dx <= padRadius && dz <= padRadius && Math.abs(p.pos.y - (plate.y ?? 1.0)) < 0.8) {
           this.onPressurePlateStep(p, plate);
         }
       }

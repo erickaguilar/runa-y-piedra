@@ -18,23 +18,6 @@ export class BlockRaycaster {
    * Retorna { type, ... } o null.
    */
   getProximityTarget(playerPos) {
-    // 0. Losas de presión mecánicas (mientras sigan activables)
-    if (Array.isArray(this.world.pressurePlates) && this.world.pressurePlates.length > 0) {
-      for (const plate of this.world.pressurePlates) {
-        if (!plate.isPressed) {
-          const dist = Math.hypot(playerPos.x - plate.x, playerPos.z - plate.z);
-          if (dist < (plate.triggerRadius || 2.4)) {
-            return {
-              type: 'pressure_plate',
-              plateId: plate.id,
-              name: plate.name || 'Losa de Presión',
-              message: plate.name || 'Losa de Presión Mecánica',
-            };
-          }
-        }
-      }
-    }
-
     // 1. Puertas definidas en el nivel
     if (Array.isArray(this.world.doors) && this.world.doors.length > 0) {
       for (const door of this.world.doors) {

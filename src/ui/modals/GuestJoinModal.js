@@ -16,6 +16,7 @@ export const GuestJoinModalMixin = {
    * @param {string} options.pin - PIN de la sala a la que se une.
    * @param {string} [options.initialName] - Nombre predeterminado.
    * @param {number} [options.initialHeroIndex] - Índice de héroe predeterminado (0..4).
+   * @param {number[]} [options.unavailableHeroIndices] - Índices de héroe ya ocupados por el anfitrión u otros jugadores.
    * @param {function} [options.onConfirm] - Callback invocado con { name, colorIndex }.
    * @param {function} [options.onCancel] - Callback al cancelar o cerrar el diálogo.
    */
@@ -23,12 +24,26 @@ export const GuestJoinModalMixin = {
     pin = '',
     initialName = '',
     initialHeroIndex = 0,
+    unavailableHeroIndices = [],
     onConfirm = () => {},
     onCancel = () => {},
   } = {}) {
     this.closeGuestJoinModal();
 
+    let unavailable = new Set(
+      (Array.isArray(unavailableHeroIndices) ? unavailableHeroIndices : [unavailableHeroIndices])
+        .map(Number)
+        .filter((n) => Number.isFinite(n) && n >= 0 && n < PLAYER_HEROES.length)
+    );
+
     let selectedHeroIndex = Math.max(0, Math.min(PLAYER_HEROES.length - 1, Number(initialHeroIndex) || 0));
+    // Si el héroe predeterminado ya está ocupado, auto-seleccionar el primer héroe libre
+    if (unavailable.has(selectedHeroIndex)) {
+      const freeHero = PLAYER_HEROES.find((h) => !unavailable.has(h.index));
+      if (freeHero) {
+        selectedHeroIndex = freeHero.index;
+      }
+    }
     const currentHero = PLAYER_HEROES[selectedHeroIndex] || PLAYER_HEROES[0];
 
     // Detectar si el nombre ya ha sido personalizado por el jugador o sigue siendo el nombre genérico de una clase
@@ -49,14 +64,21 @@ export const GuestJoinModalMixin = {
     const renderChipsHtml = () => {
       return PLAYER_HEROES.map((h) => {
         const isSelected = h.index === selectedHeroIndex;
+        const isBlocked = unavailable.has(h.index);
+        const blockedTitle = isBlocked
+          ? `${escapeHtml(h.name)} - Ya seleccionado por el Anfitrión`
+          : `${escapeHtml(h.name)} - ${escapeHtml(h.title)}`;
         return `
-          <div class="hero-chip ${isSelected ? 'selected' : ''}" 
+          <div class="hero-chip ${isSelected ? 'selected' : ''} ${isBlocked ? 'blocked disabled occupied' : ''}" 
                data-hero-index="${h.index}" 
+               data-blocked="${isBlocked ? 'true' : 'false'}"
+               ${isBlocked ? 'aria-disabled="true"' : ''}
                style="background:${h.color};--hero-color:${h.color}"
                role="button"
-               tabindex="0"
-               title="${escapeHtml(h.name)} - ${escapeHtml(h.title)}">
-            ${renderIcon(h.icon || 'shield', { size: 18, color: '#fff' })}
+               tabindex="${isBlocked ? '-1' : '0'}"
+               title="${blockedTitle}">
+            ${renderIcon(isBlocked ? 'lock' : (h.icon || 'shield'), { size: 18, color: '#fff' })}
+            ${isBlocked ? `<span class="hero-chip-lock-badge">${renderIcon('lock', { size: 10, color: '#fef08a' })}</span>` : ''}
           </div>
         `;
       }).join('');
@@ -139,14 +161,19 @@ export const GuestJoinModalMixin = {
     }
     const heroesRow = document.getElementById('guest-heroes-row');
     const heroBadge = document.getElementById('guest-hero-badge');
+    if (heroBadge) {
+      heroBadge.style.color = currentHero.color;
+      heroBadge.innerHTML = `${renderIcon(currentHero.icon || 'shield', { size: 14, color: currentHero.color })} <span>${escapeHtml(currentHero.name)} (${escapeHtml(currentHero.title)})</span>`;
+    }
     const traitContainer = document.getElementById('guest-hero-trait-container');
     const btnCancel = document.getElementById('btn-guest-cancel');
     const btnConfirm = document.getElementById('btn-guest-confirm');
     const btnClose = document.getElementById('btn-guest-modal-close');
 
-    overlay._updateSelectedHero = (idx) => updateSelectedHero(idx);
-
     const updateSelectedHero = (idx) => {
+      if (unavailable.has(idx)) {
+        return; // Héroe bloqueado por el anfitrión u otro compañero
+      }
       selectedHeroIndex = idx;
       const hero = PLAYER_HEROES[idx] || PLAYER_HEROES[0];
       if (!hasUserEditedName && nameInput) {
@@ -167,12 +194,38 @@ export const GuestJoinModalMixin = {
       }
     };
 
+    const setUnavailableHeroes = (indices) => {
+      unavailable = new Set(
+        (Array.isArray(indices) ? indices : [indices])
+          .map(Number)
+          .filter((n) => Number.isFinite(n) && n >= 0 && n < PLAYER_HEROES.length)
+      );
+      if (heroesRow) {
+        heroesRow.innerHTML = renderChipsHtml();
+      }
+      if (unavailable.has(selectedHeroIndex)) {
+        const freeHero = PLAYER_HEROES.find((h) => !unavailable.has(h.index));
+        if (freeHero) {
+          updateSelectedHero(freeHero.index);
+        }
+      }
+    };
+
+    overlay._updateSelectedHero = (idx) => updateSelectedHero(idx);
+    overlay._setUnavailableHeroes = (indices) => setUnavailableHeroes(indices);
+    this._guestJoinSetUnavailable = setUnavailableHeroes;
+
     if (heroesRow) {
       heroesRow.addEventListener('click', (e) => {
         const chip = e.target.closest('.hero-chip');
         if (!chip) return;
+        const isBlocked = chip.classList.contains('blocked') || chip.getAttribute('data-blocked') === 'true';
+        if (isBlocked) {
+          soundManager.playError?.();
+          return;
+        }
         const idx = parseInt(chip.getAttribute('data-hero-index'), 10);
-        if (!isNaN(idx)) {
+        if (!isNaN(idx) && !unavailable.has(idx)) {
           soundManager.playClick();
           updateSelectedHero(idx);
         }
@@ -180,6 +233,10 @@ export const GuestJoinModalMixin = {
     }
 
     const doConfirm = () => {
+      if (unavailable.has(selectedHeroIndex)) {
+        const freeHero = PLAYER_HEROES.find((h) => !unavailable.has(h.index));
+        if (freeHero) selectedHeroIndex = freeHero.index;
+      }
       soundManager.playClick();
       const hero = PLAYER_HEROES[selectedHeroIndex] || PLAYER_HEROES[0];
       const finalName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : hero.name;
@@ -226,12 +283,24 @@ export const GuestJoinModalMixin = {
   },
 
   /**
+   * Actualiza dinámicamente los héroes bloqueados en el modal de invitado si está abierto.
+   * @param {number[]} indices
+   */
+  setGuestModalUnavailableHeroes(indices) {
+    if (typeof this._guestJoinSetUnavailable === 'function') {
+      this._guestJoinSetUnavailable(indices);
+    }
+  },
+
+  /**
    * Cierra y elimina el diálogo de unión de invitado si está en pantalla.
    */
   closeGuestJoinModal() {
-    const input = document.getElementById('guest-player-name-input');
-    if (input && typeof input.remove === 'function') input.remove();
-    const el = document.getElementById('modal-guest-join-dialog');
-    if (el) el.remove();
+    this._guestJoinSetUnavailable = null;
+    const ids = ['guest-player-name-input', 'guest-hero-badge', 'guest-heroes-row', 'guest-hero-trait-container', 'modal-guest-join-dialog'];
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el && typeof el.remove === 'function') el.remove();
+    }
   },
 };

@@ -885,6 +885,37 @@
   box-sizing: border-box;
 }
 
+.modal-guest-box .hero-chip.blocked,
+.modal-guest-box .hero-chip.disabled {
+  opacity: 0.38 !important;
+  filter: grayscale(0.85) brightness(0.85) !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+.modal-guest-box .hero-chip.blocked:hover,
+.modal-guest-box .hero-chip.disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.modal-guest-box .hero-chip .hero-chip-lock-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  background: #dc2626;
+  border: 1.5px solid #0f172a;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
 /* ==========================================================================
    Voice Chat: Modal de Permiso de Micrófono
    ========================================================================== */

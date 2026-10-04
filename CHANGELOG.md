@@ -5,6 +5,23 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.39.0] - 2026-10-04
+
+### Added
+- **Bloqueo Reactivo de Héroes Ocupados para Invitados (`src/ui/modals/GuestJoinModal.js`, `src/ui/MenuManager.js`, `src/network/NetworkCoordinator.js`, `src/core/SessionManager.js`, `src/styles/modals.css`)**:
+  - Al ingresar a una expedición mediante PIN o enlace directo (`?join=XXXX&hh=0`), los héroes ya seleccionados por el anfitrión o compañeros se bloquean automáticamente en la interfaz.
+  - Reasignación automática instantánea al primer aventurero libre si la clase favorita coincide con una ocupada.
+  - Indicador visual `.blocked.disabled.occupied` con opacidad reducida, filtro en escala de grises, cursor `not-allowed`, tooltip informativo e insignia de candado roja.
+  - Sincronización reactiva en vivo vía WebRTC (`setGuestModalUnavailableHeroes`) al recibir metadatos de otros compañeros mientras el diálogo de unión sigue abierto.
+- **Unificación de Losa de Presión como Bloque Pad (`BLOCK_TYPES.PRESSURE_PAD`, `src/config/constants.js`, `src/interaction/BlockRaycaster.js`, `src/simulation/SimulationEngine.js`, `src/levels/LevelLoader.js`)**:
+  - Incorporación de `BLOCK_TYPES.PRESSURE_PAD = 13` dentro de la familia de bloques pad (`JUMP_PAD`, `RESPAWN_PAD`).
+  - Eliminación del botón contextual de acción en el HUD para losas (`BlockRaycaster`): no se activan con botón ni con tecla de interacción.
+  - Activación física estricta exclusivamente al situarse físicamente encima del bloque pad (`SimulationEngine`).
+- **Corrección de Arquitectura en Bóveda Umbría (`src/levels/data/shadow_vault.json`)**:
+  - Despeje del vestíbulo distribuidor inmediatamente posterior a la Puerta 1 (`z=12` y `z=13`), eliminando el muro frontal divisorio que obstruía el paso al abrir la puerta y permitiendo acceso libre y amplio a las Galerías Gemelas.
+- **Cobertura de Pruebas Unitarias (`tests/ui-manager.test.js`, `tests/chapter-2.test.js`, `tests/pressure-plate.test.js`)**:
+  - 235 pruebas unitarias automatizadas y pasando al 100%.
+
 ## [1.38.0] - 2026-10-04
 
 ### Added

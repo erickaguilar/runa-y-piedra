@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   NAME: 'Runa y Piedra',
-  VERSION: '1.38.0',
+  VERSION: '1.39.0',
 };
 
 
@@ -64,6 +64,7 @@ export const BLOCK_TYPES = {
   FLOOR_MOSS: 10,
   RESPAWN_PAD: 11,
   CEILING: 12,
+  PRESSURE_PAD: 13,
 };
 
 export const BLOCK_FLOOR_STONE = 8;
@@ -83,6 +84,7 @@ export const BLOCK_COLORS = {
   10: 0xffffff, // Adoquín con musgo
   11: 0xffffff, // Losa de Respawn / Invocación Rúnica (blanco neutro para respetar azul cian radiante y sillar oscuro del SVG)
   12: 0xffffff, // Techo y bóveda de mazmorra (blanco neutro para respetar los tonos y relieves del SVG)
+  13: 0xffffff, // Losa de Presión PRESSURE_PAD (blanco neutro para respetar basalto y runas del SVG)
 };
 
 import heroesData from '../heroes/data/heroes.json' with { type: 'json' };

@@ -59,9 +59,14 @@ export const SessionMixin = {
       this.avatars.remove(-1);
 
       const hostAddr = localStorage.getItem('dungeon_lan_ip') || window.location.host;
-      const joinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
+      const joinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}&hh=${colorIndex}`;
       this.currentJoinUrl = joinUrl;
       this.lastConnectedPin = pin;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(`dungeon_room_${pin}_host_hero`, String(colorIndex));
+        }
+      } catch {}
 
       // Entrar directamente a la partida sin segundo modal
       this.ui.currentScreen = 'in_game';
@@ -494,7 +499,12 @@ export const SessionMixin = {
       this.playerManager.setLocalProfile(name, colorIndex);
 
       const hostAddr = localStorage.getItem('dungeon_lan_ip') || window.location.host;
-      this.currentJoinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}`;
+      this.currentJoinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}&hh=${colorIndex}`;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(`dungeon_room_${pin}_host_hero`, String(colorIndex));
+        }
+      } catch {}
 
       this.applyWorldSnapshot(snap);
       this.ui.currentScreen = 'in_game';

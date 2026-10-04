@@ -161,7 +161,7 @@ test('InteractionController.pressPressurePlate abre la puerta y activa la losa c
   assert.ok(narrativeMsg && narrativeMsg.includes('Puerta 1'), 'Debe emitir feedback mencionando la Puerta');
 });
 
-test('BlockRaycaster detecta la losa de presión en proximidad', () => {
+test('El bloque pad losa se activa únicamente estando encima y NO muestra botón de interacción en BlockRaycaster', () => {
   const world = new World();
   world.loadLevel(devShowroom);
 
@@ -169,17 +169,38 @@ test('BlockRaycaster detecta la losa de presión en proximidad', () => {
   const mockVoxelMap = { mesh: new THREE.Mesh(), instToBlock: new Int32Array(10) };
   const raycaster = new BlockRaycaster(mockCamera, mockVoxelMap, world);
 
-  // Jugador a escasa distancia de la losa (x=12.0, z=10.2)
+  // 1. Verificar que BlockRaycaster NO activa ni muestra botón de interacción contextual para el pad losa
   const target = raycaster.getProximityTarget({ x: 12.0, y: 1.0, z: 10.2 });
-  assert.ok(target, 'Debe detectar un objetivo interactivo');
-  assert.equal(target.type, 'pressure_plate');
-  assert.equal(target.plateId, 'losa_showroom_puerta1');
-
-  // Si la losa ya fue presionada (y la puerta abierta por su mecanismo), ya no debe detectarse pendiente
-  world.pressurePlates[0].isPressed = true;
+  assert.notEqual(target?.type, 'pressure_plate', 'El pad losa NO debe mostrarse como botón en raycaster');
   world.openDoor(1);
-  const targetAfter = raycaster.getProximityTarget({ x: 12.0, y: 1.0, z: 10.2 });
-  assert.equal(targetAfter, null);
+  const targetWithDoorOpen = raycaster.getProximityTarget({ x: 12.0, y: 1.0, z: 10.2 });
+  assert.equal(targetWithDoorOpen, null, 'No debe haber ningún botón de interacción sobre el pad');
+
+  // 2. Verificar que se activa exclusivamente en SimulationEngine al pisar encima del pad
+  let steppedPlate = null;
+  const sim = new SimulationEngine(world, {
+    onPressurePlateStep: (player, plate) => {
+      steppedPlate = plate;
+    },
+  });
+
+  const plate = world.pressurePlates.find(p => p.id === 'losa_showroom_puerta1');
+  const dummyPlayer = new Player(0);
+
+  // Fuera del pad (a 1.2 metros al lado): NO debe activarse
+  dummyPlayer.pos.x = plate.x + 1.2;
+  dummyPlayer.pos.y = plate.y;
+  dummyPlayer.pos.z = plate.z;
+  sim.integratePlayer(dummyPlayer, 0.016, 0);
+  assert.equal(steppedPlate, null, 'No debe activarse si está fuera del pad');
+
+  // Directamente encima del bloque pad: DEBE activarse
+  dummyPlayer.pos.x = plate.x;
+  dummyPlayer.pos.y = plate.y;
+  dummyPlayer.pos.z = plate.z;
+  sim.integratePlayer(dummyPlayer, 0.016, 0);
+  assert.ok(steppedPlate, 'Debe activarse al situarse encima del bloque pad losa');
+  assert.equal(steppedPlate.id, plate.id);
 });
 
 test('Pruebas unitarias de abrir y cerrar Puerta 3 con losas de presión en la nueva sala derecha', () => {

@@ -277,11 +277,22 @@ export const NetworkCoordinatorMixin = {
             av.mesh.visible = true;
           }
           if (playerId === 0) {
+            try {
+              if (this.lastConnectedPin && typeof localStorage !== 'undefined') {
+                localStorage.setItem(`dungeon_room_${this.lastConnectedPin}_host_hero`, String(colorIndex));
+              }
+            } catch {}
             this.ui.showNarrativeMessage(`:castle: Mazmorra de ${escapeHtml(name)} (${hero.name})`, 4000);
           } else {
             this.ui.showNarrativeMessage(`:shield: ¡${escapeHtml(name)} (${hero.name}) se unió!`, 4000);
           }
         }
+        // Sincronizar héroes ocupados con el modal de unión de invitado si sigue en pantalla
+        const takenHeroes = this.playerManager.getAllPlayers()
+          .filter((p) => p.id !== local.id && Number.isFinite(p.colorIndex))
+          .map((p) => p.colorIndex);
+        this.ui.setGuestModalUnavailableHeroes?.(takenHeroes);
+
         this.ui.updatePartyList(this.playerManager.getAllPlayers());
       }
     });

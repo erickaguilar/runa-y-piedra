@@ -240,6 +240,15 @@ export class VoxelSandboxGame {
           const hero = PLAYER_HEROES[uniqueColor] || PLAYER_HEROES[0];
           this.avatars.setMetadata(local.id, name, hero.hex, hero.id || null);
           this.network.broadcast(Proto.serializePlayerMeta(local.id, uniqueColor, name));
+          try {
+            if (this.lastConnectedPin && typeof localStorage !== 'undefined') {
+              localStorage.setItem(`dungeon_room_${this.lastConnectedPin}_host_hero`, String(uniqueColor));
+            }
+            if (this.lastConnectedPin && this.currentJoinUrl) {
+              const hostAddr = localStorage.getItem('dungeon_lan_ip') || window.location.host;
+              this.currentJoinUrl = `${window.location.protocol}//${hostAddr}/?join=${this.lastConnectedPin}&hh=${uniqueColor}`;
+            }
+          } catch {}
         } else if (this.mode === 'client') {
           this.network.sendToHost(Proto.serializePlayerMeta(local.id, colorIndex, name));
         }

@@ -61,6 +61,12 @@ test('Capítulo 2 - Nivel 1 (shadow_vault) incorpora puzzle cooperativo de Puert
 
   assert.equal(world.stairwells.length, 1, 'Debe tener escalinata hacia el nivel 2');
   assert.equal(world.chests.length, 2, 'Debe tener 2 cofres con recompensas');
+
+  // El umbral inmediatamente tras la Puerta 1 (z=12 y z=13) debe estar despejado para transitar
+  assert.equal(world.get(11, 1, 12), 0, 'Bloque (11, 1, 12) tras Puerta 1 debe ser AIRE');
+  assert.equal(world.get(12, 1, 12), 0, 'Bloque (12, 1, 12) tras Puerta 1 debe ser AIRE');
+  assert.notEqual(world.get(11, 0, 12), 0, 'Bloque (11, 0, 12) debe tener suelo');
+  assert.notEqual(world.get(12, 0, 12), 0, 'Bloque (12, 0, 12) debe tener suelo');
 });
 
 test('Capítulo 2 - Nivel 2 (shadow_chasm) incorpora abismo, plataformas JUMP_PAD y llave', () => {

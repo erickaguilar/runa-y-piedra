@@ -200,11 +200,29 @@ export const MenuMixin = {
         ? activeSave.profile.name
         : (nameInput ? nameInput.value.trim() || currentHero.name : (this.playerName || currentHero.name));
 
+      // Detección de héroes no disponibles (ya elegidos por el anfitrión en el link o en la sala)
+      const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
+      const urlHostHero = urlParams?.get('hostHero') ?? urlParams?.get('hh');
+      let cachedHostHero = null;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          cachedHostHero = localStorage.getItem(`dungeon_room_${pin}_host_hero`);
+        }
+      } catch {}
+
+      const unavailableHeroIndices = [];
+      if (urlHostHero !== null && urlHostHero !== undefined && !isNaN(parseInt(urlHostHero, 10))) {
+        unavailableHeroIndices.push(parseInt(urlHostHero, 10));
+      } else if (cachedHostHero !== null && !isNaN(parseInt(cachedHostHero, 10))) {
+        unavailableHeroIndices.push(parseInt(cachedHostHero, 10));
+      }
+
       if (typeof this.showGuestJoinModal === 'function') {
         this.showGuestJoinModal({
           pin,
           initialName: currentName,
           initialHeroIndex: currentColorIndex,
+          unavailableHeroIndices,
           onConfirm: ({ name, colorIndex }) => {
             onJoin(pin, { name, colorIndex });
           },

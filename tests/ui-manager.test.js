@@ -1045,6 +1045,47 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(autoConfirmed.name, 'Merlín');
       assert.equal(autoConfirmed.colorIndex, 2);
     });
+
+    it('bloquea los héroes ya seleccionados en el host y reasigna automáticamente al primer héroe libre', () => {
+      const ui = new UIManager();
+      let confirmed = null;
+
+      // El host ya tiene el héroe 0 (Aventurero)
+      ui.showGuestJoinModal({
+        pin: '7777',
+        initialHeroIndex: 0,
+        unavailableHeroIndices: [0],
+        onConfirm: (res) => { confirmed = res; },
+      });
+
+      const modalEl = document.getElementById('modal-guest-join-dialog');
+      assert.ok(modalEl);
+
+      // El chip 0 en innerHTML debe estar marcado como bloqueado, deshabilitado y tener la insignia de candado
+      assert.match(modalEl.innerHTML, /class="hero-chip\s+[^"]*blocked disabled occupied[^"]*"\s+data-hero-index="0"\s+data-blocked="true"/);
+      assert.match(modalEl.innerHTML, /hero-chip-lock-badge/);
+
+      // La selección inicial debió moverse al primer héroe libre: 1 (Paladín)
+      const heroBadge = document.getElementById('guest-hero-badge');
+      assert.ok(heroBadge);
+      assert.match(heroBadge.innerHTML, /Paladín/);
+
+      // Intentar seleccionar el héroe 0 bloqueado programáticamente debe ser ignorado
+      modalEl._updateSelectedHero(0);
+      assert.match(heroBadge.innerHTML, /Paladín/, 'Intentar seleccionar héroe 0 bloqueado debe ser ignorado');
+
+      // Actualizar dinámicamente héroes no disponibles (p. ej. si entra otro jugador con clase 1)
+      ui.setGuestModalUnavailableHeroes([0, 1]);
+      assert.match(heroBadge.innerHTML, /Explorador/, 'Al bloquearse la clase actual debe auto-seleccionar la siguiente libre (Explorador)');
+
+      // Confirmar y validar
+      const btnConfirm = document.getElementById('btn-guest-confirm');
+      btnConfirm.onclick(new Event('click'));
+      assert.ok(confirmed);
+      assert.equal(confirmed.colorIndex, 2);
+
+      ui.closeGuestJoinModal();
+    });
   });
 });
 
