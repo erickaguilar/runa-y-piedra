@@ -93,6 +93,10 @@ export class InteractionController {
       game.soundManager?.playClick?.();
       game.ui.openChapterModal?.();
       return true;
+    } else if (interaction.type === 'pressure_plate') {
+      const plateId = interaction.plateId;
+      this.pressPressurePlate(plateId, local);
+      return true;
     }
   }
 
@@ -333,6 +337,103 @@ export class InteractionController {
   }
 
   /**
+   * Cierra una puerta batiente:
+   * Restaura la colisión en el mundo, devuelve las hojas batientes con resorte y reproduce el sonido de cerrojo.
+   */
+  closeDoor(doorId = 1, closer = null) {
+    const game = this.game;
+    const door = game.world.doors?.find(d => d.id === doorId);
+    const isOpen = door?.isOpen ?? (game.world.isDoorOpenId ? game.world.isDoorOpenId(doorId) : (doorId === 1 ? game.world.isDoor1Open : game.world.isDoor2Open));
+    if (!isOpen) return false;
+
+    game.world.closeDoor?.(doorId);
+    game.voxelMap?.closeDoor?.(doorId);
+    game.doorRenderer?.closeDoor?.(doorId);
+
+    const doorZ = door?.z ?? (doorId === 1 ? 11 : 24);
+    const doorX = door?.x1 ? (door.x1 + door.x2) / 2 : 12.0;
+    const local = game.playerManager?.localPlayer;
+    if (local) {
+      game.soundManager?.playDoorClose?.({ x: doorX, y: 2.0, z: doorZ + 0.5 }, local.pos);
+    } else {
+      game.soundManager?.playDoorClose?.();
+    }
+
+    const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
+    game.openedDoorKeys?.delete(`${currentLevelId}_door_${doorId}`);
+    game.openedDoorKeys?.delete(`${currentLevelId}:${doorId}`);
+
+    const defaultMsg = `:door: ¡Puerta ${doorId} cerrada! El mecanismo de cerrojo ha sido accionado.`;
+    const msg = door?.closeMessage || defaultMsg;
+    game.ui?.showNarrativeMessage?.(msg, 4500);
+
+    return true;
+  }
+
+  /**
+   * Presiona una losa de presión mecánica:
+   * Activa su animación de descenso con resorte, reproduce el clic pétreo y ejecuta la acción (abrir, cerrar o alternar puerta).
+   */
+  pressPressurePlate(plateId, player = null) {
+    const game = this.game;
+    const plate = game.world.pressurePlates?.find(p => p.id === plateId);
+    if (!plate || plate.isPressed) return false;
+
+    plate.isPressed = true;
+    game.pressurePlateRenderer?.press(plate.id);
+
+    const local = game.playerManager?.localPlayer;
+    const listener = player?.pos || local?.pos;
+    if (game.soundManager?.playPressurePlate) {
+      game.soundManager.playPressurePlate({ x: plate.x, y: plate.y, z: plate.z }, listener);
+    } else {
+      game.soundManager?.playClick?.();
+    }
+
+    const doorId = plate.targetDoorId ?? 1;
+
+    // Ejecución de la acción vinculada
+    if (plate.action === 'close_door') {
+      this.closeDoor(doorId, player || local);
+      // Reactivar losas de apertura para esta misma puerta
+      for (const other of game.world.pressurePlates || []) {
+        if (other !== plate && other.targetDoorId === doorId && other.action === 'open_door') {
+          other.isPressed = false;
+          game.pressurePlateRenderer?.unpress(other.id);
+        }
+      }
+    } else if (plate.action === 'toggle_door') {
+      const isOpen = game.world.isDoorOpenId ? game.world.isDoorOpenId(doorId) : (doorId === 1 ? game.world.isDoor1Open : game.world.isDoor2Open);
+      if (isOpen) {
+        this.closeDoor(doorId, player || local);
+      } else {
+        this.openDoor(doorId, player || local);
+      }
+    } else {
+      // Default: 'open_door'
+      this.openDoor(doorId, player || local);
+      // Reactivar losas de cierre para esta misma puerta
+      for (const other of game.world.pressurePlates || []) {
+        if (other !== plate && other.targetDoorId === doorId && other.action === 'close_door') {
+          other.isPressed = false;
+          game.pressurePlateRenderer?.unpress(other.id);
+        }
+      }
+    }
+
+    // Registrar en losas presionadas
+    const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
+    game.openedPlateKeys = game.openedPlateKeys || new Set();
+    game.openedPlateKeys.add(`${currentLevelId}_plate_${plate.id}`);
+
+    // Feedback narrativo de activación
+    const msg = plate.message || `:stone: ¡Click! Has presionado la losa mecánica. ¡Mecanismo activado!`;
+    game.ui?.showNarrativeMessage?.(msg, 5000);
+
+    return true;
+  }
+
+  /**
    * Petición de portal (solo Host): valida distancia al altar y arranca la ceremonia
    * para todos. Si hay siguiente mazmorra, viajan tras la ceremonia; si no, victoria.
    */
@@ -527,7 +628,7 @@ export class InteractionController {
         || game.chapterRegistry?.getCurrentChapter();
 
       let unlockMsg = '';
-      if (curChapter && game.chapterRegistry) {
+      if (curChapter && game.chapterRegistry && game.mode !== 'client') {
         const result = game.chapterRegistry.completeChapter(curChapter.id);
         if (result?.nextChapter) {
           unlockMsg = ` :star: ¡Capítulo ${result.nextChapter.number} desbloqueado: ${result.nextChapter.name}!`;

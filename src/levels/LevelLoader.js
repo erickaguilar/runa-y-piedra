@@ -108,10 +108,25 @@ export class LevelLoader {
     world.objectives = levelData.objectives || [];
     world.monoliths = levelData.monoliths || [];
     world.torches = levelData.torches || [];
+    world.heroShowcases = levelData.heroShowcases || [];
     world.chests = (levelData.chests || []).map(c => ({
       ...c,
       yaw: parseOrientationYaw(c),
       isOpen: false,
+    }));
+    world.pressurePlates = (levelData.pressurePlates || []).map((p, idx) => ({
+      ...p,
+      id: p.id || `plate_${idx + 1}`,
+      x: p.x ?? 12,
+      y: p.y ?? 1.0,
+      z: p.z ?? 10,
+      radius: p.radius ?? 0.85,
+      triggerRadius: p.triggerRadius ?? 2.4,
+      targetDoorId: p.targetDoorId ?? 1,
+      action: p.action || 'open_door',
+      isPressed: !!p.isPressed,
+      name: p.name || 'Losa de Presión Mecánica',
+      message: p.message || ':stone: ¡Click! Has presionado la losa mecánica.',
     }));
     // Escalinata de descenso:
     // - Si el nivel define "stairs" explícito se usa (openFromStart para fosa abierta).
@@ -230,6 +245,9 @@ export class LevelLoader {
         const blockType = BLOCK_TYPES[region.block] ?? BLOCK_TYPES.WALL;
         const doorOpening = region.doorOpening || [11, 12];
 
+        const hasDoor = region.doorId !== undefined && region.doorId !== null;
+        const openHeight = region.openHeight || (hasDoor ? 2 : 3);
+
         for (let x = 1; x < sizeX - 1; x++) {
           // Suelo sólido firme bajo el muro divisor y bajo el umbral de la puerta
           world.set(x, 0, z, floorVariant(x, z));
@@ -240,8 +258,8 @@ export class LevelLoader {
 
           for (let y = 1; y <= height; y++) {
             if (doorOpening.includes(x)) {
-              if (y === 1 || y === 2) {
-                world.set(x, y, z, BLOCK_TYPES.DOOR);
+              if (y <= openHeight) {
+                world.set(x, y, z, hasDoor ? BLOCK_TYPES.DOOR : BLOCK_TYPES.AIR);
               } else {
                 world.set(x, y, z, blockType); // Dintel superior
               }

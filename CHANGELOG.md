@@ -5,6 +5,27 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.38.0] - 2026-10-04
+
+### Added
+- **Chat de Voz WebRTC con PeerJS y Audio Aislado (`src/network/NetworkManager.js`, `src/network/NetworkCoordinator.js`, `src/ui/modals/VoiceModal.js`, `src/ui/HudManager.js`, `index.html`)**:
+  - Implementación de chat de voz P2P de latencia ultrabaja mediante llamadas de medios WebRTC (`peer.call()`), desacoplado completamente de la síntesis procedural de audio del juego (`SoundManager`) en elementos `<audio playsinline autoplay>` independientes.
+  - Cancelación de eco, supresión de ruido y control automático de ganancia (`echoCancellation: true`, `noiseSuppression: true`, `autoGainControl: true`).
+  - Modal de activación explícita (`VoiceModal`) con gestión de políticas de autoplay en navegadores móviles (iOS Safari / Android Chrome).
+  - Botón reactivo `#btn-mute` en el HUD con iconos vectoriales SVG para alternar el micrófono o solicitar permisos de voz durante la partida.
+- **Mecánica de Losas de Presión Mecánicas y Sala de Pruebas (`src/render/PressurePlateRenderer.js`, `src/render/models/props/pressurePlateModel.js`, `src/controllers/InteractionController.js`, `src/simulation/SimulationEngine.js`, `src/levels/data/dev_showroom.json`)**:
+  - Losas de presión 3D procedurales con física de resorte amortiguado (`Spring`), sonido pétreo (`playPressurePlate`, `playDoorClose`) y vinculación autoritativa a puertas (`open_door`, `close_door`, `toggle_door`).
+  - Sala de pruebas unitarias dedicada en el Showroom de Desarrollo (`dev_showroom.json`) con la Puerta 3 y losas independientes de apertura y cierre.
+- **Capítulo 2: Cripta de las Sombras (`src/levels/ChapterRegistry.js`, `src/levels/LevelRegistry.js`, `src/levels/data/shadow_vault.json`, `src/levels/data/shadow_chasm.json`, `src/levels/data/shadow_sanctum.json`)**:
+  - Apertura y disponibilidad completa del Capítulo 2 en el Atlas de Expedición (10 capítulos).
+  - Trilogía de mazmorras completa:
+    1. `shadow_vault` (Bóveda Umbría): Puzzle cooperativo de Puertas Gemelas con activación cruzada de losas de presión y escalinata hacia las profundidades.
+    2. `shadow_chasm` (Abismo de las Sombras): Plataformas de salto `JUMP_PAD` escalonadas sobre el foso de lava y búsqueda de la Llave de las Sombras.
+    3. `shadow_sanctum` (Santuario Crepuscular): Clímax de capítulo con consagración del Altar Crepuscular, registro de récords y desbloqueo del Capítulo 3.
+- **Cobertura de Pruebas Unitarias Ampliada (`tests/voice-chat.test.js`, `tests/chapter-2.test.js`, `tests/pressure-plate.test.js`)**:
+  - Nuevas suites de pruebas unitarias para chat de voz WebRTC, losas de presión y progresión del Capítulo 2.
+  - **234 pruebas unitarias ejecutadas y pasando al 100%**.
+
 ## [1.37.0] - 2026-10-02
 
 ### Added

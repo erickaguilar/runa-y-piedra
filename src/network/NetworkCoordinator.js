@@ -10,6 +10,7 @@ import { NET_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from '../config/constants.js'
 import { escapeHtml } from '../ui/Icons.js';
 import { electLeader, deriveMigrationPin } from './LeaderElection.js';
 import { loadWorldSnapshot, clearWorldSnapshot } from './HostSnapshot.js';
+import { showVoicePrompt } from '../ui/modals/VoiceModal.js';
 
 export const NetworkCoordinatorMixin = {
   /** Difunde el roster de peers autoritativo a todos los clientes */
@@ -103,10 +104,22 @@ export const NetworkCoordinatorMixin = {
 
       this.ui.updatePartyList(this.playerManager.getAllPlayers());
       this.broadcastRoster();
+
+      // Solicitar o iniciar llamada de voz WebRTC en el Host
+      if (this.network.isHost && conn?.peer) {
+        if (this.network.localStream) {
+          this.network.startVoiceCall(conn.peer);
+        } else {
+          showVoicePrompt(() => {
+            this.network.startVoiceCall(conn.peer);
+          });
+        }
+      }
     });
 
     this.network.addEventListener('peer-left', (e) => {
       this.inputQueue.remove(e.detail.conn);
+      this.network?._cleanupMedia?.(e.detail?.conn?.peer);
       const removedPlayer = this.playerManager.removeByConnection(e.detail.conn);
       if (removedPlayer) {
         this.avatars.remove(removedPlayer.id);
@@ -338,6 +351,7 @@ export const NetworkCoordinatorMixin = {
       this.chestRenderer.loadChests(this.world.chests);
       this.doorRenderer.loadDoors(this.world.doors);
       this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
+      this.pressurePlateRenderer?.loadPressurePlates(this.world.pressurePlates);
       this.interaction.ensureStairsState();
       if (this.world.isDoor1Open) {
         this.doorRenderer.setOpenInstant(1);

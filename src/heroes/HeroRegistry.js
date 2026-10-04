@@ -6,7 +6,7 @@
  * their custom icons, attributes, and gameplay multipliers.
  */
 
-import heroesData from './data/heroes.json';
+import heroesData from './data/heroes.json' with { type: 'json' };
 
 export class HeroRegistry {
   constructor() {

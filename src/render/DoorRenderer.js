@@ -110,6 +110,16 @@ export class DoorRenderer {
     return true;
   }
 
+  closeDoor(id = 1) {
+    const d = this.doors.get(id);
+    if (!d || !d.isOpen) return false;
+
+    d.isOpen = false;
+    d.leftSpring.set(0);
+    d.rightSpring.set(0);
+    return true;
+  }
+
   isDoorOpen(id = 1) {
     const d = this.doors.get(id);
     return d ? d.isOpen : false;
@@ -125,6 +135,18 @@ export class DoorRenderer {
     d.rightSpring.snap(d.targetRight);
     d.leftPivot.rotation.y = d.targetLeft;
     d.rightPivot.rotation.y = d.targetRight;
+  }
+
+  /** Cierre instantáneo sin animación. */
+  setClosedInstant(id = 1) {
+    const d = this.doors.get(id);
+    if (!d) return;
+
+    d.isOpen = false;
+    d.leftSpring.snap(0);
+    d.rightSpring.snap(0);
+    d.leftPivot.rotation.y = 0;
+    d.rightPivot.rotation.y = 0;
   }
 
   update(dt = 0.016) {

@@ -81,7 +81,7 @@ export function createDefaultSave(slotId = DEFAULT_SLOT_ID) {
     updatedAt: Date.now(),
     checksum: '',
     profile: {
-      name: 'Aventurero',
+      name: '',
       favoriteHero: 0,
       settings: {
         camera: 'first',
@@ -421,6 +421,18 @@ export class SaveManager {
     this.listeners = new Set();
     this._cachedSummaries = null;
     this._persistedSlots = new Set();
+    this._isGuestMode = false;
+  }
+
+  /**
+   * Activa o desactiva la protección contra escritura de partidas en modo invitado.
+   */
+  setGuestMode(enabled) {
+    this._isGuestMode = !!enabled;
+  }
+
+  isGuestMode() {
+    return !!this._isGuestMode;
   }
 
   /**
@@ -562,6 +574,10 @@ export class SaveManager {
    * 5. Escribe espejo legacy para compatibilidad con código existente.
    */
   async saveSlot(slotId, data) {
+    if (this._isGuestMode) {
+      console.warn(`[SaveManager] Guardado omitido en ranura ${slotId}: Modo invitado activo para proteger partidas locales.`);
+      return this.currentSave;
+    }
     const activeKey = `save_${slotId}_active`;
     const backupKey = `save_${slotId}_backup`;
     const tempKey = `save_${slotId}_temp`;
@@ -609,6 +625,9 @@ export class SaveManager {
    * hasta culminar con éxito una expedición (saveDungeonCompletion).
    */
   async saveCurrent() {
+    if (this._isGuestMode) {
+      return this.currentSave;
+    }
     if (!this._persistedSlots.has(String(this.currentSlotId))) {
       return this.currentSave;
     }
@@ -786,6 +805,9 @@ export class SaveManager {
    * Regla de negocio: El progreso de campaña y el botín recolectado solo se persisten en disco al completar con éxito una mazmorra.
    */
   async saveDungeonCompletion({ levelId, chapterId, isVictory = false, campaign = null, inventory = null } = {}) {
+    if (this._isGuestMode) {
+      return this.currentSave;
+    }
     if (campaign && typeof campaign === 'object') {
       this.currentSave.campaign = {
         ...this.currentSave.campaign,
@@ -828,6 +850,9 @@ export class SaveManager {
   }
 
   updateCampaign(partialCampaign, { immediateSave = false } = {}) {
+    if (this._isGuestMode) {
+      return this.currentSave.campaign;
+    }
     this.currentSave.campaign = {
       ...this.currentSave.campaign,
       ...partialCampaign,
@@ -844,6 +869,9 @@ export class SaveManager {
   }
 
   updateProfile(partialProfile) {
+    if (this._isGuestMode) {
+      return this.currentSave.profile;
+    }
     this.currentSave.profile = {
       ...this.currentSave.profile,
       ...partialProfile,
@@ -874,6 +902,9 @@ export class SaveManager {
   }
 
   updateInventory(partialInventory) {
+    if (this._isGuestMode) {
+      return this.currentSave.inventory;
+    }
     this.currentSave.inventory = {
       ...this.currentSave.inventory,
       ...partialInventory,

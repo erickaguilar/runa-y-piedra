@@ -1,0 +1,191 @@
+{
+  "id": "shadow_vault",
+  "name": "Bóveda Umbría: Las Galerías Gemelas",
+  "description": "Explora la cripta de basalto. Coordina la activación de las losas rúnicas cruzadas para abrir las Puertas Gemelas y descender.",
+  "difficulty": "Desafiante",
+  "icon": "pickaxe",
+  "dimensions": {
+    "sizeX": 24,
+    "sizeY": 16,
+    "sizeZ": 36
+  },
+  "spawn": {
+    "x": 12.0,
+    "y": 1.2,
+    "z": 2.5,
+    "facing": "north"
+  },
+  "pressurePlates": [
+    {
+      "id": "losa_umbral_boveda",
+      "name": "Losa del Umbral de Sombra",
+      "x": 6.0,
+      "y": 1.0,
+      "z": 7.0,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 1,
+      "action": "open_door",
+      "reusable": true,
+      "message": ":door: ¡Click! Has presionado la Losa del Umbral. ¡La Puerta 1 de las Galerías se ha abierto!"
+    },
+    {
+      "id": "losa_gemela_izq",
+      "name": "Losa Cruzada Izquierda",
+      "x": 6.0,
+      "y": 1.0,
+      "z": 19.0,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 3,
+      "action": "open_door",
+      "reusable": true,
+      "message": ":door: ¡Click! ¡La losa izquierda ha abierto la Puerta Derecha de tu compañero!"
+    },
+    {
+      "id": "losa_gemela_der",
+      "name": "Losa Cruzada Derecha",
+      "x": 18.0,
+      "y": 1.0,
+      "z": 19.0,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 2,
+      "action": "open_door",
+      "reusable": true,
+      "message": ":door: ¡Click! ¡La losa derecha ha abierto la Puerta Izquierda de tu compañero!"
+    }
+  ],
+  "doors": [
+    {
+      "id": 1,
+      "name": "Puerta 1 (Acceso a Galerías)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 11,
+      "swingDir": 1,
+      "coords": [
+        { "x": 11, "y": 1, "z": 11 },
+        { "x": 11, "y": 2, "z": 11 },
+        { "x": 12, "y": 1, "z": 11 },
+        { "x": 12, "y": 2, "z": 11 }
+      ],
+      "openMessage": ":door: ¡Puerta 1 abierta! Acceso a las Galerías Gemelas. ¡Coordinaos para abrir el paso!"
+    },
+    {
+      "id": 2,
+      "name": "Puerta Gemela Izquierda",
+      "x1": 5,
+      "x2": 7,
+      "y1": 1,
+      "y2": 3,
+      "z": 24,
+      "swingDir": 1,
+      "coords": [
+        { "x": 5, "y": 1, "z": 24 },
+        { "x": 5, "y": 2, "z": 24 },
+        { "x": 6, "y": 1, "z": 24 },
+        { "x": 6, "y": 2, "z": 24 }
+      ],
+      "openMessage": ":door: ¡Puerta Gemela Izquierda abierta! El camino a la Cripta de las Estelas está despejado."
+    },
+    {
+      "id": 3,
+      "name": "Puerta Gemela Derecha",
+      "x1": 17,
+      "x2": 19,
+      "y1": 1,
+      "y2": 3,
+      "z": 24,
+      "swingDir": 1,
+      "coords": [
+        { "x": 17, "y": 1, "z": 24 },
+        { "x": 17, "y": 2, "z": 24 },
+        { "x": 18, "y": 1, "z": 24 },
+        { "x": 18, "y": 2, "z": 24 }
+      ],
+      "openMessage": ":door: ¡Puerta Gemela Derecha abierta! El camino a la Cripta de las Estelas está despejado."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "sala_1",
+      "name": "Sala 1 (Vestíbulo Umbrío)",
+      "minZ": 0,
+      "maxZ": 11.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 2.5 }
+    },
+    {
+      "id": "sala_2",
+      "name": "Sala 2 (Galerías Gemelas)",
+      "minZ": 11.5,
+      "maxZ": 24.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 12.5 }
+    },
+    {
+      "id": "sala_3",
+      "name": "Sala 3 (Cripta de las Estelas)",
+      "minZ": 24.5,
+      "maxZ": 36.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 25.5 }
+    }
+  ],
+  "objectives": [],
+  "stairs": { "x1": 11, "x2": 12, "z1": 31, "z2": 33, "openFromStart": true },
+  "chests": [
+    {
+      "id": 1,
+      "name": "Cofre de las Sombras",
+      "x": 18.5,
+      "y": 1.0,
+      "z": 6.5,
+      "facing": "west",
+      "reward": ":potion: Poción de Vida y :gem: 150 Gemas",
+      "message": ":chest: ¡Has abierto el Cofre de las Sombras! Has obtenido: :potion: Poción de Vida (+1 :heart:) y :gem: 150 Gemas.",
+      "potion": {
+        "id": "pocion_vida",
+        "name": "Poción de Vida",
+        "healAmount": 1,
+        "icon": "potion",
+        "color": "#f43f5e"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Cofre de Basalto Milenario",
+      "x": 6.5,
+      "y": 1.0,
+      "z": 28.5,
+      "facing": "east",
+      "reward": ":trophy: Reliquia Umbría y :gem: 300 Gemas",
+      "message": ":chest: ¡Has abierto el Cofre de Basalto! Has obtenido: :trophy: Espejo de Sombras y :gem: 300 Gemas."
+    }
+  ],
+  "regions": [
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 12], "to": [10, 0, 24] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [14, 0, 12], "to": [22, 0, 24] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 24], "to": [22, 0, 34] },
+    { "type": "perimeter", "height": 5, "block": "WALL" },
+    { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
+    { "type": "divider", "z": 24, "height": 5, "block": "WALL", "doorOpening": [5, 6, 17, 18] },
+    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+    { "type": "fill", "block": "WALL", "from": [11, 1, 12], "to": [13, 5, 23] },
+    { "type": "fill", "block": "AIR", "from": [11, 1, 13], "to": [13, 3, 13] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [11, 0, 13], "to": [13, 0, 13] },
+    { "type": "fill", "block": "LAVA", "from": [2, -1, 16], "to": [9, -1, 17] },
+    { "type": "fill", "block": "AIR", "from": [2, 0, 16], "to": [9, 0, 17] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 15], "to": [6, 0, 15] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [5, 0, 18], "to": [6, 0, 18] },
+    { "type": "fill", "block": "LAVA", "from": [15, -1, 16], "to": [21, -1, 17] },
+    { "type": "fill", "block": "AIR", "from": [15, 0, 16], "to": [21, 0, 17] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 15], "to": [18, 0, 15] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [17, 0, 18], "to": [18, 0, 18] },
+    { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 5, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 29, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 29, "height": 5, "block": "PILLAR" }
+  ]
+}

@@ -8,7 +8,11 @@ import {
   buildSharedMaterials,
   buildBaseAvatarMesh,
   GEAR_BUILDERS,
+  createNameSprite,
 } from '../src/render/models/heroes/index.js';
+import { AvatarRenderer } from '../src/render/AvatarRenderer.js';
+import { HeroShowcaseRenderer } from '../src/render/HeroShowcaseRenderer.js';
+import devShowroom from '../src/levels/data/dev_showroom.json' with { type: 'json' };
 
 import {
   createChestGeometries,
@@ -50,15 +54,15 @@ test('Modelos Héroes: buildBaseAvatarMesh construye la jerarquía 3D con pivote
   assert.ok(parts.armLPivot instanceof THREE.Group, 'armLPivot debe ser Group');
   assert.ok(parts.armRPivot instanceof THREE.Group, 'armRPivot debe ser Group');
   assert.ok(parts.legLPivot instanceof THREE.Group, 'legLPivot debe ser Group');
-  assert.ok(parts.legRPivot instanceof THREE.Group, 'legRPivot debe ser Group');
-  assert.equal(heroMats.length, 2, 'Debe devolver materiales propios de túnica y pelo');
+  assert.ok(parts.neck instanceof THREE.Mesh, 'neck debe ser Mesh');
+  assert.equal(heroMats.length, 3, 'Debe devolver materiales propios de túnica, manga y pantalón');
 });
 
-test('Modelos Héroes: GEAR_BUILDERS construye el equipamiento para las 4 clases de héroe', () => {
+test('Modelos Héroes: GEAR_BUILDERS construye el equipamiento para las 5 clases de héroe', () => {
   const geos = buildSharedGeometries();
   const mats = buildSharedMaterials();
 
-  const heroClasses = ['paladin', 'ranger', 'wizard', 'guardian'];
+  const heroClasses = ['adventurer', 'paladin', 'ranger', 'wizard', 'guardian'];
   for (const hero of heroClasses) {
     const { root, parts } = buildBaseAvatarMesh('#38bdf8', geos, mats);
     const gearGroup = new THREE.Group();
@@ -227,4 +231,64 @@ test('ChestRenderer: loadChests aplica rotaciones de 90 grados a chestGroup y pr
   assert.equal(c2.chestGroup.rotation.y, Math.PI / 2, 'La rotación del cofre debe conservarse al abrirse');
 
   renderer.dispose();
+});
+
+test('Nameplate: resolución de displayName para apodos y clases de héroe', () => {
+  // 1. Jugador 1: nombre "Roberto", héroe Paladín → debe decir "Roberto"
+  const s1 = createNameSprite('Roberto', '#f43f5e', 'paladin');
+  assert.equal(s1.userData.displayName, 'Roberto');
+  assert.equal(s1.userData.heroId, 'paladin');
+
+  // 2. Jugador 2: sin nombre ("" o null), héroe Hechicero → debe decir "Hechicero"
+  const s2 = createNameSprite('', '#a855f7', 'wizard');
+  assert.equal(s2.userData.displayName, 'Hechicero');
+  assert.equal(s2.userData.heroId, 'wizard');
+
+  const s2Null = createNameSprite(null, '#a855f7', 'wizard');
+  assert.equal(s2Null.userData.displayName, 'Hechicero');
+
+  // 3. Jugador 3: sin nombre, héroe Aventurero → debe decir "Aventurero"
+  const s3 = createNameSprite('', '#38bdf8', 'adventurer');
+  assert.equal(s3.userData.displayName, 'Aventurero');
+
+  // 4. Caso bug: nombre legacy por defecto "Aventurero", pero héroe Paladín → debe decir "Paladín"
+  const s4 = createNameSprite('Aventurero', '#f43f5e', 'paladin');
+  assert.equal(s4.userData.displayName, 'Paladín');
+
+  // 5. AvatarRenderer.setMetadata integra heroId y actualiza el sprite correctamente
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  ar.setMetadata(1, '', '#f43f5e', 'paladin');
+  const av = ar.avatars.get(1);
+  assert.ok(av.sprite, 'El sprite debe estar creado en el avatar');
+  assert.equal(av.sprite.userData.displayName, 'Paladín');
+
+  // Si luego se le asigna apodo explícito
+  ar.setMetadata(1, 'SirErick', '#f43f5e', 'paladin');
+  assert.equal(av.sprite.userData.displayName, 'SirErick');
+
+  ar.dispose();
+});
+
+test('HeroShowcaseRenderer: carga y exhibe los 5 avatares en la nueva sala del showroom', () => {
+  const scene = new THREE.Scene();
+  const showcaseRenderer = new HeroShowcaseRenderer(scene);
+
+  assert.ok(Array.isArray(devShowroom.heroShowcases), 'devShowroom debe definir heroShowcases');
+  assert.equal(devShowroom.heroShowcases.length, 5, 'devShowroom debe tener 5 héroes');
+
+  showcaseRenderer.loadShowcases(devShowroom.heroShowcases);
+  assert.equal(showcaseRenderer.showcases.length, 5, 'Debe haber 5 avatares cargados en el showroom');
+
+  const heroIds = showcaseRenderer.showcases.map(s => s.id);
+  assert.deepEqual(heroIds, ['adventurer', 'paladin', 'ranger', 'wizard', 'guardian']);
+
+  for (const s of showcaseRenderer.showcases) {
+    assert.ok(s.root instanceof THREE.Group, 'Cada avatar debe tener una malla root');
+    assert.ok(s.sprite instanceof THREE.Sprite, 'Cada avatar debe tener su sprite nameplate');
+    assert.ok(s.gearMats.length > 0, 'Cada avatar debe tener materiales de gear cargados');
+  }
+
+  showcaseRenderer.dispose();
+  assert.equal(showcaseRenderer.showcases.length, 0);
 });

@@ -126,6 +126,20 @@ export const MenuMixin = {
           if (traitContainer) {
             traitContainer.innerHTML = this.renderHeroTraitCard(hero);
           }
+
+          // Si el nombre no ha sido personalizado (o coincide con una clase), adaptarlo al héroe seleccionado
+          const isHeroName = (n) => !n || PLAYER_HEROES.some((h) => h.name.toLowerCase() === n.trim().toLowerCase());
+          const currentVal = nameInput ? nameInput.value.trim() : (this.playerName || '');
+          if (isHeroName(currentVal)) {
+            if (nameInput) nameInput.value = hero.name;
+            this.playerName = hero.name;
+            try {
+              saveManager.updateProfile({ name: hero.name });
+            } catch {}
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem('dungeon_player_name', hero.name);
+            }
+          }
         };
       });
     }
@@ -138,8 +152,9 @@ export const MenuMixin = {
           e.preventDefault();
           return;
         }
+        const currentHero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
         const val = e.target.value.trim();
-        this.playerName = val || 'Aventurero';
+        this.playerName = val || currentHero.name;
         try {
           saveManager.updateProfile({ name: this.playerName });
         } catch {}
@@ -154,12 +169,13 @@ export const MenuMixin = {
     if (btnHost) {
       btnHost.onclick = () => {
         const activeSave = saveManager.currentSave;
-        const name = (this.isMenuLocked && activeSave?.profile?.name)
-          ? activeSave.profile.name
-          : (nameInput ? nameInput.value.trim() || 'Aventurero' : (this.playerName || 'Aventurero'));
         const colorIndex = (this.isMenuLocked && Number.isFinite(activeSave?.profile?.favoriteHero))
           ? activeSave.profile.favoriteHero
           : (this.selectedColorIndex ?? 0);
+        const currentHero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+        const name = (this.isMenuLocked && activeSave?.profile?.name)
+          ? activeSave.profile.name
+          : (nameInput ? nameInput.value.trim() || currentHero.name : (this.playerName || currentHero.name));
         if (activeSave?.profile) {
           activeSave.profile.name = name;
           activeSave.profile.favoriteHero = colorIndex;
@@ -168,21 +184,34 @@ export const MenuMixin = {
       };
     }
 
-    // 4. Unirse
+    // 4. Unirse con selector interactivo de héroe para invitados
     const handleJoin = () => {
       const pin = document.getElementById('pin-input')?.value?.trim() || '';
+      if (!pin) {
+        this.setStatus('Introduce el PIN de la sala');
+        return;
+      }
       const activeSave = saveManager.currentSave;
-      const name = (this.isMenuLocked && activeSave?.profile?.name)
-        ? activeSave.profile.name
-        : (nameInput ? nameInput.value.trim() || 'Aventurero' : (this.playerName || 'Aventurero'));
-      const colorIndex = (this.isMenuLocked && Number.isFinite(activeSave?.profile?.favoriteHero))
+      const currentColorIndex = (this.isMenuLocked && Number.isFinite(activeSave?.profile?.favoriteHero))
         ? activeSave.profile.favoriteHero
         : (this.selectedColorIndex ?? 0);
-      if (activeSave?.profile) {
-        activeSave.profile.name = name;
-        activeSave.profile.favoriteHero = colorIndex;
+      const currentHero = PLAYER_HEROES[currentColorIndex] || PLAYER_HEROES[0];
+      const currentName = (this.isMenuLocked && activeSave?.profile?.name)
+        ? activeSave.profile.name
+        : (nameInput ? nameInput.value.trim() || currentHero.name : (this.playerName || currentHero.name));
+
+      if (typeof this.showGuestJoinModal === 'function') {
+        this.showGuestJoinModal({
+          pin,
+          initialName: currentName,
+          initialHeroIndex: currentColorIndex,
+          onConfirm: ({ name, colorIndex }) => {
+            onJoin(pin, { name, colorIndex });
+          },
+        });
+      } else {
+        onJoin(pin, { name: currentName, colorIndex: currentColorIndex });
       }
-      onJoin(pin, { name, colorIndex });
     };
 
     const btnJoin = document.getElementById('btn-join');
@@ -200,6 +229,9 @@ export const MenuMixin = {
     if (joinParam && pinInput) {
       pinInput.value = joinParam;
       this.setStatus(`Invitación a sala ${joinParam} detectada`);
+      setTimeout(() => {
+        handleJoin();
+      }, 350);
     }
 
     // 6. Ranuras de Guardado en el Menú Principal

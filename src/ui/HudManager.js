@@ -31,6 +31,15 @@ export const HudMixin = {
     if (this.settingsBtn) {
       this.settingsBtn.style.display = visible ? 'flex' : 'none';
     }
+    if (!visible && this.muteBtn) {
+      this.muteBtn.style.display = 'none';
+    }
+  },
+
+  setVoiceButtonVisible(visible) {
+    if (this.muteBtn) {
+      this.muteBtn.style.display = visible ? 'flex' : 'none';
+    }
   },
 
   setActionButtonsVisible(visible) {
@@ -77,6 +86,7 @@ export const HudMixin = {
       stairs: ['stairs', isTouch ? 'EMPUJAR' : '[E] EMPUJAR'],
       pedestal: ['sparkles', isTouch ? 'ACTIVAR' : '[E] ACTIVAR'],
       cartography: ['compass', isTouch ? 'MAPA' : '[E] MAPA'],
+      pressure_plate: ['stone', isTouch ? 'PISAR' : '[E] PRESIONAR'],
     };
     if (MAP[key]) {
       if (iconEl) iconEl.innerHTML = renderIcon(MAP[key][0], { size: 26 });
@@ -492,5 +502,50 @@ export const HudMixin = {
       this.hudMessage.innerHTML = '';
       this.hudMessage.style.display = 'none';
     }
+  },
+
+  bindVoice(network) {
+    if (!this.muteBtn || this.muteBtn.__bound) return;
+    this.muteBtn.__bound = true;
+
+    const updateMuteUI = () => {
+      const isMuted = network ? network.isMuted() : true;
+      const iconOn = this.muteBtn.querySelector('.icon-mic-on');
+      const iconOff = this.muteBtn.querySelector('.icon-mic-off');
+      if (iconOn) iconOn.style.display = isMuted ? 'none' : 'block';
+      if (iconOff) iconOff.style.display = isMuted ? 'block' : 'none';
+      this.muteBtn.classList.toggle('muted', isMuted);
+    };
+
+    const handleMuteClick = async (e) => {
+      if (e) {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+      }
+      soundManager.playClick?.();
+      if (!network) return;
+
+      if (!network.localStream) {
+        const stream = await network._ensureLocalStream();
+        if (stream && network.isHost && Array.isArray(network.connections)) {
+          for (const c of network.connections) {
+            network.startVoiceCall(c.peer);
+          }
+        }
+      } else {
+        network.toggleMute();
+      }
+      updateMuteUI();
+    };
+
+    this.muteBtn.onclick = handleMuteClick;
+    this.muteBtn.addEventListener('touchend', handleMuteClick, { passive: false });
+
+    if (network && typeof network.addEventListener === 'function') {
+      network.addEventListener('voice-mute-change', () => updateMuteUI());
+      network.addEventListener('voice-stream-ready', () => updateMuteUI());
+      network.addEventListener('voice-stop', () => updateMuteUI());
+    }
+    updateMuteUI();
   },
 };

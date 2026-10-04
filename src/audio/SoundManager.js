@@ -280,6 +280,89 @@ export class SoundManager {
   }
 
   /**
+   * Reproduce el sonido de cierre de puerta:
+   * Batiente regresando + golpe sordo contra el marco + cierre de cerrojo de hierro forjado.
+   */
+  playDoorClose(sourcePos = null, listenerPos = null) {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    let outputNode = this.masterGain;
+    let distGainNode = null;
+    let pannerNode = null;
+
+    if (sourcePos && listenerPos) {
+      const dx = sourcePos.x - listenerPos.x;
+      const dz = sourcePos.z - listenerPos.z;
+      const dist = Math.hypot(dx, dz);
+      const atten = Math.max(0.08, 1 - Math.min(dist / 18, 0.92));
+
+      distGainNode = this.ctx.createGain();
+      distGainNode.gain.setValueAtTime(atten, this.ctx.currentTime);
+
+      if (this.ctx.createStereoPanner) {
+        pannerNode = this.ctx.createStereoPanner();
+        const pan = Math.max(-1, Math.min(1, dx / 8));
+        pannerNode.pan.setValueAtTime(pan, this.ctx.currentTime);
+        distGainNode.connect(pannerNode);
+        pannerNode.connect(this.masterGain);
+      } else {
+        distGainNode.connect(this.masterGain);
+      }
+      outputNode = distGainNode;
+    }
+
+    const t = this.ctx.currentTime;
+
+    // 1. Golpe sordo de madera maciza contra el quicio de piedra
+    const slamOsc = this.ctx.createOscillator();
+    const slamGain = this.ctx.createGain();
+    slamOsc.type = 'sine';
+    slamOsc.frequency.setValueAtTime(110, t);
+    slamOsc.frequency.exponentialRampToValueAtTime(32, t + 0.22);
+    slamGain.gain.setValueAtTime(0.6, t);
+    slamGain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    slamOsc.connect(slamGain);
+    slamGain.connect(outputNode);
+    slamOsc.start(t);
+    slamOsc.stop(t + 0.26);
+
+    // 2. Ruido marrón filtrado del encastre de la hoja
+    if (this._brownNoiseBuffer) {
+      const noise = this.ctx.createBufferSource();
+      const filt = this.ctx.createBiquadFilter();
+      const noiseGain = this.ctx.createGain();
+      noise.buffer = this._brownNoiseBuffer;
+      filt.type = 'lowpass';
+      filt.frequency.setValueAtTime(300, t);
+      noiseGain.gain.setValueAtTime(0.35, t);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      noise.connect(filt);
+      filt.connect(noiseGain);
+      noiseGain.connect(outputNode);
+      noise.start(t);
+      noise.stop(t + 0.2);
+    }
+
+    // 3. Pestillo / cerrojo de hierro que cae y traba (t + 0.12s)
+    const latchOsc = this.ctx.createOscillator();
+    const latchGain = this.ctx.createGain();
+    latchOsc.type = 'triangle';
+    latchOsc.frequency.setValueAtTime(480, t + 0.12);
+    latchOsc.frequency.exponentialRampToValueAtTime(140, t + 0.22);
+    latchGain.gain.setValueAtTime(0.001, t);
+    latchGain.gain.setValueAtTime(0.4, t + 0.12);
+    latchGain.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+    latchOsc.connect(latchGain);
+    latchGain.connect(outputNode);
+    latchOsc.start(t + 0.12);
+    latchOsc.stop(t + 0.25);
+  }
+
+  /**
    * Reproduce el sonido de apertura de cofre:
    * Crujido de bisagra + arpegio armónico resplandeciente de gemas/oro.
    */
@@ -702,6 +785,65 @@ export class SoundManager {
       osc.start(start);
       osc.stop(start + 0.45);
     });
+  }
+
+  /**
+   * Losa de presión mecánica: click de percusión pétrea con resorte y engranaje + eco sutil.
+   */
+  playPressurePlate(sourcePos = null, listenerPos = null) {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    const dist = (sourcePos && listenerPos) ? Math.hypot(sourcePos.x - listenerPos.x, sourcePos.z - listenerPos.z) : 0;
+    const vol = Math.max(0.1, 1 - Math.min(dist / 16, 0.9));
+    const t = this.ctx.currentTime;
+
+    // 1. Clic percusivo pétreo/metálico de contacto
+    const clickOsc = this.ctx.createOscillator();
+    const clickGain = this.ctx.createGain();
+    clickOsc.type = 'triangle';
+    clickOsc.frequency.setValueAtTime(320, t);
+    clickOsc.frequency.exponentialRampToValueAtTime(70, t + 0.08);
+    clickGain.gain.setValueAtTime(0.5 * vol, t);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+    clickOsc.connect(clickGain);
+    clickGain.connect(this.masterGain);
+    clickOsc.start(t);
+    clickOsc.stop(t + 0.1);
+
+    // 2. Resonancia grave de la losa encastrándose en el zócalo
+    const thudOsc = this.ctx.createOscillator();
+    const thudGain = this.ctx.createGain();
+    thudOsc.type = 'sine';
+    thudOsc.frequency.setValueAtTime(140, t);
+    thudOsc.frequency.exponentialRampToValueAtTime(42, t + 0.25);
+    thudGain.gain.setValueAtTime(0.6 * vol, t);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    thudOsc.connect(thudGain);
+    thudGain.connect(this.masterGain);
+    thudOsc.start(t);
+    thudOsc.stop(t + 0.3);
+
+    // 3. Fricción sutil de piedra (ruido marrón breve)
+    if (this._brownNoiseBuffer) {
+      const noise = this.ctx.createBufferSource();
+      const filt = this.ctx.createBiquadFilter();
+      const noiseGain = this.ctx.createGain();
+      noise.buffer = this._brownNoiseBuffer;
+      filt.type = 'bandpass';
+      filt.frequency.setValueAtTime(420, t);
+      filt.Q.setValueAtTime(2.2, t);
+      noiseGain.gain.setValueAtTime(0.28 * vol, t);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      noise.connect(filt);
+      filt.connect(noiseGain);
+      noiseGain.connect(this.masterGain);
+      noise.start(t);
+      noise.stop(t + 0.22);
+    }
   }
 }
 

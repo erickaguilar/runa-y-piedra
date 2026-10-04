@@ -77,7 +77,7 @@ export const ChapterModalMixin = {
     `;
 
     const cardsHtml = chapters.map((ch) => {
-      const isUnderConstruction = Boolean(ch.underConstruction || ch.number >= 2);
+      const isUnderConstruction = Boolean(ch.underConstruction);
       const isUnlocked = !isUnderConstruction && (registry ? registry.isChapterUnlocked(ch.id) : (ch.number === 1));
       const isCompleted = registry?.progress?.completedChapters?.includes(ch.id) || false;
       const isCurrent = currentChapterId === ch.id;

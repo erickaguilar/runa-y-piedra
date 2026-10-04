@@ -438,4 +438,61 @@ describe('SaveManager - Persistencia Robusta y SaveSchema v2', () => {
       assert.equal(manager.isSlotEmpty('slot_2'), false);
     });
   });
+
+  describe('Aislamiento de Sesión y Protección en Modo Invitado (Guest Mode)', () => {
+    it('setGuestMode(true) bloquea escrituras y mutaciones protegiendo la ranura local activa', async () => {
+      // 1. Crear y persistir una ranura individual previa (slot_1)
+      await manager.init('slot_1');
+      await manager.saveDungeonCompletion({
+        levelId: 'dungeon_classic',
+        chapterId: 'capitulo_1',
+        isVictory: true,
+        campaign: { highestChapterUnlocked: 2 },
+        inventory: { totalGems: 250, relics: [{ id: 'reliquia_sol' }] },
+      });
+      manager.updateProfile({ name: 'SirGalahad', favoriteHero: 1 });
+      await manager.saveCurrent();
+
+      const storedBefore = await memoryAdapter.get('save_slot_1_active');
+      assert.equal(storedBefore.profile.name, 'SirGalahad');
+      assert.equal(storedBefore.inventory.totalGems, 250);
+
+      // 2. Activar modo invitado al unirse a la sala de un anfitrión
+      assert.equal(manager.isGuestMode(), false);
+      manager.setGuestMode(true);
+      assert.equal(manager.isGuestMode(), true);
+
+      // 3. Simular que en la sesión cooperativa se intenta mutar perfil, campaña o inventario
+      manager.updateProfile({ name: 'InvitadoHechicero', favoriteHero: 3 });
+      manager.updateCampaign({ highestChapterUnlocked: 4 });
+      manager.updateInventory({ totalGems: 9999 });
+
+      // Verificar que el estado en memoria no se alteró
+      assert.equal(manager.currentSave.profile.name, 'SirGalahad', 'El perfil no debe mutar en modo invitado');
+      assert.equal(manager.currentSave.campaign.highestChapterUnlocked, 2, 'La campaña no debe mutar en modo invitado');
+      assert.equal(manager.currentSave.inventory.totalGems, 250, 'El inventario no debe mutar en modo invitado');
+
+      // Intentar guardar deliberadamente
+      await manager.saveCurrent();
+      await manager.saveSlot('slot_1', { ...manager.currentSave, profile: { name: 'Hack' } });
+      await manager.saveDungeonCompletion({ levelId: 'dungeon_final', chapterId: 'capitulo_3', isVictory: true });
+
+      // Comprobar que en almacenamiento sigue 100% intacto el save original
+      const storedAfter = await memoryAdapter.get('save_slot_1_active');
+      assert.equal(storedAfter.profile.name, 'SirGalahad');
+      assert.equal(storedAfter.campaign.highestChapterUnlocked, 2);
+      assert.equal(storedAfter.inventory.totalGems, 250);
+
+      // 4. Salir de la sesión cooperativa y desactivar modo invitado
+      manager.setGuestMode(false);
+      assert.equal(manager.isGuestMode(), false);
+
+      // Ahora el anfitrión/jugador local puede volver a guardar con normalidad
+      manager.updateProfile({ name: 'SirGalahadElValiente' });
+      await manager.saveCurrent();
+      const storedRestored = await memoryAdapter.get('save_slot_1_active');
+      assert.equal(storedRestored.profile.name, 'SirGalahadElValiente');
+    });
+  });
 });
+

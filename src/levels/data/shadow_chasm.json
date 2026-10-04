@@ -1,0 +1,150 @@
+{
+  "id": "shadow_chasm",
+  "name": "Abismo de las Sombras: Pilares Crepusculares",
+  "description": "Cruza el abismo mediante saltos precisos y plataformas de impulso. Recupera la Llave Umbría para abrir el portal inferior.",
+  "difficulty": "Difícil",
+  "icon": "pickaxe",
+  "dimensions": {
+    "sizeX": 24,
+    "sizeY": 16,
+    "sizeZ": 36
+  },
+  "spawn": {
+    "x": 12.0,
+    "y": 1.2,
+    "z": 2.5,
+    "facing": "north"
+  },
+  "pressurePlates": [
+    {
+      "id": "losa_chasm_puerta1",
+      "name": "Losa del Atrio Abisal",
+      "x": 18.0,
+      "y": 1.0,
+      "z": 7.0,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 1,
+      "action": "open_door",
+      "reusable": true,
+      "message": ":door: ¡Click! Has presionado la losa del atrio. ¡La Puerta 1 al Gran Abismo se ha abierto!"
+    }
+  ],
+  "doors": [
+    {
+      "id": 1,
+      "name": "Puerta 1 (Acceso al Abismo)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 11,
+      "swingDir": 1,
+      "coords": [
+        { "x": 11, "y": 1, "z": 11 },
+        { "x": 11, "y": 2, "z": 11 },
+        { "x": 12, "y": 1, "z": 11 },
+        { "x": 12, "y": 2, "z": 11 }
+      ],
+      "openMessage": ":door: ¡Puerta 1 abierta! Sala 2: El Gran Abismo de Sombras. ¡Saltad sobre las plataformas suspendidas!"
+    },
+    {
+      "id": 2,
+      "name": "Puerta 2 (Cámara de la Resonancia)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 24,
+      "swingDir": 1,
+      "coords": [
+        { "x": 11, "y": 1, "z": 24 },
+        { "x": 11, "y": 2, "z": 24 },
+        { "x": 12, "y": 1, "z": 24 },
+        { "x": 12, "y": 2, "z": 24 }
+      ],
+      "openMessage": ":door: ¡Puerta 2 abierta! ¡Habéis conquistado el Abismo de las Sombras! Entrad a la Cámara de la Resonancia.",
+      "requiresKey": "llave_sombras",
+      "lockedMessage": ":lock: ¡Puerta sellada con sellos oscuros! Necesitas la :key: Llave de las Sombras del Cofre del Atrio."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "sala_1",
+      "name": "Sala 1 (Atrio de las Sombras)",
+      "minZ": 0,
+      "maxZ": 11.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 2.5 }
+    },
+    {
+      "id": "sala_2",
+      "name": "Sala 2 (El Gran Abismo)",
+      "minZ": 11.5,
+      "maxZ": 24.0,
+      "respawn": { "x": 11.5, "y": 1.2, "z": 12.0 }
+    },
+    {
+      "id": "sala_3",
+      "name": "Sala 3 (Cámara de la Resonancia)",
+      "minZ": 24.5,
+      "maxZ": 36.0,
+      "respawn": { "x": 11.5, "y": 1.2, "z": 25.0 }
+    }
+  ],
+  "objectives": [],
+  "stairs": { "x1": 11, "x2": 12, "z1": 31, "z2": 33, "openFromStart": true },
+  "chests": [
+    {
+      "id": 1,
+      "name": "Cofre de las Brumas Abisales",
+      "x": 6.5,
+      "y": 1.0,
+      "z": 7.5,
+      "facing": "east",
+      "reward": ":key: Llave de las Sombras y :gem: 200 Gemas",
+      "message": ":chest: ¡Has abierto el Cofre del Atrio! Has obtenido: :key: Llave de las Sombras y :gem: 200 Gemas.",
+      "givesKey": "llave_sombras",
+      "keyName": "Llave de las Sombras"
+    },
+    {
+      "id": 2,
+      "name": "Cofre Crepuscular de la Resonancia",
+      "x": 18.5,
+      "y": 1.0,
+      "z": 28.5,
+      "facing": "west",
+      "reward": ":potion: Poción de Vida y :gem: 350 Gemas",
+      "message": ":chest: ¡Has abierto el Cofre Crepuscular! Has obtenido: :potion: Poción de Vida (+1 :heart:) y :gem: 350 Gemas.",
+      "potion": {
+        "id": "pocion_vida",
+        "name": "Poción de Vida",
+        "healAmount": 1,
+        "icon": "potion",
+        "color": "#f43f5e"
+      }
+    }
+  ],
+  "regions": [
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 24], "to": [22, 0, 34] },
+    { "type": "perimeter", "height": 5, "block": "WALL" },
+    { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
+    { "type": "divider", "z": 24, "height": 5, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
+    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+    { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 23] },
+    { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 5, "height": 5, "block": "PILLAR" },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 11], "to": [13, 0, 12] },
+    { "type": "fill", "block": "PILLAR", "from": [8, 0, 14], "to": [9, 0, 14] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [8, 1, 14], "to": [9, 1, 14] },
+    { "type": "fill", "block": "PILLAR", "from": [14, 0, 16], "to": [15, 1, 16] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [14, 2, 16], "to": [15, 2, 16] },
+    { "type": "fill", "block": "PILLAR", "from": [9, 0, 18], "to": [11, 1, 18] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [9, 2, 18], "to": [11, 2, 18] },
+    { "type": "fill", "block": "PILLAR", "from": [14, 0, 20], "to": [15, 0, 20] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [14, 1, 20], "to": [15, 1, 20] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 23], "to": [13, 0, 24] },
+    { "type": "pillar", "x": 6, "z": 29, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 29, "height": 5, "block": "PILLAR" }
+  ]
+}

@@ -26,6 +26,12 @@ export class NetworkManager extends EventTarget {
     this._reconnectTimer = null;
     this._worldSnapshotTimer = null;
 
+    // Estado de chat de voz WebRTC (separado del AudioContext del juego)
+    this.localStream = null;
+    this.mediaCalls = new Map();       // peerId → MediaConnection
+    this.remoteAudios = new Map();     // peerId → HTMLAudioElement
+    this.voiceEnabled = false;
+
     if (typeof window !== 'undefined') {
       window.network = this;
     }
@@ -113,6 +119,7 @@ export class NetworkManager extends EventTarget {
       }
       if (this.peer) { try { this.peer.destroy(); } catch {} this.peer = null; }
       this.peer = this._newPeer(this.roomId);
+      this._setupVoiceListener();
       if (typeof window !== 'undefined') {
         window.__peer = this.peer;
         window.network = this;
@@ -311,6 +318,7 @@ export class NetworkManager extends EventTarget {
       this.connections = this.connections.filter(c => c !== conn);
       const link = this._links?.get(conn?.peer);
       if (link) this._links.delete(conn.peer);
+      this._cleanupMedia(conn?.peer);
       this.stats.setMode('HOST', this.connections.length);
       this.dispatchEvent(new CustomEvent('peer-left', { detail: { conn } }));
     });
@@ -324,6 +332,7 @@ export class NetworkManager extends EventTarget {
     this._links = new Map();
     if (this.peer) { try { this.peer.destroy(); } catch {} }
     this.peer = this._newPeer({});
+    this._setupVoiceListener();
     if (typeof window !== 'undefined') {
       window.__peer = this.peer;
       window.network = this;
@@ -761,9 +770,220 @@ export class NetworkManager extends EventTarget {
     }
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // CHAT DE VOZ WEBRTC (AUDIO AISLADO EN <AUDIO> SEPARADO)
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Solicita acceso al micrófono local tras gesto del usuario.
+   * Aplica cancelación de eco, supresión de ruido y ganancia automática.
+   */
+  async _ensureLocalStream() {
+    if (this.localStream) return this.localStream;
+
+    try {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+        console.warn('[Voz] ⚠️ getUserMedia no disponible en este entorno');
+        return null;
+      }
+      this.localStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+        video: false,
+      });
+      this.voiceEnabled = true;
+      console.log('[Voz] 🎤 Micrófono concedido');
+      this.dispatchEvent(new CustomEvent('voice-stream-ready', { detail: { stream: this.localStream } }));
+      return this.localStream;
+    } catch (err) {
+      console.error('[Voz] ❌ Permiso denegado:', err?.name || err);
+      // err.name: "NotAllowedError" (usuario denegó) o "NotFoundError" (sin mic)
+      this.dispatchEvent(new CustomEvent('voice-denied', {
+        detail: { reason: err?.name || 'Error' },
+      }));
+      return null;
+    }
+  }
+
+  /**
+   * Reproduce el stream de audio remoto en un elemento <audio> dedicado
+   * en document.body con playsinline y autoplay (evitando AudioContext del juego).
+   */
+  _attachRemoteAudio(peerId, stream) {
+    if (typeof document === 'undefined') return;
+    // Reutilizar si ya existe
+    let audio = this.remoteAudios.get(peerId);
+    if (!audio) {
+      audio = document.createElement('audio');
+      audio.playsinline = true;      // iOS Safari: NO abrir fullscreen
+      audio.autoplay = true;
+      audio.setAttribute('playsinline', '');
+      audio.setAttribute('webkit-playsinline', '');
+      audio.style.display = 'none';
+      document.body.appendChild(audio);
+      this.remoteAudios.set(peerId, audio);
+    }
+    audio.srcObject = stream;
+
+    // Si play() falla por autoplay bloqueado en móvil, encolar para el próximo tap
+    try {
+      const p = audio.play?.();
+      if (p && typeof p.catch === 'function') {
+        p.catch((err) => {
+          console.warn('[Voz] Autoplay bloqueado, esperando gesto:', err?.name || err);
+          const resume = () => {
+            audio.play?.().catch(() => {});
+            document.removeEventListener('touchstart', resume);
+            document.removeEventListener('click', resume);
+          };
+          document.addEventListener('touchstart', resume, { once: true });
+          document.addEventListener('click', resume, { once: true });
+        });
+      }
+    } catch (e) {
+      console.warn('[Voz] Error reproduciendo audio:', e);
+    }
+
+    console.log('[Voz] 🔊 Reproduciendo audio de:', peerId);
+  }
+
+  /**
+   * Host o participante inicia llamada de voz hacia un peerId específico.
+   */
+  async startVoiceCall(peerId) {
+    if (!peerId) return;
+    const stream = await this._ensureLocalStream();
+    if (!stream) return;
+
+    // Si ya hay una llamada activa con este peer, no duplicar
+    if (this.mediaCalls.has(peerId)) return;
+
+    console.log('[Voz] 📞 Llamando a:', peerId);
+    if (!this.peer || typeof this.peer.call !== 'function') {
+      console.warn('[Voz] Peer no disponible o sin método call()');
+      return;
+    }
+    const call = this.peer.call(peerId, stream);
+    if (!call) {
+      console.warn('[Voz] No se pudo iniciar la llamada con', peerId);
+      return;
+    }
+    this._wireMediaCall(peerId, call);
+  }
+
+  /**
+   * Registra el listener de llamadas entrantes en el objeto Peer.
+   */
+  _setupVoiceListener() {
+    if (!this.peer || typeof this.peer.on !== 'function') return;
+    this.peer.on('call', async (call) => {
+      console.log('[Voz] 📞 Llamada entrante de:', call?.peer);
+      try {
+        const stream = await this._ensureLocalStream();
+        if (stream) {
+          call.answer(stream);
+        } else {
+          call.answer();
+        }
+        this._wireMediaCall(call?.peer, call);
+      } catch (err) {
+        console.error('[Voz] ❌ Error al responder llamada de voz:', err);
+      }
+    });
+  }
+
+  /**
+   * Enlaza eventos de la llamada PeerJS MediaConnection (stream, close, error).
+   */
+  _wireMediaCall(peerId, call) {
+    if (!call || typeof call.on !== 'function') return;
+    this.mediaCalls.set(peerId, call);
+
+    call.on('stream', (remoteStream) => {
+      this._attachRemoteAudio(peerId, remoteStream);
+    });
+
+    call.on('close', () => {
+      console.log('[Voz] 📞 Llamada cerrada con', peerId);
+      this._cleanupMedia(peerId);
+    });
+
+    call.on('error', (err) => {
+      console.error('[Voz] ❌ Error en llamada con', peerId, err);
+      this._cleanupMedia(peerId);
+    });
+  }
+
+  /**
+   * Limpia el elemento <audio> y la llamada asociada a un peer.
+   */
+  _cleanupMedia(peerId) {
+    if (!peerId) return;
+    const audio = this.remoteAudios.get(peerId);
+    if (audio) {
+      audio.srcObject = null;
+      try { audio.remove(); } catch {}
+      this.remoteAudios.delete(peerId);
+    }
+    const call = this.mediaCalls.get(peerId);
+    if (call) {
+      try { call.close(); } catch {}
+      this.mediaCalls.delete(peerId);
+    }
+  }
+
+  /**
+   * Alterna mute del micrófono local. Devuelve true si el micro queda activo, false si queda silenciado.
+   */
+  toggleMute() {
+    if (!this.localStream) return false;
+    const track = this.localStream.getAudioTracks?.()?.[0];
+    if (!track) return false;
+    track.enabled = !track.enabled;
+    console.log('[Voz] Micrófono', track.enabled ? '🎤 activo' : '🔇 silenciado');
+    this.dispatchEvent(new CustomEvent('voice-mute-change', { detail: { muted: !track.enabled, enabled: track.enabled } }));
+    return track.enabled;
+  }
+
+  /**
+   * Comprueba si el micrófono local está actualmente silenciado o inactivo.
+   */
+  isMuted() {
+    if (!this.localStream) return true;
+    const track = this.localStream.getAudioTracks?.()?.[0];
+    return !track || !track.enabled;
+  }
+
+  /**
+   * Cierra todas las llamadas de voz y libera el micrófono y elementos <audio>.
+   */
+  stopAllVoice() {
+    for (const call of this.mediaCalls.values()) {
+      try { call.close?.(); } catch (e) {}
+    }
+    this.mediaCalls.clear();
+    for (const audio of this.remoteAudios.values()) {
+      audio.srcObject = null;
+      try { audio.remove?.(); } catch {}
+    }
+    this.remoteAudios.clear();
+    if (this.localStream) {
+      try {
+        this.localStream.getTracks?.().forEach(t => t.stop?.());
+      } catch (e) {}
+      this.localStream = null;
+    }
+    this.voiceEnabled = false;
+    this.dispatchEvent(new CustomEvent('voice-stop'));
+  }
+
   disconnect() {
     this._hostClosingHandled = true;
     this.stopWorldSnapshot();
+    this.stopAllVoice();
     this.peerRoster = [];
     if (this._signalingHeartbeat) {
 

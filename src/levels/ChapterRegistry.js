@@ -30,11 +30,10 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'dark_shadows',
     lore: 'Galerías de basalto negro y niebla densa donde las antorchas revelan secretos.',
     icon: 'pickaxe',
-    underConstruction: true,
     dungeons: [
-      { id: 'shadow_vault', role: 'intro', name: 'Bóveda Umbría', underConstruction: true },
-      { id: 'shadow_chasm', role: 'challenge', name: 'Abismo de las Sombras', underConstruction: true },
-      { id: 'shadow_sanctum', role: 'climax', name: 'Santuario Crepuscular', underConstruction: true }
+      { id: 'shadow_vault', role: 'intro', name: 'Bóveda Umbría' },
+      { id: 'shadow_chasm', role: 'challenge', name: 'Abismo de las Sombras' },
+      { id: 'shadow_sanctum', role: 'climax', name: 'Santuario Crepuscular' }
     ]
   },
   {
@@ -328,7 +327,7 @@ export class ChapterRegistry {
   isChapterPlayable(idOrNumber) {
     const ch = this.getChapter(idOrNumber);
     if (!ch) return false;
-    if (ch.underConstruction || ch.number >= 2) return false;
+    if (ch.underConstruction) return false;
     return this.isChapterUnlocked(idOrNumber);
   }
 

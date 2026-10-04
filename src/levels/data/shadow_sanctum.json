@@ -1,0 +1,160 @@
+{
+  "id": "shadow_sanctum",
+  "name": "Santuario Crepuscular: El Trono de la Sombra",
+  "description": "El corazón del Capítulo 2. Conquista las tres pruebas de la cripta y reclama el Altar Crepuscular ante el abismo final.",
+  "difficulty": "Épico",
+  "icon": "pickaxe",
+  "dimensions": {
+    "sizeX": 24,
+    "sizeY": 16,
+    "sizeZ": 36
+  },
+  "spawn": {
+    "x": 12.0,
+    "y": 1.2,
+    "z": 2.5,
+    "facing": "north"
+  },
+  "pressurePlates": [
+    {
+      "id": "losa_sanctum_p1",
+      "name": "Losa de Apertura de la Cripta",
+      "x": 6.0,
+      "y": 1.0,
+      "z": 7.0,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 1,
+      "action": "open_door",
+      "reusable": true,
+      "message": ":door: ¡Click! Has presionado la losa del sanctum. ¡La Puerta 1 al Gran Salón se ha abierto!"
+    }
+  ],
+  "doors": [
+    {
+      "id": 1,
+      "name": "Puerta 1 (Acceso al Gran Salón)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 11,
+      "swingDir": 1,
+      "coords": [
+        { "x": 11, "y": 1, "z": 11 },
+        { "x": 11, "y": 2, "z": 11 },
+        { "x": 12, "y": 1, "z": 11 },
+        { "x": 12, "y": 2, "z": 11 }
+      ],
+      "openMessage": ":door: ¡Puerta 1 abierta! Acceso al Gran Salón Crepuscular. ¡Buscad la llave del Trono!"
+    },
+    {
+      "id": 2,
+      "name": "Puerta 2 (Santuario del Trono)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 24,
+      "swingDir": 1,
+      "coords": [
+        { "x": 11, "y": 1, "z": 24 },
+        { "x": 11, "y": 2, "z": 24 },
+        { "x": 12, "y": 1, "z": 24 },
+        { "x": 12, "y": 2, "z": 24 }
+      ],
+      "openMessage": ":crown: ¡Puerta 2 abierta! ¡El Santuario del Trono se revela! Consagrad el Altar Crepuscular.",
+      "requiresKey": "llave_crepusculo",
+      "lockedMessage": ":lock: ¡La puerta del Trono exige la :key: Llave Crepuscular custodiada en el cofre del Gran Salón!"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "sala_1",
+      "name": "Sala 1 (Atrio del Sanctum)",
+      "minZ": 0,
+      "maxZ": 11.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 2.5 }
+    },
+    {
+      "id": "sala_2",
+      "name": "Sala 2 (Gran Salón Crepuscular)",
+      "minZ": 11.5,
+      "maxZ": 24.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 12.5 }
+    },
+    {
+      "id": "sala_3",
+      "name": "Sala 3 (Santuario del Trono)",
+      "minZ": 24.5,
+      "maxZ": 36.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 25.0 }
+    }
+  ],
+  "objectives": [
+    {
+      "type": "pedestal",
+      "name": "Altar Crepuscular",
+      "x": 12,
+      "y": 1,
+      "z": 30,
+      "triggerRadius": 3.2,
+      "completeMessage": ":crown: ¡Altar Crepuscular Consagrado! ¡Capítulo 2: Cripta de las Sombras Conquistado!"
+    }
+  ],
+  "stairs": null,
+  "chests": [
+    {
+      "id": 1,
+      "name": "Cofre del Heraldo Sombrío",
+      "x": 5.5,
+      "y": 1.0,
+      "z": 18.5,
+      "facing": "east",
+      "reward": ":key: Llave Crepuscular, :potion: Poción y :gem: 250 Gemas",
+      "message": ":chest: ¡Has abierto el Cofre del Heraldo! Has obtenido: :key: Llave Crepuscular, :potion: Poción de Vida (+1 :heart:) y :gem: 250 Gemas.",
+      "givesKey": "llave_crepusculo",
+      "keyName": "Llave Crepuscular",
+      "potion": {
+        "id": "pocion_vida",
+        "name": "Poción de Vida",
+        "healAmount": 1,
+        "icon": "potion",
+        "color": "#f43f5e"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Cofre del Trono Crepuscular",
+      "x": 18.5,
+      "y": 1.0,
+      "z": 27.5,
+      "facing": "west",
+      "reward": ":trophy: Cetro de Sombras y :gem: 600 Gemas",
+      "message": ":chest: ¡Has abierto el Gran Cofre del Trono! Has obtenido: :trophy: Cetro Crepuscular de Basalto y :gem: 600 Gemas Legendarias."
+    }
+  ],
+  "regions": [
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 12], "to": [22, 0, 24] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 24], "to": [22, 0, 34] },
+    { "type": "perimeter", "height": 5, "block": "WALL" },
+    { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
+    { "type": "divider", "z": 24, "height": 5, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
+    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+    { "type": "fill", "block": "LAVA", "from": [2, -1, 15], "to": [8, -1, 17] },
+    { "type": "fill", "block": "AIR", "from": [2, 0, 15], "to": [8, 0, 17] },
+    { "type": "fill", "block": "LAVA", "from": [16, -1, 15], "to": [22, -1, 17] },
+    { "type": "fill", "block": "AIR", "from": [16, 0, 15], "to": [22, 0, 17] },
+    { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 5, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 13, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 13, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 20, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 20, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 29, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 29, "height": 5, "block": "PILLAR" },
+    { "type": "fill", "block": "PILLAR", "from": [10, 0, 29], "to": [14, 0, 31] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 1, 29], "to": [14, 1, 31] }
+  ]
+}

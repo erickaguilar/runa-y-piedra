@@ -288,7 +288,15 @@ test('dev_showroom está registrado pero aislado de la campaña regular', () => 
   // La campaña regular (getAllLevels(false)) debe excluir dev_showroom
   const regularLevels = registry.getAllLevels(false);
   assert.equal(regularLevels.some(l => l.id === 'dev_showroom'), false, 'dev_showroom no debe aparecer en la campaña');
-  assert.deepEqual(regularLevels.map(l => l.id), ['lobby_tutorial', 'dungeon_classic', 'crypt_inferno', 'abyss_throne']);
+  assert.deepEqual(regularLevels.map(l => l.id), [
+    'lobby_tutorial',
+    'dungeon_classic',
+    'crypt_inferno',
+    'abyss_throne',
+    'shadow_vault',
+    'shadow_chasm',
+    'shadow_sanctum'
+  ]);
 
   // getAllLevels(true) debe incluir dev_showroom
   const allLevelsWithDev = registry.getAllLevels(true);
@@ -313,7 +321,7 @@ test('dev_showroom está registrado pero aislado de la campaña regular', () => 
   assert.doesNotThrow(() => {
     world.loadLevel(devLvl);
   });
-  assert.equal(world.doors.length, 2);
+  assert.equal(world.doors.length, 3, 'dev_showroom cuenta con 3 puertas (incluyendo la Puerta 3 de la sala de pruebas)');
   assert.equal(world.chests.length, 3);
   assert.equal(world.objectives.length, 1);
   assert.equal(world.stairwells.length, 1);

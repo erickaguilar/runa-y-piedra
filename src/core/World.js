@@ -25,6 +25,8 @@ export class World {
     this.monoliths = [];
     this.torches = [];
     this.chests = [];
+    this.heroShowcases = [];
+    this.pressurePlates = [];
     // Escalinata de descenso: [{x1,x2,z1,z2,triggerY,open}] derivada del altar (LevelLoader)
     this.stairwells = [];
     this.stairsOpen = false;
@@ -91,6 +93,7 @@ export class World {
 
   openDoor(doorId = 1) {
     const door = this.doors?.find(d => d.id === doorId);
+    if (door) door.isOpen = true;
     if (door && Array.isArray(door.coords)) {
       if (doorId === 1) this.isDoor1Open = true;
       if (doorId === 2) this.isDoor2Open = true;
@@ -112,6 +115,43 @@ export class World {
         this.set(12, 2, 24, BLOCK_TYPES.AIR);
       }
     }
+  }
+
+  closeDoor(doorId = 1) {
+    const door = this.doors?.find(d => d.id === doorId);
+    if (door) door.isOpen = false;
+    if (door && Array.isArray(door.coords)) {
+      if (doorId === 1) this.isDoor1Open = false;
+      if (doorId === 2) this.isDoor2Open = false;
+      for (const c of door.coords) {
+        this.set(c.x, c.y, c.z, BLOCK_TYPES.DOOR);
+      }
+    } else {
+      if (doorId === 1) {
+        this.isDoor1Open = false;
+        this.set(11, 1, 11, BLOCK_TYPES.DOOR);
+        this.set(11, 2, 11, BLOCK_TYPES.DOOR);
+        this.set(12, 1, 11, BLOCK_TYPES.DOOR);
+        this.set(12, 2, 11, BLOCK_TYPES.DOOR);
+      } else if (doorId === 2) {
+        this.isDoor2Open = false;
+        this.set(11, 1, 24, BLOCK_TYPES.DOOR);
+        this.set(11, 2, 24, BLOCK_TYPES.DOOR);
+        this.set(12, 1, 24, BLOCK_TYPES.DOOR);
+        this.set(12, 2, 24, BLOCK_TYPES.DOOR);
+      }
+    }
+  }
+
+  isDoorOpenId(doorId = 1) {
+    if (doorId === 1) return !!this.isDoor1Open;
+    if (doorId === 2) return !!this.isDoor2Open;
+    const door = this.doors?.find(d => d.id === doorId);
+    if (door && Array.isArray(door.coords) && door.coords.length > 0) {
+      const c = door.coords[0];
+      return this.get(c.x, c.y, c.z) === BLOCK_TYPES.AIR;
+    }
+    return !!door?.isOpen;
   }
 
   get isDoorOpen() {

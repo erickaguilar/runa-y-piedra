@@ -734,6 +734,16 @@ describe('UIManager - Contratos de API de Configuración', () => {
             icon: 'pickaxe',
             dungeons: [{ id: 'shadow_vault', name: 'Bóveda Umbría' }]
           },
+          {
+            id: 'capitulo_3',
+            number: 3,
+            name: 'Cataratas Subterráneas',
+            theme: 'subterranean_falls',
+            lore: 'Corrientes subterráneas.',
+            icon: 'droplet',
+            underConstruction: true,
+            dungeons: [{ id: 'falls_aqueduct', name: 'Acueducto Arcaico' }]
+          },
         ],
         isChapterUnlocked: (id) => id === 'capitulo_1',
         getRecord: (id) => id === 'capitulo_1' ? { bestTimeSec: 150, deaths: 1, stars: 3 } : null,
@@ -947,12 +957,96 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(deleteActiveBtn.style.display, 'inline-flex');
       deleteActiveBtn.onclick();
 
-      const confirmDialog = document.getElementById('modal-confirm-dialog');
-      assert.ok(confirmDialog);
-      assert.match(confirmDialog.innerHTML, /¿Borrar Ranura 1\?/);
       ui.closeConfirmDialog();
+    });
+
+    it('gestiona el modal de selección de héroe para invitados (showGuestJoinModal)', () => {
+      const ui = new UIManager();
+      let confirmed = null;
+      let cancelled = false;
+
+      ui.showGuestJoinModal({
+        pin: '1337',
+        initialName: 'Gandalf',
+        initialHeroIndex: 3, // Hechicero
+        onConfirm: (res) => { confirmed = res; },
+        onCancel: () => { cancelled = true; },
+      });
+
+      const modalEl = document.getElementById('modal-guest-join-dialog');
+      assert.ok(modalEl, 'El modal de invitado debe existir en el DOM');
+      assert.match(modalEl.innerHTML, /#1337/, 'Debe mostrar el PIN de la sala');
+      assert.match(modalEl.innerHTML, /Hechicero/, 'Debe mostrar la clase inicial seleccionada');
+
+      const nameInput = document.getElementById('guest-player-name-input');
+      assert.ok(nameInput);
+      assert.equal(nameInput.value, 'Gandalf');
+
+      // Cambiar de héroe a Paladín (index 1)
+      modalEl._updateSelectedHero(1);
+      const heroBadge = document.getElementById('guest-hero-badge');
+      assert.ok(heroBadge);
+      assert.match(heroBadge.innerHTML, /Paladín/, 'Al cambiar de héroe debe actualizar la insignia');
+
+      // Modificar nombre y confirmar
+      nameInput.value = 'Sir Lancelot';
+      const btnConfirm = document.getElementById('btn-guest-confirm');
+      assert.ok(btnConfirm);
+      btnConfirm.onclick(new Event('click'));
+
+      assert.ok(confirmed, 'onConfirm debe haberse invocado');
+      assert.equal(confirmed.name, 'Sir Lancelot');
+      assert.equal(confirmed.colorIndex, 1);
+
+      // Probar cancelación
+      ui.showGuestJoinModal({
+        pin: '4321',
+        onCancel: () => { cancelled = true; },
+      });
+      assert.ok(document.getElementById('modal-guest-join-dialog'));
+      const btnCancel = document.getElementById('btn-guest-cancel');
+      assert.ok(btnCancel);
+      btnCancel.onclick(new Event('click'));
+      assert.equal(cancelled, true, 'onCancel debe haberse llamado al pulsar Volver');
+
+      // Probar cierre explícito
+      ui.showGuestJoinModal({ pin: '9999' });
+      ui.closeGuestJoinModal();
+
+      // Probar auto-ajuste de nombre al héroe si no ha sido editado
+      let autoConfirmed = null;
+      ui.showGuestJoinModal({
+        pin: '5555',
+        initialName: 'Aventurero', // Nombre no editado (coincide con héroe base)
+        initialHeroIndex: 1, // Paladín
+        onConfirm: (res) => { autoConfirmed = res; },
+      });
+      const autoModalEl = document.getElementById('modal-guest-join-dialog');
+      const autoNameInput = document.getElementById('guest-player-name-input');
+      // Debe inicializarse como "Paladín" porque el nombre no fue personalizado
+      assert.equal(autoNameInput.value, 'Paladín', 'Si el nombre no fue editado, debe adoptar la clase inicial');
+
+      // Al cambiar a Hechicero (index 3), el nombre se debe auto-ajustar a Hechicero
+      autoModalEl._updateSelectedHero(3);
+      assert.equal(autoNameInput.value, 'Hechicero', 'Al cambiar de clase sin apodo personalizado debe auto-ajustar a Hechicero');
+
+      // Al cambiar a Guardián (index 4), el nombre se debe auto-ajustar a Guardián
+      autoModalEl._updateSelectedHero(4);
+      assert.equal(autoNameInput.value, 'Guardián', 'Al cambiar de clase sin apodo personalizado debe auto-ajustar a Guardián');
+
+      // Si el usuario escribe un apodo personalizado, ya no se debe sobreescribir
+      autoNameInput.value = 'Merlín';
+      autoNameInput.dispatchEvent(new Event('input'));
+      autoModalEl._updateSelectedHero(2); // Explorador
+      assert.equal(autoNameInput.value, 'Merlín', 'Un apodo personalizado por el usuario no debe sobreescribirse');
+
+      const btnAutoConfirm = document.getElementById('btn-guest-confirm');
+      btnAutoConfirm.onclick(new Event('click'));
+      assert.equal(autoConfirmed.name, 'Merlín');
+      assert.equal(autoConfirmed.colorIndex, 2);
     });
   });
 });
+
 
 

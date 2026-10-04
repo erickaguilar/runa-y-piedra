@@ -4,3 +4,4 @@ export * from './doorModel.js';
 export * from './pedestalModel.js';
 export * from './stairsModel.js';
 export * from './cartographyModel.js';
+export * from './pressurePlateModel.js';

@@ -9,6 +9,7 @@ import { buildWorldSnapshot } from '../network/HostSnapshot.js';
 import { WORLD_CONFIG, PLAYER_HEROES } from '../config/constants.js';
 import { escapeHtml } from '../ui/Icons.js';
 import { saveManager } from '../storage/SaveManager.js';
+import { showVoicePrompt } from '../ui/modals/VoiceModal.js';
 
 export const SessionMixin = {
   async startHost(profile = {}) {
@@ -68,6 +69,7 @@ export const SessionMixin = {
       this.ui.setCrosshairVisible(true);
       this.ui.setActionButtonsVisible(true);
       this.ui.setLivesVisible(true);
+      this.ui.setVoiceButtonVisible?.(true);
 
       // Cargar inventario persistido (gemas, pociones, reliquias, llaves y cofres abiertos)
       this.resetInventory({ keepGems: false, keepRelics: false, keepPotions: false, keepChests: false });
@@ -192,6 +194,15 @@ export const SessionMixin = {
     }
 
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
+    this.heroShowcaseRenderer?.loadShowcases(this.world.heroShowcases || levelData.heroShowcases || []);
+    this.pressurePlateRenderer?.loadPressurePlates(this.world.pressurePlates);
+    for (const p of this.world.pressurePlates || []) {
+      const plateKey = `${levelId}_plate_${p.id}`;
+      if (this.openedPlateKeys?.has(plateKey)) {
+        p.isPressed = true;
+        this.pressurePlateRenderer?.setPressedInstant(p.id);
+      }
+    }
     this.interaction.ensureStairsState();
     // Reset del descenso sincronizado al cambiar de mapa
     this.descent.reset();
@@ -329,7 +340,7 @@ export const SessionMixin = {
       return true;
     }
     const targetChapter = this.chapterRegistry.getChapter(chapterId);
-    if (targetChapter?.underConstruction || (targetChapter && targetChapter.number >= 2)) {
+    if (targetChapter?.underConstruction) {
       this.ui.showNarrativeMessage(':construction: Este capítulo se encuentra en construcción.', 3000);
       return false;
     }
@@ -528,9 +539,21 @@ export const SessionMixin = {
       this.ui.setStatus('PIN inválido (debe contener 4 dígitos)');
       return;
     }
+
+    // Proteger partidas guardadas locales activando modo invitado en SaveManager
+    this._preGuestSlotId = saveManager.currentSlotId || 'slot_1';
+    this._preGuestProfile = {
+      name: this.ui.playerName,
+      colorIndex: this.ui.selectedColorIndex,
+    };
+    saveManager.setGuestMode(true);
+    this.isGuestSession = true;
+
     const name = profile.name || 'Aventurero';
     const colorIndex = profile.colorIndex ?? 0;
     this.playerManager.setLocalProfile(name, colorIndex);
+    this.ui.playerName = name;
+    this.ui.selectedColorIndex = colorIndex;
 
     for (let i = 1; i <= attempts; i++) {
       this.ui.setStatus(i === 1 ? 'Conectando a la mazmorra...' : `Reintentando conexión (${i}/${attempts})...`);
@@ -542,6 +565,12 @@ export const SessionMixin = {
       } catch (e) {
         if (i === attempts) {
           this.ui.setStatus('Error de conexión: ' + (e?.message || e));
+          saveManager.setGuestMode(false);
+          this.isGuestSession = false;
+          if (this._preGuestProfile) {
+            this.ui.playerName = this._preGuestProfile.name;
+            this.ui.selectedColorIndex = this._preGuestProfile.colorIndex;
+          }
           return;
         }
         await new Promise((r) => setTimeout(r, 1200));
@@ -562,14 +591,22 @@ export const SessionMixin = {
     localCli.resetLives();
     this.ui.updateLives(localCli.lives, localCli.maxLives);
     this.ui.setHasKey(false);
+    this.ui.setVoiceButtonVisible?.(true);
     this.ui.showNarrativeMessage(`Conectado como ${escapeHtml(name)}. Explorad juntos.`, 5000);
+
+    // En el cliente, tras conectar con éxito, solicitar permiso de voz para preparar stream
+    showVoicePrompt(() => {
+      this.network?._ensureLocalStream?.();
+    });
   },
 
   /**
    * Cierra limpiamente la sesión activa (Host, Cliente o Showroom) sin recargar la página.
    * Desconecta red, limpia avatares, jugadores e inventario de sesión, restaura la URL y abre el menú principal.
    */
-  leaveSession() {
+  async leaveSession() {
+    const wasGuest = this.mode === 'client' || this.isGuestSession;
+    this.ui?.setVoiceButtonVisible?.(false);
     try {
       this.network?.stopWorldSnapshot?.();
       this.network?.disconnect?.();
@@ -578,8 +615,10 @@ export const SessionMixin = {
     }
 
     this.mode = null;
+    this.isGuestSession = false;
     this.currentJoinUrl = null;
     this.lastConnectedPin = null;
+    saveManager.setGuestMode(false);
 
     if (this.input?.reset) {
       this.input.reset();
@@ -593,8 +632,38 @@ export const SessionMixin = {
       this.avatars.clear();
     }
 
+    if (this.heroShowcaseRenderer?.clear) {
+      this.heroShowcaseRenderer.clear();
+    }
+
     if (this.playerManager?.reset) {
       this.playerManager.reset();
+    }
+
+    // Si salimos de una sesión de invitado, restaurar la ranura local original sin alteraciones
+    if (wasGuest) {
+      try {
+        const targetSlot = this._preGuestSlotId || saveManager.currentSlotId || 'slot_1';
+        await saveManager.loadSlot(targetSlot);
+        if (this.chapterRegistry?.load) {
+          await this.chapterRegistry.load();
+        }
+        this.restoreSavedState();
+        const activeSave = saveManager.currentSave;
+        if (activeSave?.profile) {
+          this.ui.playerName = activeSave.profile.name || 'Aventurero';
+          this.ui.selectedColorIndex = Number.isFinite(activeSave.profile.favoriteHero)
+            ? activeSave.profile.favoriteHero
+            : 0;
+        }
+      } catch (err) {
+        console.warn('[SessionManager] Error restaurando ranura tras sesión de invitado:', err);
+      }
+    }
+
+    // Regresar el mundo al lobby hub
+    if (this.world?.levelRegistry) {
+      this.switchLevel('lobby_tutorial', false);
     }
 
     // Limpiar parámetros de consulta (?join=...) sin provocar recarga de página WebGL
@@ -612,6 +681,7 @@ export const SessionMixin = {
       this.ui.setTutorialControlsVisible?.(false);
       this.ui.updatePartyList?.([]);
       this.ui.showMenu?.(this.ui.lastMenuParams || {});
+      this.ui.refreshMenuSlots?.();
     }
   },
 };

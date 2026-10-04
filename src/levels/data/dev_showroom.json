@@ -1,7 +1,7 @@
 {
   "id": "dev_showroom",
   "name": "Showroom de Desarrollo: Galería de Bloques y Físicas",
-  "description": "Entorno sandbox para desarrolladores: exhibición completa de todos los sprites, texturas y mecánicas interactivas (Jump Pads, lava, puertas, cofres, pociones y altar).",
+  "description": "Entorno sandbox para desarrolladores: exhibición completa de todos los sprites, texturas y mecánicas interactivas (Jump Pads, lava, losa de presión, puertas, cofres, pociones, altar y panteón de héroes).",
   "difficulty": "Dev Sandbox",
   "icon": "terminal",
   "isDevOnly": true,
@@ -9,7 +9,7 @@
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,
-    "sizeZ": 36
+    "sizeZ": 52
   },
   "spawn": {
     "x": 12.0,
@@ -17,6 +17,46 @@
     "z": 2.5,
     "facing": "north"
   },
+  "pressurePlates": [
+    {
+      "id": "losa_showroom_puerta1",
+      "name": "Losa de Presión Mecánica (Galería)",
+      "x": 12.0,
+      "y": 1.0,
+      "z": 10.0,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 1,
+      "action": "open_door",
+      "message": ":stone: ¡CLACK! Has presionado la losa mecánica. ¡El engranaje ha abierto la Puerta 1!"
+    },
+    {
+      "id": "losa_pruebas_abrir",
+      "name": "Losa de Pruebas: Abrir Puerta 3",
+      "x": 18.0,
+      "y": 1.0,
+      "z": 4.5,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 3,
+      "action": "open_door",
+      "reusable": true,
+      "message": ":door: ¡Click! Has presionado la losa de apertura. ¡La Puerta 3 de pruebas se ha abierto!"
+    },
+    {
+      "id": "losa_pruebas_cerrar",
+      "name": "Losa de Pruebas: Cerrar Puerta 3",
+      "x": 18.0,
+      "y": 1.0,
+      "z": 9.5,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 3,
+      "action": "close_door",
+      "reusable": true,
+      "message": ":door: ¡SLAM! Has presionado la losa de cierre. ¡La Puerta 3 de pruebas se ha cerrado!"
+    }
+  ],
   "doors": [
     {
       "id": 1,
@@ -53,6 +93,24 @@
       "openMessage": ":door: ¡Puerta 2 abierta! Has usado la :key: Llave Maestra. Avanza al Altar Supremo y Escalinata.",
       "requiresKey": "llave_showroom",
       "lockedMessage": ":lock: ¡Puerta sellada! Requiere la :key: Llave Maestra del Cofre 1 en el Laboratorio."
+    },
+    {
+      "id": 3,
+      "name": "Puerta de Pruebas (Sala Mecánica)",
+      "x1": 17,
+      "x2": 19,
+      "y1": 1,
+      "y2": 3,
+      "z": 7,
+      "swingDir": 1,
+      "coords": [
+        { "x": 17, "y": 1, "z": 7 },
+        { "x": 17, "y": 2, "z": 7 },
+        { "x": 18, "y": 1, "z": 7 },
+        { "x": 18, "y": 2, "z": 7 }
+      ],
+      "openMessage": ":door: ¡Puerta 3 abierta! Mecanismo accionado correctamente.",
+      "closeMessage": ":door: ¡Puerta 3 cerrada! Cerrojo bloqueado correctamente."
     }
   ],
   "checkpoints": [
@@ -76,6 +134,13 @@
       "minZ": 24.5,
       "maxZ": 36.0,
       "respawn": { "x": 12.0, "y": 1.2, "z": 26.0 }
+    },
+    {
+      "id": "sala_heroes",
+      "name": "Sala 4 (Panteón de los Héroes)",
+      "minZ": 36.5,
+      "maxZ": 52.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 38.0 }
     }
   ],
   "objectives": [
@@ -98,6 +163,13 @@
       "z": 6.5,
       "triggerRadius": 2.8
     }
+  ],
+  "heroShowcases": [
+    { "id": "adventurer", "name": "Aventurero", "x": 4.0, "y": 1.0, "z": 44.0, "yaw": 0 },
+    { "id": "paladin", "name": "Paladín", "x": 8.0, "y": 1.0, "z": 44.0, "yaw": 0 },
+    { "id": "ranger", "name": "Explorador", "x": 12.0, "y": 1.0, "z": 44.0, "yaw": 0 },
+    { "id": "wizard", "name": "Hechicero", "x": 16.0, "y": 1.0, "z": 44.0, "yaw": 0 },
+    { "id": "guardian", "name": "Guardián", "x": 20.0, "y": 1.0, "z": 44.0, "yaw": 0 }
   ],
   "stairs": {
     "x1": 11,
@@ -148,12 +220,13 @@
     }
   ],
   "regions": [
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 34] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 50] },
     { "type": "perimeter", "height": 6, "block": "WALL" },
-    { "type": "ceiling", "y": 7, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+    { "type": "ceiling", "y": 7, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 50 },
 
     { "type": "divider", "z": 13, "height": 6, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
     { "type": "divider", "z": 24, "height": 6, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
+    { "type": "divider", "z": 36, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13] },
 
     { "type": "fill", "block": "FLOOR_STONE", "from": [4, 1, 3], "to": [5, 1, 4] },
     { "type": "fill", "block": "FLOOR_WORN", "from": [7, 1, 3], "to": [8, 1, 4] },
@@ -162,12 +235,14 @@
     { "type": "fill", "block": "PILLAR", "from": [4, 1, 9], "to": [5, 2, 10] },
     { "type": "fill", "block": "RESPAWN_PAD", "from": [7, 1, 9], "to": [8, 1, 10] },
 
-    { "type": "fill", "block": "JUMP_PAD", "from": [15, 1, 3], "to": [16, 1, 4] },
-    { "type": "fill", "block": "PEDESTAL", "from": [18, 1, 3], "to": [19, 1, 4] },
-    { "type": "fill", "block": "WALL", "from": [15, 1, 6], "to": [18, 1, 7] },
-    { "type": "fill", "block": "LAVA", "from": [16, 1, 6], "to": [17, 1, 7] },
-    { "type": "fill", "block": "CEILING", "from": [15, 1, 9], "to": [16, 1, 10] },
-    { "type": "fill", "block": "PILLAR", "from": [18, 1, 9], "to": [19, 2, 10] },
+    { "type": "fill", "block": "WALL", "from": [14, 1, 1], "to": [14, 6, 2] },
+    { "type": "fill", "block": "WALL", "from": [14, 4, 3], "to": [14, 6, 4] },
+    { "type": "fill", "block": "WALL", "from": [14, 1, 5], "to": [14, 6, 12] },
+
+    { "type": "fill", "block": "WALL", "from": [15, 1, 7], "to": [16, 6, 7] },
+    { "type": "fill", "block": "DOOR", "from": [17, 1, 7], "to": [18, 2, 7] },
+    { "type": "fill", "block": "WALL", "from": [17, 3, 7], "to": [18, 6, 7] },
+    { "type": "fill", "block": "WALL", "from": [19, 1, 7], "to": [22, 6, 7] },
 
     { "type": "pillar", "x": 2, "z": 2, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 21, "z": 2, "height": 6, "block": "PILLAR" },
@@ -187,6 +262,22 @@
     { "type": "pillar", "x": 5, "z": 26, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 26, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 5, "z": 32, "height": 6, "block": "PILLAR" },
-    { "type": "pillar", "x": 18, "z": 32, "height": 6, "block": "PILLAR" }
+    { "type": "pillar", "x": 18, "z": 32, "height": 6, "block": "PILLAR" },
+
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [3, 0, 43], "to": [5, 0, 45] },
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [7, 0, 43], "to": [9, 0, 45] },
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [11, 0, 43], "to": [13, 0, 45] },
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [15, 0, 43], "to": [17, 0, 45] },
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [19, 0, 43], "to": [21, 0, 45] },
+
+    { "type": "pillar", "x": 2, "z": 38, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 21, "z": 38, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 2, "z": 49, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 21, "z": 49, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 4, "z": 49, "height": 4, "block": "PILLAR" },
+    { "type": "pillar", "x": 8, "z": 49, "height": 4, "block": "PILLAR" },
+    { "type": "pillar", "x": 12, "z": 49, "height": 4, "block": "PILLAR" },
+    { "type": "pillar", "x": 16, "z": 49, "height": 4, "block": "PILLAR" },
+    { "type": "pillar", "x": 20, "z": 49, "height": 4, "block": "PILLAR" }
   ]
 }

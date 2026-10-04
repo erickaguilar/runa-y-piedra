@@ -42,12 +42,13 @@ export class AvatarRenderer {
     }
   }
 
-  /** Cambia el equipo visual según el id del héroe ('paladin', etc.). */
+  /** Cambia el equipo visual según el id del héroe ('paladin', 'adventurer', etc.). */
   setHeroGear(a, heroId) {
-    if (!a || a.heroId === (heroId || null)) return;
+    const resolvedHeroId = heroId || 'adventurer';
+    if (!a || a.heroId === resolvedHeroId) return;
     this._clearGear(a);
-    a.heroId = heroId || null;
-    const build = (heroId && GEAR_BUILDERS[heroId]) || null;
+    a.heroId = resolvedHeroId;
+    const build = (resolvedHeroId && GEAR_BUILDERS[resolvedHeroId]) || null;
     if (!build) return;
     const gear = new THREE.Group();
     a.mesh.add(gear);
@@ -65,8 +66,8 @@ export class AvatarRenderer {
     return PLAYER_PALETTE[Math.abs(Number(id) || 0) % PLAYER_PALETTE.length];
   }
 
-  static createNameSprite(name, color = '#38bdf8') {
-    return createNameSprite(name, color);
+  static createNameSprite(name, color = '#38bdf8', heroId = null) {
+    return createNameSprite(name, color, heroId);
   }
 
   ensure(id, color = AvatarRenderer.colorFor(id)) {
@@ -96,26 +97,33 @@ export class AvatarRenderer {
     return a;
   }
 
+  static _applyAvatarColors(a, color) {
+    if (color === undefined || !a?.mats) return;
+    const base = new THREE.Color(color);
+    if (a.mats[0]) a.mats[0].color.copy(base);
+    if (a.mats[1]) a.mats[1].color.copy(base).multiplyScalar(0.78);
+    if (a.mats[2]) a.mats[2].color.copy(base).multiplyScalar(0.55);
+    if (a.mats[3]) a.mats[3].color.copy(base);
+  }
+
   setMetadata(id, name, color, heroId = null) {
     const a = this.ensure(id, color);
     if (!a.isLocal) {
       a.mesh.visible = true;
     }
-    if (color !== undefined) {
-      for (const m of a.mats) m.color.set(color);
-    }
+    AvatarRenderer._applyAvatarColors(a, color);
     this.setHeroGear(a, heroId);
-    if (name) {
+    if (name !== undefined || heroId) {
       a.name = name;
       if (a.sprite) {
         a.mesh.remove(a.sprite);
-        a.sprite.material.map.dispose();
-        a.sprite.material.dispose();
+        a.sprite.material.map?.dispose?.();
+        a.sprite.material.dispose?.();
       }
       const hexColor = typeof color === 'string'
         ? color
         : (color !== undefined ? '#' + Number(color).toString(16).padStart(6, '0') : '#38bdf8');
-      a.sprite = AvatarRenderer.createNameSprite(name, hexColor);
+      a.sprite = AvatarRenderer.createNameSprite(name, hexColor, heroId);
       a.mesh.add(a.sprite);
     }
   }
@@ -126,8 +134,8 @@ export class AvatarRenderer {
     this._clearGear(a);
     if (a.sprite) {
       a.mesh.remove(a.sprite);
-      a.sprite.material.map.dispose();
-      a.sprite.material.dispose();
+      a.sprite.material?.map?.dispose?.();
+      a.sprite.material?.dispose?.();
     }
     this.scene.remove(a.mesh);
     for (const m of a.mats || []) m.dispose();
@@ -192,9 +200,7 @@ export class AvatarRenderer {
   updateLocal(id, x, y, z, yaw, color, heroId = null) {
     const a = this.ensure(id, color);
     a.isLocal = true;
-    if (color !== undefined) {
-      for (const m of a.mats) m.color.set(color);
-    }
+    AvatarRenderer._applyAvatarColors(a, color);
     this.setHeroGear(a, heroId);
     const now = performance.now();
     const dt = a._lt ? Math.min(0.25, (now - a._lt) / 1000) : 0.016;

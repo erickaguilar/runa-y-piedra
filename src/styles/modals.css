@@ -35,11 +35,52 @@
       transition: transform 80ms ease-out;
     }
 
+    /* Botón de Micrófono / Mute para Chat de Voz WebRTC */
+    .mute-btn {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top));
+      right: calc(max(16px, env(safe-area-inset-right)) + 52px);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #10b981;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 30;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s, border-color 0.15s, color 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mute-btn:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(16, 185, 129, 0.6);
+      color: #34d399;
+    }
+    .mute-btn:active {
+      transform: scale(0.88);
+      transition: transform 80ms ease-out;
+    }
+    .mute-btn.muted {
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.45);
+    }
+    .mute-btn.muted:hover {
+      border-color: rgba(239, 68, 68, 0.8);
+      color: #f87171;
+    }
+
     /* Botón de Herramientas de Desarrollador (aparece exclusivamente en modo desarrollo) */
     .dev-btn {
       position: fixed;
       top: max(16px, env(safe-area-inset-top));
-      right: calc(max(16px, env(safe-area-inset-right)) + 52px);
+      right: calc(max(16px, env(safe-area-inset-right)) + 104px);
       width: 44px;
       height: 44px;
       border-radius: 50%;
@@ -831,5 +872,111 @@
 .btn-slot-delete:hover {
   background: rgba(239, 68, 68, 0.15);
 }
+
+/* Modal de Selección de Héroe para Invitados */
+.modal-guest-box {
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85), 0 0 24px rgba(56, 189, 248, 0.2);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 460px;
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   Voice Chat: Modal de Permiso de Micrófono
+   ========================================================================== */
+.voice-prompt {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+  animation: fadeInVoice 200ms ease-out;
+}
+
+@keyframes fadeInVoice {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.voice-card {
+  background: #1a1d24;
+  color: #e8e4d8;
+  padding: 24px 28px;
+  border-radius: 14px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.voice-card h3 {
+  margin: 10px 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.voice-card p {
+  margin: 6px 0 20px;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.voice-icon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.voice-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.voice-actions button {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.voice-actions button:active {
+  transform: scale(0.94);
+}
+
+#voice-yes {
+  background: #10b981;
+  color: #fff;
+}
+
+#voice-yes:hover {
+  background: #059669;
+}
+
+#voice-no {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+#voice-no:hover {
+  background: #475569;
+}
+
 
 

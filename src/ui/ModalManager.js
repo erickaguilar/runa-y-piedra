@@ -15,6 +15,8 @@ import { ConfirmModalMixin } from './modals/ConfirmModal.js';
 import { InventoryModalMixin } from './modals/InventoryModal.js';
 import { ChapterModalMixin } from './modals/ChapterModal.js';
 import { SaveSlotsModalMixin } from './modals/SaveSlotsModal.js';
+import { GuestJoinModalMixin } from './modals/GuestJoinModal.js';
+import { VoiceModalMixin } from './modals/VoiceModal.js';
 
 export const ModalMixin = {
   ...SettingsModalMixin,
@@ -23,4 +25,6 @@ export const ModalMixin = {
   ...InventoryModalMixin,
   ...ChapterModalMixin,
   ...SaveSlotsModalMixin,
+  ...GuestJoinModalMixin,
+  ...VoiceModalMixin,
 };

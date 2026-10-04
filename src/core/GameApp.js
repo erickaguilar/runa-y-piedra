@@ -11,6 +11,8 @@ import { ChestRenderer } from '../render/ChestRenderer.js';
 import { DoorRenderer } from '../render/DoorRenderer.js';
 import { PedestalRenderer } from '../render/PedestalRenderer.js';
 import { StairsRenderer } from '../render/StairsRenderer.js';
+import { HeroShowcaseRenderer } from '../render/HeroShowcaseRenderer.js';
+import { PressurePlateRenderer } from '../render/PressurePlateRenderer.js';
 import { World } from './World.js';
 import { GameLoop } from './GameLoop.js';
 import { PlayerManager } from '../entities/PlayerManager.js';
@@ -52,6 +54,10 @@ export class VoxelSandboxGame {
     this.pedestalRenderer = new PedestalRenderer(this.sceneManager.scene);
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
     this.stairsRenderer = new StairsRenderer(this.sceneManager.scene);
+    this.heroShowcaseRenderer = new HeroShowcaseRenderer(this.sceneManager.scene);
+    this.heroShowcaseRenderer.loadShowcases(this.world.heroShowcases || []);
+    this.pressurePlateRenderer = new PressurePlateRenderer(this.sceneManager.scene);
+    this.pressurePlateRenderer.loadPressurePlates(this.world.pressurePlates);
     this.interaction = new InteractionController(this);
     this.descent = new DescentManager(this);
     this.interaction.ensureStairsState();
@@ -59,6 +65,9 @@ export class VoxelSandboxGame {
     this.playerManager = new PlayerManager();
     this.simulation = new SimulationEngine(this.world, {
       onStairTouch: (p) => this.descent.onStairTouch(p),
+      onPressurePlateStep: (p, plate) => {
+        this.interaction.pressPressurePlate(plate.id, p);
+      },
       isTransitioning: () => !!(this.descent?.transitioning || this.interaction?.isTransitioning?.()),
       onJumpPad: (p) => {
         if (p !== this.playerManager.localPlayer) return;
@@ -337,6 +346,7 @@ export class VoxelSandboxGame {
     this.ui.bindInventory({
       onUsePotion: (potion, idx) => this.usePotion(potion, idx),
     });
+    this.ui.bindVoice?.(this.network);
     this.ui.showMenu({
       onHost: (profile) => this.startHost(profile),
       onJoin: (pin, profile) => this.joinRoom(pin, profile),
@@ -547,6 +557,7 @@ export class VoxelSandboxGame {
         this.doorRenderer.update(dt);
         this.pedestalRenderer.update(dt);
         this.stairsRenderer.update(dt);
+        this.pressurePlateRenderer.update(dt);
         this.sceneManager.render();
       },
     });
@@ -566,6 +577,8 @@ export class VoxelSandboxGame {
     this.doorRenderer?.dispose?.();
     this.pedestalRenderer?.dispose?.();
     this.stairsRenderer?.dispose?.();
+    this.heroShowcaseRenderer?.dispose?.();
+    this.pressurePlateRenderer?.dispose?.();
     this.avatars?.dispose?.();
     this.sceneManager?.dispose?.();
   }

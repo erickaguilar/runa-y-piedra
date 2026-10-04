@@ -6,12 +6,13 @@ const HALF_W = (PHYSICS_CONFIG.PLAYER_W || 0.6) / 2;
 const PLAYER_H = PHYSICS_CONFIG.PLAYER_H || 1.8;
 
 export class SimulationEngine {
-  constructor(world, { onPlayerRespawn, onPlayerLavaSink, onStairTouch, onJumpPad, isTransitioning, lavaSinkTicks } = {}) {
+  constructor(world, { onPlayerRespawn, onPlayerLavaSink, onStairTouch, onJumpPad, onPressurePlateStep, isTransitioning, lavaSinkTicks } = {}) {
     this.world = world;
     this.onPlayerRespawn = onPlayerRespawn || null;
     this.onPlayerLavaSink = onPlayerLavaSink || null;
     this.onStairTouch = onStairTouch || null;
     this.onJumpPad = onJumpPad || null;
+    this.onPressurePlateStep = onPressurePlateStep || null;
     this.isTransitioning = isTransitioning || null;
     this.lavaSinkTicks = lavaSinkTicks !== undefined ? lavaSinkTicks : (PHYSICS_CONFIG.LAVA_SINK_TICKS ?? 36);
   }
@@ -227,6 +228,20 @@ export class SimulationEngine {
             p.pos.y < (w.triggerY ?? 0.75)) {
           this.onStairTouch(p, w);
           break;
+        }
+      }
+    }
+
+    // 5b. Sensor de losas de presión mecánicas (Pressure Plates):
+    if (this.onPressurePlateStep && Array.isArray(this.world.pressurePlates)) {
+      for (const plate of this.world.pressurePlates) {
+        if (plate.isPressed) continue;
+        const dx = p.pos.x - plate.x;
+        const dz = p.pos.z - plate.z;
+        const distSq = dx * dx + dz * dz;
+        const radius = plate.radius || 0.85;
+        if (distSq <= radius * radius && Math.abs(p.pos.y - (plate.y ?? 1.0)) < 1.0) {
+          this.onPressurePlateStep(p, plate);
         }
       }
     }

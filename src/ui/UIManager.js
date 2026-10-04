@@ -13,6 +13,7 @@ export class UIManager {
     hudMessageId = 'hud-message',
     settingsBtnId = 'btn-settings',
     devBtnId = 'btn-dev',
+    muteBtnId = 'btn-mute',
     livesHudId = 'hud-lives',
     transitionId = 'level-transition',
     inventoryHudId = 'hud-inventory',
@@ -26,6 +27,7 @@ export class UIManager {
     this.transitionEl = document.getElementById(transitionId);
     this.settingsBtn = document.getElementById(settingsBtnId);
     this.devBtn = document.getElementById(devBtnId);
+    this.muteBtn = document.getElementById(muteBtnId);
     this.inventoryHud = document.getElementById(inventoryHudId);
     this.keysTagHud = document.getElementById('hud-keys-tag');
     this.inventory = { keys: [], gems: 0, relics: [], potions: [] };
