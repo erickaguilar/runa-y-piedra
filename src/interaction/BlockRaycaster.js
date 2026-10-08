@@ -21,11 +21,12 @@ export class BlockRaycaster {
     // 1. Puertas definidas en el nivel
     if (Array.isArray(this.world.doors) && this.world.doors.length > 0) {
       for (const door of this.world.doors) {
-        const isOpen = door.id === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
+        const isOpen = this.world.isDoorOpenId ? this.world.isDoorOpenId(door.id) : (door.id === 1 ? this.world.isDoor1Open : this.world.isDoor2Open);
         if (!isOpen) {
           const doorZ = door.z ?? 11;
-          const dist = Math.hypot(playerPos.x - 11.5, playerPos.z - doorZ);
-          if (dist < 3.2) {
+          const doorX = door.x1 !== undefined ? (door.x1 + (door.x2 ?? door.x1)) / 2 : 11.5;
+          const dist = Math.hypot(playerPos.x - doorX, playerPos.z - doorZ);
+          if (dist < 2.4) {
             return { type: 'door', doorId: door.id, message: door.name };
           }
         }

@@ -124,9 +124,11 @@ export class LevelLoader {
       triggerRadius: p.triggerRadius ?? 0.65,
       targetDoorId: p.targetDoorId ?? 1,
       action: p.action || 'open_door',
+      mode: p.mode || 'trigger',
       isPressed: !!p.isPressed,
-      name: p.name || 'Losa de Presión Mecánica',
+      name: p.name || (p.mode === 'hold' ? 'Losa de Presencia Continua (Hold)' : 'Losa de Presión Mecánica'),
       message: p.message || ':stone: ¡Click! Has presionado la losa mecánica.',
+      releaseMessage: p.releaseMessage || (p.mode === 'hold' ? ':stone: ¡Click! Te has retirado de la losa de presencia. ¡El mecanismo se desactiva!' : null),
     }));
     // Escalinata de descenso:
     // - Si el nivel define "stairs" explícito se usa (openFromStart para fosa abierta).

@@ -26,6 +26,9 @@ import {
   buildPedestalMesh,
   createStairsMaterials,
   buildStairsMesh,
+  createPressurePlateGeometries,
+  createPressurePlateMaterials,
+  buildPressurePlateMesh,
 } from '../src/render/models/props/index.js';
 import { ChestRenderer } from '../src/render/ChestRenderer.js';
 import { parseOrientationYaw } from '../src/levels/LevelLoader.js';
@@ -292,3 +295,37 @@ test('HeroShowcaseRenderer: carga y exhibe los 5 avatares en la nueva sala del s
   showcaseRenderer.dispose();
   assert.equal(showcaseRenderer.showcases.length, 0);
 });
+
+test('Modelos Props: buildPressurePlateMesh construye losa estándar y losa de presencia continua (Hold)', () => {
+  const geos = createPressurePlateGeometries();
+  const mats = createPressurePlateMaterials();
+
+  assert.ok(geos.frameGeo instanceof THREE.BoxGeometry);
+  assert.ok(geos.plateGeo instanceof THREE.BoxGeometry);
+  assert.ok(geos.runeGeo instanceof THREE.CylinderGeometry);
+  assert.ok(geos.runeHoldRingGeo instanceof THREE.RingGeometry);
+  assert.ok(mats.runeHoldInactive instanceof THREE.MeshLambertMaterial);
+  assert.ok(mats.runeHoldActive instanceof THREE.MeshLambertMaterial);
+
+  // 1. Losa de trigger estándar
+  const standard = buildPressurePlateMesh(geos, mats, { action: 'open_door', mode: 'trigger' });
+  assert.ok(standard.root instanceof THREE.Group);
+  assert.ok(standard.platePivot instanceof THREE.Object3D);
+  assert.equal(standard.runeMesh.material, mats.runeInactive);
+  assert.equal(standard.light.color.getHex(), 0xf59e0b);
+
+  // 2. Losa de presencia continua (Hold)
+  const hold = buildPressurePlateMesh(geos, mats, { action: 'open_door', mode: 'hold' });
+  assert.ok(hold.root instanceof THREE.Group);
+  assert.ok(hold.platePivot instanceof THREE.Object3D);
+  assert.equal(hold.runeMesh.material, mats.runeHoldInactive);
+  assert.equal(hold.light.color.getHex(), 0x10b981);
+
+  // La losa hold debe incluir el anillo de forja concéntrico en platePivot
+  const rings = hold.platePivot.children.filter(c => c.geometry === geos.runeHoldRingGeo);
+  assert.equal(rings.length, 1, 'Debe incluir el anillo concéntrico de forja para la losa hold');
+
+  for (const m of Object.values(mats)) m.dispose();
+  for (const g of Object.values(geos)) g.dispose();
+});
+

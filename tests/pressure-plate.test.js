@@ -321,3 +321,224 @@ test('Física de colisión AABB: Puerta 3 bloquea el paso cuando está cerrada y
   assert.equal(move3.hitZ, true, 'Debe chocar nuevamente con la puerta re-cerrada');
   assert.ok(posReturn.z > 7.0, 'No debe poder cruzar de regreso mientras la puerta esté cerrada');
 });
+
+test('dev_showroom.json define la losa de presencia continua (Hold 3D) vinculada a Puerta 3', () => {
+  const plateHold = devShowroom.pressurePlates.find(p => p.id === 'losa_showroom_hold');
+  assert.ok(plateHold, 'Debe existir la losa losa_showroom_hold en dev_showroom');
+  assert.equal(plateHold.mode, 'hold', 'Debe estar en modo hold');
+  assert.equal(plateHold.targetDoorId, 3, 'Debe apuntar a la Puerta 3');
+  assert.equal(plateHold.action, 'open_door');
+  assert.equal(plateHold.x, 16.0);
+  assert.equal(plateHold.z, 4.5);
+});
+
+test('LevelLoader inicializa losas con mode: hold y mensajes de liberación', () => {
+  const world = new World();
+  world.loadLevel(devShowroom);
+
+  const plateHold = world.pressurePlates.find(p => p.id === 'losa_showroom_hold');
+  assert.ok(plateHold);
+  assert.equal(plateHold.mode, 'hold');
+  assert.equal(plateHold.targetDoorId, 3);
+  assert.ok(plateHold.releaseMessage && (plateHold.releaseMessage.includes('liberado') || plateHold.releaseMessage.includes('salido')));
+});
+
+test('PressurePlateRenderer aplica materiales y luces esmeralda en modo hold al presionar y soltar', () => {
+  const scene = new THREE.Scene();
+  const renderer = new PressurePlateRenderer(scene);
+
+  renderer.loadPressurePlates([
+    {
+      id: 'plate_hold_test',
+      x: 16,
+      y: 1,
+      z: 4.5,
+      mode: 'hold',
+      action: 'open_door',
+      targetDoorId: 3,
+    },
+  ]);
+
+  const pData = renderer.plates.get('plate_hold_test');
+  assert.ok(pData);
+  assert.equal(pData.mode, 'hold');
+  assert.equal(pData.runeMesh.material, renderer.mats.runeHoldInactive);
+  assert.equal(pData.light.color.getHex(), 0x10b981);
+
+  // Al presionar: pasa a activo esmeralda
+  renderer.press('plate_hold_test');
+  assert.equal(pData.runeMesh.material, renderer.mats.runeHoldActive);
+  assert.equal(pData.light.color.getHex(), 0x34d399);
+
+  // Al soltar: regresa a inactivo esmeralda
+  renderer.unpress('plate_hold_test');
+  assert.equal(pData.runeMesh.material, renderer.mats.runeHoldInactive);
+  assert.equal(pData.light.color.getHex(), 0x10b981);
+
+  renderer.dispose();
+});
+
+test('SimulationEngine invoca onPressurePlateStep al pisar y onPressurePlateRelease al salir de losa hold', () => {
+  const world = new World();
+  world.loadLevel(devShowroom);
+
+  const steps = [];
+  const releases = [];
+
+  const sim = new SimulationEngine(world, {
+    onPressurePlateStep: (player, plate) => steps.push({ player, plateId: plate.id }),
+    onPressurePlateRelease: (player, plate) => releases.push({ player, plateId: plate.id }),
+  });
+
+  const plate = world.pressurePlates.find(p => p.id === 'losa_showroom_hold');
+  assert.ok(plate);
+  assert.equal(plate.mode, 'hold');
+
+  const player = new Player(1);
+  // Fuera de la losa
+  player.pos.x = 10.0;
+  player.pos.y = 1.0;
+  player.pos.z = 4.5;
+  sim.integratePlayer(player, 0.016);
+  assert.equal(steps.length, 0);
+  assert.equal(releases.length, 0);
+
+  // 1. Entrar físicamente encima de la losa (x=16.0, z=4.5)
+  player.pos.x = 16.0;
+  player.pos.z = 4.5;
+  sim.integratePlayer(player, 0.016);
+  assert.equal(steps.length, 1, 'Debe invocar onPressurePlateStep');
+  assert.equal(steps[0].plateId, 'losa_showroom_hold');
+  assert.equal(plate.isPressed, true, 'La losa debe figurar como presionada');
+
+  // 2. Permanecer encima en siguientes ticks (no dispara steps duplicados)
+  sim.integratePlayer(player, 0.016);
+  assert.equal(steps.length, 1);
+  assert.equal(releases.length, 0);
+  assert.equal(plate.isPressed, true);
+
+  // 3. Salir de la losa (desplazarse a x=14.0)
+  player.pos.x = 14.0;
+  sim.integratePlayer(player, 0.016);
+  assert.equal(releases.length, 1, 'Debe invocar onPressurePlateRelease');
+  assert.equal(releases[0].plateId, 'losa_showroom_hold');
+  assert.equal(plate.isPressed, false, 'La losa debe desactivarse al salir');
+
+  // 4. Volver a entrar: se re-activa exitosamente
+  player.pos.x = 16.0;
+  sim.integratePlayer(player, 0.016);
+  assert.equal(steps.length, 2, 'Debe poder re-activarse en el segundo ciclo');
+  assert.equal(plate.isPressed, true);
+});
+
+test('SimulationEngine mantiene la losa hold presionada si hay múltiples jugadores y libera cuando todos salen', () => {
+  const world = new World();
+  world.loadLevel(devShowroom);
+
+  const steps = [];
+  const releases = [];
+
+  const sim = new SimulationEngine(world, {
+    onPressurePlateStep: (player, plate) => steps.push({ player, plateId: plate.id }),
+    onPressurePlateRelease: (player, plate) => releases.push({ player, plateId: plate.id }),
+  });
+
+  const plate = world.pressurePlates.find(p => p.id === 'losa_showroom_hold');
+  const player1 = new Player(1);
+  const player2 = new Player(2);
+
+  // Jugador 1 se para en la losa
+  player1.pos.x = 16.0;
+  player1.pos.y = 1.0;
+  player1.pos.z = 4.5;
+  sim.integratePlayer(player1, 0.016);
+  assert.equal(steps.length, 1);
+  assert.equal(plate.isPressed, true);
+
+  // Jugador 2 también se para en la misma losa
+  player2.pos.x = 16.0;
+  player2.pos.y = 1.0;
+  player2.pos.z = 4.5;
+  sim.integratePlayer(player2, 0.016);
+  assert.equal(steps.length, 1, 'Losa ya estaba presionada, no duplica evento step');
+  assert.equal(plate._occupants.size, 2, 'Debe registrar 2 ocupantes');
+
+  // Jugador 1 se retira
+  player1.pos.x = 12.0;
+  sim.integratePlayer(player1, 0.016);
+  assert.equal(releases.length, 0, 'No debe liberarse porque Jugador 2 sigue encima');
+  assert.equal(plate.isPressed, true);
+  assert.equal(plate._occupants.size, 1);
+
+  // Jugador 2 también se retira
+  player2.pos.x = 12.0;
+  sim.integratePlayer(player2, 0.016);
+  assert.equal(releases.length, 1, 'Ahora que todos salieron, debe liberarse');
+  assert.equal(plate.isPressed, false);
+  assert.equal(plate._occupants.size, 0);
+});
+
+test('Ciclo interactivo completo: losa hold abre Puerta 3 al estar encima y la cierra al salir', () => {
+  const world = new World();
+  world.loadLevel(devShowroom);
+
+  const scene = new THREE.Scene();
+  const doorRenderer = new DoorRenderer(scene);
+  doorRenderer.loadDoors(world.doors);
+
+  const plateRenderer = new PressurePlateRenderer(scene);
+  plateRenderer.loadPressurePlates(world.pressurePlates);
+
+  let narrativeMessages = [];
+  let soundsPlayed = [];
+
+  const mockGame = {
+    world,
+    mode: 'host',
+    voxelMap: {
+      openDoor: (id) => {},
+      closeDoor: (id) => {},
+    },
+    doorRenderer,
+    pressurePlateRenderer: plateRenderer,
+    playerManager: { localPlayer: new Player(0) },
+    soundManager: {
+      playPressurePlate: () => soundsPlayed.push('pressurePlate'),
+      playDoorOpen: () => soundsPlayed.push('doorOpen'),
+      playDoorClose: () => soundsPlayed.push('doorClose'),
+    },
+    ui: {
+      showNarrativeMessage: (msg) => narrativeMessages.push(msg),
+    },
+    network: {
+      broadcast: (buf) => {},
+    },
+  };
+
+  const controller = new InteractionController(mockGame);
+
+  // Puerta 3 inicialmente cerrada
+  assert.equal(world.isDoorOpenId(3), false);
+  assert.equal(plateRenderer.isPressed('losa_showroom_hold'), false);
+
+  // 1. Jugador pisa la losa
+  const pressOk = controller.pressPressurePlate('losa_showroom_hold');
+  assert.equal(pressOk, true);
+  assert.equal(world.isDoorOpenId(3), true, 'Puerta 3 debe abrirse');
+  assert.equal(plateRenderer.isPressed('losa_showroom_hold'), true, 'Renderer debe reflejar losa presionada');
+  assert.ok(soundsPlayed.includes('pressurePlate'));
+  assert.ok(soundsPlayed.includes('doorOpen'));
+
+  // 2. Jugador sale de la losa
+  soundsPlayed = [];
+  const releaseOk = controller.releasePressurePlate('losa_showroom_hold');
+  assert.equal(releaseOk, true);
+  assert.equal(world.isDoorOpenId(3), false, 'Puerta 3 debe cerrarse automáticamente');
+  assert.equal(plateRenderer.isPressed('losa_showroom_hold'), false, 'Renderer debe reflejar losa rearmada (unpress)');
+  assert.ok(soundsPlayed.includes('pressurePlate'));
+  assert.ok(soundsPlayed.includes('doorClose'));
+
+  doorRenderer.dispose();
+  plateRenderer.dispose();
+});
+

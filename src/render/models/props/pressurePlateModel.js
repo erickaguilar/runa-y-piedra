@@ -31,6 +31,16 @@ export function createPressurePlateMaterials() {
       emissive: 0xbe123c,
       emissiveIntensity: 1.4,
     }),
+    runeHoldInactive: new THREE.MeshLambertMaterial({
+      color: 0x059669,
+      emissive: 0x064e3b,
+      emissiveIntensity: 0.6,
+    }),
+    runeHoldActive: new THREE.MeshLambertMaterial({
+      color: 0x10b981,
+      emissive: 0x047857,
+      emissiveIntensity: 1.5,
+    }),
   };
 }
 
@@ -42,6 +52,7 @@ export function createPressurePlateGeometries() {
     frameGeo: new THREE.BoxGeometry(1.18, 0.04, 1.18),
     plateGeo: new THREE.BoxGeometry(0.92, 0.06, 0.92),
     runeGeo: new THREE.CylinderGeometry(0.24, 0.24, 0.015, 16),
+    runeHoldRingGeo: new THREE.RingGeometry(0.27, 0.33, 16),
     cornersGeo: new THREE.BoxGeometry(0.14, 0.07, 0.14),
   };
 }
@@ -57,6 +68,7 @@ export function createPressurePlateGeometries() {
 export function buildPressurePlateMesh(geos, mats, options = {}) {
   const root = new THREE.Group();
   const isCloseAction = options.action === 'close_door';
+  const isHoldMode = options.mode === 'hold';
 
   // 1. Marco perimetral fijo exterior encastrado al ras del suelo
   const frameMesh = new THREE.Mesh(geos.frameGeo, mats.frameStone);
@@ -85,13 +97,31 @@ export function buildPressurePlateMesh(geos, mats, options = {}) {
   platePivot.add(plateMesh);
 
   // 5. Disco rúnico central en relieve con color temático según su función
-  const runeMat = isCloseAction ? mats.runeCloseInactive : mats.runeInactive;
+  let runeMat = mats.runeInactive;
+  if (isHoldMode) {
+    runeMat = mats.runeHoldInactive;
+  } else if (isCloseAction) {
+    runeMat = mats.runeCloseInactive;
+  }
   const runeMesh = new THREE.Mesh(geos.runeGeo, runeMat);
   runeMesh.position.y = 0.072;
   platePivot.add(runeMesh);
 
+  // Anillo concéntrico de forja rúnica exclusivo para losas de presencia continua (Hold)
+  if (isHoldMode && geos.runeHoldRingGeo) {
+    const ringMesh = new THREE.Mesh(geos.runeHoldRingGeo, mats.ironTrim);
+    ringMesh.rotation.x = -Math.PI / 2;
+    ringMesh.position.y = 0.073;
+    platePivot.add(ringMesh);
+  }
+
   // 6. Luz rúnica puntual sutil
-  const lightColor = isCloseAction ? 0xef4444 : 0xf59e0b;
+  let lightColor = 0xf59e0b;
+  if (isHoldMode) {
+    lightColor = 0x10b981;
+  } else if (isCloseAction) {
+    lightColor = 0xef4444;
+  }
   const light = new THREE.PointLight(lightColor, 0.5, 2.2);
   light.position.set(0, 0.25, 0);
   root.add(light);

@@ -6,13 +6,14 @@ const HALF_W = (PHYSICS_CONFIG.PLAYER_W || 0.6) / 2;
 const PLAYER_H = PHYSICS_CONFIG.PLAYER_H || 1.8;
 
 export class SimulationEngine {
-  constructor(world, { onPlayerRespawn, onPlayerLavaSink, onStairTouch, onJumpPad, onPressurePlateStep, isTransitioning, lavaSinkTicks } = {}) {
+  constructor(world, { onPlayerRespawn, onPlayerLavaSink, onStairTouch, onJumpPad, onPressurePlateStep, onPressurePlateRelease, isTransitioning, lavaSinkTicks } = {}) {
     this.world = world;
     this.onPlayerRespawn = onPlayerRespawn || null;
     this.onPlayerLavaSink = onPlayerLavaSink || null;
     this.onStairTouch = onStairTouch || null;
     this.onJumpPad = onJumpPad || null;
     this.onPressurePlateStep = onPressurePlateStep || null;
+    this.onPressurePlateRelease = onPressurePlateRelease || null;
     this.isTransitioning = isTransitioning || null;
     this.lavaSinkTicks = lavaSinkTicks !== undefined ? lavaSinkTicks : (PHYSICS_CONFIG.LAVA_SINK_TICKS ?? 36);
   }
@@ -69,10 +70,30 @@ export class SimulationEngine {
       p.setCheckpoint(currentSpawn.x, currentSpawn.y, currentSpawn.z, p.checkpoint?.roomName || 'Entrada', currentLevelId, spawnYaw);
       cp = p.respawn(currentSpawn);
     }
+    this._clearPlayerPlates(p);
     if (this.onPlayerRespawn) {
       this.onPlayerRespawn(p, cp, { cause, lives: p.lives, maxLives: p.maxLives ?? 3, gameOver });
     }
     return { cp, ...res, gameOver };
+  }
+
+  _clearPlayerPlates(p) {
+    if (!p?._standingPlates || p._standingPlates.size === 0) return;
+    for (const plateId of p._standingPlates) {
+      const plate = this.world?.pressurePlates?.find(pl => pl.id === plateId);
+      if (plate) {
+        if (plate._occupants) {
+          plate._occupants.delete(p.id ?? p);
+        }
+        if (plate.mode === 'hold' && (!plate._occupants || plate._occupants.size === 0) && plate.isPressed) {
+          if (this.onPressurePlateRelease) {
+            this.onPressurePlateRelease(p, plate);
+          }
+          plate.isPressed = false;
+        }
+      }
+    }
+    p._standingPlates.clear();
   }
 
   integratePlayer(p, dt, actions = 0) {
@@ -234,15 +255,45 @@ export class SimulationEngine {
 
     // 5b. Sensor de Pad Losa de Presión (Pressure Pad):
     // Se activa exclusivamente al estar físicamente encima del bloque pad (sin interacción de botón)
-    if (this.onPressurePlateStep && Array.isArray(this.world.pressurePlates)) {
+    // En modo 'hold', se desactiva automáticamente al salir de su posición cuando no quedan ocupantes.
+    if (Array.isArray(this.world.pressurePlates)) {
+      p._standingPlates = p._standingPlates || new Set();
+
       for (const plate of this.world.pressurePlates) {
-        if (plate.isPressed) continue;
         const dx = Math.abs(p.pos.x - plate.x);
         const dz = Math.abs(p.pos.z - plate.z);
         const padRadius = plate.radius || 0.65;
         // Debe encontrarse directamente encima del área física del bloque pad
-        if (dx <= padRadius && dz <= padRadius && Math.abs(p.pos.y - (plate.y ?? 1.0)) < 0.8) {
-          this.onPressurePlateStep(p, plate);
+        const isInside = (dx <= padRadius && dz <= padRadius && Math.abs(p.pos.y - (plate.y ?? 1.0)) < 0.8);
+        const isHoldMode = plate.mode === 'hold';
+
+        if (isInside) {
+          if (!p._standingPlates.has(plate.id)) {
+            p._standingPlates.add(plate.id);
+            plate._occupants = plate._occupants || new Set();
+            plate._occupants.add(p.id ?? p);
+
+            if (!plate.isPressed) {
+              if (this.onPressurePlateStep) {
+                this.onPressurePlateStep(p, plate);
+              }
+              plate.isPressed = true;
+            }
+          }
+        } else {
+          if (p._standingPlates.has(plate.id)) {
+            p._standingPlates.delete(plate.id);
+            if (plate._occupants) {
+              plate._occupants.delete(p.id ?? p);
+            }
+
+            if (isHoldMode && (!plate._occupants || plate._occupants.size === 0) && plate.isPressed) {
+              if (this.onPressurePlateRelease) {
+                this.onPressurePlateRelease(p, plate);
+              }
+              plate.isPressed = false;
+            }
+          }
         }
       }
     }

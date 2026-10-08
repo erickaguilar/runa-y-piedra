@@ -331,7 +331,7 @@ export class InteractionController {
     const msg = (door?.openMessage || defaultMsg) + keySuffix;
     game.ui.showNarrativeMessage(msg, 6000);
 
-    if (game.mode === 'host') {
+    if (game.mode === 'host' && game.network?.broadcast) {
       game.network.broadcast(Proto.serializeDoorOpen(doorId));
     }
   }
@@ -421,14 +421,69 @@ export class InteractionController {
       }
     }
 
-    // Registrar en losas presionadas
-    const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
-    game.openedPlateKeys = game.openedPlateKeys || new Set();
-    game.openedPlateKeys.add(`${currentLevelId}_plate_${plate.id}`);
+    // Registrar en losas presionadas solo si es permanente (trigger)
+    if (plate.mode !== 'hold') {
+      const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
+      game.openedPlateKeys = game.openedPlateKeys || new Set();
+      game.openedPlateKeys.add(`${currentLevelId}_plate_${plate.id}`);
+    }
 
     // Feedback narrativo de activación
-    const msg = plate.message || `:stone: ¡Click! Has presionado la losa mecánica. ¡Mecanismo activado!`;
+    const defaultMsg = plate.mode === 'hold'
+      ? `:stone: ¡Click! Has pisado la losa de presencia. ¡El mecanismo permanecerá activo mientras estés encima!`
+      : `:stone: ¡Click! Has presionado la losa mecánica. ¡Mecanismo activado!`;
+    const msg = plate.message || defaultMsg;
     game.ui?.showNarrativeMessage?.(msg, 5000);
+
+    return true;
+  }
+
+  /**
+   * Libera una losa de presión de presencia continua (Hold):
+   * Revierte la animación con el resorte, reproduce sonido mecánico y desactiva el mecanismo vinculado (ej. cierra la puerta abierta).
+   */
+  releasePressurePlate(plateId, player = null) {
+    const game = this.game;
+    const plate = game.world.pressurePlates?.find(p => p.id === plateId);
+    if (!plate || !plate.isPressed) return false;
+
+    plate.isPressed = false;
+    game.pressurePlateRenderer?.unpress(plate.id);
+
+    const local = game.playerManager?.localPlayer;
+    const listener = player?.pos || local?.pos;
+    if (game.soundManager?.playPressurePlate) {
+      game.soundManager.playPressurePlate({ x: plate.x, y: plate.y, z: plate.z }, listener);
+    } else {
+      game.soundManager?.playClick?.();
+    }
+
+    const doorId = plate.targetDoorId ?? 1;
+
+    // Al abandonar la losa en modo hold, revertir la acción vinculada
+    if (plate.action === 'close_door') {
+      this.openDoor(doorId, player || local);
+    } else if (plate.action === 'toggle_door') {
+      const isOpen = game.world.isDoorOpenId ? game.world.isDoorOpenId(doorId) : (doorId === 1 ? game.world.isDoor1Open : game.world.isDoor2Open);
+      if (isOpen) {
+        this.closeDoor(doorId, player || local);
+      } else {
+        this.openDoor(doorId, player || local);
+      }
+    } else {
+      // Default: 'open_door' -> se cierra al quitar el peso
+      this.closeDoor(doorId, player || local);
+    }
+
+    const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
+    if (game.openedPlateKeys) {
+      game.openedPlateKeys.delete(`${currentLevelId}_plate_${plate.id}`);
+    }
+
+    // Feedback narrativo de desactivación
+    const defaultMsg = `:stone: ¡Click! Has salido de la losa de presencia continua. ¡Mecanismo desactivado!`;
+    const msg = plate.releaseMessage || defaultMsg;
+    game.ui?.showNarrativeMessage?.(msg, 4000);
 
     return true;
   }

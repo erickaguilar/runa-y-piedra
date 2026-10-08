@@ -37,9 +37,9 @@ export class PressurePlateRenderer {
     const y = cfg.y ?? 1.0;
     const z = cfg.z ?? 10;
     const action = cfg.action || 'open_door';
-    const isClose = action === 'close_door';
+    const mode = cfg.mode || 'trigger';
 
-    const { root, platePivot, plateMesh, runeMesh, light } = buildPressurePlateMesh(this.geos, this.mats, { action });
+    const { root, platePivot, plateMesh, runeMesh, light } = buildPressurePlateMesh(this.geos, this.mats, { action, mode });
     root.position.set(x, y, z);
     this.group.add(root);
 
@@ -47,17 +47,7 @@ export class PressurePlateRenderer {
     spring.snap(0);
 
     const isPressed = !!cfg.isPressed;
-    if (isPressed) {
-      spring.snap(PLATE_PRESS_DEPTH);
-      platePivot.position.y = -PLATE_PRESS_DEPTH;
-      if (runeMesh) runeMesh.material = isClose ? this.mats.runeCloseActive : this.mats.runeActive;
-      if (light) {
-        light.intensity = 1.6;
-        light.color.setHex(isClose ? 0xf43f5e : 0x38bdf8);
-      }
-    }
-
-    this.plates.set(id, {
+    const plateData = {
       id,
       x,
       y,
@@ -71,8 +61,43 @@ export class PressurePlateRenderer {
       isPressed,
       targetDoorId: cfg.targetDoorId ?? 1,
       action,
+      mode,
       reusable: cfg.reusable !== false,
-    });
+    };
+
+    if (isPressed) {
+      spring.snap(PLATE_PRESS_DEPTH);
+      platePivot.position.y = -PLATE_PRESS_DEPTH;
+      if (runeMesh) runeMesh.material = this._getRuneMaterial(plateData, true);
+      if (light) {
+        light.intensity = 1.6;
+        light.color.setHex(this._getLightColor(plateData, true));
+      }
+    }
+
+    this.plates.set(id, plateData);
+  }
+
+  _getRuneMaterial(p, active = false) {
+    if (p.mode === 'hold') {
+      return active ? this.mats.runeHoldActive : this.mats.runeHoldInactive;
+    }
+    const isClose = p.action === 'close_door';
+    if (isClose) {
+      return active ? this.mats.runeCloseActive : this.mats.runeCloseInactive;
+    }
+    return active ? this.mats.runeActive : this.mats.runeInactive;
+  }
+
+  _getLightColor(p, active = false) {
+    if (p.mode === 'hold') {
+      return active ? 0x34d399 : 0x10b981;
+    }
+    const isClose = p.action === 'close_door';
+    if (isClose) {
+      return active ? 0xf43f5e : 0xef4444;
+    }
+    return active ? 0x38bdf8 : 0xf59e0b;
   }
 
   press(id) {
@@ -81,11 +106,10 @@ export class PressurePlateRenderer {
 
     p.isPressed = true;
     p.spring.set(PLATE_PRESS_DEPTH);
-    const isClose = p.action === 'close_door';
-    if (p.runeMesh) p.runeMesh.material = isClose ? this.mats.runeCloseActive : this.mats.runeActive;
+    if (p.runeMesh) p.runeMesh.material = this._getRuneMaterial(p, true);
     if (p.light) {
       p.light.intensity = 1.8;
-      p.light.color.setHex(isClose ? 0xf43f5e : 0x38bdf8);
+      p.light.color.setHex(this._getLightColor(p, true));
     }
     return true;
   }
@@ -96,11 +120,10 @@ export class PressurePlateRenderer {
 
     p.isPressed = false;
     p.spring.set(0);
-    const isClose = p.action === 'close_door';
-    if (p.runeMesh) p.runeMesh.material = isClose ? this.mats.runeCloseInactive : this.mats.runeInactive;
+    if (p.runeMesh) p.runeMesh.material = this._getRuneMaterial(p, false);
     if (p.light) {
       p.light.intensity = 0.5;
-      p.light.color.setHex(isClose ? 0xef4444 : 0xf59e0b);
+      p.light.color.setHex(this._getLightColor(p, false));
     }
     return true;
   }
@@ -116,11 +139,10 @@ export class PressurePlateRenderer {
     p.isPressed = true;
     p.spring.snap(PLATE_PRESS_DEPTH);
     p.platePivot.position.y = -PLATE_PRESS_DEPTH;
-    const isClose = p.action === 'close_door';
-    if (p.runeMesh) p.runeMesh.material = isClose ? this.mats.runeCloseActive : this.mats.runeActive;
+    if (p.runeMesh) p.runeMesh.material = this._getRuneMaterial(p, true);
     if (p.light) {
       p.light.intensity = 1.6;
-      p.light.color.setHex(isClose ? 0xf43f5e : 0x38bdf8);
+      p.light.color.setHex(this._getLightColor(p, true));
     }
   }
 
@@ -130,11 +152,10 @@ export class PressurePlateRenderer {
     p.isPressed = false;
     p.spring.snap(0);
     p.platePivot.position.y = 0;
-    const isClose = p.action === 'close_door';
-    if (p.runeMesh) p.runeMesh.material = isClose ? this.mats.runeCloseInactive : this.mats.runeInactive;
+    if (p.runeMesh) p.runeMesh.material = this._getRuneMaterial(p, false);
     if (p.light) {
       p.light.intensity = 0.5;
-      p.light.color.setHex(isClose ? 0xef4444 : 0xf59e0b);
+      p.light.color.setHex(this._getLightColor(p, false));
     }
   }
 

@@ -55,6 +55,21 @@
       "action": "close_door",
       "reusable": true,
       "message": ":door: ¡SLAM! Has presionado la losa de cierre. ¡La Puerta 3 de pruebas se ha cerrado!"
+    },
+    {
+      "id": "losa_showroom_hold",
+      "name": "Losa de Presencia Continua (Hold 3D)",
+      "x": 16.0,
+      "y": 1.0,
+      "z": 4.5,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 3,
+      "action": "open_door",
+      "mode": "hold",
+      "reusable": true,
+      "message": ":gem: ¡CLACK! Activando losa de presencia continua. ¡La Puerta 3 de pruebas permanece abierta mientras te mantengas encima!",
+      "releaseMessage": ":lock: ¡CLINK! Has salido de la losa de presencia continua. ¡El mecanismo se desactiva y la Puerta 3 se cierra!"
     }
   ],
   "doors": [

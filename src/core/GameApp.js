@@ -68,6 +68,9 @@ export class VoxelSandboxGame {
       onPressurePlateStep: (p, plate) => {
         this.interaction.pressPressurePlate(plate.id, p);
       },
+      onPressurePlateRelease: (p, plate) => {
+        this.interaction.releasePressurePlate(plate.id, p);
+      },
       isTransitioning: () => !!(this.descent?.transitioning || this.interaction?.isTransitioning?.()),
       onJumpPad: (p) => {
         if (p !== this.playerManager.localPlayer) return;
