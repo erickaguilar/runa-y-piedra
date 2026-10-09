@@ -177,14 +177,14 @@
 
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 11], "to": [22, 0, 14] },
 
-    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 17], "to": [6, 0, 17] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 21], "to": [6, 0, 21] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [3, 0, 25], "to": [4, 0, 25] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [7, 0, 29], "to": [8, 0, 29] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [4, 0, 33], "to": [5, 0, 33] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 16], "to": [7, 0, 17] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 20], "to": [7, 0, 21] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 24], "to": [7, 0, 25] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 28], "to": [7, 0, 29] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 32], "to": [7, 0, 33] },
 
-    { "type": "fill", "block": "STONE_FLOOR", "from": [5, 0, 37], "to": [7, 0, 39] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 41], "to": [6, 0, 41] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 0, 36], "to": [8, 0, 39] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 41], "to": [7, 0, 41] },
 
     { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 17], "to": [18, 0, 17] },
     { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 21], "to": [18, 0, 21] },
