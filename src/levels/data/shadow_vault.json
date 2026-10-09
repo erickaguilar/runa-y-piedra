@@ -1,13 +1,13 @@
 {
   "id": "shadow_vault",
   "name": "Bóveda Umbría: Las Galerías Gemelas",
-  "description": "Explora la cripta de basalto. Coordina la activación de las losas rúnicas cruzadas para abrir las Puertas Gemelas y descender.",
+  "description": "Explora la cripta de basalto. Supera el extenso foso de lava en las Galerías Gemelas y coordina la activación de las losas rúnicas cruzadas.",
   "difficulty": "Desafiante",
   "icon": "pickaxe",
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,
-    "sizeZ": 36
+    "sizeZ": 55
   },
   "spawn": {
     "x": 12.0,
@@ -34,7 +34,7 @@
       "name": "Losa Cruzada Izquierda",
       "x": 6.0,
       "y": 1.0,
-      "z": 19.0,
+      "z": 38.0,
       "radius": 0.85,
       "triggerRadius": 2.4,
       "targetDoorId": 3,
@@ -47,7 +47,7 @@
       "name": "Losa Cruzada Derecha",
       "x": 18.0,
       "y": 1.0,
-      "z": 19.0,
+      "z": 38.0,
       "radius": 0.85,
       "triggerRadius": 2.4,
       "targetDoorId": 2,
@@ -72,7 +72,7 @@
         { "x": 12, "y": 1, "z": 11 },
         { "x": 12, "y": 2, "z": 11 }
       ],
-      "openMessage": ":door: ¡Puerta 1 abierta! Acceso a las Galerías Gemelas. ¡Coordinaos para abrir el paso!"
+      "openMessage": ":door: ¡Puerta 1 abierta! Acceso a las Galerías Gemelas. ¡Superad el lago de lava y coordinaos!"
     },
     {
       "id": 2,
@@ -81,13 +81,13 @@
       "x2": 7,
       "y1": 1,
       "y2": 3,
-      "z": 24,
+      "z": 43,
       "swingDir": 1,
       "coords": [
-        { "x": 5, "y": 1, "z": 24 },
-        { "x": 5, "y": 2, "z": 24 },
-        { "x": 6, "y": 1, "z": 24 },
-        { "x": 6, "y": 2, "z": 24 }
+        { "x": 5, "y": 1, "z": 43 },
+        { "x": 5, "y": 2, "z": 43 },
+        { "x": 6, "y": 1, "z": 43 },
+        { "x": 6, "y": 2, "z": 43 }
       ],
       "openMessage": ":door: ¡Puerta Gemela Izquierda abierta! El camino a la Cripta de las Estelas está despejado."
     },
@@ -98,13 +98,13 @@
       "x2": 19,
       "y1": 1,
       "y2": 3,
-      "z": 24,
+      "z": 43,
       "swingDir": 1,
       "coords": [
-        { "x": 17, "y": 1, "z": 24 },
-        { "x": 17, "y": 2, "z": 24 },
-        { "x": 18, "y": 1, "z": 24 },
-        { "x": 18, "y": 2, "z": 24 }
+        { "x": 17, "y": 1, "z": 43 },
+        { "x": 17, "y": 2, "z": 43 },
+        { "x": 18, "y": 1, "z": 43 },
+        { "x": 18, "y": 2, "z": 43 }
       ],
       "openMessage": ":door: ¡Puerta Gemela Derecha abierta! El camino a la Cripta de las Estelas está despejado."
     }
@@ -121,19 +121,19 @@
       "id": "sala_2",
       "name": "Sala 2 (Galerías Gemelas)",
       "minZ": 11.5,
-      "maxZ": 24.0,
+      "maxZ": 43.0,
       "respawn": { "x": 12.0, "y": 1.2, "z": 12.5 }
     },
     {
       "id": "sala_3",
       "name": "Sala 3 (Cripta de las Estelas)",
-      "minZ": 24.5,
-      "maxZ": 36.0,
-      "respawn": { "x": 12.0, "y": 1.2, "z": 25.5 }
+      "minZ": 43.5,
+      "maxZ": 55.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 44.5 }
     }
   ],
   "objectives": [],
-  "stairs": { "x1": 11, "x2": 12, "z1": 31, "z2": 33, "openFromStart": true },
+  "stairs": { "x1": 11, "x2": 12, "z1": 50, "z2": 52, "openFromStart": true },
   "chests": [
     {
       "id": 1,
@@ -157,33 +157,49 @@
       "name": "Cofre de Basalto Milenario",
       "x": 6.5,
       "y": 1.0,
-      "z": 28.5,
+      "z": 47.5,
       "facing": "east",
       "reward": ":trophy: Reliquia Umbría y :gem: 300 Gemas",
       "message": ":chest: ¡Has abierto el Cofre de Basalto! Has obtenido: :trophy: Espejo de Sombras y :gem: 300 Gemas."
     }
   ],
   "regions": [
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 13] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 14], "to": [10, 0, 24] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [14, 0, 14], "to": [22, 0, 24] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 24], "to": [22, 0, 34] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 43], "to": [22, 0, 53] },
     { "type": "perimeter", "height": 5, "block": "WALL" },
     { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
-    { "type": "divider", "z": 24, "height": 5, "block": "WALL", "doorOpening": [5, 6, 17, 18] },
-    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
-    { "type": "fill", "block": "WALL", "from": [11, 1, 14], "to": [13, 5, 23] },
-    { "type": "fill", "block": "LAVA", "from": [2, -1, 16], "to": [9, -1, 17] },
-    { "type": "fill", "block": "AIR", "from": [2, 0, 16], "to": [9, 0, 17] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 15], "to": [6, 0, 15] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [5, 0, 18], "to": [6, 0, 18] },
-    { "type": "fill", "block": "LAVA", "from": [15, -1, 16], "to": [21, -1, 17] },
-    { "type": "fill", "block": "AIR", "from": [15, 0, 16], "to": [21, 0, 17] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 15], "to": [18, 0, 15] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [17, 0, 18], "to": [18, 0, 18] },
+    { "type": "divider", "z": 43, "height": 5, "block": "WALL", "doorOpening": [5, 6, 17, 18] },
+    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 53 },
+    { "type": "fill", "block": "WALL", "from": [11, 1, 13], "to": [13, 5, 42] },
+
+    { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 42] },
+    { "type": "fill", "block": "AIR", "from": [1, 0, 12], "to": [22, 0, 42] },
+
+    { "type": "fill", "block": "STONE_FLOOR", "from": [11, 0, 11], "to": [13, 0, 12] },
+
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 14], "to": [6, 0, 14] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 18], "to": [6, 0, 18] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [3, 0, 22], "to": [4, 0, 22] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [7, 0, 26], "to": [8, 0, 26] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [4, 0, 30], "to": [5, 0, 30] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [6, 0, 34], "to": [7, 0, 34] },
+
+    { "type": "fill", "block": "STONE_FLOOR", "from": [5, 0, 37], "to": [7, 0, 39] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 41], "to": [6, 0, 41] },
+
+    { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 14], "to": [18, 0, 14] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 18], "to": [18, 0, 18] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [19, 0, 22], "to": [20, 0, 22] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [15, 0, 26], "to": [16, 0, 26] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [18, 0, 30], "to": [19, 0, 30] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [16, 0, 34], "to": [17, 0, 34] },
+
+    { "type": "fill", "block": "STONE_FLOOR", "from": [17, 0, 37], "to": [19, 0, 39] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 41], "to": [18, 0, 41] },
+
     { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 5, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 6, "z": 29, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 18, "z": 29, "height": 5, "block": "PILLAR" }
+    { "type": "pillar", "x": 6, "z": 48, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 48, "height": 5, "block": "PILLAR" }
   ]
 }
