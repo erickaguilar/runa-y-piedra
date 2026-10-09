@@ -6,6 +6,7 @@ import {
   createDoorMaterials,
   createDoorGeometries,
   buildDoorLeaf,
+  buildDoorFrame,
 } from './models/props/doorModel.js';
 
 const DOOR_TARGET_ANGLE = 1.48; // ~85° — deja margen de seguridad para el overshoot del 8% (~92° max)
@@ -80,9 +81,19 @@ export class DoorRenderer {
     leftSpring.snap(0);
     rightSpring.snap(0);
 
+    const width = Math.max(1.0, x2 - x1);
+    const height = Math.max(1.0, y2 - y1);
+    const xMid = (x1 + x2) / 2;
+
+    // Marco y dintel arquitectónico 3D de piedra y forja de la puerta
+    const frame = buildDoorFrame(width, height, this._materials);
+    frame.position.set(xMid, yMid, zMid);
+    this.group.add(frame);
+
     this.doors.set(id, {
       id,
       name: def.name || `Puerta ${id}`,
+      frame,
       leftPivot,
       rightPivot,
       leftSpring,
@@ -164,6 +175,12 @@ export class DoorRenderer {
     for (const d of this.doors.values()) {
       this.group.remove(d.leftPivot);
       this.group.remove(d.rightPivot);
+      if (d.frame) {
+        this.group.remove(d.frame);
+        d.frame.traverse?.((obj) => {
+          if (obj.isMesh) obj.geometry?.dispose?.();
+        });
+      }
     }
     this.doors.clear();
   }

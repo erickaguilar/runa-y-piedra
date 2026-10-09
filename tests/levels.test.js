@@ -460,4 +460,79 @@ test('ensureStairsState talla la fosa física y abre la escalinata en shadow_vau
   assert.equal(setOpenInstantCalled, true, 'setOpenInstant debe haber sido invocado');
 });
 
+test('Puertas independientes del mapa: _installDoors genera vano sólido, dinteles y jambas sin regiones declarativas', () => {
+  const customLevel = {
+    id: 'test_isolated_doors',
+    name: 'Nivel con puertas autónomas',
+    dimensions: { sizeX: 24, sizeY: 16, sizeZ: 40 },
+    spawn: { x: 12, y: 1.2, z: 2 },
+    doors: [
+      { id: 99, name: "Puerta Mágica Autónoma", x1: 8, x2: 10, y1: 1, y2: 3, z: 20 }
+    ],
+    regions: []
+  };
+
+  const world = new World();
+  world.loadLevel(customLevel);
+
+  // Vano cerrado
+  assert.equal(world.get(8, 1, 20), BLOCK_TYPES.DOOR);
+  assert.equal(world.get(9, 1, 20), BLOCK_TYPES.DOOR);
+  assert.equal(world.get(8, 2, 20), BLOCK_TYPES.DOOR);
+  assert.equal(world.get(9, 2, 20), BLOCK_TYPES.DOOR);
+
+  // Dintel superior (y=3, 4, 5)
+  for (let y = 3; y <= 5; y++) {
+    assert.equal(world.get(8, y, 20), BLOCK_TYPES.WALL, `dintel en y=${y} debe ser WALL`);
+    assert.equal(world.get(9, y, 20), BLOCK_TYPES.WALL, `dintel en y=${y} debe ser WALL`);
+  }
+
+  // Jambas laterales
+  assert.equal(world.get(7, 1, 20), BLOCK_TYPES.WALL);
+  assert.equal(world.get(10, 1, 20), BLOCK_TYPES.WALL);
+});
+
+test('Colisión y atravesabilidad de puertas: cerrada es impenetrable y abierta es transitable', async () => {
+  const { tryMove } = await import('../src/core/PhysicsAABB.js');
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('shadow_vault'));
+
+  // Puerta 1 cerrada: impenetrable
+  const p = { x: 11.5, y: 1.0, z: 10.2 };
+  const resClosed = tryMove(world, p, 0, 0, 1.5);
+  assert.equal(resClosed.hitZ, true);
+  assert.ok(p.z <= 10.3, 'No debe atravesar la puerta 1 cerrada');
+
+  // Abrir puerta 1: transitable
+  world.openDoor(1);
+  const resOpen = tryMove(world, p, 0, 0, 1.5);
+  assert.ok(p.z > 11.0, 'Debe atravesar la puerta 1 abierta');
+
+  // Cerrar puerta 1: vuelve a ser impenetrable
+  world.closeDoor(1);
+  p.z = 10.2;
+  const resClosedAgain = tryMove(world, p, 0, 0, 1.5);
+  assert.equal(resClosedAgain.hitZ, true);
+  assert.ok(p.z <= 10.3, 'No debe atravesar la puerta 1 re-cerrada');
+});
+
+test('DoorRenderer: genera marco arquitectónico 3D con dintel de piedra para cada puerta', async () => {
+  const THREE = await import('three');
+  const { DoorRenderer } = await import('../src/render/DoorRenderer.js');
+  const scene = new THREE.Scene();
+  const renderer = new DoorRenderer(scene);
+
+  renderer.loadDoors([
+    { id: 1, name: 'Puerta Principal', x1: 11, x2: 13, y1: 1, y2: 3, z: 11 }
+  ]);
+
+  const doorRecord = renderer.doors.get(1);
+  assert.ok(doorRecord, 'registro de puerta debe existir');
+  assert.ok(doorRecord.frame, 'marco 3D frame debe existir');
+  assert.equal(doorRecord.frame.name, 'DoorFrame');
+  assert.ok(doorRecord.frame.children.length >= 2, 'debe contener sillares de piedra y herrajes');
+
+  renderer.dispose();
+});
+
 

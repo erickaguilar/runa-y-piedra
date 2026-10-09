@@ -119,6 +119,8 @@ export function createDoorMaterials(woodTexture) {
       map: woodTexture,
     }),
     iron: new THREE.MeshLambertMaterial({ color: 0x27272a }),
+    stone: new THREE.MeshLambertMaterial({ color: 0x3f3f46 }),
+    stoneAccent: new THREE.MeshLambertMaterial({ color: 0x27272a }),
   };
 }
 
@@ -181,4 +183,67 @@ export function buildDoorLeaf(sign, geos, mats) {
   leafGroup.add(new THREE.Mesh(ironGeo, mats.iron));
 
   return leafGroup;
+}
+
+/**
+ * Construye el marco y dintel arquitectónico de piedra y forja de la puerta.
+ * @param {number} width Ancho del vano de paso (metros, usualmente 2.0)
+ * @param {number} height Altura del vano de paso (metros, usualmente 2.0)
+ * @param {object} mats Materiales compartidos de la puerta
+ */
+export function buildDoorFrame(width = 2.0, height = 2.0, mats) {
+  const frameGroup = new THREE.Group();
+  frameGroup.name = 'DoorFrame';
+
+  const halfW = width / 2;
+  const jambW = 0.18;
+  const jambDepth = 0.36;
+  const lintelH = 0.32;
+  const lintelDepth = 0.40;
+
+  // 1. Jamba izquierda (pilar vertical de sillar)
+  const leftJambGeo = new THREE.BoxGeometry(jambW, height, jambDepth);
+  leftJambGeo.translate(-halfW - jambW / 2, 0, 0);
+
+  // 2. Jamba derecha (pilar vertical de sillar)
+  const rightJambGeo = new THREE.BoxGeometry(jambW, height, jambDepth);
+  rightJambGeo.translate(halfW + jambW / 2, 0, 0);
+
+  // 3. Dintel superior continuo (viga de piedra sobre el vano)
+  const lintelGeo = new THREE.BoxGeometry(width + 2 * jambW + 0.16, lintelH, lintelDepth);
+  lintelGeo.translate(0, height / 2 + lintelH / 2, 0);
+
+  // Combinar los sillares de piedra base
+  const stoneMerged = mergeGeometries([leftJambGeo, rightJambGeo, lintelGeo]);
+  leftJambGeo.dispose();
+  rightJambGeo.dispose();
+  lintelGeo.dispose();
+
+  if (stoneMerged) {
+    const stoneMesh = new THREE.Mesh(stoneMerged, mats.stone);
+    frameGroup.add(stoneMesh);
+  }
+
+  // 4. Clave de arco central (sillar ornamental en el centro del dintel)
+  const keystoneGeo = new THREE.BoxGeometry(0.24, lintelH + 0.10, lintelDepth + 0.06);
+  keystoneGeo.translate(0, height / 2 + lintelH / 2, 0);
+  const keystoneMesh = new THREE.Mesh(keystoneGeo, mats.stoneAccent);
+  frameGroup.add(keystoneMesh);
+
+  // 5. Escuadras de hierro forjado en las esquinas superiores del marco
+  const bracketSize = 0.12;
+  const b1 = new THREE.BoxGeometry(bracketSize, bracketSize, lintelDepth + 0.02)
+    .translate(-halfW + bracketSize / 2, height / 2 - bracketSize / 2, 0);
+  const b2 = new THREE.BoxGeometry(bracketSize, bracketSize, lintelDepth + 0.02)
+    .translate(halfW - bracketSize / 2, height / 2 - bracketSize / 2, 0);
+  const bracketsMerged = mergeGeometries([b1, b2]);
+  b1.dispose();
+  b2.dispose();
+
+  if (bracketsMerged) {
+    const bracketsMesh = new THREE.Mesh(bracketsMerged, mats.iron);
+    frameGroup.add(bracketsMesh);
+  }
+
+  return frameGroup;
 }

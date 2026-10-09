@@ -165,10 +165,101 @@ export class LevelLoader {
       }
     }
 
+    // 4.5. Instalar y consolidar todas las puertas de forma autónoma e independiente del mapa
+    this._installDoors(world, levelData, sizeX, sizeY, sizeZ);
+
     // 5. Instalar losa de respawn rúnica única (RESPAWN_PAD) en la entrada de la mazmorra
     this._placeRespawnPads(world, levelData);
 
     return world;
+  }
+
+  /**
+   * Instala y consolida de forma autónoma e independiente todas las puertas en el mundo voxel:
+   * - Asegura el suelo sólido y umbral bajo la puerta (y=0) y sellado vertical inferior (y<0).
+   * - Coloca los bloques físicos del vano (y=1..y2-1): BLOCK_TYPES.DOOR (cerrada) o AIR (abierta).
+   * - Coloca los bloques sólidos de dintel superior (y=y2..techo) con BLOCK_TYPES.WALL garantizados.
+   * - Coloca las jambas laterales adyacentes para enmarcar el portal.
+   */
+  static _installDoors(world, levelData, sizeX, sizeY, sizeZ) {
+    if (!Array.isArray(world.doors) || world.doors.length === 0) return;
+
+    // Detectar altura de techo de la sala o usar 6 por defecto
+    const ceilingRegion = levelData.regions?.find(r => r.type === 'ceiling');
+    const ceilingY = ceilingRegion?.y ?? 6;
+    const lintelTopY = Math.max(3, ceilingY - 1);
+
+    for (const door of world.doors) {
+      // Deducir límites canónicos del vano
+      let x1 = door.x1;
+      let x2 = door.x2;
+      let y1 = door.y1 ?? 1;
+      let y2 = door.y2 ?? 3;
+      let z  = door.z;
+
+      if (x1 === undefined || x2 === undefined) {
+        if (Array.isArray(door.coords) && door.coords.length > 0) {
+          x1 = Math.min(...door.coords.map(c => c.x));
+          x2 = Math.max(...door.coords.map(c => c.x)) + 1;
+          z = door.z ?? door.coords[0].z;
+        } else {
+          x1 = 11;
+          x2 = 13;
+          z = door.z ?? 11;
+        }
+      }
+      if (z === undefined) {
+        z = door.coords?.[0]?.z ?? 11;
+      }
+
+      door.x1 = x1;
+      door.x2 = x2;
+      door.y1 = y1;
+      door.y2 = y2;
+      door.z = z;
+
+      // Garantizar coords canónicas completas
+      if (!Array.isArray(door.coords) || door.coords.length === 0) {
+        door.coords = [];
+        for (let x = x1; x < x2; x++) {
+          for (let y = y1; y < y2; y++) {
+            door.coords.push({ x, y, z });
+          }
+        }
+      }
+
+      // 1. Umbral y suelo firme bajo la puerta
+      for (let x = x1; x < x2; x++) {
+        world.set(x, 0, z, floorVariant(x, z));
+        for (let y = (world.minY ?? -8); y < 0; y++) {
+          world.set(x, y, z, BLOCK_TYPES.WALL);
+        }
+      }
+
+      // 2. Vano de paso: DOOR si cerrada, AIR si abierta
+      const isDoorOpen = !!door.isOpen;
+      for (const c of door.coords) {
+        world.set(c.x, c.y, c.z, isDoorOpen ? BLOCK_TYPES.AIR : BLOCK_TYPES.DOOR);
+      }
+
+      // 3. Dintel superior continuo e independiente de las regiones del mapa
+      for (let x = x1; x < x2; x++) {
+        for (let y = y2; y <= lintelTopY; y++) {
+          world.set(x, y, z, BLOCK_TYPES.WALL);
+        }
+      }
+
+      // 4. Jambas laterales sólidas
+      for (const jx of [x1 - 1, x2]) {
+        if (jx >= 0 && jx < sizeX) {
+          for (let y = y1; y <= lintelTopY; y++) {
+            if (world.get(jx, y, z) === BLOCK_TYPES.AIR) {
+              world.set(jx, y, z, BLOCK_TYPES.WALL);
+            }
+          }
+        }
+      }
+    }
   }
 
   /**

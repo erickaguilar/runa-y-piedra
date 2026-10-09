@@ -302,18 +302,19 @@ export class InteractionController {
 
   openDoor(doorId = 1, opener = null) {
     const game = this.game;
-    const isOpen = doorId === 1 ? game.world.isDoor1Open : game.world.isDoor2Open;
+    const door = game.world.doors?.find(d => d.id === doorId);
+    const isOpen = game.world?.isDoorOpenId ? game.world.isDoorOpenId(doorId) : (door?.isOpen ?? (doorId === 1 ? game.world.isDoor1Open : game.world.isDoor2Open));
     if (isOpen) return;
 
     game.world.openDoor(doorId);
-    game.voxelMap.openDoor(doorId);
-    game.doorRenderer.openDoor(doorId);
+    game.voxelMap?.openDoor?.(doorId);
+    game.doorRenderer?.openDoor?.(doorId);
 
-    const door = game.world.doors?.find(d => d.id === doorId);
     const doorZ = door?.z ?? (doorId === 1 ? 11 : 24);
+    const doorX = door?.x1 ? (door.x1 + door.x2) / 2 : 12.0;
     const local = game.playerManager?.localPlayer;
     if (local) {
-      game.soundManager.playDoorOpen({ x: 12.0, y: 2.0, z: doorZ + 0.5 }, local.pos);
+      game.soundManager.playDoorOpen({ x: doorX, y: 2.0, z: doorZ + 0.5 }, local.pos);
     } else {
       game.soundManager.playDoorOpen();
     }

@@ -144,14 +144,15 @@ export class World {
   }
 
   isDoorOpenId(doorId = 1) {
+    const door = this.doors?.find(d => d.id === doorId);
+    if (door && door.isOpen !== undefined) return !!door.isOpen;
     if (doorId === 1) return !!this.isDoor1Open;
     if (doorId === 2) return !!this.isDoor2Open;
-    const door = this.doors?.find(d => d.id === doorId);
     if (door && Array.isArray(door.coords) && door.coords.length > 0) {
       const c = door.coords[0];
       return this.get(c.x, c.y, c.z) === BLOCK_TYPES.AIR;
     }
-    return !!door?.isOpen;
+    return false;
   }
 
   get isDoorOpen() {
