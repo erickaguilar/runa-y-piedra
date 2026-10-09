@@ -400,5 +400,64 @@ test('Orientación fija de spawn: los niveles declaran o calculan yaw en spawnPo
   assert.equal(world.checkpoints[0].yaw, (3 * Math.PI) / 2, 'Checkpoint facing west debe ser 3*PI / 2');
 });
 
+test('shadow_vault: muros divisores contienen dinteles superiores sólidos (y=3,4,5) sobre las puertas', () => {
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('shadow_vault'));
+
+  // Puerta 1 en z=11, x=11..12
+  for (const x of [11, 12]) {
+    assert.equal(world.get(x, 1, 11), BLOCK_TYPES.DOOR, `x=${x}, y=1, z=11 debe ser DOOR`);
+    assert.equal(world.get(x, 2, 11), BLOCK_TYPES.DOOR, `x=${x}, y=2, z=11 debe ser DOOR`);
+    assert.equal(world.get(x, 3, 11), BLOCK_TYPES.WALL, `x=${x}, y=3, z=11 debe ser WALL (dintel)`);
+    assert.equal(world.get(x, 4, 11), BLOCK_TYPES.WALL, `x=${x}, y=4, z=11 debe ser WALL (dintel)`);
+    assert.equal(world.get(x, 5, 11), BLOCK_TYPES.WALL, `x=${x}, y=5, z=11 debe ser WALL (dintel)`);
+  }
+
+  // Puertas Gemelas en z=43: Puerta 2 (x=5..6) y Puerta 3 (x=17..18)
+  for (const x of [5, 6, 17, 18]) {
+    assert.equal(world.get(x, 1, 43), BLOCK_TYPES.DOOR, `x=${x}, y=1, z=43 debe ser DOOR`);
+    assert.equal(world.get(x, 2, 43), BLOCK_TYPES.DOOR, `x=${x}, y=2, z=43 debe ser DOOR`);
+    assert.equal(world.get(x, 3, 43), BLOCK_TYPES.WALL, `x=${x}, y=3, z=43 debe ser WALL (dintel superior)`);
+    assert.equal(world.get(x, 4, 43), BLOCK_TYPES.WALL, `x=${x}, y=4, z=43 debe ser WALL (dintel superior)`);
+    assert.equal(world.get(x, 5, 43), BLOCK_TYPES.WALL, `x=${x}, y=5, z=43 debe ser WALL (dintel superior)`);
+  }
+});
+
+test('ensureStairsState talla la fosa física y abre la escalinata en shadow_vault (openFromStart: true)', async () => {
+  const { InteractionController } = await import('../src/controllers/InteractionController.js');
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('shadow_vault'));
+
+  let setOpenInstantCalled = false;
+  const mockGame = {
+    mode: 'host',
+    world,
+    voxelMap: {
+      removeBlock: () => {},
+      addBlock: () => {},
+      setTint: () => {},
+    },
+    stairsRenderer: {
+      loadStairs: () => {},
+      setOpenInstant: () => { setOpenInstantCalled = true; },
+    },
+    soundManager: { playSlabGrind: () => {} },
+    ui: { showNarrativeMessage: () => {} },
+  };
+
+  const ctrl = new InteractionController(mockGame);
+  const rect = ctrl.stairPitRect();
+  assert.ok(rect, 'rectángulo de escalinata debe existir');
+  assert.equal(rect.open, true, 'rect.open debe ser true por openFromStart');
+
+  // Antes de ensureStairsState, el suelo y=0 está cubierto por STONE_FLOOR de las regiones
+  assert.equal(ctrl.isPitOpenInBlocks(rect), false);
+
+  // Al invocar ensureStairsState, talla la fosa y abre la escalinata
+  ctrl.ensureStairsState();
+  assert.equal(ctrl.isPitOpenInBlocks(rect), true, 'la fosa física debe quedar tallada a AIR');
+  assert.equal(mockGame.world.stairsOpen, true);
+  assert.equal(setOpenInstantCalled, true, 'setOpenInstant debe haber sido invocado');
+});
 
 

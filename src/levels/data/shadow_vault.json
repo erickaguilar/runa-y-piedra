@@ -167,8 +167,8 @@
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 43], "to": [22, 0, 53] },
     { "type": "perimeter", "height": 5, "block": "WALL" },
-    { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
-    { "type": "divider", "z": 43, "height": 5, "block": "WALL", "doorOpening": [5, 6, 17, 18] },
+    { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "openHeight": 2, "doorOpening": [11, 12] },
+    { "type": "divider", "z": 43, "height": 5, "block": "WALL", "doorIds": [2, 3], "openHeight": 2, "doorOpening": [5, 6, 17, 18] },
     { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 53 },
     { "type": "fill", "block": "WALL", "from": [11, 1, 15], "to": [13, 5, 42] },
 

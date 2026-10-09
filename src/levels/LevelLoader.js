@@ -247,8 +247,10 @@ export class LevelLoader {
         const blockType = BLOCK_TYPES[region.block] ?? BLOCK_TYPES.WALL;
         const doorOpening = region.doorOpening || [11, 12];
 
-        const hasDoor = region.doorId !== undefined && region.doorId !== null;
-        const openHeight = region.openHeight || (hasDoor ? 2 : 3);
+        const hasDoor = (region.doorId !== undefined && region.doorId !== null) ||
+                        Array.isArray(region.doorIds) ||
+                        (Array.isArray(world.doors) && world.doors.some(d => d.z === z));
+        const openHeight = region.openHeight || 2;
 
         for (let x = 1; x < sizeX - 1; x++) {
           // Suelo sólido firme bajo el muro divisor y bajo el umbral de la puerta
@@ -261,7 +263,8 @@ export class LevelLoader {
           for (let y = 1; y <= height; y++) {
             if (doorOpening.includes(x)) {
               if (y <= openHeight) {
-                world.set(x, y, z, hasDoor ? BLOCK_TYPES.DOOR : BLOCK_TYPES.AIR);
+                const isDoorBlock = hasDoor || (typeof world.isDoorCoord === 'function' && world.isDoorCoord(x, y, z));
+                world.set(x, y, z, isDoorBlock ? BLOCK_TYPES.DOOR : BLOCK_TYPES.AIR);
               } else {
                 world.set(x, y, z, blockType); // Dintel superior
               }

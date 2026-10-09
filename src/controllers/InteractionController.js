@@ -726,12 +726,12 @@ export class InteractionController {
     game.stairsRenderer.loadStairs(rect);
     if (!rect) return;
     const shouldOpen = !!rect.open || this.isPitOpenInBlocks(rect);
-    if (shouldOpen && !game.world.stairsOpen) {
+    if (shouldOpen) {
       if (!this.isPitOpenInBlocks(rect)) this.applyStairPit(rect);
       this.tintStairPit(rect);
       game.world.stairsOpen = true;
-      for (const w of game.world.stairwells) w.open = true;
-      game.stairsRenderer.setOpenInstant();
+      for (const w of (game.world.stairwells || [])) w.open = true;
+      game.stairsRenderer?.setOpenInstant?.();
     }
   }
 
