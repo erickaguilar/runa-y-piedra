@@ -37,8 +37,21 @@ export class InteractionController {
       return;
     }
 
+    if (interaction.type === 'door_mechanism') {
+      game.soundManager?.playLocked?.();
+      game.ui?.showNarrativeMessage?.(':lock: Esta puerta está sellada por un mecanismo rúnico. Activa la losa de presión correspondiente.', 3500);
+      return;
+    }
+
     if (interaction.type === 'door') {
       const doorId = interaction.doorId || 1;
+      const door = game.world.doors?.find(d => d.id === doorId);
+      if (this.isMechanismDoor(door)) {
+        game.soundManager?.playLocked?.();
+        game.ui?.showNarrativeMessage?.(':lock: Esta puerta está sellada por un mecanismo rúnico. Activa la losa de presión correspondiente.', 3500);
+        return;
+      }
+
       const isOpen = doorId === 1 ? game.world.isDoor1Open : game.world.isDoor2Open;
       if (isOpen) return;
 
@@ -46,7 +59,6 @@ export class InteractionController {
         this.requestOpenDoor(doorId, local);
       } else {
         // Pre-chequeo local de llave para feedback inmediato sin tráfico de red
-        const door = game.world.doors?.find(d => d.id === doorId);
         const reqKey = door?.requiresKey;
         const hasKey = !reqKey
           || local.hasKey?.(reqKey)
@@ -261,12 +273,19 @@ export class InteractionController {
     }
   }
 
+  isMechanismDoor(door) {
+    if (!door) return false;
+    if (door.mechanism || door.lockedByPlate || door.mechanismOnly) return true;
+    return Array.isArray(this.game.world?.pressurePlates) &&
+      this.game.world.pressurePlates.some(p => p.targetDoorId === door.id);
+  }
+
   /** Puerta bloqueada por falta de llave: mensaje + sonido metálico (solo jugador local). */
   doorLockedFeedback(door) {
     const game = this.game;
     const msg = door?.lockedMessage || ':lock: ¡Puerta sellada! Necesitas una llave.';
-    game.soundManager.playLocked();
-    game.ui.showNarrativeMessage(msg, 4000);
+    game.soundManager?.playLocked?.();
+    game.ui?.showNarrativeMessage?.(msg, 4000);
   }
 
   /**
@@ -279,6 +298,16 @@ export class InteractionController {
     if (isOpen) return false;
 
     const door = game.world.doors?.find(d => d.id === doorId);
+
+    // Las puertas controladas por mecanismos/losas no pueden abrirse manualmente
+    if (this.isMechanismDoor(door)) {
+      if (player === game.playerManager.localPlayer) {
+        game.soundManager?.playLocked?.();
+        game.ui?.showNarrativeMessage?.(':lock: Esta puerta está sellada por un mecanismo rúnico. Activa la losa de presión correspondiente.', 3500);
+      }
+      return false;
+    }
+
     const keyId = door?.requiresKey;
     const hasKey = !keyId
       || player?.hasKey?.(keyId)
@@ -319,10 +348,12 @@ export class InteractionController {
       game.soundManager.playDoorOpen();
     }
 
-    // Registrar la puerta abierta en el registro persistente de puertas
-    const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
-    game.openedDoorKeys?.add(`${currentLevelId}_door_${doorId}`);
-    game.openedDoorKeys?.add(`${currentLevelId}:${doorId}`);
+    // Registrar la puerta abierta en el registro persistente de puertas solo si no es de mecanismo/puzle
+    if (!this.isMechanismDoor(door)) {
+      const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
+      game.openedDoorKeys?.add(`${currentLevelId}_door_${doorId}`);
+      game.openedDoorKeys?.add(`${currentLevelId}:${doorId}`);
+    }
 
     // Llavero permanente: las llaves no se consumen ni se eliminan del inventario
     const defaultMsg = doorId === 1

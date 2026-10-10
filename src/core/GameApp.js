@@ -395,6 +395,8 @@ export class VoxelSandboxGame {
         this.chestRenderer?.loadChests(this.world.chests);
 
         for (const d of this.world?.doors || []) {
+          const isMechanism = d.mechanism || d.lockedByPlate || (Array.isArray(this.world.pressurePlates) && this.world.pressurePlates.some(p => p.targetDoorId === d.id));
+          if (isMechanism) continue;
           if (this.openedDoorKeys.has(`${lvlId}_door_${d.id ?? 1}`) || this.openedDoorKeys.has(`${lvlId}:${d.id ?? 1}`)) {
             this.openDoorInstant(d.id);
           }

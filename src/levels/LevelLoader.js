@@ -79,7 +79,11 @@ export class LevelLoader {
     world.sizeY = sizeY;
     world.sizeZ = sizeZ;
     world.currentLevel = levelData;
-    world.doors = levelData.doors || [];
+    world.doors = (levelData.doors || []).map(d => ({
+      ...d,
+      isOpen: false,
+      coords: Array.isArray(d.coords) ? d.coords.map(c => ({ ...c })) : undefined,
+    }));
     const spawnYaw = parseOrientationYaw(levelData.spawn, Math.PI);
     world.spawnPoint = {
       x: levelData.spawn?.x ?? WORLD_CONFIG.SPAWN_X,

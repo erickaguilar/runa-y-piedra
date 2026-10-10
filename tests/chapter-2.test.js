@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { World } from '../src/core/World.js';
 import { ChapterRegistry } from '../src/levels/ChapterRegistry.js';
 import { LevelRegistry } from '../src/levels/LevelRegistry.js';
+import { InteractionController } from '../src/controllers/InteractionController.js';
+import { BlockRaycaster } from '../src/interaction/BlockRaycaster.js';
 
 test('Capítulo 2 - LevelRegistry registra los 3 niveles del Capítulo 2', () => {
   const lr = new LevelRegistry();
@@ -106,4 +108,77 @@ test('Capítulo 2 - completeChapter culmina Cripta de las Sombras y desbloquea C
   assert.equal(res.nextChapter.number, 3);
   assert.equal(cr.progress.highestChapterUnlocked, 3);
   assert.ok(cr.progress.completedChapters.includes('capitulo_2'));
+});
+
+test('Capítulo 2 - shadow_vault: Puerta 1 tiene colisión sólida al inicio y bloquea el paso', () => {
+  const world = new World();
+  const levelData = world.levelRegistry.getLevel('shadow_vault');
+  world.loadLevel(levelData);
+
+  const door1 = world.doors.find(d => d.id === 1);
+  assert.ok(door1, 'Debe existir Puerta 1');
+  assert.equal(door1.isOpen, false, 'Puerta 1 debe iniciar cerrada');
+  assert.equal(world.isDoorOpenId(1), false, 'Puerta 1 debe reportarse como cerrada');
+
+  // Vano de la Puerta 1 (x=11..12, y=1..2, z=11) debe contener BLOCK_TYPES.DOOR (3)
+  assert.equal(world.get(11, 1, 11), 3, 'Bloque (11, 1, 11) debe ser DOOR');
+  assert.equal(world.get(11, 2, 11), 3, 'Bloque (11, 2, 11) debe ser DOOR');
+  assert.equal(world.get(12, 1, 11), 3, 'Bloque (12, 1, 11) debe ser DOOR');
+  assert.equal(world.get(12, 2, 11), 3, 'Bloque (12, 2, 11) debe ser DOOR');
+});
+
+test('Capítulo 2 - shadow_vault: Puertas de mecanismo no se abren con el botón de interacción manual', () => {
+  const world = new World();
+  const levelData = world.levelRegistry.getLevel('shadow_vault');
+  world.loadLevel(levelData);
+
+  const fakeGame = {
+    world,
+    mode: 'host',
+    playerManager: { localPlayer: { id: 0, keys: [] } },
+    ui: { showNarrativeMessage: () => {} },
+    soundManager: { playLocked: () => {}, playDoorOpen: () => {} },
+    voxelMap: { openDoor: () => {} },
+    doorRenderer: { openDoor: () => {} },
+    openedDoorKeys: new Set(),
+  };
+
+  const ic = new InteractionController(fakeGame);
+
+  // Intentar abrir manualmente con el botón
+  assert.equal(ic.requestOpenDoor(1), false, 'Puerta 1 no debe abrirse manualmente');
+  assert.equal(ic.requestOpenDoor(2), false, 'Puerta 2 no debe abrirse manualmente');
+  assert.equal(ic.requestOpenDoor(3), false, 'Puerta 3 no debe abrirse manualmente');
+  assert.equal(world.isDoorOpenId(1), false, 'Puerta 1 sigue cerrada');
+  assert.equal(world.isDoorOpenId(2), false, 'Puerta 2 sigue cerrada');
+  assert.equal(world.isDoorOpenId(3), false, 'Puerta 3 sigue cerrada');
+
+  // Raycaster no debe ofrecer ABRIR por proximidad para puertas de mecanismo
+  const raycaster = new BlockRaycaster(null, { mesh: null, instToBlock: [] }, world);
+  const targetNearDoor1 = raycaster.getProximityTarget({ x: 12.0, y: 1.0, z: 10.5 });
+  assert.equal(targetNearDoor1, null, 'No debe mostrar prompt contextual de abrir en Puerta 1');
+
+  const targetNearDoor2 = raycaster.getProximityTarget({ x: 6.0, y: 1.0, z: 42.0 });
+  assert.equal(targetNearDoor2, null, 'No debe mostrar prompt contextual de abrir en Puerta 2');
+
+  const targetNearDoor3 = raycaster.getProximityTarget({ x: 18.0, y: 1.0, z: 42.0 });
+  assert.equal(targetNearDoor3, null, 'No debe mostrar prompt contextual de abrir en Puerta 3');
+});
+
+test('Capítulo 2 - shadow_vault: Dispone de bloques de aterrizaje en z=42 frente a Puerta 2 y Puerta 3', () => {
+  const world = new World();
+  const levelData = world.levelRegistry.getLevel('shadow_vault');
+  world.loadLevel(levelData);
+
+  // Galería izquierda: frente a Puerta 2 (x=5..6, z=43), en z=42 debe haber suelo sólido
+  assert.notEqual(world.get(5, 0, 42), 0, 'Suelo frente a Puerta 2 (x=5, z=42) debe ser sólido');
+  assert.notEqual(world.get(6, 0, 42), 0, 'Suelo frente a Puerta 2 (x=6, z=42) debe ser sólido');
+  assert.notEqual(world.get(5, 0, 42), 7, 'Suelo frente a Puerta 2 (x=5, z=42) no debe ser lava');
+  assert.notEqual(world.get(6, 0, 42), 7, 'Suelo frente a Puerta 2 (x=6, z=42) no debe ser lava');
+
+  // Galería derecha: frente a Puerta 3 (x=17..18, z=43), en z=42 debe haber suelo sólido
+  assert.notEqual(world.get(17, 0, 42), 0, 'Suelo frente a Puerta 3 (x=17, z=42) debe ser sólido');
+  assert.notEqual(world.get(18, 0, 42), 0, 'Suelo frente a Puerta 3 (x=18, z=42) debe ser sólido');
+  assert.notEqual(world.get(17, 0, 42), 7, 'Suelo frente a Puerta 3 (x=17, z=42) no debe ser lava');
+  assert.notEqual(world.get(18, 0, 42), 7, 'Suelo frente a Puerta 3 (x=18, z=42) no debe ser lava');
 });

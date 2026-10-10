@@ -105,6 +105,8 @@ export const SessionMixin = {
       this.chestRenderer.loadChests(this.world.chests);
 
       for (const d of this.world.doors || []) {
+        const isMechanism = d.mechanism || d.lockedByPlate || (Array.isArray(this.world.pressurePlates) && this.world.pressurePlates.some(p => p.targetDoorId === d.id));
+        if (isMechanism) continue;
         const doorKey1 = `${lvl?.id}_door_${d.id ?? 1}`;
         const doorKey2 = `${lvl?.id}:${d.id ?? 1}`;
         if (this.openedDoorKeys?.has(doorKey1) || this.openedDoorKeys?.has(doorKey2)) {
@@ -189,8 +191,10 @@ export const SessionMixin = {
     this.chestRenderer.loadChests(this.world.chests);
     this.doorRenderer.loadDoors(this.world.doors);
 
-    // Sincronizar estado de puertas ya abiertas en este nivel
+    // Sincronizar estado de puertas ya abiertas en este nivel (las de mecanismo no se abren por clave persistente de sesión)
     for (const d of this.world.doors || []) {
+      const isMechanism = d.mechanism || d.lockedByPlate || (Array.isArray(this.world.pressurePlates) && this.world.pressurePlates.some(p => p.targetDoorId === d.id));
+      if (isMechanism) continue;
       const doorKey1 = `${levelId}_door_${d.id ?? 1}`;
       const doorKey2 = `${levelId}:${d.id ?? 1}`;
       if (this.openedDoorKeys?.has(doorKey1) || this.openedDoorKeys?.has(doorKey2)) {

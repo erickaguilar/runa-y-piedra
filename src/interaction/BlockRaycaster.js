@@ -12,6 +12,13 @@ export class BlockRaycaster {
     this.screenCenter = new THREE.Vector2(0, 0);
   }
 
+  isMechanismDoor(door) {
+    if (!door) return false;
+    if (door.mechanism || door.lockedByPlate || door.mechanismOnly) return true;
+    return Array.isArray(this.world.pressurePlates) &&
+      this.world.pressurePlates.some(p => p.targetDoorId === door.id);
+  }
+
   /**
    * Solo chequeos por proximidad (puertas, objetivos, losa, cofres), sin raycast.
    * Barato: apto para actualizar el botón contextual a ~8-10 Hz.
@@ -23,6 +30,9 @@ export class BlockRaycaster {
       for (const door of this.world.doors) {
         const isOpen = this.world.isDoorOpenId ? this.world.isDoorOpenId(door.id) : (door.id === 1 ? this.world.isDoor1Open : this.world.isDoor2Open);
         if (!isOpen) {
+          // Las puertas de mecanismo (losas de presión) solo se activan mediante sus mecanismos
+          if (this.isMechanismDoor(door)) continue;
+
           const doorZ = door.z ?? 11;
           const doorX = door.x1 !== undefined ? (door.x1 + (door.x2 ?? door.x1)) / 2 : 11.5;
           const dist = Math.hypot(playerPos.x - doorX, playerPos.z - doorZ);
@@ -122,10 +132,15 @@ export class BlockRaycaster {
           const blockType = this.world.get(x, y, z);
 
           if (blockType === BLOCK_TYPES.DOOR) {
-            const doorId = z <= 15 ? 1 : 2;
-            const isOpen = doorId === 1 ? this.world.isDoor1Open : this.world.isDoor2Open;
+            const door = this.world.doors?.find(d => d.coords?.some(c => c.x === x && c.y === y && c.z === z))
+              || this.world.doors?.find(d => Math.abs((d.z ?? 11) - z) <= 1);
+            const doorId = door?.id ?? (z <= 15 ? 1 : 2);
+            const isOpen = this.world.isDoorOpenId ? this.world.isDoorOpenId(doorId) : (doorId === 1 ? this.world.isDoor1Open : this.world.isDoor2Open);
             if (!isOpen) {
-              return { type: 'door', doorId, x, y, z, message: `Puerta ${doorId}` };
+              if (this.isMechanismDoor(door)) {
+                return { type: 'door_mechanism', doorId, x, y, z, message: door?.name || `Puerta ${doorId}` };
+              }
+              return { type: 'door', doorId, x, y, z, message: door?.name || `Puerta ${doorId}` };
             }
           }
           if (blockType === BLOCK_TYPES.PEDESTAL) {

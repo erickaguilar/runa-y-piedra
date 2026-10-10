@@ -60,6 +60,7 @@
     {
       "id": 1,
       "name": "Puerta 1 (Acceso a Galerías)",
+      "mechanism": true,
       "x1": 11,
       "x2": 13,
       "y1": 1,
@@ -77,6 +78,7 @@
     {
       "id": 2,
       "name": "Puerta Gemela Izquierda",
+      "mechanism": true,
       "x1": 5,
       "x2": 7,
       "y1": 1,
@@ -94,6 +96,7 @@
     {
       "id": 3,
       "name": "Puerta Gemela Derecha",
+      "mechanism": true,
       "x1": 17,
       "x2": 19,
       "y1": 1,
@@ -172,8 +175,8 @@
     { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 53 },
     { "type": "fill", "block": "WALL", "from": [11, 1, 15], "to": [13, 5, 42] },
 
-    { "type": "fill", "block": "LAVA", "from": [1, -1, 15], "to": [22, -1, 42] },
-    { "type": "fill", "block": "AIR", "from": [1, 0, 15], "to": [22, 0, 42] },
+    { "type": "fill", "block": "LAVA", "from": [1, -1, 15], "to": [22, -1, 41] },
+    { "type": "fill", "block": "AIR", "from": [1, 0, 15], "to": [22, 0, 41] },
 
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 11], "to": [22, 0, 14] },
 
@@ -185,6 +188,8 @@
 
     { "type": "fill", "block": "STONE_FLOOR", "from": [4, 0, 36], "to": [8, 0, 39] },
     { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 41], "to": [7, 0, 41] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 0, 42], "to": [8, 0, 42] },
+    { "type": "fill", "block": "WALL", "from": [4, -1, 42], "to": [8, -1, 42] },
 
     { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 17], "to": [18, 0, 17] },
     { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 21], "to": [18, 0, 21] },
@@ -194,6 +199,8 @@
 
     { "type": "fill", "block": "STONE_FLOOR", "from": [17, 0, 37], "to": [19, 0, 39] },
     { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 41], "to": [18, 0, 41] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 42], "to": [20, 0, 42] },
+    { "type": "fill", "block": "WALL", "from": [16, -1, 42], "to": [20, -1, 42] },
 
     { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 5, "height": 5, "block": "PILLAR" },
