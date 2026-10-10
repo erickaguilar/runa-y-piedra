@@ -127,11 +127,16 @@ export class SimulationEngine {
     // Se deshabilita por completo el salto si está en lava o hundiéndose en ella
     if (actions & ACTION_FLAGS.JUMP) {
       if (p.onGround && !p.isSinkingInLava && !inLava) {
-        // Detección de losa rúnica JUMP_PAD bajo los pies
+        // Detección de losa rúnica JUMP_PAD bajo cualquier parte de la huella del jugador
+        // (aterrizar en el borde de una losa también otorga el impulso completo)
         const feetY = Math.floor(p.pos.y - 0.05);
-        const bx = Math.floor(p.pos.x);
-        const bz = Math.floor(p.pos.z);
-        const isJumpPad = this.world.get(bx, feetY, bz) === BLOCK_TYPES.JUMP_PAD;
+        const halfW = PHYSICS_CONFIG.PLAYER_W / 2;
+        let isJumpPad = false;
+        for (let bx = Math.floor(p.pos.x - halfW); bx <= Math.floor(p.pos.x + halfW) && !isJumpPad; bx++) {
+          for (let bz = Math.floor(p.pos.z - halfW); bz <= Math.floor(p.pos.z + halfW); bz++) {
+            if (this.world.get(bx, feetY, bz) === BLOCK_TYPES.JUMP_PAD) { isJumpPad = true; break; }
+          }
+        }
 
         const jumpMult = (p.hero?.jumpMultiplier || 1.0) * (isJumpPad ? 1.35 : 1.0);
         p.vel.y = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult;

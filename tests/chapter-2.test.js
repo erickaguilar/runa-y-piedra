@@ -182,3 +182,40 @@ test('Capítulo 2 - shadow_vault: Dispone de bloques de aterrizaje en z=42 frent
   assert.notEqual(world.get(17, 0, 42), 7, 'Suelo frente a Puerta 3 (x=17, z=42) no debe ser lava');
   assert.notEqual(world.get(18, 0, 42), 7, 'Suelo frente a Puerta 3 (x=18, z=42) no debe ser lava');
 });
+
+test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas galerías con margen', async () => {
+  const { PLAYER_HEROES, PHYSICS_CONFIG } = await import('../src/config/constants.js');
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('shadow_vault'));
+
+  // Alcance horizontal discreto (30 Hz, mismo integrador que SimulationEngine) aterrizando a la misma cota
+  const reach = (jumpMult, speedMult) => {
+    const dt = 1 / PHYSICS_CONFIG.TICK_HZ;
+    let vy = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult, y = 0, ticks = 0;
+    do { vy += PHYSICS_CONFIG.GRAVITY * dt; y += vy * dt; ticks++; } while (y > 0);
+    return PHYSICS_CONFIG.SPEED * speedMult * (ticks - 1) * dt;
+  };
+  // Distancia borde a borde entre superficies [x1,x2,z1,z2] (bloques inclusivos)
+  const gap = (a, b) => Math.hypot(
+    Math.max(0, b[0] - (a[1] + 1), a[0] - (b[1] + 1)),
+    Math.max(0, b[2] - (a[3] + 1), a[2] - (b[3] + 1)),
+  );
+  const galleries = {
+    izquierda: [[5, 7, 16, 17], [5, 7, 20, 21], [5, 7, 24, 25], [5, 7, 28, 29], [5, 7, 32, 33], [4, 8, 36, 39]],
+    derecha: [[17, 18, 16, 17], [19, 20, 20, 21], [16, 17, 24, 25], [19, 20, 28, 29], [16, 17, 32, 33], [17, 19, 36, 39]],
+  };
+
+  for (const [name, surfaces] of Object.entries(galleries)) {
+    // Las losas de salto declaradas existen realmente en el mapa
+    for (const s of surfaces.slice(0, -1)) {
+      assert.equal(world.get(s[0], 0, s[2]), 6, `JUMP_PAD esperado en galería ${name} (${s[0]},0,${s[2]})`);
+    }
+    for (const h of PLAYER_HEROES) {
+      const r = reach(h.jumpMultiplier * 1.35, h.speedMultiplier);
+      for (let i = 0; i < surfaces.length - 1; i++) {
+        const g = gap(surfaces[i], surfaces[i + 1]);
+        assert.ok(g <= r * 0.65, `${h.name} en galería ${name}, salto ${i + 1}: ${g.toFixed(2)}m excede el 65% de su alcance (${r.toFixed(2)}m)`);
+      }
+    }
+  }
+});

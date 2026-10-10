@@ -205,12 +205,15 @@ export const SessionMixin = {
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
     this.heroShowcaseRenderer?.loadShowcases(this.world.heroShowcases || levelData.heroShowcases || []);
     this.pressurePlateRenderer?.loadPressurePlates(this.world.pressurePlates);
+    // Las losas de presión se reinician siempre al entrar al nivel: sus puertas de mecanismo
+    // arrancan cerradas, así que una losa "ya pisada" bloquearía el puzle.
     for (const p of this.world.pressurePlates || []) {
-      const plateKey = `${levelId}_plate_${p.id}`;
-      if (this.openedPlateKeys?.has(plateKey)) {
-        p.isPressed = true;
-        this.pressurePlateRenderer?.setPressedInstant(p.id);
-      }
+      p.isPressed = false;
+      p._occupants = new Set();
+      this.openedPlateKeys?.delete(`${levelId}_plate_${p.id}`);
+    }
+    for (const pl of this.playerManager?.getAllPlayers?.() || []) {
+      pl._standingPlates = new Set();
     }
     this.interaction.ensureStairsState();
     // Reset del descenso sincronizado al cambiar de mapa
