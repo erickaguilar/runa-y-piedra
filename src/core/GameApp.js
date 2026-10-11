@@ -36,6 +36,7 @@ import { PerfMonitor } from '../perf/PerfMonitor.js';
 import { InventoryMixin } from '../controllers/InventoryController.js';
 import { SessionMixin } from './SessionManager.js';
 import { NetworkCoordinatorMixin } from '../network/NetworkCoordinator.js';
+import { RoomDebugOverlay } from '../ui/RoomDebugOverlay.js';
 
 export class VoxelSandboxGame {
   constructor() {
@@ -150,6 +151,7 @@ export class VoxelSandboxGame {
     this.openedDoorKeys = new Set();
     this.network.stats.setRenderer(this.sceneManager.renderer);
     this.inputMode = new InputMode();
+    this.roomDebugOverlay = new RoomDebugOverlay();
 
     // 3. Controles adaptativos PC / Táctil
     this.input = new InputManager({
@@ -300,6 +302,154 @@ export class VoxelSandboxGame {
     });
   }
 
+  getCurrentRoomInfo() {
+    const local = this.playerManager.localPlayer;
+    if (!local) return { id: 'unknown', name: 'Desconocido' };
+    const pz = local.pos.z;
+    if (Array.isArray(this.world.checkpoints) && this.world.checkpoints.length > 0) {
+      const cp = this.world.checkpoints.find(c => pz >= (c.minZ ?? -Infinity) && pz <= (c.maxZ ?? Infinity));
+      if (cp) return { id: cp.id, name: cp.name, checkpoint: cp };
+    }
+    return { id: 'default', name: local.checkpoint?.roomName || 'Zona de Inicio', checkpoint: null };
+  }
+
+  teleportLocalPlayer(x, y, z, yaw = null) {
+    const local = this.playerManager.localPlayer;
+    if (!local) return;
+    local.teleport(x, y, z, yaw);
+    this.ui.showHudMessage(`Teletransportado a [${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}]`);
+  }
+
+  setHeroLocal(colorIndex) {
+    const local = this.playerManager.localPlayer;
+    if (!local) return;
+    const heroIndex = Math.max(0, Math.min(PLAYER_HEROES.length - 1, colorIndex));
+    local.setColorIndex(heroIndex);
+    this.ui.selectedColorIndex = heroIndex;
+    const hero = PLAYER_HEROES[heroIndex] || PLAYER_HEROES[0];
+    try {
+      localStorage.setItem('dungeon_player_color', heroIndex.toString());
+    } catch { /* ignore */ }
+    if (this.mode === 'client') {
+      this.network.sendToHost(Proto.serializePlayerMeta(local.id, heroIndex, local.name));
+    } else if (this.mode === 'host') {
+      this.network.broadcast(Proto.serializePlayerMeta(local.id, heroIndex, local.name));
+    }
+    this.ui.showHudMessage(`Héroe: ${hero.name} (Salto ×${hero.jumpMultiplier.toFixed(2)})`);
+  }
+
+  openAllDoors() {
+    let count = 0;
+    if (Array.isArray(this.world.doors) && this.world.doors.length > 0) {
+      for (const d of this.world.doors) {
+        this.openDoorInstant(d.id);
+        count++;
+      }
+    } else {
+      this.openDoorInstant(1);
+      this.openDoorInstant(2);
+      count = 2;
+    }
+    this.ui.showNarrativeMessage(`:door: Modo Dev: ${count} puertas desbloqueadas.`, 3000);
+  }
+
+  resetRoomMechanisms() {
+    if (Array.isArray(this.world.doors)) {
+      for (const d of this.world.doors) {
+        this.world.closeDoor(d.id);
+        this.voxelMap?.closeDoor?.(d.id);
+        this.doorRenderer?.closeDoor?.(d.id);
+      }
+    } else {
+      this.world.closeDoor(1);
+      this.world.closeDoor(2);
+      this.doorRenderer?.closeDoor?.(1);
+      this.doorRenderer?.closeDoor?.(2);
+    }
+
+    if (Array.isArray(this.world.pressurePlates)) {
+      for (const plate of this.world.pressurePlates) {
+        plate.isPressed = false;
+        if (plate._occupants) plate._occupants.clear();
+        this.pressurePlateRenderer?.unpress?.(plate.id);
+      }
+    }
+
+    for (const p of this.playerManager.getAllPlayers()) {
+      if (p._standingPlates) p._standingPlates.clear();
+    }
+
+    const local = this.playerManager.localPlayer;
+    if (local && local.checkpoint) {
+      local.teleport(local.checkpoint.x, local.checkpoint.y, local.checkpoint.z, local.checkpoint.yaw);
+    }
+    this.ui.showNarrativeMessage(':refresh: Mecanismos reseteados y posición restablecida.', 3500);
+  }
+
+  restoreHealth() {
+    const local = this.playerManager.localPlayer;
+    if (!local) return;
+    local.resetLives();
+    this.ui.setLives(local.lives, local.maxLives);
+    this.ui.showHudMessage(':heart: ¡Salud y vidas restauradas!');
+  }
+
+  generateRoomReport() {
+    const local = this.playerManager.localPlayer;
+    const curLevel = this.world.levelRegistry?.getCurrentLevel();
+    const roomInfo = this.getCurrentRoomInfo();
+    const targetBlock = this.raycaster?.getTargetBlockDebug?.(30);
+    const hero = local?.hero || PLAYER_HEROES[local?.colorIndex ?? 0] || PLAYER_HEROES[0];
+
+    return {
+      timestamp: new Date().toISOString(),
+      level: {
+        id: curLevel?.id || this.world.levelRegistry?.currentLevelId || '—',
+        name: curLevel?.name || '—',
+      },
+      room: roomInfo?.name || '—',
+      player: {
+        coords: {
+          x: Number(local?.pos?.x?.toFixed(2) || 0),
+          y: Number(local?.pos?.y?.toFixed(2) || 0),
+          z: Number(local?.pos?.z?.toFixed(2) || 0),
+        },
+        yaw: Math.round(((local?.yaw || 0) * 180 / Math.PI) % 360),
+        pitch: Math.round((local?.pitch || 0) * 180 / Math.PI),
+        hero: hero.name,
+        jumpMultiplier: hero.jumpMultiplier,
+        speedMultiplier: hero.speedMultiplier,
+        isNoclip: !!local?.isNoclip,
+        lives: local?.lives ?? 3,
+      },
+      targetBlock: targetBlock || 'Ninguno',
+      doors: (this.world.doors || []).map(d => ({
+        id: d.id,
+        name: d.name,
+        isOpen: this.world.isDoorOpenId ? this.world.isDoorOpenId(d.id) : false,
+      })),
+      pressurePlates: (this.world.pressurePlates || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        isPressed: !!p.isPressed,
+        targetDoorId: p.targetDoorId,
+      })),
+    };
+  }
+
+  exportLevelPropsJson() {
+    const curLevel = this.world.levelRegistry?.getCurrentLevel() || {};
+    return {
+      levelId: curLevel.id,
+      name: curLevel.name,
+      checkpoints: curLevel.checkpoints || this.world.checkpoints || [],
+      doors: curLevel.doors || this.world.doors || [],
+      pressurePlates: curLevel.pressurePlates || this.world.pressurePlates || [],
+      jumpPads: curLevel.jumpPads || [],
+      platforms: curLevel.platforms || [],
+    };
+  }
+
   initDev() {
     this.ui.bindDev({
       onEnterShowroom: async () => {
@@ -312,33 +462,110 @@ export class VoxelSandboxGame {
       onExitShowroom: () => {
         this.switchLevel('lobby_tutorial', this.mode === 'host');
       },
-      getGameState: () => ({
-        inGame: this.mode !== null,
-        isHost: this.mode === 'host',
-        currentLevelId: this.world.levelRegistry.currentLevelId,
-        chapter: {
-          currentChapterId: this.chapterRegistry?.currentChapterId || 'capitulo_1',
-          currentChapterName: this.chapterRegistry?.getCurrentChapter()?.name || '',
-          highestChapterUnlocked: this.chapterRegistry?.progress?.highestChapterUnlocked || 1,
-        },
-        roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
-        joinUrl: this.currentJoinUrl,
-        players: this.playerManager.getAllPlayers(),
-        localPlayer: this.playerManager.localPlayer,
-        perf: this.network.stats.getPerfSummary(),
-        gameplay: {
-          altitude: this.playerManager.localPlayer?.pos?.y || 0,
-          maxAltitude: this.playerManager.localPlayer?.maxAltitude || 0,
-          jumpCount: this.playerManager.localPlayer?.jumpCount || 0,
-          jumpPadCount: this.playerManager.localPlayer?.jumpPadCount || 0,
-          checkpoint: this.playerManager.localPlayer?.checkpoint?.roomName || 'Ninguno'
-        },
-      }),
+      getGameState: () => {
+        const local = this.playerManager.localPlayer;
+        const curLevel = this.world.levelRegistry?.getCurrentLevel();
+        const roomInfo = this.getCurrentRoomInfo();
+        const targetBlock = this.raycaster?.getTargetBlockDebug?.(30) || null;
+        return {
+          inGame: this.mode !== null,
+          isHost: this.mode === 'host',
+          currentLevelId: this.world.levelRegistry.currentLevelId,
+          currentLevel: curLevel ? {
+            id: curLevel.id,
+            name: curLevel.name,
+            checkpoints: curLevel.checkpoints || this.world.checkpoints || [],
+            doors: curLevel.doors || this.world.doors || [],
+            pressurePlates: curLevel.pressurePlates || this.world.pressurePlates || [],
+            spawn: curLevel.spawn || this.world.spawnPoint,
+          } : null,
+          currentRoom: roomInfo,
+          currentHeroIndex: local?.colorIndex ?? 0,
+          isNoclip: !!local?.isNoclip,
+          coordsOverlayEnabled: !!this.roomDebugOverlay?.enabled,
+          targetBlock,
+          chapter: {
+            currentChapterId: this.chapterRegistry?.currentChapterId || 'capitulo_1',
+            currentChapterName: this.chapterRegistry?.getCurrentChapter()?.name || '',
+            highestChapterUnlocked: this.chapterRegistry?.progress?.highestChapterUnlocked || 1,
+          },
+          roomPin: this.network.roomId ? this.network.roomId.replace(NET_CONFIG.ROOM_PREFIX, '') : null,
+          joinUrl: this.currentJoinUrl,
+          players: this.playerManager.getAllPlayers(),
+          localPlayer: local,
+          perf: this.network.stats.getPerfSummary(),
+          gameplay: {
+            altitude: local?.pos?.y || 0,
+            maxAltitude: local?.maxAltitude || 0,
+            jumpCount: local?.jumpCount || 0,
+            jumpPadCount: local?.jumpPadCount || 0,
+            checkpoint: local?.checkpoint?.roomName || 'Ninguno',
+          },
+        };
+      },
       onToggleDebug: (enable) => {
         this.network.stats.setEnabled(enable);
       },
       onPrintNetAudit: () => {
         this.network?.printAudit?.();
+      },
+      onTeleportToRoom: (cpIndex) => {
+        const checkpoints = this.world.checkpoints || this.world.levelRegistry?.getCurrentLevel()?.checkpoints;
+        if (Array.isArray(checkpoints) && checkpoints[cpIndex]) {
+          const cp = checkpoints[cpIndex];
+          const respawn = cp.respawn || { x: 12, y: 1.2, z: cp.minZ + 1.5 };
+          this.teleportLocalPlayer(respawn.x, respawn.y, respawn.z, cp.yaw);
+          this.ui.showHudMessage(`Teletransportado a: ${cp.name}`);
+        }
+      },
+      onTeleportToSpawn: () => {
+        const spawn = this.world.spawnPoint || this.world.levelRegistry?.getCurrentLevel()?.spawn || { x: 12, y: 1.2, z: 2.5 };
+        this.teleportLocalPlayer(spawn.x, spawn.y, spawn.z, spawn.yaw ?? Math.PI);
+        this.ui.showHudMessage('Teletransportado a la entrada del nivel');
+      },
+      onTeleportToDoor: (doorId) => {
+        const door = this.world.doors?.find(d => d.id === doorId);
+        if (door) {
+          const dz = door.z ?? 11;
+          const dx = door.x1 !== undefined ? (door.x1 + (door.x2 ?? door.x1)) / 2 : 11.5;
+          const targetZ = dz > (this.playerManager.localPlayer?.pos?.z ?? 0) ? dz - 1.5 : dz + 1.5;
+          this.teleportLocalPlayer(dx, 1.2, targetZ);
+          this.ui.showHudMessage(`Teletransportado frente a: ${door.name || `Puerta ${doorId}`}`);
+        }
+      },
+      onTeleportToCoords: (x, y, z, yaw) => {
+        this.teleportLocalPlayer(x, y, z, yaw);
+      },
+      onSwitchHero: (colorIndex) => {
+        this.setHeroLocal(colorIndex);
+      },
+      onToggleNoclip: (enable) => {
+        const local = this.playerManager.localPlayer;
+        if (local) {
+          local.isNoclip = !!enable;
+          if (local.cancelLavaSinking) local.cancelLavaSinking();
+          local.vel.y = 0;
+          this.ui.showHudMessage(enable ? '🦅 Modo Vuelo (Noclip) ACTIVADO' : '🚶 Modo Vuelo DESACTIVADO');
+        }
+      },
+      onToggleCoordsOverlay: (enable) => {
+        this.roomDebugOverlay?.setEnabled(enable);
+        this.ui.showHudMessage(enable ? 'Overlay de coordenadas activado' : 'Overlay de coordenadas oculto');
+      },
+      onOpenAllDoors: () => {
+        this.openAllDoors();
+      },
+      onResetRoomMechanisms: () => {
+        this.resetRoomMechanisms();
+      },
+      onRestoreHealth: () => {
+        this.restoreHealth();
+      },
+      onCopyRoomReport: () => {
+        return this.generateRoomReport();
+      },
+      onCopyLevelProps: () => {
+        return this.exportLevelPropsJson();
       },
     });
   }
@@ -455,6 +682,10 @@ export class VoxelSandboxGame {
         local.setInput(move.forward, move.right, this.input.yaw);
         local.pitch = this.input.pitch;
 
+        if (local.isNoclip) {
+          local.inputFlyDown = !!(this.input?.keys?.['ShiftLeft'] || this.input?.keys?.['ShiftRight'] || this.input?.keys?.['KeyC']);
+        }
+
         // Salto con perdón: buffer 150ms (pulsa antes de aterrizar) + coyote 120ms
         // (salta justo después de dejar el borde). El sonido va en la ejecución.
         const nowMs = performance.now();
@@ -463,10 +694,10 @@ export class VoxelSandboxGame {
         const hasBuffer = nowMs - (this.jumpBufferTime || -1e9) <= 150;
         const canCoyote = nowMs - (this.lastGroundTime || -1e9) <= 120;
         let jumpAction = 0;
-        if (!inTransition && hasBuffer && (local.onGround || canCoyote)) {
+        if (!inTransition && hasBuffer && (local.onGround || canCoyote || local.isNoclip)) {
           jumpAction = Proto.ACTION_FLAGS.JUMP;
           this.jumpBufferTime = 0;
-          this.soundManager.playJump();
+          if (!local.isNoclip) this.soundManager.playJump();
         }
 
         if (this.mode === 'host') {
@@ -529,6 +760,25 @@ export class VoxelSandboxGame {
           const local = this.playerManager.localPlayer;
           local.updateVisualSmoothing(dt);
           this.cameraController.update(local, local.yaw, local.pitch, this.cameraMode);
+
+          // Actualizar overlay de coordenadas y salas en vivo si está activo
+          if (this.roomDebugOverlay?.enabled) {
+            const currentLevel = this.world.levelRegistry?.getCurrentLevel();
+            const roomInfo = this.getCurrentRoomInfo();
+            const targetBlock = this.raycaster?.getTargetBlockDebug?.(30);
+            this.roomDebugOverlay.update({
+              levelId: currentLevel?.id || this.world.levelRegistry?.currentLevelId || '—',
+              levelName: currentLevel?.name || '—',
+              roomName: roomInfo.name,
+              pos: local.pos,
+              yaw: local.yaw,
+              pitch: local.pitch,
+              hero: local.hero || PLAYER_HEROES[local.colorIndex] || PLAYER_HEROES[0],
+              isNoclip: !!local.isNoclip,
+              lives: local.lives,
+              targetBlock,
+            });
+          }
 
           // Avatar propio solo visible en tercera persona
           if (this.cameraMode === 'third') {

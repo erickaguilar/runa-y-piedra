@@ -152,4 +152,33 @@ export class BlockRaycaster {
 
     return null;
   }
+
+  /**
+   * Obtiene información detallada del bloque o superficie apuntada por la retícula para depuración.
+   */
+  getTargetBlockDebug(maxDistance = 50) {
+    if (!this.voxelMap?.mesh) return null;
+    this.raycaster.setFromCamera(this.screenCenter, this.camera);
+    const hits = this.raycaster.intersectObject(this.voxelMap.mesh, false);
+
+    if (hits.length > 0 && hits[0].distance <= maxDistance) {
+      const hit = hits[0];
+      const bIdx = this.voxelMap.instToBlock?.[hit.instanceId];
+      if (bIdx !== undefined && bIdx !== -1) {
+        const coords = VoxelMap.blockIndexToXYZ(bIdx);
+        const blockType = this.world.get(coords.x, coords.y, coords.z);
+        return {
+          coords,
+          blockType,
+          distance: hit.distance,
+          point: {
+            x: Number(hit.point.x.toFixed(2)),
+            y: Number(hit.point.y.toFixed(2)),
+            z: Number(hit.point.z.toFixed(2)),
+          },
+        };
+      }
+    }
+    return null;
+  }
 }

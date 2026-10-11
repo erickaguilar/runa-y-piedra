@@ -30,6 +30,10 @@ export class Player {
     // Inventario de llaves (ids de llave, p. ej. "llave_santuario"). Persiste ante muertes.
     this.keys = [];
 
+    // Modo espectador / vuelo libre para depuración y calibración
+    this.isNoclip = false;
+    this.inputFlyDown = false;
+
     // Metadatos de red para sincronización de roster y elección determinista de líder
     this.peerId = '';
     this.joinedAt = Date.now();
@@ -173,6 +177,26 @@ export class Player {
     this.vel.z = 0;
     this.onGround = false;
     this.resetLives();
+  }
+
+  /**
+   * Teletransporta instantáneamente al jugador sincronizando posición lógica y visual.
+   */
+  teleport(x, y, z, yaw = null) {
+    this.pos.x = x;
+    this.pos.y = y;
+    this.pos.z = z;
+    this.visualPos.x = x;
+    this.visualPos.y = y;
+    this.visualPos.z = z;
+    this.vel.x = 0;
+    this.vel.y = 0;
+    this.vel.z = 0;
+    this.onGround = false;
+    if (yaw !== null && yaw !== undefined) {
+      this.yaw = yaw;
+    }
+    this.cancelLavaSinking();
   }
 
   toSnapshot() {

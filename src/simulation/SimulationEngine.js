@@ -110,6 +110,31 @@ export class SimulationEngine {
       return;
     }
 
+    // Modo Vuelo Espectador (Noclip / Dev)
+    if (p.isNoclip) {
+      if (p.cancelLavaSinking) p.cancelLavaSinking();
+      const flySpeed = (PHYSICS_CONFIG.SPEED || 4.8) * 2.2;
+      const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
+      const rx =  Math.cos(p.yaw), rz = -Math.sin(p.yaw);
+      let vy = 0;
+      if (actions & ACTION_FLAGS.JUMP) {
+        vy = flySpeed;
+      } else if (p.inputFlyDown) {
+        vy = -flySpeed;
+      }
+      p.pos.x += (fx * p.inputForward + rx * p.inputRight) * flySpeed * dt;
+      p.pos.z += (fz * p.inputForward + rz * p.inputRight) * flySpeed * dt;
+      p.pos.y += vy * dt;
+      p.visualPos.x = p.pos.x;
+      p.visualPos.y = p.pos.y;
+      p.visualPos.z = p.pos.z;
+      p.vel.x = 0;
+      p.vel.y = 0;
+      p.vel.z = 0;
+      p.onGround = false;
+      return;
+    }
+
     // Comprobación de contacto con lava y arranque del hundimiento (caída lenta)
     const inLava = !p.isInvulnerable && this.isTouchingLava(p);
     if (inLava && !p.isSinkingInLava) {
