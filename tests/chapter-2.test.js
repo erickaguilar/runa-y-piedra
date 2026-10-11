@@ -71,17 +71,24 @@ test('Capítulo 2 - Nivel 1 (shadow_vault) incorpora puzzle cooperativo de Puert
   assert.notEqual(world.get(12, 0, 12), 0, 'Bloque (12, 0, 12) debe tener suelo');
 });
 
-test('Capítulo 2 - Nivel 2 (shadow_chasm) incorpora abismo, plataformas JUMP_PAD y llave', () => {
+test('Capítulo 2 - Nivel 2 (shadow_chasm) incorpora abismo, plataformas JUMP_PAD y losa de presión para Puerta 2', () => {
   const world = new World();
   const levelData = world.levelRegistry.getLevel('shadow_chasm');
   world.loadLevel(levelData);
 
   assert.equal(world.doors.length, 2);
   const d2 = world.doors.find(d => d.id === 2);
-  assert.equal(d2.requiresKey, 'llave_sombras');
+  assert.ok(d2, 'Puerta 2 debe existir');
+
+  // La Puerta 2 ahora es activada por mecanismo de losa de presión en la Sala 2
+  const p2 = world.pressurePlates.find(p => p.targetDoorId === 2 || p.id === 'losa_chasm_puerta2');
+  assert.ok(p2, 'Debe existir una losa de presión para la Puerta 2 en Sala 2');
+  assert.equal(p2.x, 19.0);
+  assert.equal(p2.y, 2.0);
+  assert.equal(p2.z, 17.0);
 
   const c1 = world.chests.find(c => c.id === 1);
-  assert.equal(c1.givesKey, 'llave_sombras');
+  assert.ok(c1, 'Cofre 1 debe existir');
 
   assert.equal(world.stairwells.length, 1);
 });
