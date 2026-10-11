@@ -117,13 +117,13 @@ export class InputManager {
   }
 
   initMouseLook() {
-    this.canvas.addEventListener('click', () => {
+    this.canvas.addEventListener('click', (e) => {
       // Solo en modo PC y si la partida está activa (evitar capturar ratón en menús)
       if (this.inputMode && this.inputMode.mode !== 'pc') return;
       if (this.isGameActive && !this.isGameActive()) return;
 
-      // No capturar pointer lock si hay un modal de configuración abierto
-      if (document.getElementById('modal-settings')) return;
+      // No capturar pointer lock si hay un modal o panel de herramientas abierto
+      if (document.getElementById('modal-settings') || document.getElementById('modal-dev')) return;
 
       if (document.pointerLockElement !== this.canvas) {
         this.canvas.requestPointerLock?.();

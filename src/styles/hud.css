@@ -402,21 +402,32 @@
     }
 
 
-    /* Guía de controles bajo el inventario en la mazmorra tutorial */
+    /* Guía de controles bajo el inventario en la mazmorra tutorial (reubicada a la izquierda inferior) */
     #tutorial-controls-hud {
       display: none;
+      position: fixed;
+      bottom: max(16px, env(safe-area-inset-bottom, 0px));
+      left: max(14px, env(safe-area-inset-left, 0px));
       flex-direction: column;
       gap: 5px;
       pointer-events: auto;
-      background: rgba(15, 23, 42, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(15, 23, 42, 0.90);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 12px;
       padding: 8px 12px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
       animation: uiFadeIn 0.3s ease-out;
       user-select: none;
+      z-index: 35;
+      max-width: 250px;
+    }
+    /* En dispositivos móviles táctiles se posiciona arriba para no tapar el joystick */
+    body.input-touch #tutorial-controls-hud {
+      bottom: auto;
+      top: calc(max(12px, env(safe-area-inset-top, 0px)) + 48px);
+      max-width: 210px;
     }
     .hud-controls-header {
       display: flex;

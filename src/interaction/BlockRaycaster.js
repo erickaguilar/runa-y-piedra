@@ -7,9 +7,14 @@ export class BlockRaycaster {
     this.camera = camera;
     this.voxelMap = voxelMap;
     this.world = world;
+    this.renderers = null;
 
     this.raycaster = new THREE.Raycaster();
     this.screenCenter = new THREE.Vector2(0, 0);
+  }
+
+  setRenderers(renderers = {}) {
+    this.renderers = renderers;
   }
 
   isMechanismDoor(door) {
@@ -150,35 +155,178 @@ export class BlockRaycaster {
       }
     }
 
+    // 5. Chequeo por Raycaster mirando a props 3D interactivos (Losa de Escalinata Sellada, etc.)
+    if (this.renderers?.stairsRenderer?.group && Array.isArray(this.world.stairwells)) {
+      const activeStair = this.world.stairwells.find(w => !w.open);
+      if (activeStair) {
+        const sHits = this.raycaster.intersectObjects(this.renderers.stairsRenderer.group.children, true);
+        if (sHits.length > 0 && sHits[0].distance <= maxDistance) {
+          return { type: 'stairs', message: 'Losa sellada de la escalinata' };
+        }
+      }
+    }
+
     return null;
   }
 
   /**
-   * Obtiene información detallada del bloque o superficie apuntada por la retícula para depuración.
+   * Obtiene información detallada del bloque o prop 3D apuntado por la retícula para depuración.
    */
   getTargetBlockDebug(maxDistance = 50) {
-    if (!this.voxelMap?.mesh) return null;
     this.raycaster.setFromCamera(this.screenCenter, this.camera);
-    const hits = this.raycaster.intersectObject(this.voxelMap.mesh, false);
 
-    if (hits.length > 0 && hits[0].distance <= maxDistance) {
-      const hit = hits[0];
-      const bIdx = this.voxelMap.instToBlock?.[hit.instanceId];
-      if (bIdx !== undefined && bIdx !== -1) {
-        const coords = VoxelMap.blockIndexToXYZ(bIdx);
-        const blockType = this.world.get(coords.x, coords.y, coords.z);
-        return {
-          coords,
-          blockType,
-          distance: hit.distance,
-          point: {
-            x: Number(hit.point.x.toFixed(2)),
-            y: Number(hit.point.y.toFixed(2)),
-            z: Number(hit.point.z.toFixed(2)),
-          },
-        };
+    const candidates = [];
+
+    // 1. Intersección con el mapa vóxel
+    if (this.voxelMap?.mesh) {
+      const voxelHits = this.raycaster.intersectObject(this.voxelMap.mesh, false);
+      if (voxelHits.length > 0 && voxelHits[0].distance <= maxDistance) {
+        const hit = voxelHits[0];
+        const bIdx = this.voxelMap.instToBlock?.[hit.instanceId];
+        if (bIdx !== undefined && bIdx !== -1) {
+          const coords = VoxelMap.blockIndexToXYZ(bIdx);
+          const blockType = this.world.get(coords.x, coords.y, coords.z);
+          candidates.push({
+            type: 'voxel',
+            distance: hit.distance,
+            coords,
+            blockType,
+            point: {
+              x: Number(hit.point.x.toFixed(2)),
+              y: Number(hit.point.y.toFixed(2)),
+              z: Number(hit.point.z.toFixed(2)),
+            },
+          });
+        }
       }
     }
-    return null;
+
+    // 2. Intersección con entidades 3D (Cofres, Puertas, Pedestales, Losas, Escalinatas)
+    const checkPropGroup = (group, category, resolver) => {
+      if (!group) return;
+      const hits = this.raycaster.intersectObjects(group.children, true);
+      if (hits.length > 0 && hits[0].distance <= maxDistance) {
+        const hit = hits[0];
+        const info = resolver(hit);
+        if (info) {
+          candidates.push({
+            type: 'prop3d',
+            category,
+            distance: hit.distance,
+            ...info,
+            point: {
+              x: Number(hit.point.x.toFixed(2)),
+              y: Number(hit.point.y.toFixed(2)),
+              z: Number(hit.point.z.toFixed(2)),
+            },
+          });
+        }
+      }
+    };
+
+    if (this.renderers) {
+      // Cofres
+      if (this.renderers.chestRenderer?.group) {
+        checkPropGroup(this.renderers.chestRenderer.group, 'chest', (hit) => {
+          let cur = hit.object;
+          let matched = null;
+          for (const [id, c] of this.renderers.chestRenderer.chests.entries()) {
+            if (c.chestGroup && (c.chestGroup === cur || c.chestGroup.getObjectById(cur.id))) {
+              matched = { id, chest: c };
+              break;
+            }
+          }
+          const cData = matched?.chest;
+          return {
+            name: cData?.name || `Cofre ${matched?.id || ''}`,
+            entityId: matched?.id,
+            state: cData?.isOpen ? 'Abierto' : 'Cerrado',
+            coords: cData ? { x: cData.x, y: cData.y, z: cData.z } : { x: Math.round(hit.point.x), y: Math.round(hit.point.y), z: Math.round(hit.point.z) },
+          };
+        });
+      }
+
+      // Puertas
+      if (this.renderers.doorRenderer?.group) {
+        checkPropGroup(this.renderers.doorRenderer.group, 'door', (hit) => {
+          let matched = null;
+          for (const [id, d] of this.renderers.doorRenderer.doors.entries()) {
+            if ((d.frame && (d.frame === hit.object || d.frame.getObjectById(hit.object.id))) ||
+                (d.leftPivot && (d.leftPivot === hit.object || d.leftPivot.getObjectById(hit.object.id))) ||
+                (d.rightPivot && (d.rightPivot === hit.object || d.rightPivot.getObjectById(hit.object.id)))) {
+              matched = { id, door: d };
+              break;
+            }
+          }
+          const dData = matched?.door;
+          return {
+            name: dData?.name || `Puerta 3D #${matched?.id || ''}`,
+            entityId: matched?.id,
+            state: dData?.isOpen ? 'Abierta' : 'Cerrada',
+            coords: { x: Math.round(hit.point.x), y: Math.round(hit.point.y), z: Math.round(hit.point.z) },
+          };
+        });
+      }
+
+      // Pedestales y Altares
+      if (this.renderers.pedestalRenderer?.group) {
+        checkPropGroup(this.renderers.pedestalRenderer.group, 'pedestal', (hit) => {
+          let matched = null;
+          for (const [id, p] of this.renderers.pedestalRenderer.pedestals.entries()) {
+            if (p.root && (p.root === hit.object || p.root.getObjectById(hit.object.id))) {
+              matched = { id, pedestal: p };
+              break;
+            }
+          }
+          const pData = matched?.pedestal;
+          return {
+            name: matched?.id?.startsWith('monolith') ? 'Mesa de Cartografía (Monolito)' : 'Pedestal de Altar Rúnico',
+            entityId: matched?.id,
+            state: pData?.isActive ? 'Activo' : 'Inactivo',
+            coords: pData ? { x: pData.x, y: pData.y, z: pData.z } : { x: Math.round(hit.point.x), y: Math.round(hit.point.y), z: Math.round(hit.point.z) },
+          };
+        });
+      }
+
+      // Losas de presión
+      if (this.renderers.pressurePlateRenderer?.group) {
+        checkPropGroup(this.renderers.pressurePlateRenderer.group, 'pressure_plate', (hit) => {
+          let matched = null;
+          for (const [id, pl] of this.renderers.pressurePlateRenderer.plates.entries()) {
+            if (pl.root && (pl.root === hit.object || pl.root.getObjectById(hit.object.id))) {
+              matched = { id, plate: pl };
+              break;
+            }
+          }
+          const plData = matched?.plate;
+          return {
+            name: `Losa de Presión (${plData?.action || 'mecanismo'})`,
+            entityId: matched?.id,
+            state: plData?.isPressed ? 'Presionada' : 'Libre',
+            coords: plData ? { x: plData.x, y: plData.y, z: plData.z } : { x: Math.round(hit.point.x), y: Math.round(hit.point.y), z: Math.round(hit.point.z) },
+          };
+        });
+      }
+
+      // Escalinata
+      if (this.renderers.stairsRenderer?.group) {
+        checkPropGroup(this.renderers.stairsRenderer.group, 'stairs', (hit) => {
+          const s = this.renderers.stairsRenderer.stairs;
+          return {
+            name: 'Escalinata Ancestral Sellada',
+            entityId: 'stairs',
+            state: s?.state || 'cerrada',
+            coords: { x: Math.round(hit.point.x), y: Math.round(hit.point.y), z: Math.round(hit.point.z) },
+          };
+        });
+      }
+    }
+
+    if (candidates.length === 0) return null;
+
+    // Tomar el elemento más cercano a la cámara
+    candidates.sort((a, b) => a.distance - b.distance);
+    return candidates[0];
   }
 }
+

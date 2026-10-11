@@ -136,7 +136,7 @@
     }
   ],
   "objectives": [],
-  "stairs": { "x1": 11, "x2": 12, "z1": 50, "z2": 52, "openFromStart": true },
+  "stairs": { "x1": 11, "x2": 12, "z1": 50, "z2": 52, "openFromStart": false },
   "chests": [
     {
       "id": 1,

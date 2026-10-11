@@ -141,6 +141,13 @@ export class VoxelSandboxGame {
     this.cameraController = new CameraController(this.sceneManager.camera);
     this.cameraController.setWorld(this.world);
     this.raycaster = new BlockRaycaster(this.sceneManager.camera, this.voxelMap, this.world);
+    this.raycaster.setRenderers({
+      chestRenderer: this.chestRenderer,
+      doorRenderer: this.doorRenderer,
+      pedestalRenderer: this.pedestalRenderer,
+      pressurePlateRenderer: this.pressurePlateRenderer,
+      stairsRenderer: this.stairsRenderer,
+    });
 
     // 2. Red, Audio y UI
     this.network = new NetworkManager();

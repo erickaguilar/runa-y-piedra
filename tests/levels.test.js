@@ -423,12 +423,13 @@ test('shadow_vault: muros divisores contienen dinteles superiores sólidos (y=3,
   }
 });
 
-test('ensureStairsState talla la fosa física y abre la escalinata en shadow_vault (openFromStart: true)', async () => {
+test('Escalinatas selladas de inicio: shadow_vault y shadow_chasm comienzan selladas e interactivas', async () => {
   const { InteractionController } = await import('../src/controllers/InteractionController.js');
   const world = new World();
   world.loadLevel(world.levelRegistry.getLevel('shadow_vault'));
 
   let setOpenInstantCalled = false;
+  let slabGrindCalled = false;
   const mockGame = {
     mode: 'host',
     world,
@@ -439,25 +440,60 @@ test('ensureStairsState talla la fosa física y abre la escalinata en shadow_vau
     },
     stairsRenderer: {
       loadStairs: () => {},
+      open: () => {},
       setOpenInstant: () => { setOpenInstantCalled = true; },
     },
-    soundManager: { playSlabGrind: () => {} },
+    soundManager: { playSlabGrind: () => { slabGrindCalled = true; } },
     ui: { showNarrativeMessage: () => {} },
+    network: { broadcast: () => {} },
   };
 
   const ctrl = new InteractionController(mockGame);
   const rect = ctrl.stairPitRect();
   assert.ok(rect, 'rectángulo de escalinata debe existir');
-  assert.equal(rect.open, true, 'rect.open debe ser true por openFromStart');
+  assert.equal(rect.open, false, 'rect.open debe iniciar cerrado (sellado)');
 
-  // Antes de ensureStairsState, el suelo y=0 está cubierto por STONE_FLOOR de las regiones
-  assert.equal(ctrl.isPitOpenInBlocks(rect), false);
-
-  // Al invocar ensureStairsState, talla la fosa y abre la escalinata
+  // ensureStairsState no la abre automáticamente porque openFromStart es false
   ctrl.ensureStairsState();
-  assert.equal(ctrl.isPitOpenInBlocks(rect), true, 'la fosa física debe quedar tallada a AIR');
+  assert.equal(mockGame.world.stairsOpen, false, 'escalinata no debe abrirse sola de inicio');
+  assert.equal(setOpenInstantCalled, false);
+
+  // La apertura ocurre mediante interacción (openStairsCeremony / requestStairsOpen)
+  ctrl.openStairsCeremony();
+  assert.equal(ctrl.isPitOpenInBlocks(rect), true, 'la fosa física debe quedar tallada a AIR tras la ceremonia');
   assert.equal(mockGame.world.stairsOpen, true);
-  assert.equal(setOpenInstantCalled, true, 'setOpenInstant debe haber sido invocado');
+  assert.equal(slabGrindCalled, true, 'debe reproducir sonido de chirrido de losa');
+});
+
+test('Escalinatas y losas independientes del mapa: _installStairs consolida suelo sólido bajo losa sellada y perímetro', () => {
+  const customLevel = {
+    id: 'test_isolated_stairs',
+    name: 'Nivel con escalinata autónoma',
+    dimensions: { sizeX: 20, sizeY: 10, sizeZ: 20 },
+    spawn: { x: 5, y: 1.2, z: 5 },
+    stairs: { x1: 8, x2: 9, z1: 8, z2: 10, openFromStart: false },
+    regions: [] // Sin ninguna región declarativa
+  };
+
+  const world = new World();
+  world.loadLevel(customLevel);
+
+  assert.equal(world.stairwells.length, 1);
+  assert.equal(world.stairsOpen, false);
+
+  // El suelo sobre la losa sellada debe estar consolidado en y=0
+  for (let x = 8; x <= 9; x++) {
+    for (let z = 8; z <= 10; z++) {
+      assert.ok(world.get(x, 0, z) !== BLOCK_TYPES.AIR, `bloque en (${x},0,${z}) debe ser suelo sólido`);
+    }
+  }
+
+  // Perímetro circundante de apoyo consolidado
+  for (let x = 7; x <= 10; x++) {
+    for (let z = 7; z <= 11; z++) {
+      assert.ok(world.get(x, 0, z) !== BLOCK_TYPES.AIR, `perímetro en (${x},0,${z}) debe ser sólido`);
+    }
+  }
 });
 
 test('Puertas independientes del mapa: _installDoors genera vano sólido, dinteles y jambas sin regiones declarativas', () => {

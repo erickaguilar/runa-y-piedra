@@ -172,6 +172,9 @@ export class LevelLoader {
     // 4.5. Instalar y consolidar todas las puertas de forma autónoma e independiente del mapa
     this._installDoors(world, levelData, sizeX, sizeY, sizeZ);
 
+    // 4.6. Instalar y consolidar la fosa y perímetro de la escalinata de forma autónoma
+    this._installStairs(world, levelData, sizeX, sizeY, sizeZ);
+
     // 5. Instalar losa de respawn rúnica única (RESPAWN_PAD) en la entrada de la mazmorra
     this._placeRespawnPads(world, levelData);
 
@@ -259,6 +262,51 @@ export class LevelLoader {
           for (let y = y1; y <= lintelTopY; y++) {
             if (world.get(jx, y, z) === BLOCK_TYPES.AIR) {
               world.set(jx, y, z, BLOCK_TYPES.WALL);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Instala y consolida de forma autónoma e independiente las escalinatas de descenso:
+   * - Si está cerrada (por defecto en todas las salas), garantiza que los bloques de suelo y=0 sean sólidos
+   *   y transcriban la losa sellada.
+   * - Si está abierta (por ejemplo en niveles abiertos), talla la fosa a AIR en y=0.
+   * - Garantiza el sellado inferior (y<0) y el perímetro alrededor del foso.
+   */
+  static _installStairs(world, levelData, sizeX, sizeY, sizeZ) {
+    if (!Array.isArray(world.stairwells) || world.stairwells.length === 0) return;
+
+    const minY = world.minY ?? -8;
+
+    for (const w of world.stairwells) {
+      if (!w) continue;
+      const x1 = Math.min(w.x1, w.x2);
+      const x2 = Math.max(w.x1, w.x2);
+      const z1 = Math.min(w.z1, w.z2);
+      const z2 = Math.max(w.z1, w.z2);
+
+      // Si la escalinata está cerrada, el suelo y=0 debe ser transitable y firme
+      if (!w.open) {
+        for (let x = x1; x <= x2; x++) {
+          for (let z = z1; z <= z2; z++) {
+            world.set(x, 0, z, floorVariant(x, z));
+            for (let y = minY; y < 0; y++) {
+              world.set(x, y, z, BLOCK_TYPES.WALL);
+            }
+          }
+        }
+      }
+
+      // Perímetro circundante de soporte sólido bajo el suelo
+      for (let x = x1 - 1; x <= x2 + 1; x++) {
+        for (let z = z1 - 1; z <= z2 + 1; z++) {
+          if (x >= 0 && x < sizeX && z >= 0 && z < sizeZ) {
+            const isInside = x >= x1 && x <= x2 && z >= z1 && z <= z2;
+            if (!isInside && world.get(x, 0, z) === BLOCK_TYPES.AIR) {
+              world.set(x, 0, z, floorVariant(x, z));
             }
           }
         }

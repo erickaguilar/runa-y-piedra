@@ -165,11 +165,11 @@ export class NetworkStats {
     el.id = 'net-debug-panel';
     el.style.cssText = `
       position: fixed;
-      top: 14px;
-      right: 54px;
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      top: calc(max(16px, env(safe-area-inset-top, 0px)) + 52px);
+      right: max(16px, env(safe-area-inset-right, 0px));
+      background: rgba(15, 23, 42, 0.90);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(56, 189, 248, 0.4);
       color: #38bdf8;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -179,8 +179,9 @@ export class NetworkStats {
       border-radius: 10px;
       z-index: 100;
       pointer-events: none;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.65);
       user-select: none;
+      max-width: 260px;
     `;
     document.body.appendChild(el);
     this.domElement = el;
