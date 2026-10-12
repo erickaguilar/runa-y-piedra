@@ -126,7 +126,12 @@ export class InputManager {
       if (document.getElementById('modal-settings') || document.getElementById('modal-dev')) return;
 
       if (document.pointerLockElement !== this.canvas) {
-        this.canvas.requestPointerLock?.();
+        try {
+          const req = this.canvas.requestPointerLock?.();
+          if (req && typeof req.catch === 'function') {
+            req.catch(() => { /* ignorar SecurityError transitorio de navegador */ });
+          }
+        } catch { /* ignorar */ }
       }
     });
 

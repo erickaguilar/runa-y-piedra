@@ -72,3 +72,41 @@ test('monolito interactivo de cartografía detectado por proximidad', () => {
   assert.equal(t.monolithId, 'cartography');
 });
 
+test('getTargetBlockDebug resuelve pedestales con IDs numéricos sin lanzar TypeError', () => {
+  const fakeHit = {
+    distance: 2.5,
+    point: { x: 12.0, y: 1.0, z: 30.0 },
+    object: { id: 999 },
+  };
+  const fakeRaycaster = {
+    setFromCamera: () => {},
+    intersectObject: () => [],
+    intersectObjects: () => [fakeHit],
+  };
+  const fakePedestal = {
+    root: fakeHit.object,
+    x: 12,
+    y: 1,
+    z: 30,
+    isActive: false,
+  };
+  const pedestalsMap = new Map();
+  pedestalsMap.set(1, fakePedestal); // ID numérico, como en shadow_sanctum
+
+  const r = new BlockRaycaster(null, null, stubWorld());
+  r.setRenderers({
+    pedestalRenderer: {
+      group: { children: [fakeHit.object] },
+      pedestals: pedestalsMap,
+    },
+  });
+  r.raycaster = fakeRaycaster;
+
+  const target = r.getTargetBlockDebug(30);
+  assert.ok(target, 'Debe detectar el prop 3D');
+  assert.equal(target.type, 'prop3d');
+  assert.equal(target.name, 'Pedestal de Altar Rúnico');
+  assert.equal(target.entityId, 1);
+});
+
+

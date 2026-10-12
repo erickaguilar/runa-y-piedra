@@ -280,7 +280,7 @@ export class BlockRaycaster {
           }
           const pData = matched?.pedestal;
           return {
-            name: matched?.id?.startsWith('monolith') ? 'Mesa de Cartografía (Monolito)' : 'Pedestal de Altar Rúnico',
+            name: String(matched?.id || '').startsWith('monolith') ? 'Mesa de Cartografía (Monolito)' : 'Pedestal de Altar Rúnico',
             entityId: matched?.id,
             state: pData?.isActive ? 'Activo' : 'Inactivo',
             coords: pData ? { x: pData.x, y: pData.y, z: pData.z } : { x: Math.round(hit.point.x), y: Math.round(hit.point.y), z: Math.round(hit.point.z) },

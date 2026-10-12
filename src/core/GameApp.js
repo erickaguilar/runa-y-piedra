@@ -397,7 +397,7 @@ export class VoxelSandboxGame {
     const local = this.playerManager.localPlayer;
     if (!local) return;
     local.resetLives();
-    this.ui.setLives(local.lives, local.maxLives);
+    this.ui.updateLives(local.lives, local.maxLives);
     this.ui.showHudMessage(':heart: ¡Salud y vidas restauradas!');
   }
 
