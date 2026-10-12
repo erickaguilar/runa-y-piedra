@@ -20,7 +20,7 @@ export class InteractionController {
     return this.transitioning;
   }
 
-  handleInteract() {
+  handleInteract(forcedInteraction = null) {
     const game = this.game;
     if (!game.mode) return;
 
@@ -30,17 +30,25 @@ export class InteractionController {
       return;
     }
 
-    const local = game.playerManager.localPlayer;
-    const interaction = game.raycaster.getTargetInteraction(local.pos);
+    const local = game.playerManager?.localPlayer;
+    const interaction = forcedInteraction || game.raycaster?.getTargetInteraction(local?.pos);
     if (!interaction) {
-      game.ui.showNarrativeMessage('Nada con lo que interactuar cerca.', 2000);
+      game.ui?.showNarrativeMessage?.('Nada con lo que interactuar cerca.', 2000);
       return;
     }
+
+    return this.executeInteraction(interaction, local);
+  }
+
+  executeInteraction(interaction, local = null) {
+    const game = this.game;
+    if (!interaction) return false;
+    local = local || game.playerManager?.localPlayer;
 
     if (interaction.type === 'door_mechanism') {
       game.soundManager?.playLocked?.();
       game.ui?.showNarrativeMessage?.(':lock: Esta puerta está sellada por un mecanismo rúnico. Activa la losa de presión correspondiente.', 3500);
-      return;
+      return false;
     }
 
     if (interaction.type === 'door') {
@@ -104,6 +112,10 @@ export class InteractionController {
     } else if (interaction.type === 'cartography') {
       game.soundManager?.playClick?.();
       game.ui.openChapterModal?.();
+      return true;
+    } else if (interaction.type === 'merchant' || interaction.type === 'shop') {
+      game.soundManager?.playClick?.();
+      game.ui.openShopModal?.();
       return true;
     } else if (interaction.type === 'pressure_plate') {
       const plateId = interaction.plateId;

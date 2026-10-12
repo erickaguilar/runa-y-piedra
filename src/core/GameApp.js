@@ -592,6 +592,10 @@ export class VoxelSandboxGame {
     this.ui.bindInventory({
       onUsePotion: (potion, idx) => this.usePotion(potion, idx),
     });
+    this.ui.bindShop?.({
+      onBuyItem: (item, price) => this.buyShopItem(item, price),
+      onSellItem: (itemType, itemId, price) => this.sellShopItem(itemType, itemId, price),
+    });
     this.ui.bindVoice?.(this.network);
     this.ui.showMenu({
       onHost: (profile) => this.startHost(profile),
@@ -646,6 +650,10 @@ export class VoxelSandboxGame {
 
   /** Abre o cierra el modal de configuración (tecla Escape). */
   toggleSettings() {
+    if (this.ui.isShopOpen || document.getElementById('modal-shop-overlay')) {
+      this.ui.closeShopModal();
+      return;
+    }
     if (this.ui.isInventoryOpen || document.getElementById('modal-inventory-overlay')) {
       this.ui.closeInventoryModal();
       return;

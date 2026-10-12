@@ -59,16 +59,17 @@ export class BlockRaycaster {
       }
     }
 
-    // 2b. Monolitos interactivos (Cartografía / Selección de capítulo)
+    // 2b. Monolitos interactivos (Cartografía / Selección de capítulo / Mercader)
     if (Array.isArray(this.world.monoliths) && this.world.monoliths.length > 0) {
       for (let i = 0; i < this.world.monoliths.length; i++) {
         const m = this.world.monoliths[i];
         const dist = Math.hypot(playerPos.x - m.x, playerPos.z - m.z);
         if (dist < (m.triggerRadius || 2.8)) {
+          const type = m.type || 'cartography';
           return {
-            type: m.type || 'cartography',
-            monolithId: m.id || 'cartography',
-            message: m.completeMessage || m.name || 'Monolito de Cartografía',
+            type,
+            monolithId: m.id || type,
+            message: m.completeMessage || m.name || (type === 'merchant' ? 'Pedestal del Mercader (Bazar Rúnico)' : 'Monolito de Cartografía'),
           };
         }
       }
@@ -279,8 +280,14 @@ export class BlockRaycaster {
             }
           }
           const pData = matched?.pedestal;
+          let pName = 'Pedestal de Altar Rúnico';
+          if (pData?.type === 'merchant' || pData?.isMerchant || String(matched?.id || '').includes('merchant')) {
+            pName = 'Pedestal del Mercader (Bazar Rúnico)';
+          } else if (String(matched?.id || '').startsWith('monolith') || pData?.isCartography) {
+            pName = 'Mesa de Cartografía (Monolito)';
+          }
           return {
-            name: String(matched?.id || '').startsWith('monolith') ? 'Mesa de Cartografía (Monolito)' : 'Pedestal de Altar Rúnico',
+            name: pName,
             entityId: matched?.id,
             state: pData?.isActive ? 'Activo' : 'Inactivo',
             coords: pData ? { x: pData.x, y: pData.y, z: pData.z } : { x: Math.round(hit.point.x), y: Math.round(hit.point.y), z: Math.round(hit.point.z) },

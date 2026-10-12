@@ -27,6 +27,7 @@ export class PedestalRenderer {
     this.pedestals = new Map();
     this._mats = this._createMaterials('classic');
     this._geos = this._createGeometries();
+    this._merchantMats = this._createMaterials('merchant');
     this._cartoMats = createCartographyMaterials();
     this._cartoGeos = createCartographyGeometries();
   }
@@ -50,6 +51,7 @@ export class PedestalRenderer {
     this._mats.crystal = fresh.crystal;
     this._mats.ember = fresh.ember;
     for (const p of this.pedestals.values()) {
+      if (p.isMerchant || p.isCartography) continue;
       if (p.runeMesh) p.runeMesh.material = this._mats.rune;
       if (p.crystalMesh) p.crystalMesh.material = this._mats.crystal;
       if (p.embers) p.embers.material = this._mats.ember;
@@ -88,20 +90,42 @@ export class PedestalRenderer {
         const x = m.x ?? 17.5;
         const y = m.y ?? 1.0;
         const z = m.z ?? 8.5;
+        const type = m.type || 'cartography';
 
-        const cartoMesh = buildCartographyTableMesh(this._cartoGeos, this._cartoMats);
-        cartoMesh.root.position.set(x, Math.max(1.0, y), z);
-        this.group.add(cartoMesh.root);
+        if (type === 'merchant' || type === 'shop') {
+          const pMesh = buildPedestalMesh(this._geos, this._merchantMats);
+          pMesh.root.position.set(x, Math.max(1.0, y), z);
+          this.group.add(pMesh.root);
 
-        this.pedestals.set(id, {
-          id,
-          x,
-          y,
-          z,
-          ...cartoMesh,
-          isActive: true,
-          phase: Math.random() * Math.PI * 2,
-        });
+          this.pedestals.set(id, {
+            id,
+            x,
+            y,
+            z,
+            type: 'merchant',
+            isMerchant: true,
+            ...pMesh,
+            isActive: true,
+            flash: 0,
+            spinBoost: 0,
+            phase: Math.random() * Math.PI * 2,
+          });
+        } else {
+          const cartoMesh = buildCartographyTableMesh(this._cartoGeos, this._cartoMats);
+          cartoMesh.root.position.set(x, Math.max(1.0, y), z);
+          this.group.add(cartoMesh.root);
+
+          this.pedestals.set(id, {
+            id,
+            x,
+            y,
+            z,
+            type: 'cartography',
+            ...cartoMesh,
+            isActive: true,
+            phase: Math.random() * Math.PI * 2,
+          });
+        }
       });
     }
   }
@@ -252,6 +276,9 @@ export class PedestalRenderer {
     this._mats.rune.dispose?.();
     this._mats.crystal.dispose?.();
     this._mats.ember.dispose?.();
+    if (this._merchantMats) {
+      for (const m of Object.values(this._merchantMats)) m.dispose?.();
+    }
     for (const m of Object.values(this._cartoMats)) m.dispose?.();
   }
 }

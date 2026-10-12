@@ -86,6 +86,8 @@ export const HudMixin = {
       stairs: ['stairs', isTouch ? 'EMPUJAR' : '[E] EMPUJAR'],
       pedestal: ['sparkles', isTouch ? 'ACTIVAR' : '[E] ACTIVAR'],
       cartography: ['compass', isTouch ? 'MAPA' : '[E] MAPA'],
+      merchant: ['gem', isTouch ? 'COMERCIAR' : '[E] BAZAR'],
+      shop: ['gem', isTouch ? 'COMERCIAR' : '[E] BAZAR'],
       pressure_plate: ['stone', isTouch ? 'PISAR' : '[E] PRESIONAR'],
     };
     if (MAP[key]) {

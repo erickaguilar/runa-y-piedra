@@ -17,6 +17,7 @@ import { ChapterModalMixin } from './modals/ChapterModal.js';
 import { SaveSlotsModalMixin } from './modals/SaveSlotsModal.js';
 import { GuestJoinModalMixin } from './modals/GuestJoinModal.js';
 import { VoiceModalMixin } from './modals/VoiceModal.js';
+import { ShopModalMixin } from './modals/ShopModal.js';
 
 export const ModalMixin = {
   ...SettingsModalMixin,
@@ -27,4 +28,5 @@ export const ModalMixin = {
   ...SaveSlotsModalMixin,
   ...GuestJoinModalMixin,
   ...VoiceModalMixin,
+  ...ShopModalMixin,
 };

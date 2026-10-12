@@ -34,6 +34,9 @@ export class UIManager {
     this.inventoryFilter = 'all';
     this.inventoryCallbacks = {};
     this.isInventoryOpen = false;
+    this.isShopOpen = false;
+    this.shopTab = 'buy';
+    this.shopCallbacks = {};
     this.isDevOpen = false;
     this.isDevMode = typeof isDev === 'boolean' ? isDev : this.checkDevMode();
 

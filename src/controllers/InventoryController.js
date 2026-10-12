@@ -37,8 +37,111 @@ export const InventoryMixin = {
     const n = parseInt(amount, 10);
     if (!isNaN(n) && n > 0) {
       this.inventory.gems = (this.inventory.gems || 0) + n;
-      this.ui.updateInventory(this.inventory);
+      this.ui?.updateInventory?.(this.inventory);
     }
+  },
+
+  /**
+   * Consume una cantidad de gemas del inventario (para compras en el bazar)
+   * @param {number} amount
+   * @returns {boolean} True si la transacción fue exitosa
+   */
+  spendInventoryGems(amount) {
+    const n = parseInt(amount, 10);
+    if (!isNaN(n) && n > 0 && (this.inventory?.gems || 0) >= n) {
+      this.inventory.gems = Math.max(0, (this.inventory.gems || 0) - n);
+      this.ui?.updateInventory?.(this.inventory);
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * Retira una poción del inventario (al venderla o descartarla)
+   * @param {string|Object|null} potionId
+   * @param {number} idx
+   * @returns {Object|null} Poción retirada
+   */
+  removeInventoryPotion(potionId = null, idx = -1) {
+    if (!Array.isArray(this.inventory?.potions) || this.inventory.potions.length === 0) return null;
+    let removed = null;
+    if (idx >= 0 && idx < this.inventory.potions.length) {
+      removed = this.inventory.potions.splice(idx, 1)[0];
+    } else if (potionId) {
+      const targetId = typeof potionId === 'object' ? (potionId.id || potionId.name) : potionId;
+      const fIdx = this.inventory.potions.findIndex(p => (typeof p === 'string' ? p : (p.id || p.name)) === targetId);
+      if (fIdx !== -1) {
+        removed = this.inventory.potions.splice(fIdx, 1)[0];
+      }
+    } else {
+      removed = this.inventory.potions.pop();
+    }
+    if (removed) {
+      this.ui?.updateInventory?.(this.inventory);
+    }
+    return removed;
+  },
+
+  /**
+   * Procesa la compra de un artículo del bazar del mercader
+   * @param {Object} item Definición del objeto a adquirir
+   * @param {number} price Costo en gemas
+   * @returns {boolean}
+   */
+  buyShopItem(item, price) {
+    if (!item || !price) return false;
+    if (!this.spendInventoryGems(price)) {
+      this.soundManager?.playLocked?.();
+      this.ui?.showNarrativeMessage?.(':gem: Gemas insuficientes para comprar este objeto.', 2800);
+      return false;
+    }
+
+    if (item.type === 'potion') {
+      this.addInventoryPotion(item);
+    } else if (item.type === 'relic') {
+      this.addInventoryRelic(item);
+    } else if (item.type === 'key') {
+      this.addInventoryKey(item);
+    } else {
+      this.addInventoryRelic(item);
+    }
+
+    this.soundManager?.playPotion?.();
+    this.ui?.showNarrativeMessage?.(`:gem: ¡Has adquirido ${item.name}! (-${price} gemas)`, 3000);
+    return true;
+  },
+
+  /**
+   * Procesa la venta de un artículo del inventario al mercader a cambio de gemas
+   * @param {'potion'|'relic'|'key'} itemType Tipo de objeto
+   * @param {string} itemId ID del objeto
+   * @param {number} price Gemas a recibir
+   * @returns {boolean}
+   */
+  sellShopItem(itemType, itemId, price) {
+    const p = parseInt(price, 10);
+    if (isNaN(p) || p <= 0) return false;
+
+    let success = false;
+    if (itemType === 'potion') {
+      const removed = this.removeInventoryPotion(itemId);
+      success = !!removed;
+    } else if (itemType === 'relic') {
+      success = this.removeInventoryRelic(itemId);
+    } else if (itemType === 'key') {
+      success = this.removeInventoryKey(itemId);
+    }
+
+    if (!success) {
+      this.soundManager?.playLocked?.();
+      this.ui?.showNarrativeMessage?.('No posees este objeto en tu inventario.', 2500);
+      return false;
+    }
+
+    this.addInventoryGems(p);
+    this.soundManager?.playChestOpen?.();
+    this.ui?.showNarrativeMessage?.(`:gem: ¡Has vendido el objeto por +${p} gemas!`, 3000);
+    return true;
   },
 
   addInventoryRelic(relic) {
