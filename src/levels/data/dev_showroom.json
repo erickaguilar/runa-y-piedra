@@ -296,8 +296,9 @@
 
     { "type": "pillar", "x": 5, "z": 39, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 39, "height": 6, "block": "PILLAR" },
-    { "type": "fill", "block": "PILLAR", "from": [10, 0, 41], "to": [14, 0, 43] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 1, 41], "to": [14, 1, 43] },
+    { "type": "fill", "block": "FLOOR_WORN", "from": [10, 0, 40], "to": [14, 0, 44] },
+    { "type": "fill", "block": "FLOOR_MOSS", "from": [11, 0, 41], "to": [13, 0, 43] },
+    { "type": "block", "block": "PEDESTAL", "pos": [12, 1, 42] },
     { "type": "pillar", "x": 5, "z": 47, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 47, "height": 6, "block": "PILLAR" },
 

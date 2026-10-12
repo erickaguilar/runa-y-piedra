@@ -335,6 +335,15 @@ test('dev_showroom está registrado pero aislado de la campaña regular', () => 
     if (world.blocks[i] === BLOCK_TYPES.JUMP_PAD) jumpPadCount++;
   }
   assert.ok(jumpPadCount > 0, 'Debe registrar bloques JUMP_PAD');
+
+  // El pedestal en la Sala 4 no debe estar cubierto por bloques sólidos de suelo
+  const pedObj = devLvl.objectives?.find(o => o.type === 'pedestal');
+  assert.ok(pedObj, 'Debe existir objetivo tipo pedestal en dev_showroom');
+  assert.equal(world.get(pedObj.x, pedObj.y, pedObj.z), BLOCK_TYPES.PEDESTAL);
+  // El espacio superior inmediato (y=2) y contiguo del pedestal debe ser aire para que no quede enterrado
+  assert.equal(world.get(pedObj.x, pedObj.y + 1, pedObj.z), BLOCK_TYPES.AIR);
+  assert.equal(world.get(pedObj.x + 1, pedObj.y, pedObj.z), BLOCK_TYPES.AIR);
+  assert.equal(world.get(pedObj.x - 1, pedObj.y, pedObj.z), BLOCK_TYPES.AIR);
 });
 
 test('dev_showroom el punto de spawn no contiene bloques sólidos en el cuerpo del jugador', () => {
