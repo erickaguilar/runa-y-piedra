@@ -189,10 +189,8 @@
     { "type": "fill", "block": "JUMP_PAD", "from": [5, 1, 28], "to": [7, 1, 29] },
     { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 32], "to": [7, 0, 33] },
 
-    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 0, 36], "to": [8, 0, 39] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 41], "to": [7, 0, 41] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 0, 42], "to": [8, 0, 42] },
-    { "type": "fill", "block": "WALL", "from": [4, -1, 42], "to": [8, -1, 42] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 0, 36], "to": [8, 0, 42] },
+    { "type": "fill", "block": "WALL", "from": [4, -1, 36], "to": [8, -1, 42] },
 
     { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 16], "to": [18, 0, 17] },
     { "type": "fill", "block": "PILLAR", "from": [19, 0, 20], "to": [20, 0, 21] },
@@ -203,10 +201,8 @@
     { "type": "fill", "block": "JUMP_PAD", "from": [19, 1, 28], "to": [20, 1, 29] },
     { "type": "fill", "block": "JUMP_PAD", "from": [16, 0, 32], "to": [17, 0, 33] },
 
-    { "type": "fill", "block": "STONE_FLOOR", "from": [17, 0, 36], "to": [19, 0, 39] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 41], "to": [18, 0, 41] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 42], "to": [20, 0, 42] },
-    { "type": "fill", "block": "WALL", "from": [16, -1, 42], "to": [20, -1, 42] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 36], "to": [20, 0, 42] },
+    { "type": "fill", "block": "WALL", "from": [16, -1, 36], "to": [20, -1, 42] },
 
     { "type": "pillar", "x": 6, "z": 5, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 5, "height": 6, "block": "PILLAR" },

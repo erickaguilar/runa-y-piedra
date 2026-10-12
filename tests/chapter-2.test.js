@@ -218,7 +218,7 @@ test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas
       [5, 7, 2, 24, 25], // y=2 (cúspide)
       [5, 7, 1, 28, 29], // y=1
       [5, 7, 0, 32, 33], // y=0
-      [4, 8, 0, 36, 39], // y=0 (plataforma losa)
+      [4, 8, 0, 36, 42], // y=0 (plataforma losa continua a Puerta 2)
     ],
     derecha: [
       [17, 18, 0, 16, 17], // y=0
@@ -226,7 +226,7 @@ test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas
       [16, 17, 2, 24, 25], // y=2 (cúspide)
       [19, 20, 1, 28, 29], // y=1
       [16, 17, 0, 32, 33], // y=0
-      [17, 19, 0, 36, 39], // y=0 (plataforma losa)
+      [16, 20, 0, 36, 42], // y=0 (plataforma losa continua a Puerta 3)
     ],
   };
 
