@@ -84,7 +84,7 @@ test('Capítulo 2 - Nivel 2 (shadow_chasm) incorpora abismo, plataformas JUMP_PA
   const p2 = world.pressurePlates.find(p => p.targetDoorId === 2 || p.id === 'losa_chasm_puerta2');
   assert.ok(p2, 'Debe existir una losa de presión para la Puerta 2 en Sala 2');
   assert.equal(p2.x, 19.0);
-  assert.equal(p2.y, 2.0);
+  assert.equal(p2.y, 3.0);
   assert.equal(p2.z, 17.0);
 
   const c1 = world.chests.find(c => c.id === 1);
