@@ -9,7 +9,7 @@
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,
-    "sizeZ": 52
+    "sizeZ": 64
   },
   "spawn": {
     "x": 12.0,
@@ -75,7 +75,7 @@
   "doors": [
     {
       "id": 1,
-      "name": "Puerta Libre (Galería a Físicas)",
+      "name": "Puerta Libre (Atrio a Tesorería)",
       "x1": 11,
       "x2": 13,
       "y1": 1,
@@ -88,11 +88,11 @@
         { "x": 12, "y": 1, "z": 13 },
         { "x": 12, "y": 2, "z": 13 }
       ],
-      "openMessage": ":door: ¡Puerta 1 abierta! Acceso al Laboratorio de Físicas, Jump Pads, Lava y Cofres."
+      "openMessage": ":door: ¡Puerta 1 abierta! Acceso a la Sala 2: Tesorería y Alquimia."
     },
     {
       "id": 2,
-      "name": "Puerta Sellada (Físicas a Santuario)",
+      "name": "Puerta Sellada (Tesorería a Físicas)",
       "x1": 11,
       "x2": 13,
       "y1": 1,
@@ -105,13 +105,13 @@
         { "x": 12, "y": 1, "z": 24 },
         { "x": 12, "y": 2, "z": 24 }
       ],
-      "openMessage": ":door: ¡Puerta 2 abierta! Has usado la :key: Llave Maestra. Avanza al Altar Supremo y Escalinata.",
+      "openMessage": ":door: ¡Puerta 2 abierta! Has usado la :key: Llave Maestra. Avanza a la Pista de Físicas, Parkour y Lava.",
       "requiresKey": "llave_showroom",
-      "lockedMessage": ":lock: ¡Puerta sellada! Requiere la :key: Llave Maestra del Cofre 1 en el Laboratorio."
+      "lockedMessage": ":lock: ¡Puerta sellada! Requiere la :key: Llave Maestra del Cofre 1 en la Tesorería."
     },
     {
       "id": 3,
-      "name": "Puerta de Pruebas (Sala Mecánica)",
+      "name": "Puerta de Pruebas (Alcoba Mecánica)",
       "x1": 17,
       "x2": 19,
       "y1": 1,
@@ -131,31 +131,38 @@
   "checkpoints": [
     {
       "id": "sala_galeria",
-      "name": "Sala 1 (Galería de Sprites)",
+      "name": "Sala 1 (Atrio de Materiales y Mecanismos)",
       "minZ": 0,
       "maxZ": 13.0,
       "respawn": { "x": 12.0, "y": 1.2, "z": 2.5 }
     },
     {
-      "id": "sala_fisicas",
-      "name": "Sala 2 (Laboratorio de Físicas)",
+      "id": "sala_tesoreria",
+      "name": "Sala 2 (Tesorería y Alquimia)",
       "minZ": 13.5,
       "maxZ": 24.0,
       "respawn": { "x": 12.0, "y": 1.2, "z": 15.0 }
     },
     {
-      "id": "sala_altar",
-      "name": "Sala 3 (Santuario y Altar)",
+      "id": "sala_fisicas",
+      "name": "Sala 3 (Laboratorio de Físicas y Lava)",
       "minZ": 24.5,
-      "maxZ": 36.0,
+      "maxZ": 37.0,
       "respawn": { "x": 12.0, "y": 1.2, "z": 26.0 }
     },
     {
+      "id": "sala_altar",
+      "name": "Sala 4 (Santuario del Altar y Escalinata)",
+      "minZ": 37.5,
+      "maxZ": 49.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 39.0 }
+    },
+    {
       "id": "sala_heroes",
-      "name": "Sala 4 (Panteón de los Héroes)",
-      "minZ": 36.5,
-      "maxZ": 52.0,
-      "respawn": { "x": 12.0, "y": 1.2, "z": 38.0 }
+      "name": "Sala 5 (Panteón de los Héroes)",
+      "minZ": 49.5,
+      "maxZ": 64.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 51.0 }
     }
   ],
   "objectives": [
@@ -164,7 +171,7 @@
       "type": "pedestal",
       "x": 12,
       "y": 1,
-      "z": 29,
+      "z": 42,
       "name": "Altar Ancestral de Pruebas"
     }
   ],
@@ -180,17 +187,17 @@
     }
   ],
   "heroShowcases": [
-    { "id": "adventurer", "name": "Aventurero", "x": 4.0, "y": 1.0, "z": 44.0, "yaw": 0 },
-    { "id": "paladin", "name": "Paladín", "x": 8.0, "y": 1.0, "z": 44.0, "yaw": 0 },
-    { "id": "ranger", "name": "Explorador", "x": 12.0, "y": 1.0, "z": 44.0, "yaw": 0 },
-    { "id": "wizard", "name": "Hechicero", "x": 16.0, "y": 1.0, "z": 44.0, "yaw": 0 },
-    { "id": "guardian", "name": "Guardián", "x": 20.0, "y": 1.0, "z": 44.0, "yaw": 0 }
+    { "id": "adventurer", "name": "Aventurero", "x": 4.0, "y": 1.0, "z": 57.0, "yaw": 0 },
+    { "id": "paladin", "name": "Paladín", "x": 8.0, "y": 1.0, "z": 57.0, "yaw": 0 },
+    { "id": "ranger", "name": "Explorador", "x": 12.0, "y": 1.0, "z": 57.0, "yaw": 0 },
+    { "id": "wizard", "name": "Hechicero", "x": 16.0, "y": 1.0, "z": 57.0, "yaw": 0 },
+    { "id": "guardian", "name": "Guardián", "x": 20.0, "y": 1.0, "z": 57.0, "yaw": 0 }
   ],
   "stairs": {
     "x1": 11,
     "x2": 12,
-    "z1": 32,
-    "z2": 34,
+    "z1": 45,
+    "z2": 47,
     "openFromStart": false
   },
   "chests": [
@@ -235,13 +242,14 @@
     }
   ],
   "regions": [
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 50] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 62] },
     { "type": "perimeter", "height": 6, "block": "WALL" },
-    { "type": "ceiling", "y": 7, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 50 },
+    { "type": "ceiling", "y": 7, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 62 },
 
     { "type": "divider", "z": 13, "height": 6, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
     { "type": "divider", "z": 24, "height": 6, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
-    { "type": "divider", "z": 36, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13] },
+    { "type": "divider", "z": 37, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13] },
+    { "type": "divider", "z": 49, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13] },
 
     { "type": "fill", "block": "FLOOR_STONE", "from": [4, 1, 3], "to": [5, 1, 4] },
     { "type": "fill", "block": "FLOOR_WORN", "from": [7, 1, 3], "to": [8, 1, 4] },
@@ -249,6 +257,7 @@
     { "type": "fill", "block": "WALL", "from": [7, 1, 6], "to": [8, 1, 7] },
     { "type": "fill", "block": "PILLAR", "from": [4, 1, 9], "to": [5, 2, 10] },
     { "type": "fill", "block": "RESPAWN_PAD", "from": [7, 1, 9], "to": [8, 1, 10] },
+    { "type": "fill", "block": "PRESSURE_PAD", "from": [5, 1, 11], "to": [6, 1, 11] },
 
     { "type": "fill", "block": "WALL", "from": [14, 1, 1], "to": [14, 6, 2] },
     { "type": "fill", "block": "WALL", "from": [14, 4, 3], "to": [14, 6, 4] },
@@ -264,35 +273,48 @@
     { "type": "pillar", "x": 2, "z": 12, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 21, "z": 12, "height": 6, "block": "PILLAR" },
 
-    { "type": "fill", "block": "JUMP_PAD", "from": [4, 0, 16], "to": [5, 0, 16] },
-    { "type": "fill", "block": "WALL", "from": [4, 1, 18], "to": [6, 2, 19] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [5, 2, 19], "to": [6, 2, 19] },
-    { "type": "fill", "block": "WALL", "from": [3, 1, 21], "to": [6, 4, 22] },
-    { "type": "fill", "block": "FLOOR_STONE", "from": [3, 4, 21], "to": [6, 4, 22] },
+    { "type": "pillar", "x": 5, "z": 16, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 16, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 5, "z": 22, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 22, "height": 6, "block": "PILLAR" },
 
-    { "type": "fill", "block": "WALL", "from": [16, 0, 15], "to": [21, 0, 21] },
-    { "type": "fill", "block": "LAVA", "from": [17, 0, 16], "to": [20, 0, 20] },
-    { "type": "fill", "block": "LAVA", "from": [17, -1, 16], "to": [20, -1, 20] },
+    { "type": "pillar", "x": 2, "z": 26, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 21, "z": 26, "height": 6, "block": "PILLAR" },
+    { "type": "fill", "block": "JUMP_PAD", "from": [4, 0, 27], "to": [5, 0, 27] },
+    { "type": "fill", "block": "PILLAR", "from": [4, 0, 29], "to": [6, 0, 30] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 1, 29], "to": [6, 1, 30] },
+    { "type": "fill", "block": "PILLAR", "from": [5, 0, 32], "to": [6, 1, 33] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [5, 2, 32], "to": [6, 2, 33] },
+    { "type": "fill", "block": "WALL", "from": [3, 0, 35], "to": [6, 3, 36] },
+    { "type": "fill", "block": "FLOOR_STONE", "from": [3, 4, 35], "to": [6, 4, 36] },
 
-    { "type": "pillar", "x": 5, "z": 26, "height": 6, "block": "PILLAR" },
-    { "type": "pillar", "x": 18, "z": 26, "height": 6, "block": "PILLAR" },
-    { "type": "pillar", "x": 5, "z": 32, "height": 6, "block": "PILLAR" },
-    { "type": "pillar", "x": 18, "z": 32, "height": 6, "block": "PILLAR" },
+    { "type": "fill", "block": "WALL", "from": [16, 0, 27], "to": [21, 0, 33] },
+    { "type": "fill", "block": "LAVA", "from": [17, 0, 28], "to": [20, 0, 32] },
+    { "type": "fill", "block": "LAVA", "from": [17, -1, 28], "to": [20, -1, 32] },
+    { "type": "pillar", "x": 2, "z": 36, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 21, "z": 36, "height": 6, "block": "PILLAR" },
 
-    { "type": "fill", "block": "RESPAWN_PAD", "from": [3, 0, 43], "to": [5, 0, 45] },
-    { "type": "fill", "block": "RESPAWN_PAD", "from": [7, 0, 43], "to": [9, 0, 45] },
-    { "type": "fill", "block": "RESPAWN_PAD", "from": [11, 0, 43], "to": [13, 0, 45] },
-    { "type": "fill", "block": "RESPAWN_PAD", "from": [15, 0, 43], "to": [17, 0, 45] },
-    { "type": "fill", "block": "RESPAWN_PAD", "from": [19, 0, 43], "to": [21, 0, 45] },
+    { "type": "pillar", "x": 5, "z": 39, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 39, "height": 6, "block": "PILLAR" },
+    { "type": "fill", "block": "PILLAR", "from": [10, 0, 41], "to": [14, 0, 43] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 1, 41], "to": [14, 1, 43] },
+    { "type": "pillar", "x": 5, "z": 47, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 47, "height": 6, "block": "PILLAR" },
 
-    { "type": "pillar", "x": 2, "z": 38, "height": 6, "block": "PILLAR" },
-    { "type": "pillar", "x": 21, "z": 38, "height": 6, "block": "PILLAR" },
-    { "type": "pillar", "x": 2, "z": 49, "height": 6, "block": "PILLAR" },
-    { "type": "pillar", "x": 21, "z": 49, "height": 6, "block": "PILLAR" },
-    { "type": "pillar", "x": 4, "z": 49, "height": 4, "block": "PILLAR" },
-    { "type": "pillar", "x": 8, "z": 49, "height": 4, "block": "PILLAR" },
-    { "type": "pillar", "x": 12, "z": 49, "height": 4, "block": "PILLAR" },
-    { "type": "pillar", "x": 16, "z": 49, "height": 4, "block": "PILLAR" },
-    { "type": "pillar", "x": 20, "z": 49, "height": 4, "block": "PILLAR" }
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [3, 0, 56], "to": [5, 0, 58] },
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [7, 0, 56], "to": [9, 0, 58] },
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [11, 0, 56], "to": [13, 0, 58] },
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [15, 0, 56], "to": [17, 0, 58] },
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [19, 0, 56], "to": [21, 0, 58] },
+
+    { "type": "pillar", "x": 2, "z": 51, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 21, "z": 51, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 2, "z": 62, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 21, "z": 62, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 4, "z": 62, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 8, "z": 62, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 12, "z": 62, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 16, "z": 62, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 20, "z": 62, "height": 5, "block": "PILLAR" }
   ]
 }
