@@ -172,22 +172,27 @@ test('Capítulo 2 - shadow_vault: Puertas de mecanismo no se abren con el botón
   assert.equal(targetNearDoor3, null, 'No debe mostrar prompt contextual de abrir en Puerta 3');
 });
 
-test('Capítulo 2 - shadow_vault: Dispone de bloques de aterrizaje en z=42 frente a Puerta 2 y Puerta 3', () => {
+test('Capítulo 2 - shadow_vault: Dispone de bloques de aterrizaje en z=42 frente a Puerta 2 y Puerta 3 sin huecos de vacío', () => {
   const world = new World();
   const levelData = world.levelRegistry.getLevel('shadow_vault');
   world.loadLevel(levelData);
 
-  // Galería izquierda: frente a Puerta 2 (x=5..6, z=43), en z=42 debe haber suelo sólido
-  assert.notEqual(world.get(5, 0, 42), 0, 'Suelo frente a Puerta 2 (x=5, z=42) debe ser sólido');
-  assert.notEqual(world.get(6, 0, 42), 0, 'Suelo frente a Puerta 2 (x=6, z=42) debe ser sólido');
-  assert.notEqual(world.get(5, 0, 42), 7, 'Suelo frente a Puerta 2 (x=5, z=42) no debe ser lava');
-  assert.notEqual(world.get(6, 0, 42), 7, 'Suelo frente a Puerta 2 (x=6, z=42) no debe ser lava');
+  // Galería izquierda: frente a Puerta 2 y ancho transitable en z=42 (x=4..8)
+  for (let x = 4; x <= 8; x++) {
+    assert.notEqual(world.get(x, 0, 42), 0, `Suelo en galería izquierda (x=${x}, z=42) debe ser sólido`);
+    assert.notEqual(world.get(x, 0, 42), 7, `Suelo en galería izquierda (x=${x}, z=42) no debe ser lava`);
+  }
 
-  // Galería derecha: frente a Puerta 3 (x=17..18, z=43), en z=42 debe haber suelo sólido
-  assert.notEqual(world.get(17, 0, 42), 0, 'Suelo frente a Puerta 3 (x=17, z=42) debe ser sólido');
-  assert.notEqual(world.get(18, 0, 42), 0, 'Suelo frente a Puerta 3 (x=18, z=42) debe ser sólido');
-  assert.notEqual(world.get(17, 0, 42), 7, 'Suelo frente a Puerta 3 (x=17, z=42) no debe ser lava');
-  assert.notEqual(world.get(18, 0, 42), 7, 'Suelo frente a Puerta 3 (x=18, z=42) no debe ser lava');
+  // Galería derecha: frente a Puerta 3 y ancho transitable en z=42 (x=16..20)
+  for (let x = 16; x <= 20; x++) {
+    assert.notEqual(world.get(x, 0, 42), 0, `Suelo en galería derecha (x=${x}, z=42) debe ser sólido`);
+    assert.notEqual(world.get(x, 0, 42), 7, `Suelo en galería derecha (x=${x}, z=42) no debe ser lava`);
+  }
+
+  // Muro divisorio central sólido en z=42 (sin hueco ni vacío flotante)
+  for (let x = 11; x <= 13; x++) {
+    assert.notEqual(world.get(x, 0, 42), 0, `Base del muro divisorio central en (x=${x}, z=42) no debe ser vacío`);
+  }
 });
 
 test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas galerías con margen y verticalidad escalonada', async () => {

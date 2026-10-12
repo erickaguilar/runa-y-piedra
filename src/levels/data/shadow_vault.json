@@ -173,7 +173,7 @@
     { "type": "divider", "z": 11, "height": 6, "block": "WALL", "doorId": 1, "openHeight": 2, "doorOpening": [11, 12] },
     { "type": "divider", "z": 43, "height": 6, "block": "WALL", "doorIds": [2, 3], "openHeight": 2, "doorOpening": [5, 6, 17, 18] },
     { "type": "ceiling", "y": 7, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 53 },
-    { "type": "fill", "block": "WALL", "from": [11, 1, 15], "to": [13, 6, 42] },
+    { "type": "fill", "block": "WALL", "from": [11, -1, 15], "to": [13, 6, 42] },
 
     { "type": "fill", "block": "LAVA", "from": [1, -1, 15], "to": [22, -1, 41] },
     { "type": "fill", "block": "AIR", "from": [1, 0, 15], "to": [22, 0, 41] },
@@ -189,9 +189,6 @@
     { "type": "fill", "block": "JUMP_PAD", "from": [5, 1, 28], "to": [7, 1, 29] },
     { "type": "fill", "block": "JUMP_PAD", "from": [5, 0, 32], "to": [7, 0, 33] },
 
-    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 0, 36], "to": [8, 0, 42] },
-    { "type": "fill", "block": "WALL", "from": [4, -1, 36], "to": [8, -1, 42] },
-
     { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 16], "to": [18, 0, 17] },
     { "type": "fill", "block": "PILLAR", "from": [19, 0, 20], "to": [20, 0, 21] },
     { "type": "fill", "block": "JUMP_PAD", "from": [19, 1, 20], "to": [20, 1, 21] },
@@ -201,8 +198,9 @@
     { "type": "fill", "block": "JUMP_PAD", "from": [19, 1, 28], "to": [20, 1, 29] },
     { "type": "fill", "block": "JUMP_PAD", "from": [16, 0, 32], "to": [17, 0, 33] },
 
-    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 36], "to": [20, 0, 42] },
-    { "type": "fill", "block": "WALL", "from": [16, -1, 36], "to": [20, -1, 42] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 36], "to": [22, 0, 42] },
+    { "type": "fill", "block": "WALL", "from": [1, -1, 36], "to": [22, -1, 42] },
+    { "type": "fill", "block": "WALL", "from": [11, 1, 36], "to": [13, 6, 42] },
 
     { "type": "pillar", "x": 6, "z": 5, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 18, "z": 5, "height": 6, "block": "PILLAR" },
