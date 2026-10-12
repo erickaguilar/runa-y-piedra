@@ -226,3 +226,95 @@ test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas
     }
   }
 });
+
+test('Capítulo 2 - shadow_sanctum: incorpora Sala 2 extendida (sizeZ: 64) con verticalidad escalonada (y=0, y=1, y=2) en ambas alas', () => {
+  const world = new World();
+  const levelData = world.levelRegistry.getLevel('shadow_sanctum');
+  world.loadLevel(levelData);
+
+  // Dimensiones del mundo extendidas
+  assert.equal(world.sizeZ, 64, 'shadow_sanctum debe tener sizeZ de 64 bloques');
+
+  // Muro central divisorio presente a lo largo de la sala 2
+  assert.equal(world.get(11, 2, 20), 2, 'Muro divisorio central debe existir en x=11, z=20');
+  assert.equal(world.get(12, 2, 20), 2, 'Muro divisorio central debe existir en x=12, z=20');
+  assert.equal(world.get(11, 2, 40), 2, 'Muro divisorio central debe existir en x=11, z=40');
+
+  // Fosa de lava bajo la sala 2
+  assert.equal(world.get(5, -1, 21), 7, 'Debe haber lava en y=-1 en ala oeste');
+  assert.equal(world.get(18, -1, 21), 7, 'Debe haber lava en y=-1 en ala este');
+
+  // Ala Oeste - Fase 1: Alturas variables (y=0, y=1, y=2)
+  assert.notEqual(world.get(5, 0, 16), 0, 'Plataforma base oeste en y=0');
+  assert.equal(world.get(5, 0, 19), 4, 'Soporte pilar bajo plataforma elevada y=1 oeste');
+  assert.notEqual(world.get(5, 1, 19), 0, 'Plataforma elevada oeste en y=1');
+  assert.equal(world.get(5, 1, 22), 4, 'Soporte pilar bajo plataforma cumbre y=2 oeste');
+  assert.notEqual(world.get(5, 2, 22), 0, 'Plataforma cúspide oeste en y=2');
+  assert.equal(world.get(5, 1, 25), 6, 'JUMP_PAD escalonado en y=1 oeste');
+
+  // Ala Oeste - Fase 2: Alturas variables tras cruzar la reja 4
+  assert.notEqual(world.get(5, 1, 36), 0, 'Plataforma elevada y=1 oeste fase 2');
+  assert.equal(world.get(5, 2, 39), 6, 'JUMP_PAD cúspide y=2 oeste fase 2');
+  assert.notEqual(world.get(5, 1, 43), 0, 'Plataforma y=1 oeste fase 2');
+
+  // Ala Este - Fase 1: Alturas variables (y=0, y=1, y=2)
+  assert.notEqual(world.get(18, 0, 16), 0, 'Plataforma base este en y=0');
+  assert.equal(world.get(18, 0, 19), 4, 'Soporte pilar bajo plataforma elevada y=1 este');
+  assert.notEqual(world.get(18, 1, 19), 0, 'Plataforma elevada este en y=1');
+  assert.equal(world.get(18, 1, 22), 4, 'Soporte pilar bajo plataforma cumbre y=2 este');
+  assert.notEqual(world.get(18, 2, 22), 0, 'Plataforma cúspide este en y=2');
+  assert.equal(world.get(18, 1, 25), 6, 'JUMP_PAD escalonado en y=1 este');
+
+  // Ala Este - Fase 2: Alturas variables tras cruzar la reja 3
+  assert.notEqual(world.get(18, 1, 38), 0, 'Plataforma elevada y=1 este fase 2');
+  assert.equal(world.get(18, 2, 41), 6, 'JUMP_PAD cúspide y=2 este fase 2');
+  assert.notEqual(world.get(18, 1, 44), 0, 'Plataforma y=1 este fase 2');
+
+  // Confluencia y umbral de la antesala en z=49..52
+  assert.notEqual(world.get(11, 0, 50), 0, 'Antesala unificada frente a Puerta 2 en z=50');
+  assert.notEqual(world.get(12, 0, 50), 0, 'Antesala unificada frente a Puerta 2 en z=50');
+});
+
+test('Capítulo 2 - shadow_sanctum: preserva el desafío cooperativo de 2 jugadores con losas cruzadas y llave', () => {
+  const world = new World();
+  const levelData = world.levelRegistry.getLevel('shadow_sanctum');
+  world.loadLevel(levelData);
+
+  // Puertas requeridas
+  const door1 = world.doors.find(d => d.id === 1);
+  const door2 = world.doors.find(d => d.id === 2);
+  const door3 = world.doors.find(d => d.id === 3);
+  const door4 = world.doors.find(d => d.id === 4);
+
+  assert.ok(door1, 'Puerta 1 debe existir');
+  assert.ok(door2, 'Puerta 2 (Trono) debe existir');
+  assert.ok(door3, 'Puerta 3 (Reja Este) debe existir');
+  assert.ok(door4, 'Puerta 4 (Reja Oeste) debe existir');
+
+  assert.equal(door2.requiresKey, 'llave_crepusculo', 'Puerta 2 exige llave_crepusculo');
+
+  // Losas cooperativas
+  const plateOeste = world.pressurePlates.find(p => p.id === 'losa_sanctum_coop_izq');
+  const plateEste = world.pressurePlates.find(p => p.id === 'losa_sanctum_coop_der');
+
+  assert.ok(plateOeste, 'Losa cooperativa oeste debe existir');
+  assert.ok(plateEste, 'Losa cooperativa este debe existir');
+
+  assert.equal(plateOeste.targetDoorId, 3, 'Losa oeste abre Reja Este (3)');
+  assert.equal(plateOeste.mode, 'hold', 'Losa oeste debe ser de presencia sostenida (hold)');
+
+  assert.equal(plateEste.targetDoorId, 4, 'Losa este abre Reja Oeste (4)');
+
+  // Cofre con la llave
+  const chest1 = world.chests.find(c => c.id === 1);
+  assert.ok(chest1, 'Cofre 1 debe existir');
+  assert.equal(chest1.givesKey, 'llave_crepusculo', 'Cofre 1 otorga llave_crepusculo');
+
+  // Checkpoints
+  assert.equal(world.checkpoints.length, 3, 'Debe haber 3 checkpoints para las 3 salas');
+  const s2 = world.checkpoints.find(c => c.id === 'sala_2');
+  const s3 = world.checkpoints.find(c => c.id === 'sala_3');
+  assert.ok(s2 && s3);
+  assert.equal(s2.maxZ, 52.0, 'Sala 2 llega hasta z=52');
+  assert.equal(s3.minZ, 52.5, 'Sala 3 arranca en z=52.5');
+});

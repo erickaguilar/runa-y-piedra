@@ -1,13 +1,13 @@
 {
   "id": "shadow_sanctum",
   "name": "Santuario Crepuscular: El Trono de la Sombra",
-  "description": "El corazón del Capítulo 2. Conquista las pruebas cooperativas de la cripta y reclama el Altar Crepuscular ante el abismo final.",
+  "description": "El clímax del Capítulo 2. Conquista las pruebas cooperativas de parkour multinivel sobre el mar de magma y consagra el Altar Crepuscular ante el trono final.",
   "difficulty": "Épico",
   "icon": "pickaxe",
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,
-    "sizeZ": 54
+    "sizeZ": 64
   },
   "spawn": {
     "x": 12.0,
@@ -34,7 +34,7 @@
       "name": "Losa de Presencia Oeste (Soporte)",
       "x": 5.0,
       "y": 1.0,
-      "z": 28.0,
+      "z": 29.5,
       "radius": 0.85,
       "triggerRadius": 2.4,
       "targetDoorId": 3,
@@ -47,9 +47,9 @@
     {
       "id": "losa_sanctum_coop_der",
       "name": "Losa de Apertura Este (Santuario)",
-      "x": 19.0,
+      "x": 18.0,
       "y": 1.0,
-      "z": 36.0,
+      "z": 35.5,
       "radius": 0.85,
       "triggerRadius": 2.4,
       "targetDoorId": 4,
@@ -85,13 +85,13 @@
       "x2": 20,
       "y1": 1,
       "y2": 3,
-      "z": 30,
+      "z": 32,
       "swingDir": 1,
       "coords": [
-        { "x": 18, "y": 1, "z": 30 },
-        { "x": 18, "y": 2, "z": 30 },
-        { "x": 19, "y": 1, "z": 30 },
-        { "x": 19, "y": 2, "z": 30 }
+        { "x": 18, "y": 1, "z": 32 },
+        { "x": 18, "y": 2, "z": 32 },
+        { "x": 19, "y": 1, "z": 32 },
+        { "x": 19, "y": 2, "z": 32 }
       ],
       "openMessage": ":door: ¡Puerta Reja Este abierta! Acceso al recinto de la Llave Crepuscular mientras la losa oeste esté ocupada."
     },
@@ -103,15 +103,15 @@
       "x2": 6,
       "y1": 1,
       "y2": 3,
-      "z": 30,
+      "z": 32,
       "swingDir": 1,
       "coords": [
-        { "x": 4, "y": 1, "z": 30 },
-        { "x": 4, "y": 2, "z": 30 },
-        { "x": 5, "y": 1, "z": 30 },
-        { "x": 5, "y": 2, "z": 30 }
+        { "x": 4, "y": 1, "z": 32 },
+        { "x": 4, "y": 2, "z": 32 },
+        { "x": 5, "y": 1, "z": 32 },
+        { "x": 5, "y": 2, "z": 32 }
       ],
-      "openMessage": ":door: ¡Puerta Reja Oeste abierta! El camino hacia la antesala del Trono queda expedito."
+      "openMessage": ":door: ¡Puerta Reja Oeste abierta! El camino hacia la segunda fase de parkour y el Trono queda expedito."
     },
     {
       "id": 2,
@@ -120,13 +120,13 @@
       "x2": 13,
       "y1": 1,
       "y2": 3,
-      "z": 42,
+      "z": 52,
       "swingDir": 1,
       "coords": [
-        { "x": 11, "y": 1, "z": 42 },
-        { "x": 11, "y": 2, "z": 42 },
-        { "x": 12, "y": 1, "z": 42 },
-        { "x": 12, "y": 2, "z": 42 }
+        { "x": 11, "y": 1, "z": 52 },
+        { "x": 11, "y": 2, "z": 52 },
+        { "x": 12, "y": 1, "z": 52 },
+        { "x": 12, "y": 2, "z": 52 }
       ],
       "openMessage": ":crown: ¡Puerta 2 abierta! ¡El Santuario del Trono se revela! Consagrad el Altar Crepuscular.",
       "requiresKey": "llave_crepusculo",
@@ -145,15 +145,15 @@
       "id": "sala_2",
       "name": "Sala 2 (Gran Salón Crepuscular)",
       "minZ": 11.5,
-      "maxZ": 42.0,
+      "maxZ": 52.0,
       "respawn": { "x": 12.0, "y": 1.2, "z": 12.5 }
     },
     {
       "id": "sala_3",
       "name": "Sala 3 (Santuario del Trono)",
-      "minZ": 42.5,
-      "maxZ": 54.0,
-      "respawn": { "x": 12.0, "y": 1.2, "z": 43.5 }
+      "minZ": 52.5,
+      "maxZ": 64.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 53.5 }
     }
   ],
   "objectives": [
@@ -162,7 +162,7 @@
       "name": "Altar Crepuscular",
       "x": 12,
       "y": 1,
-      "z": 48,
+      "z": 58,
       "triggerRadius": 3.2,
       "completeMessage": ":crown: ¡Altar Crepuscular Consagrado! ¡Capítulo 2: Cripta de las Sombras Conquistado!"
     }
@@ -174,7 +174,7 @@
       "name": "Cofre del Heraldo Sombrío",
       "x": 18.5,
       "y": 1.0,
-      "z": 34.5,
+      "z": 34.0,
       "facing": "south",
       "reward": ":key: Llave Crepuscular, :potion: Poción y :gem: 250 Gemas",
       "message": ":chest: ¡Has abierto el Cofre del Heraldo! Has obtenido: :key: Llave Crepuscular, :potion: Poción de Vida (+1 :heart:) y :gem: 250 Gemas.",
@@ -193,7 +193,7 @@
       "name": "Cofre del Trono Crepuscular",
       "x": 18.5,
       "y": 1.0,
-      "z": 46.5,
+      "z": 57.5,
       "facing": "west",
       "reward": ":trophy: Cetro de Sombras y :gem: 600 Gemas",
       "message": ":chest: ¡Has abierto el Gran Cofre del Trono! Has obtenido: :trophy: Cetro Crepuscular de Basalto y :gem: 600 Gemas Legendarias."
@@ -202,50 +202,78 @@
   "regions": [
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 11], "to": [22, 0, 15] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 39], "to": [22, 0, 42] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 42], "to": [22, 0, 52] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 49], "to": [22, 0, 52] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 52], "to": [22, 0, 62] },
 
-    { "type": "perimeter", "height": 5, "block": "WALL" },
-    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 52 },
+    { "type": "perimeter", "height": 6, "block": "WALL" },
+    { "type": "ceiling", "y": 7, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 62 },
 
-    { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
-    { "type": "divider", "z": 42, "height": 5, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
+    { "type": "divider", "z": 11, "height": 6, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
+    { "type": "divider", "z": 52, "height": 6, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
 
-    { "type": "fill", "block": "WALL", "from": [11, 1, 16], "to": [12, 5, 38] },
+    { "type": "fill", "block": "WALL", "from": [11, 1, 16], "to": [12, 6, 48] },
 
-    { "type": "fill", "block": "LAVA", "from": [1, -1, 16], "to": [22, -1, 38] },
-    { "type": "fill", "block": "AIR", "from": [1, 0, 16], "to": [22, 0, 38] },
+    { "type": "fill", "block": "LAVA", "from": [1, -1, 16], "to": [22, -1, 48] },
+    { "type": "fill", "block": "AIR", "from": [1, 0, 16], "to": [22, 0, 48] },
 
-    { "type": "fill", "block": "STONE_FLOOR", "from": [3, 0, 16], "to": [8, 0, 18] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [4, 0, 20], "to": [6, 0, 21] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [3, 0, 23], "to": [7, 0, 25] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [4, 0, 27], "to": [6, 0, 27] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [3, 0, 28], "to": [7, 0, 29] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [3, 0, 16], "to": [7, 0, 17] },
+    { "type": "fill", "block": "PILLAR", "from": [4, 0, 19], "to": [6, 0, 20] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 1, 19], "to": [6, 1, 20] },
+    { "type": "fill", "block": "PILLAR", "from": [4, 0, 22], "to": [6, 1, 23] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 2, 22], "to": [6, 2, 23] },
+    { "type": "fill", "block": "PILLAR", "from": [4, 0, 25], "to": [6, 0, 26] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [4, 1, 25], "to": [6, 1, 26] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [3, 0, 28], "to": [7, 0, 31] },
 
-    { "type": "fill", "block": "WALL", "from": [1, 1, 30], "to": [10, 5, 30] },
-    { "type": "fill", "block": "AIR", "from": [4, 1, 30], "to": [5, 2, 30] },
-    { "type": "fill", "block": "DOOR", "from": [4, 1, 30], "to": [5, 2, 30] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [3, 0, 30], "to": [7, 0, 39] },
+    { "type": "fill", "block": "WALL", "from": [1, 1, 32], "to": [10, 6, 32] },
+    { "type": "fill", "block": "AIR", "from": [4, 1, 32], "to": [5, 2, 32] },
+    { "type": "fill", "block": "DOOR", "from": [4, 1, 32], "to": [5, 2, 32] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [3, 0, 32], "to": [7, 0, 32] },
 
-    { "type": "fill", "block": "STONE_FLOOR", "from": [15, 0, 16], "to": [20, 0, 18] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 20], "to": [19, 0, 21] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 23], "to": [20, 0, 25] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [17, 0, 27], "to": [19, 0, 27] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 28], "to": [20, 0, 29] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [3, 0, 33], "to": [7, 0, 34] },
+    { "type": "fill", "block": "PILLAR", "from": [4, 0, 36], "to": [6, 0, 37] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 1, 36], "to": [6, 1, 37] },
+    { "type": "fill", "block": "PILLAR", "from": [4, 0, 39], "to": [6, 1, 40] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [4, 2, 39], "to": [6, 2, 40] },
+    { "type": "fill", "block": "PILLAR", "from": [4, 0, 43], "to": [6, 0, 44] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 1, 43], "to": [6, 1, 44] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [3, 0, 47], "to": [7, 0, 48] },
 
-    { "type": "fill", "block": "WALL", "from": [13, 1, 30], "to": [22, 5, 30] },
-    { "type": "fill", "block": "AIR", "from": [18, 1, 30], "to": [19, 2, 30] },
-    { "type": "fill", "block": "DOOR", "from": [18, 1, 30], "to": [19, 2, 30] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 30], "to": [21, 0, 39] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 16], "to": [20, 0, 17] },
+    { "type": "fill", "block": "PILLAR", "from": [17, 0, 19], "to": [19, 0, 20] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [17, 1, 19], "to": [19, 1, 20] },
+    { "type": "fill", "block": "PILLAR", "from": [17, 0, 22], "to": [19, 1, 23] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [17, 2, 22], "to": [19, 2, 23] },
+    { "type": "fill", "block": "PILLAR", "from": [17, 0, 25], "to": [19, 0, 26] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [17, 1, 25], "to": [19, 1, 26] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 28], "to": [20, 0, 31] },
 
-    { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 5, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 2, "z": 24, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 21, "z": 24, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 6, "z": 46, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 46, "height": 5, "block": "PILLAR" },
+    { "type": "fill", "block": "WALL", "from": [13, 1, 32], "to": [22, 6, 32] },
+    { "type": "fill", "block": "AIR", "from": [18, 1, 32], "to": [19, 2, 32] },
+    { "type": "fill", "block": "DOOR", "from": [18, 1, 32], "to": [19, 2, 32] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 32], "to": [20, 0, 32] },
 
-    { "type": "fill", "block": "PILLAR", "from": [10, 0, 47], "to": [14, 0, 49] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 1, 47], "to": [14, 1, 49] }
+    { "type": "fill", "block": "STONE_FLOOR", "from": [15, 0, 33], "to": [21, 0, 36] },
+    { "type": "fill", "block": "PILLAR", "from": [17, 0, 38], "to": [19, 0, 39] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [17, 1, 38], "to": [19, 1, 39] },
+    { "type": "fill", "block": "PILLAR", "from": [17, 0, 41], "to": [19, 1, 42] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [17, 2, 41], "to": [19, 2, 42] },
+    { "type": "fill", "block": "PILLAR", "from": [17, 0, 44], "to": [19, 0, 45] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [17, 1, 44], "to": [19, 1, 45] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 0, 47], "to": [20, 0, 48] },
+
+    { "type": "pillar", "x": 6, "z": 5, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 5, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 2, "z": 24, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 21, "z": 24, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 2, "z": 40, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 21, "z": 40, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 55, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 55, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 60, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 60, "height": 6, "block": "PILLAR" },
+
+    { "type": "fill", "block": "PILLAR", "from": [10, 0, 57], "to": [14, 0, 59] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 1, 57], "to": [14, 1, 59] }
   ]
 }
