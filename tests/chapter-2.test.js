@@ -190,41 +190,87 @@ test('Capítulo 2 - shadow_vault: Dispone de bloques de aterrizaje en z=42 frent
   assert.notEqual(world.get(18, 0, 42), 7, 'Suelo frente a Puerta 3 (x=18, z=42) no debe ser lava');
 });
 
-test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas galerías con margen', async () => {
-  const { PLAYER_HEROES, PHYSICS_CONFIG } = await import('../src/config/constants.js');
+test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas galerías con margen y verticalidad escalonada', async () => {
+  const { PLAYER_HEROES, PHYSICS_CONFIG, BLOCK_TYPES } = await import('../src/config/constants.js');
   const world = new World();
   world.loadLevel(world.levelRegistry.getLevel('shadow_vault'));
 
-  // Alcance horizontal discreto (30 Hz, mismo integrador que SimulationEngine) aterrizando a la misma cota
-  const reach = (jumpMult, speedMult) => {
+  // Alcance horizontal discreto (30 Hz, mismo integrador que SimulationEngine) con diferencia de cota deltaY
+  const reach = (jumpMult, speedMult, deltaY = 0) => {
     const dt = 1 / PHYSICS_CONFIG.TICK_HZ;
     let vy = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult, y = 0, ticks = 0;
-    do { vy += PHYSICS_CONFIG.GRAVITY * dt; y += vy * dt; ticks++; } while (y > 0);
+    do {
+      vy += PHYSICS_CONFIG.GRAVITY * dt;
+      y += vy * dt;
+      ticks++;
+    } while (ticks < 120 && !(ticks > 1 && y <= deltaY && vy < 0));
     return PHYSICS_CONFIG.SPEED * speedMult * (ticks - 1) * dt;
   };
-  // Distancia borde a borde entre superficies [x1,x2,z1,z2] (bloques inclusivos)
+  // Distancia borde a borde entre superficies [x1, x2, y, z1, z2] (bloques inclusivos)
   const gap = (a, b) => Math.hypot(
     Math.max(0, b[0] - (a[1] + 1), a[0] - (b[1] + 1)),
-    Math.max(0, b[2] - (a[3] + 1), a[2] - (b[3] + 1)),
+    Math.max(0, b[3] - (a[4] + 1), a[3] - (b[4] + 1)),
   );
   const galleries = {
-    izquierda: [[5, 7, 16, 17], [5, 7, 20, 21], [5, 7, 24, 25], [5, 7, 28, 29], [5, 7, 32, 33], [4, 8, 36, 39]],
-    derecha: [[17, 18, 16, 17], [19, 20, 20, 21], [16, 17, 24, 25], [19, 20, 28, 29], [16, 17, 32, 33], [17, 19, 36, 39]],
+    izquierda: [
+      [5, 7, 0, 16, 17], // y=0
+      [5, 7, 1, 20, 21], // y=1
+      [5, 7, 2, 24, 25], // y=2 (cúspide)
+      [5, 7, 1, 28, 29], // y=1
+      [5, 7, 0, 32, 33], // y=0
+      [4, 8, 0, 36, 39], // y=0 (plataforma losa)
+    ],
+    derecha: [
+      [17, 18, 0, 16, 17], // y=0
+      [19, 20, 1, 20, 21], // y=1
+      [16, 17, 2, 24, 25], // y=2 (cúspide)
+      [19, 20, 1, 28, 29], // y=1
+      [16, 17, 0, 32, 33], // y=0
+      [17, 19, 0, 36, 39], // y=0 (plataforma losa)
+    ],
   };
 
   for (const [name, surfaces] of Object.entries(galleries)) {
-    // Las losas de salto declaradas existen realmente en el mapa
+    // Las losas de salto declaradas existen realmente en el mapa a su cota correspondiente
     for (const s of surfaces.slice(0, -1)) {
-      assert.equal(world.get(s[0], 0, s[2]), 6, `JUMP_PAD esperado en galería ${name} (${s[0]},0,${s[2]})`);
+      assert.equal(world.get(s[0], s[2], s[3]), BLOCK_TYPES.JUMP_PAD, `JUMP_PAD esperado en galería ${name} (${s[0]},${s[2]},${s[3]})`);
     }
     for (const h of PLAYER_HEROES) {
-      const r = reach(h.jumpMultiplier * 1.35, h.speedMultiplier);
       for (let i = 0; i < surfaces.length - 1; i++) {
+        const deltaY = surfaces[i + 1][2] - surfaces[i][2];
+        const r = reach(h.jumpMultiplier * 1.35, h.speedMultiplier, deltaY);
         const g = gap(surfaces[i], surfaces[i + 1]);
-        assert.ok(g <= r * 0.65, `${h.name} en galería ${name}, salto ${i + 1}: ${g.toFixed(2)}m excede el 65% de su alcance (${r.toFixed(2)}m)`);
+        assert.ok(g <= r * 0.65, `${h.name} en galería ${name}, salto ${i + 1} (dY=${deltaY}): ${g.toFixed(2)}m excede el 65% de su alcance (${r.toFixed(2)}m)`);
       }
     }
   }
+});
+
+test('Capítulo 2 - shadow_vault: incorpora verticalidad escalonada (y=0, y=1, y=2) y pilares de soporte en las Galerías Gemelas', () => {
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('shadow_vault'));
+
+  // Galería Izquierda: soportes y cotas
+  assert.equal(world.get(5, 0, 16), 6, 'Salto 1 izquierdo en y=0');
+  assert.equal(world.get(5, 0, 20), 4, 'Pilar bajo Salto 2 izquierdo');
+  assert.equal(world.get(5, 1, 20), 6, 'Salto 2 izquierdo en y=1');
+  assert.equal(world.get(5, 0, 24), 4, 'Pilar inferior bajo cúspide izquierda');
+  assert.equal(world.get(5, 1, 24), 4, 'Pilar intermedio bajo cúspide izquierda');
+  assert.equal(world.get(5, 2, 24), 6, 'Cúspide izquierda en y=2');
+  assert.equal(world.get(5, 0, 28), 4, 'Pilar bajo Salto 4 izquierdo');
+  assert.equal(world.get(5, 1, 28), 6, 'Salto 4 izquierdo en y=1');
+  assert.equal(world.get(5, 0, 32), 6, 'Salto 5 izquierdo en y=0');
+
+  // Galería Derecha: soportes y cotas
+  assert.equal(world.get(17, 0, 16), 6, 'Salto 1 derecho en y=0');
+  assert.equal(world.get(19, 0, 20), 4, 'Pilar bajo Salto 2 derecho');
+  assert.equal(world.get(19, 1, 20), 6, 'Salto 2 derecho en y=1');
+  assert.equal(world.get(16, 0, 24), 4, 'Pilar inferior bajo cúspide derecha');
+  assert.equal(world.get(16, 1, 24), 4, 'Pilar intermedio bajo cúspide derecha');
+  assert.equal(world.get(16, 2, 24), 6, 'Cúspide derecha en y=2');
+  assert.equal(world.get(19, 0, 28), 4, 'Pilar bajo Salto 4 derecho');
+  assert.equal(world.get(19, 1, 28), 6, 'Salto 4 derecho en y=1');
+  assert.equal(world.get(16, 0, 32), 6, 'Salto 5 derecho en y=0');
 });
 
 test('Capítulo 2 - shadow_sanctum: incorpora Sala 2 extendida (sizeZ: 64) con verticalidad escalonada (y=0, y=1, y=2) en ambas alas', () => {
