@@ -323,7 +323,7 @@ test('dev_showroom está registrado pero aislado de la campaña regular', () => 
   });
   assert.equal(world.doors.length, 3, 'dev_showroom cuenta con 3 puertas (incluyendo la Puerta 3 de la sala de pruebas)');
   assert.equal(world.chests.length, 3);
-  assert.equal(world.objectives.length, 1);
+  assert.equal(world.objectives.length, 0, 'dev_showroom no tiene altares en salas de tránsito');
   assert.equal(world.stairwells.length, 1);
   assert.equal(world.monoliths.length, 1, 'Debe registrar el monolito cartográfico (Atlas)');
   const cartoMonolith = devLvl.monoliths?.find(m => m.id === 'cartography');
@@ -336,14 +336,11 @@ test('dev_showroom está registrado pero aislado de la campaña regular', () => 
   }
   assert.ok(jumpPadCount > 0, 'Debe registrar bloques JUMP_PAD');
 
-  // El pedestal en la Sala 4 no debe estar cubierto por bloques sólidos de suelo
-  const pedObj = devLvl.objectives?.find(o => o.type === 'pedestal');
-  assert.ok(pedObj, 'Debe existir objetivo tipo pedestal en dev_showroom');
-  assert.equal(world.get(pedObj.x, pedObj.y, pedObj.z), BLOCK_TYPES.PEDESTAL);
-  // El espacio superior inmediato (y=2) y contiguo del pedestal debe ser aire para que no quede enterrado
-  assert.equal(world.get(pedObj.x, pedObj.y + 1, pedObj.z), BLOCK_TYPES.AIR);
-  assert.equal(world.get(pedObj.x + 1, pedObj.y, pedObj.z), BLOCK_TYPES.AIR);
-  assert.equal(world.get(pedObj.x - 1, pedObj.y, pedObj.z), BLOCK_TYPES.AIR);
+  // La escalinata en la Sala 4 debe existir y comenzar cerrada
+  const stairsObj = devLvl.stairs;
+  assert.ok(stairsObj, 'Debe existir escalinata en dev_showroom');
+  assert.equal(stairsObj.openFromStart, false, 'La escalinata de la Sala 4 inicia sellada');
+  assert.equal(world.stairwells.length, 1);
 });
 
 test('dev_showroom el punto de spawn no contiene bloques sólidos en el cuerpo del jugador', () => {
