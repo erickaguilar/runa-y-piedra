@@ -111,7 +111,10 @@ export class PropShowcaseRenderer {
     // Geometrías compartidas
     this._chestGeos = createChestGeometries();
     this._doorGeos = createDoorGeometries();
-    this._pedestalGeos = createPedestalGeometries();
+    this._pedestalClassicGeos = createPedestalGeometries('classic');
+    this._pedestalShadowGeos = createPedestalGeometries('abyss');
+    this._pedestalMerchantGeos = createPedestalGeometries('merchant');
+    this._pedestalGeos = this._pedestalClassicGeos; // Para retrocompatibilidad
     this._cartoGeos = createCartographyGeometries();
     this._plateGeos = createPressurePlateGeometries();
   }
@@ -262,7 +265,7 @@ export class PropShowcaseRenderer {
       }
 
       case 'pedestal_classic': {
-        const p = buildPedestalMesh(this._pedestalGeos, this._pedestalClassicMats);
+        const p = buildPedestalMesh(this._pedestalClassicGeos, this._pedestalClassicMats);
         return {
           root: p.root,
           labelHeight: 2.6,
@@ -271,20 +274,20 @@ export class PropShowcaseRenderer {
       }
 
       case 'pedestal_shadow': {
-        const p = buildPedestalMesh(this._pedestalGeos, this._pedestalShadowMats);
+        const p = buildPedestalMesh(this._pedestalShadowGeos, this._pedestalShadowMats);
         return {
           root: p.root,
           labelHeight: 2.6,
-          animated: { type: 'pedestal', ...p, phase: 1.5 },
+          animated: { type: 'pedestal', variant: 'abyss', ...p, phase: 1.5 },
         };
       }
 
       case 'pedestal_merchant': {
-        const p = buildPedestalMesh(this._pedestalGeos, this._pedestalMerchantMats);
+        const p = buildPedestalMesh(this._pedestalMerchantGeos, this._pedestalMerchantMats);
         return {
           root: p.root,
           labelHeight: 2.6,
-          animated: { type: 'pedestal', ...p, phase: 3.0 },
+          animated: { type: 'pedestal', variant: 'merchant', ...p, phase: 3.0 },
         };
       }
 
@@ -337,6 +340,16 @@ export class PropShowcaseRenderer {
         if (anim.crystalMesh) {
           anim.crystalMesh.position.y = 1.95 + Math.sin(anim.phase * 2.2) * 0.08;
           anim.crystalMesh.rotation.y += dt * 1.2;
+        }
+        if (anim.accessoryMesh) {
+          if (anim.variant === 'merchant') {
+            anim.accessoryMesh.rotation.z += dt * 0.9;
+            anim.accessoryMesh.position.y = 1.95 + Math.sin(anim.phase * 2.0) * 0.05;
+          } else {
+            anim.accessoryMesh.rotation.y += dt * 1.5;
+            anim.accessoryMesh.rotation.z += dt * 0.5;
+            anim.accessoryMesh.position.y = 1.94 + Math.sin(anim.phase * 1.8) * 0.06;
+          }
         }
         if (anim.embers && anim.emberSpeed) {
           const pos = anim.embers.geometry.attributes.position;
@@ -400,7 +413,9 @@ export class PropShowcaseRenderer {
     };
     disposeGeoGroup(this._chestGeos);
     disposeGeoGroup(this._doorGeos);
-    disposeGeoGroup(this._pedestalGeos);
+    disposeGeoGroup(this._pedestalClassicGeos);
+    disposeGeoGroup(this._pedestalShadowGeos);
+    disposeGeoGroup(this._pedestalMerchantGeos);
     disposeGeoGroup(this._cartoGeos);
     disposeGeoGroup(this._plateGeos);
   }

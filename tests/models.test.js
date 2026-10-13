@@ -396,3 +396,39 @@ test('Modelos Puertas: createDoorMaterials define polygonOffset y buildDoorFrame
   for (const m of Object.values(mats)) m.dispose();
 });
 
+test('Modelos Pedestales: geometrías y accesorios únicos para Classic, Abismo y Mercader', () => {
+  // 1. Altar Clásico: fuste con 4 contrafuertes y cristal octaédrico
+  const classicGeos = createPedestalGeometries('classic');
+  const classicMats = createPedestalMaterials('classic');
+  assert.equal(classicGeos.variant, 'classic');
+  assert.equal(classicGeos.accessory, undefined);
+  const classicModel = buildPedestalMesh(classicGeos, classicMats);
+  assert.ok(classicModel.root instanceof THREE.Group);
+  assert.ok(classicModel.crystalMesh);
+  assert.equal(classicModel.accessoryMesh, null);
+
+  // 2. Altar Abisal: fuste hexagonal con 4 colmillos, doble cono y halo orbital
+  const abyssGeos = createPedestalGeometries('abyss');
+  const abyssMats = createPedestalMaterials('abyss');
+  assert.equal(abyssGeos.variant, 'abyss');
+  assert.ok(abyssGeos.accessory instanceof THREE.TorusGeometry, 'Debe incluir halo orbital de sombras');
+  const abyssModel = buildPedestalMesh(abyssGeos, abyssMats);
+  assert.ok(abyssModel.accessoryMesh instanceof THREE.Mesh, 'Debe instanciar malla de halo accesorio');
+
+  // 3. Pedestal Mercader: fuste octogonal, mostrador con cuenco, icosaedro y anillo de cambio
+  const merchantGeos = createPedestalGeometries('merchant');
+  const merchantMats = createPedestalMaterials('merchant');
+  assert.equal(merchantGeos.variant, 'merchant');
+  assert.ok(merchantGeos.accessory instanceof THREE.TorusGeometry, 'Debe incluir aro de cambio/moneda');
+  const merchantModel = buildPedestalMesh(merchantGeos, merchantMats);
+  assert.ok(merchantModel.accessoryMesh instanceof THREE.Mesh, 'Debe instanciar accesorio de moneda comercial');
+
+  // Limpieza de recursos de la prueba
+  for (const g of Object.values(classicGeos)) g?.dispose?.();
+  for (const m of Object.values(classicMats)) m?.dispose?.();
+  for (const g of Object.values(abyssGeos)) g?.dispose?.();
+  for (const m of Object.values(abyssMats)) m?.dispose?.();
+  for (const g of Object.values(merchantGeos)) g?.dispose?.();
+  for (const m of Object.values(merchantMats)) m?.dispose?.();
+});
+

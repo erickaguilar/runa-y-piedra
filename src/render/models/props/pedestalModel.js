@@ -20,15 +20,38 @@ export const THEMES = {
  */
 export function createPedestalMaterials(themeName = 'classic') {
   const t = THEMES[themeName] || THEMES.classic;
+
+  let stoneColor = 0x475569;
+  let stoneDarkColor = 0x1e293b;
+  let accentColor = 0xf59e0b; // Dorado por defecto
+  let emissiveAccent = 0x78350f;
+
+  if (themeName === 'abyss' || themeName === 'shadow') {
+    stoneColor = 0x334155; // Pizarra oscura abisal
+    stoneDarkColor = 0x0f172a; // Obsidiana profunda
+    accentColor = 0x8b5cf6; // Amatista espectral
+    emissiveAccent = 0x4c1d95;
+  } else if (themeName === 'merchant') {
+    stoneColor = 0x52525b; // Cantería de bazar
+    stoneDarkColor = 0x27272a; // Basalto de tienda
+    accentColor = 0x10b981; // Malaquita / Jade comercial
+    emissiveAccent = 0x064e3b;
+  } else if (themeName === 'inferno') {
+    stoneColor = 0x442c2c;
+    stoneDarkColor = 0x1a0b0b;
+    accentColor = 0xf97316;
+    emissiveAccent = 0x7c2d12;
+  }
+
   return {
     theme: themeName,
-    stone: new THREE.MeshLambertMaterial({ color: 0x475569 }), // Sillar pizarra (muros)
-    stoneDark: new THREE.MeshLambertMaterial({ color: 0x1e293b }), // Zócalo profundo
-    iron: new THREE.MeshLambertMaterial({ color: 0x27272a }), // Forja (cofres/puertas)
-    gold: new THREE.MeshLambertMaterial({ color: 0xf59e0b, emissive: 0x78350f }),
-    rune: new THREE.MeshBasicMaterial({ color: t.rune, transparent: true, opacity: 0.95 }),
+    stone: new THREE.MeshLambertMaterial({ color: stoneColor }),
+    stoneDark: new THREE.MeshLambertMaterial({ color: stoneDarkColor }),
+    iron: new THREE.MeshLambertMaterial({ color: 0x27272a }), // Forja reforzada
+    gold: new THREE.MeshLambertMaterial({ color: accentColor, emissive: emissiveAccent }),
+    rune: new THREE.MeshBasicMaterial({ color: t.rune, transparent: true, opacity: 0.95, side: THREE.DoubleSide }),
     crystal: new THREE.MeshLambertMaterial({
-      color: 0xffffff, emissive: t.crystal, emissiveIntensity: 0.9, transparent: true, opacity: 0.96,
+      color: 0xffffff, emissive: t.crystal, emissiveIntensity: 0.92, transparent: true, opacity: 0.96,
     }),
     ember: new THREE.PointsMaterial({
       color: t.ember, size: 0.055, transparent: true, opacity: 0.9,
@@ -38,47 +61,213 @@ export function createPedestalMaterials(themeName = 'classic') {
 }
 
 /**
- * Crea las geometrías de cantería, collar, runas solares y cristal octaédrico.
+ * Crea las geometrías de cantería, collar, runas y elementos centrales según el tipo/tema del pedestal.
+ * Cada tipo posee una arquitectura y propósito visual único:
+ * - 'classic': Altar sagrado con monolito biselado, cornisa dorada, 4 arbotantes en esquina y gema octaédrica.
+ * - 'abyss': Trono ceremonial oscuro con aguja hexagonal, 4 monolitos colmillares que canalizan el vacío y octaedro alargado con halo orbital oblicuo.
+ * - 'merchant': Mostrador de cambio de bazar con pedestal octogonal, platillo de ofrendas con balanza/copón y gema icosaédrica (diamante esmeralda).
  */
-export function createPedestalGeometries() {
-  // Zócalo escalonado de cantería (2 peldaños)
+export function createPedestalGeometries(themeName = 'classic') {
+  if (themeName === 'abyss' || themeName === 'shadow') {
+    return _createAbyssPedestalGeometries();
+  }
+  if (themeName === 'merchant') {
+    return _createMerchantPedestalGeometries();
+  }
+  return _createClassicPedestalGeometries();
+}
+
+/** Geometrías para el Altar Clásico del Santuario */
+function _createClassicPedestalGeometries() {
+  // Zócalo escalonado de cantería (2 peldaños robustos)
   const plinth1 = new THREE.BoxGeometry(1.0, 0.18, 1.0).translate(0, 0.09, 0);
-  const plinth2 = new THREE.BoxGeometry(0.8, 0.16, 0.8).translate(0, 0.26, 0);
+  const plinth2 = new THREE.BoxGeometry(0.82, 0.16, 0.82).translate(0, 0.26, 0);
   const stoneBase = mergeGeometries([plinth1, plinth2]);
   plinth1.dispose(); plinth2.dispose();
 
-  // Fuste monolítico de 4 caras
-  const column = new THREE.CylinderGeometry(0.30, 0.38, 0.86, 4, 1);
-  column.rotateY(Math.PI / 4);
-  column.translate(0, 0.77, 0);
+  // Fuste monolítico de 4 caras con arbotantes en las 4 esquinas
+  const colCore = new THREE.CylinderGeometry(0.30, 0.38, 0.86, 4, 1);
+  colCore.rotateY(Math.PI / 4);
+  colCore.translate(0, 0.77, 0);
+
+  // 4 contrafuertes angulares de refuerzo sacro
+  const b1 = new THREE.BoxGeometry(0.12, 0.50, 0.12).translate(0.32, 0.59, 0.32);
+  const b2 = new THREE.BoxGeometry(0.12, 0.50, 0.12).translate(-0.32, 0.59, 0.32);
+  const b3 = new THREE.BoxGeometry(0.12, 0.50, 0.12).translate(0.32, 0.59, -0.32);
+  const b4 = new THREE.BoxGeometry(0.12, 0.50, 0.12).translate(-0.32, 0.59, -0.32);
+  const column = mergeGeometries([colCore, b1, b2, b3, b4]);
+  colCore.dispose(); b1.dispose(); b2.dispose(); b3.dispose(); b4.dispose();
 
   // Collar de forja + losa de coronación + filete dorado
-  const collar = new THREE.BoxGeometry(0.62, 0.10, 0.62).translate(0, 1.25, 0);
-  const cap = new THREE.BoxGeometry(0.78, 0.12, 0.78).translate(0, 1.36, 0);
-  const trimN = new THREE.BoxGeometry(0.80, 0.035, 0.05).translate(0, 1.425, 0.375);
-  const trimS = new THREE.BoxGeometry(0.80, 0.035, 0.05).translate(0, 1.425, -0.375);
-  const trimE = new THREE.BoxGeometry(0.05, 0.035, 0.80).translate(0.375, 1.425, 0);
-  const trimW = new THREE.BoxGeometry(0.05, 0.035, 0.80).translate(-0.375, 1.425, 0);
+  const collar = new THREE.BoxGeometry(0.64, 0.10, 0.64).translate(0, 1.25, 0);
+  const cap = new THREE.BoxGeometry(0.80, 0.12, 0.80).translate(0, 1.36, 0);
+
+  // Cornisa y ribete perimetral dorado
+  const trimN = new THREE.BoxGeometry(0.82, 0.035, 0.05).translate(0, 1.425, 0.385);
+  const trimS = new THREE.BoxGeometry(0.82, 0.035, 0.05).translate(0, 1.425, -0.385);
+  const trimE = new THREE.BoxGeometry(0.05, 0.035, 0.82).translate(0.385, 1.425, 0);
+  const trimW = new THREE.BoxGeometry(0.05, 0.035, 0.82).translate(-0.385, 1.425, 0);
   const goldTrim = mergeGeometries([trimN, trimS, trimE, trimW]);
   trimN.dispose(); trimS.dispose(); trimE.dispose(); trimW.dispose();
 
-  // Runa solar: disco + anillo (giran en sentidos opuestos)
+  // Runa solar: disco sagrado central + anillo orbital concéntrico
   const runeDisc = new THREE.CircleGeometry(0.24, 24);
   runeDisc.rotateX(-Math.PI / 2);
   runeDisc.translate(0, 1.445, 0);
-  const runeRing = new THREE.RingGeometry(0.27, 0.33, 24);
+
+  const runeRing = new THREE.RingGeometry(0.28, 0.34, 24);
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.445, 0);
 
-  // Cristal rúnico flotante (octaedro)
-  const crystal = new THREE.OctahedronGeometry(0.14, 0);
+  // Cristal rúnico central (octaedro simétrico sagrado)
+  const crystal = new THREE.OctahedronGeometry(0.15, 0);
   crystal.translate(0, 1.95, 0);
 
-  return { stoneBase, column, collar, cap, goldTrim, runeDisc, runeRing, crystal };
+  return {
+    variant: 'classic',
+    stoneBase,
+    column,
+    collar,
+    cap,
+    goldTrim,
+    runeDisc,
+    runeRing,
+    crystal,
+  };
+}
+
+/** Geometrías para el Altar Abisal / Trono del Vacío */
+function _createAbyssPedestalGeometries() {
+  // Base escalonada hexagonal más esbelta y afilada
+  const step1 = new THREE.CylinderGeometry(0.62, 0.68, 0.16, 6).translate(0, 0.08, 0);
+  const step2 = new THREE.CylinderGeometry(0.52, 0.58, 0.16, 6).translate(0, 0.24, 0);
+  const stoneBase = mergeGeometries([step1, step2]);
+  step1.dispose(); step2.dispose();
+
+  // Fuste hexagonal estilizado
+  const colHex = new THREE.CylinderGeometry(0.32, 0.42, 0.88, 6).translate(0, 0.76, 0);
+
+  // 4 Pilares espigados / colmillos ceremoniales que ascienden hacia la gema
+  const spikeGeos = [];
+  const radius = 0.38;
+  for (let i = 0; i < 4; i++) {
+    const angle = (i * Math.PI) / 2 + Math.PI / 4;
+    const sx = Math.cos(angle) * radius;
+    const sz = Math.sin(angle) * radius;
+    const spike = new THREE.ConeGeometry(0.065, 0.55, 4);
+    spike.translate(sx, 1.42, sz);
+    spikeGeos.push(spike);
+  }
+  const column = mergeGeometries([colHex, ...spikeGeos]);
+  colHex.dispose();
+  for (const s of spikeGeos) s.dispose();
+
+  // Collar de forja oscura y losa de coronación hexagonal
+  const collar = new THREE.CylinderGeometry(0.44, 0.46, 0.10, 6).translate(0, 1.25, 0);
+  const cap = new THREE.CylinderGeometry(0.50, 0.44, 0.12, 6).translate(0, 1.36, 0);
+
+  // Ribete de runas amatistas en los bordes
+  const rim = new THREE.TorusGeometry(0.48, 0.025, 4, 6);
+  rim.rotateX(Math.PI / 2);
+  rim.translate(0, 1.425, 0);
+  const goldTrim = rim;
+
+  // Runa abisal: sello de vacío de 6 puntas (anillo dentado)
+  const runeDisc = new THREE.CircleGeometry(0.26, 6);
+  runeDisc.rotateX(-Math.PI / 2);
+  runeDisc.translate(0, 1.445, 0);
+
+  const runeRing = new THREE.RingGeometry(0.30, 0.38, 6);
+  runeRing.rotateX(-Math.PI / 2);
+  runeRing.translate(0, 1.445, 0);
+
+  // Cristal de Vacío: prisma bi-piramidal alargado (doble cono estirado)
+  const coneTop = new THREE.ConeGeometry(0.13, 0.28, 6).translate(0, 2.05, 0);
+  const coneBottom = new THREE.ConeGeometry(0.13, 0.28, 6);
+  coneBottom.rotateX(Math.PI);
+  coneBottom.translate(0, 1.83, 0);
+  const crystal = mergeGeometries([coneTop, coneBottom]);
+  coneTop.dispose(); coneBottom.dispose();
+
+  // Halo orbital de sombras (anillo oblicuo flotante alrededor del cristal abisal)
+  const abyssHalo = new THREE.TorusGeometry(0.28, 0.015, 6, 24);
+  abyssHalo.rotateX(Math.PI * 0.35);
+  abyssHalo.translate(0, 1.94, 0);
+
+  return {
+    variant: 'abyss',
+    stoneBase,
+    column,
+    collar,
+    cap,
+    goldTrim,
+    runeDisc,
+    runeRing,
+    crystal,
+    accessory: abyssHalo,
+  };
+}
+
+/** Geometrías para el Pedestal del Mercader / Bazar Rúnico */
+function _createMerchantPedestalGeometries() {
+  // Zócalo ancho octogonal de cantería pulida
+  const step1 = new THREE.CylinderGeometry(0.66, 0.72, 0.15, 8).translate(0, 0.075, 0);
+  const step2 = new THREE.CylinderGeometry(0.56, 0.62, 0.15, 8).translate(0, 0.225, 0);
+  const stoneBase = mergeGeometries([step1, step2]);
+  step1.dispose(); step2.dispose();
+
+  // Fuste estriado octogonal con anillo de cambio central
+  const colOct = new THREE.CylinderGeometry(0.36, 0.40, 0.86, 8).translate(0, 0.75, 0);
+  const colRing = new THREE.CylinderGeometry(0.42, 0.42, 0.08, 8).translate(0, 0.75, 0);
+  const column = mergeGeometries([colOct, colRing]);
+  colOct.dispose(); colRing.dispose();
+
+  // Collar de forja reforzada y mesa/mostrador circular superior
+  const collar = new THREE.CylinderGeometry(0.48, 0.44, 0.10, 8).translate(0, 1.24, 0);
+  const cap = new THREE.CylinderGeometry(0.55, 0.48, 0.12, 12).translate(0, 1.35, 0);
+
+  // Cuenco/platillo de ofrendas doradas tallado en el mostrador
+  const bowlOuter = new THREE.CylinderGeometry(0.44, 0.36, 0.06, 16).translate(0, 1.44, 0);
+  const coinDish = new THREE.TorusGeometry(0.40, 0.025, 6, 16);
+  coinDish.rotateX(Math.PI / 2);
+  coinDish.translate(0, 1.47, 0);
+  const goldTrim = mergeGeometries([bowlOuter, coinDish]);
+  bowlOuter.dispose(); coinDish.dispose();
+
+  // Runa comercial de prosperidad: círculo esmeralda con octagrama
+  const runeDisc = new THREE.CircleGeometry(0.24, 16);
+  runeDisc.rotateX(-Math.PI / 2);
+  runeDisc.translate(0, 1.485, 0);
+
+  const runeRing = new THREE.RingGeometry(0.27, 0.35, 8);
+  runeRing.rotateX(-Math.PI / 2);
+  runeRing.translate(0, 1.485, 0);
+
+  // Gema del Mercader: Icosaedro facetado ("Esmeralda Imperial")
+  const crystal = new THREE.IcosahedronGeometry(0.16, 0);
+  crystal.translate(0, 1.95, 0);
+
+  // Accesorio comercial: Balanza o aro de cambio flotante horizontal
+  const coinRing = new THREE.TorusGeometry(0.26, 0.016, 8, 20);
+  coinRing.rotateX(Math.PI / 2);
+  coinRing.translate(0, 1.95, 0);
+
+  return {
+    variant: 'merchant',
+    stoneBase,
+    column,
+    collar,
+    cap,
+    goldTrim,
+    runeDisc,
+    runeRing,
+    crystal,
+    accessory: coinRing,
+  };
 }
 
 /**
- * Ensambla el modelo completo del altar ceremonial, sus runas y sistema de partículas.
+ * Ensambla el modelo completo del altar o pedestal con su geometría y materiales temáticos.
  */
 export function buildPedestalMesh(geos, mats) {
   const root = new THREE.Group();
@@ -102,7 +291,14 @@ export function buildPedestalMesh(geos, mats) {
   const crystalMesh = new THREE.Mesh(geos.crystal, mats.crystal);
   root.add(crystalMesh);
 
-  // Luz cálida del altar
+  // Accesorio único opcional (ej: halo orbital abisal o anillo de comercio)
+  let accessoryMesh = null;
+  if (geos.accessory) {
+    accessoryMesh = new THREE.Mesh(geos.accessory, mats.gold);
+    root.add(accessoryMesh);
+  }
+
+  // Luz cálida o mística del altar
   const light = new THREE.PointLight(mats.rune.color, IDLE_LIGHT, 9, 2.0);
   light.position.set(0, 2.1, 0);
   root.add(light);
@@ -129,6 +325,7 @@ export function buildPedestalMesh(geos, mats) {
     runeMesh,
     ringMesh,
     crystalMesh,
+    accessoryMesh,
     light,
     embers,
     emberPos,

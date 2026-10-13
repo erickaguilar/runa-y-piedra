@@ -25,11 +25,19 @@ export class PedestalRenderer {
     this.scene.add(this.group);
 
     this.pedestals = new Map();
+    this._geos = new Map(); // themeName -> geometries
     this._mats = this._createMaterials('classic');
-    this._geos = this._createGeometries();
     this._merchantMats = this._createMaterials('merchant');
     this._cartoMats = createCartographyMaterials();
     this._cartoGeos = createCartographyGeometries();
+  }
+
+  _getGeometries(themeName = 'classic') {
+    const key = (themeName === 'abyss' || themeName === 'shadow') ? 'abyss' : (themeName === 'merchant' ? 'merchant' : 'classic');
+    if (!this._geos.has(key)) {
+      this._geos.set(key, createPedestalGeometries(key));
+    }
+    return this._geos.get(key);
   }
 
   _createMaterials(themeName) {
@@ -37,7 +45,7 @@ export class PedestalRenderer {
   }
 
   _createGeometries() {
-    return createPedestalGeometries();
+    return this._getGeometries('classic');
   }
 
   _applyTheme(themeName) {
@@ -47,6 +55,10 @@ export class PedestalRenderer {
     this._mats.ember.dispose?.();
     const fresh = this._createMaterials(themeName);
     this._mats.theme = fresh.theme;
+    this._mats.stone = fresh.stone;
+    this._mats.stoneDark = fresh.stoneDark;
+    this._mats.iron = fresh.iron;
+    this._mats.gold = fresh.gold;
     this._mats.rune = fresh.rune;
     this._mats.crystal = fresh.crystal;
     this._mats.ember = fresh.ember;
@@ -62,6 +74,9 @@ export class PedestalRenderer {
   loadPedestals(objectives = [], { theme = 'classic', monoliths = [] } = {}) {
     this.clear();
     this._applyTheme(theme);
+    const themeGeos = this._getGeometries(theme);
+    const merchantGeos = this._getGeometries('merchant');
+
     if (Array.isArray(objectives) && objectives.length > 0) {
       objectives.forEach((cfg, i) => {
         if ((cfg.type || 'pedestal') !== 'pedestal') return;
@@ -70,15 +85,13 @@ export class PedestalRenderer {
         const y = cfg.y ?? 1.0;
         const z = cfg.z ?? 30;
 
-        const {
-          root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed
-        } = buildPedestalMesh(this._geos, this._mats);
+        const pMesh = buildPedestalMesh(themeGeos, this._mats);
 
-        root.position.set(x, Math.max(1.0, y), z);
-        this.group.add(root);
+        pMesh.root.position.set(x, Math.max(1.0, y), z);
+        this.group.add(pMesh.root);
 
         this.pedestals.set(id, {
-          id, x, y, z, root, runePivot, runeMesh, ringMesh, crystalMesh, light, embers, emberSpeed,
+          id, x, y, z, ...pMesh,
           isActive: false, flash: 0, spinBoost: 0, phase: Math.random() * Math.PI * 2,
         });
       });
@@ -93,7 +106,7 @@ export class PedestalRenderer {
         const type = m.type || 'cartography';
 
         if (type === 'merchant' || type === 'shop') {
-          const pMesh = buildPedestalMesh(this._geos, this._merchantMats);
+          const pMesh = buildPedestalMesh(merchantGeos, this._merchantMats);
           pMesh.root.position.set(x, Math.max(1.0, y), z);
           this.group.add(pMesh.root);
 
@@ -222,6 +235,20 @@ export class PedestalRenderer {
       const pulse = 1 + Math.sin(time * 2.2 + p.phase) * 0.06 + p.flash * 0.7;
       p.crystalMesh.scale.set(pulse, pulse * 1.25, pulse);
 
+      // Accesorio temático (halo abisal u órbita de moneda del mercader)
+      if (p.accessoryMesh) {
+        if (p.isMerchant) {
+          // El anillo de balance/moneda gira suavemente en contra-rotación
+          p.accessoryMesh.rotation.z += safeDt * 0.9;
+          p.accessoryMesh.position.y = 1.95 + Math.sin(time * 2.0 + p.phase) * 0.05;
+        } else {
+          // El halo orbital abisal describe una oscilación mística alrededor del cristal
+          p.accessoryMesh.rotation.y += safeDt * 1.5;
+          p.accessoryMesh.rotation.z += safeDt * 0.5;
+          p.accessoryMesh.position.y = 1.94 + Math.sin(time * 1.8 + p.phase) * 0.06;
+        }
+      }
+
       // Luz: reposo cálido, bendecido más intenso, destello al activar + parpadeo vivo
       p.flash = Math.max(0, p.flash - safeDt * 1.6);
       const base = p.isActive ? BLESSED_LIGHT : IDLE_LIGHT;
@@ -267,8 +294,15 @@ export class PedestalRenderer {
   dispose() {
     this.clear();
     this.scene.remove(this.group);
-    for (const g of Object.values(this._geos)) g.dispose?.();
-    for (const g of Object.values(this._cartoGeos)) g.dispose?.();
+    if (this._geos instanceof Map) {
+      for (const group of this._geos.values()) {
+        for (const g of Object.values(group)) g?.dispose?.();
+      }
+      this._geos.clear();
+    } else if (this._geos) {
+      for (const g of Object.values(this._geos)) g?.dispose?.();
+    }
+    for (const g of Object.values(this._cartoGeos)) g?.dispose?.();
     this._mats.stone.dispose?.();
     this._mats.stoneDark.dispose?.();
     this._mats.iron.dispose?.();
