@@ -118,9 +118,24 @@ export function createDoorMaterials(woodTexture) {
       color: 0xffffff,
       map: woodTexture,
     }),
-    iron: new THREE.MeshLambertMaterial({ color: 0x27272a }),
-    stone: new THREE.MeshLambertMaterial({ color: 0x3f3f46 }),
-    stoneAccent: new THREE.MeshLambertMaterial({ color: 0x27272a }),
+    iron: new THREE.MeshLambertMaterial({
+      color: 0x27272a,
+      polygonOffset: true,
+      polygonOffsetFactor: -1.0,
+      polygonOffsetUnits: -4.0,
+    }),
+    stone: new THREE.MeshLambertMaterial({
+      color: 0x3f3f46,
+      polygonOffset: true,
+      polygonOffsetFactor: -1.0,
+      polygonOffsetUnits: -4.0,
+    }),
+    stoneAccent: new THREE.MeshLambertMaterial({
+      color: 0x27272a,
+      polygonOffset: true,
+      polygonOffsetFactor: -1.0,
+      polygonOffsetUnits: -4.0,
+    }),
   };
 }
 
@@ -200,18 +215,20 @@ export function buildDoorFrame(width = 2.0, height = 2.0, mats) {
   const jambDepth = 0.36;
   const lintelH = 0.32;
   const lintelDepth = 0.40;
+  // Offset sutil (8 mm) hacia el interior del vano para evitar coplanaridad absoluta con los bloques de muro voxel
+  const inset = 0.008;
 
   // 1. Jamba izquierda (pilar vertical de sillar)
   const leftJambGeo = new THREE.BoxGeometry(jambW, height, jambDepth);
-  leftJambGeo.translate(-halfW - jambW / 2, 0, 0);
+  leftJambGeo.translate(-halfW - jambW / 2 + inset, 0, 0);
 
   // 2. Jamba derecha (pilar vertical de sillar)
   const rightJambGeo = new THREE.BoxGeometry(jambW, height, jambDepth);
-  rightJambGeo.translate(halfW + jambW / 2, 0, 0);
+  rightJambGeo.translate(halfW + jambW / 2 - inset, 0, 0);
 
   // 3. Dintel superior continuo (viga de piedra sobre el vano)
   const lintelGeo = new THREE.BoxGeometry(width + 2 * jambW + 0.16, lintelH, lintelDepth);
-  lintelGeo.translate(0, height / 2 + lintelH / 2, 0);
+  lintelGeo.translate(0, height / 2 + lintelH / 2 - inset, 0);
 
   // Combinar los sillares de piedra base
   const stoneMerged = mergeGeometries([leftJambGeo, rightJambGeo, lintelGeo]);
@@ -226,16 +243,16 @@ export function buildDoorFrame(width = 2.0, height = 2.0, mats) {
 
   // 4. Clave de arco central (sillar ornamental en el centro del dintel)
   const keystoneGeo = new THREE.BoxGeometry(0.24, lintelH + 0.10, lintelDepth + 0.06);
-  keystoneGeo.translate(0, height / 2 + lintelH / 2, 0);
+  keystoneGeo.translate(0, height / 2 + lintelH / 2 - inset, 0);
   const keystoneMesh = new THREE.Mesh(keystoneGeo, mats.stoneAccent);
   frameGroup.add(keystoneMesh);
 
   // 5. Escuadras de hierro forjado en las esquinas superiores del marco
   const bracketSize = 0.12;
   const b1 = new THREE.BoxGeometry(bracketSize, bracketSize, lintelDepth + 0.02)
-    .translate(-halfW + bracketSize / 2, height / 2 - bracketSize / 2, 0);
+    .translate(-halfW + bracketSize / 2 + inset, height / 2 - bracketSize / 2 - inset, 0);
   const b2 = new THREE.BoxGeometry(bracketSize, bracketSize, lintelDepth + 0.02)
-    .translate(halfW - bracketSize / 2, height / 2 - bracketSize / 2, 0);
+    .translate(halfW - bracketSize / 2 - inset, height / 2 - bracketSize / 2 - inset, 0);
   const bracketsMerged = mergeGeometries([b1, b2]);
   b1.dispose();
   b2.dispose();

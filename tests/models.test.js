@@ -22,6 +22,7 @@ import {
   createDoorGeometries,
   createDoorMaterials,
   buildDoorLeaf,
+  buildDoorFrame,
   createPedestalGeometries,
   createPedestalMaterials,
   buildPedestalMesh,
@@ -362,9 +363,36 @@ test('PropShowcaseRenderer: carga todos los props de dev_showroom sin colisiones
   assert.ok(foundPlate, 'Debe encontrar la losa hold en x=12, z=86');
   assert.equal(foundPlate.id, 'showcase_plate_hold');
 
+  // Comprobar que las puertas modeladas tienen el marco alineado a y=1.0 (no en medio a y=0)
+  const doorClosed = renderer.showcases.find(s => s.type === 'door_closed');
+  assert.ok(doorClosed);
+  const frameClosed = doorClosed.root.getObjectByName('DoorFrame');
+  assert.ok(frameClosed, 'door_closed debe contener DoorFrame');
+  assert.equal(frameClosed.position.y, 1.0, 'DoorFrame debe estar alineado a y=1.0 en door_closed');
+
+  const doorOpen = renderer.showcases.find(s => s.type === 'door_open');
+  assert.ok(doorOpen);
+  const frameOpen = doorOpen.root.getObjectByName('DoorFrame');
+  assert.ok(frameOpen, 'door_open debe contener DoorFrame');
+  assert.equal(frameOpen.position.y, 1.0, 'DoorFrame debe estar alineado a y=1.0 en door_open');
+
   // Limpieza completa
   renderer.dispose();
   assert.equal(renderer.showcases.length, 0);
   assert.equal(scene.children.length, 0);
+});
+
+test('Modelos Puertas: createDoorMaterials define polygonOffset y buildDoorFrame evita Z-fighting', () => {
+  const mats = createDoorMaterials(null);
+  assert.equal(mats.stone.polygonOffset, true);
+  assert.equal(mats.stone.polygonOffsetFactor, -1.0);
+  assert.equal(mats.stoneAccent.polygonOffset, true);
+  assert.equal(mats.iron.polygonOffset, true);
+
+  const frame = buildDoorFrame(2.0, 2.0, mats);
+  assert.equal(frame.name, 'DoorFrame');
+  assert.ok(frame.children.length >= 2);
+
+  for (const m of Object.values(mats)) m.dispose();
 });
 

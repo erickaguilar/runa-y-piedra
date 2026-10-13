@@ -227,6 +227,7 @@ export class PropShowcaseRenderer {
       case 'door_closed': {
         const root = new THREE.Group();
         const frame = buildDoorFrame(2.0, 2.0, this._doorMats);
+        frame.position.set(0, 1.0, 0);
         root.add(frame);
 
         const leftLeaf = buildDoorLeaf(+1, this._doorGeos, this._doorMats);
@@ -241,6 +242,7 @@ export class PropShowcaseRenderer {
       case 'door_open': {
         const root = new THREE.Group();
         const frame = buildDoorFrame(2.0, 2.0, this._doorMats);
+        frame.position.set(0, 1.0, 0);
         root.add(frame);
 
         const leftPivot = new THREE.Object3D();
