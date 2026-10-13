@@ -327,6 +327,25 @@ export class BlockRaycaster {
           };
         });
       }
+
+      // Modelos 3D de Exhibición (Props sin mecánica)
+      if (this.renderers.propShowcaseRenderer?.group) {
+        checkPropGroup(this.renderers.propShowcaseRenderer.group, 'prop_showcase', (hit) => {
+          let matched = null;
+          for (const item of this.renderers.propShowcaseRenderer.showcases) {
+            if (item.root && (item.root === hit.object || item.root.getObjectById(hit.object.id))) {
+              matched = item;
+              break;
+            }
+          }
+          return {
+            name: matched?.name || 'Modelo 3D de Exhibición',
+            entityId: matched?.id || 'showcase',
+            state: 'Exhibición (Sin Mecánica)',
+            coords: matched ? { x: matched.x, y: matched.y, z: matched.z } : { x: Math.round(hit.point.x), y: Math.round(hit.point.y), z: Math.round(hit.point.z) },
+          };
+        });
+      }
     }
 
     if (candidates.length === 0) return null;

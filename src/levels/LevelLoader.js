@@ -113,6 +113,7 @@ export class LevelLoader {
     world.monoliths = levelData.monoliths || [];
     world.torches = levelData.torches || [];
     world.heroShowcases = levelData.heroShowcases || [];
+    world.propShowcases = levelData.propShowcases || [];
     world.chests = (levelData.chests || []).map(c => ({
       ...c,
       yaw: parseOrientationYaw(c),

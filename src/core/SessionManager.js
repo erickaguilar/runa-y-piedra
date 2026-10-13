@@ -204,6 +204,7 @@ export const SessionMixin = {
 
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
     this.heroShowcaseRenderer?.loadShowcases(this.world.heroShowcases || levelData.heroShowcases || []);
+    this.propShowcaseRenderer?.loadShowcases(this.world.propShowcases || levelData.propShowcases || []);
     this.pressurePlateRenderer?.loadPressurePlates(this.world.pressurePlates);
     // Las losas de presión se reinician siempre al entrar al nivel: sus puertas de mecanismo
     // arrancan cerradas, así que una losa "ya pisada" bloquearía el puzle.
@@ -651,6 +652,10 @@ export const SessionMixin = {
 
     if (this.heroShowcaseRenderer?.clear) {
       this.heroShowcaseRenderer.clear();
+    }
+
+    if (this.propShowcaseRenderer?.clear) {
+      this.propShowcaseRenderer.clear();
     }
 
     if (this.playerManager?.reset) {

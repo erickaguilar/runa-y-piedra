@@ -26,6 +26,7 @@ export class World {
     this.torches = [];
     this.chests = [];
     this.heroShowcases = [];
+    this.propShowcases = [];
     this.pressurePlates = [];
     // Escalinata de descenso: [{x1,x2,z1,z2,triggerY,open}] derivada del altar (LevelLoader)
     this.stairwells = [];

@@ -12,6 +12,7 @@ import {
 } from '../src/render/models/heroes/index.js';
 import { AvatarRenderer } from '../src/render/AvatarRenderer.js';
 import { HeroShowcaseRenderer } from '../src/render/HeroShowcaseRenderer.js';
+import { PropShowcaseRenderer } from '../src/render/PropShowcaseRenderer.js';
 import devShowroom from '../src/levels/data/dev_showroom.json' with { type: 'json' };
 
 import {
@@ -327,5 +328,43 @@ test('Modelos Props: buildPressurePlateMesh construye losa estándar y losa de p
 
   for (const m of Object.values(mats)) m.dispose();
   for (const g of Object.values(geos)) g.dispose();
+});
+
+test('PropShowcaseRenderer: carga todos los props de dev_showroom sin colisiones ni interactuadores', () => {
+  const scene = new THREE.Scene();
+  const renderer = new PropShowcaseRenderer(scene);
+
+  assert.ok(Array.isArray(devShowroom.propShowcases), 'devShowroom debe tener propShowcases');
+  assert.equal(devShowroom.propShowcases.length, 11, 'Deben existir 11 props de exhibición');
+
+  renderer.loadShowcases(devShowroom.propShowcases);
+  assert.equal(renderer.showcases.length, 11);
+
+  assert.ok(scene.children.includes(renderer.group));
+
+  for (const s of renderer.showcases) {
+    assert.ok(s.root instanceof THREE.Group, `${s.id} debe tener una raíz Group`);
+    assert.ok(s.sprite instanceof THREE.Sprite, `${s.id} debe tener una etiqueta Sprite`);
+    assert.ok(s.name, `${s.id} debe tener un nombre`);
+    assert.ok(s.type, `${s.id} debe tener un tipo`);
+    assert.ok(renderer.group.children.includes(s.root));
+  }
+
+  // Comprobar actualización de animaciones
+  renderer.update(0.016);
+
+  // Comprobar búsqueda por coordenadas para el raycaster / mira de debug
+  const found = renderer.findShowcaseAt(5, 70);
+  assert.ok(found, 'Debe encontrar el cofre cerrado en x=5, z=70');
+  assert.equal(found.id, 'showcase_chest_closed');
+
+  const foundPlate = renderer.findShowcaseAt(12, 86);
+  assert.ok(foundPlate, 'Debe encontrar la losa hold en x=12, z=86');
+  assert.equal(foundPlate.id, 'showcase_plate_hold');
+
+  // Limpieza completa
+  renderer.dispose();
+  assert.equal(renderer.showcases.length, 0);
+  assert.equal(scene.children.length, 0);
 });
 

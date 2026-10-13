@@ -12,6 +12,7 @@ import { DoorRenderer } from '../render/DoorRenderer.js';
 import { PedestalRenderer } from '../render/PedestalRenderer.js';
 import { StairsRenderer } from '../render/StairsRenderer.js';
 import { HeroShowcaseRenderer } from '../render/HeroShowcaseRenderer.js';
+import { PropShowcaseRenderer } from '../render/PropShowcaseRenderer.js';
 import { PressurePlateRenderer } from '../render/PressurePlateRenderer.js';
 import { World } from './World.js';
 import { GameLoop } from './GameLoop.js';
@@ -57,6 +58,8 @@ export class VoxelSandboxGame {
     this.stairsRenderer = new StairsRenderer(this.sceneManager.scene);
     this.heroShowcaseRenderer = new HeroShowcaseRenderer(this.sceneManager.scene);
     this.heroShowcaseRenderer.loadShowcases(this.world.heroShowcases || []);
+    this.propShowcaseRenderer = new PropShowcaseRenderer(this.sceneManager.scene);
+    this.propShowcaseRenderer.loadShowcases(this.world.propShowcases || []);
     this.pressurePlateRenderer = new PressurePlateRenderer(this.sceneManager.scene);
     this.pressurePlateRenderer.loadPressurePlates(this.world.pressurePlates);
     this.interaction = new InteractionController(this);
@@ -147,6 +150,7 @@ export class VoxelSandboxGame {
       pedestalRenderer: this.pedestalRenderer,
       pressurePlateRenderer: this.pressurePlateRenderer,
       stairsRenderer: this.stairsRenderer,
+      propShowcaseRenderer: this.propShowcaseRenderer,
     });
 
     // 2. Red, Audio y UI
@@ -837,6 +841,7 @@ export class VoxelSandboxGame {
         this.pedestalRenderer.update(dt);
         this.stairsRenderer.update(dt);
         this.pressurePlateRenderer.update(dt);
+        this.propShowcaseRenderer?.update(dt);
         this.sceneManager.render();
       },
     });
@@ -857,6 +862,7 @@ export class VoxelSandboxGame {
     this.pedestalRenderer?.dispose?.();
     this.stairsRenderer?.dispose?.();
     this.heroShowcaseRenderer?.dispose?.();
+    this.propShowcaseRenderer?.dispose?.();
     this.pressurePlateRenderer?.dispose?.();
     this.avatars?.dispose?.();
     this.sceneManager?.dispose?.();
