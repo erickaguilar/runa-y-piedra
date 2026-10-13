@@ -432,3 +432,32 @@ test('Modelos Pedestales: geometrías y accesorios únicos para Classic, Abismo 
   for (const m of Object.values(merchantMats)) m?.dispose?.();
 });
 
+test('Mesa de Cartografía: integra Brújula náutica 3D (dial, rosa de los vientos y aguja magnética)', async () => {
+  const { createCartographyGeometries, createCartographyMaterials, buildCartographyTableMesh } = await import('../src/render/models/props/cartographyModel.js');
+
+  const geos = createCartographyGeometries();
+  const mats = createCartographyMaterials();
+
+  assert.ok(geos.compassDialGeo instanceof THREE.BufferGeometry);
+  assert.ok(geos.needleN instanceof THREE.BufferGeometry);
+  assert.ok(geos.needleS instanceof THREE.BufferGeometry);
+  assert.ok(geos.compassCrossEW instanceof THREE.BufferGeometry);
+
+  assert.ok(mats.needleNorth instanceof THREE.MeshLambertMaterial);
+  assert.ok(mats.needleSouth instanceof THREE.MeshLambertMaterial);
+
+  const carto = buildCartographyTableMesh(geos, mats);
+  assert.ok(carto.root instanceof THREE.Group);
+  assert.ok(carto.compassGroup instanceof THREE.Group);
+  assert.ok(carto.needleGroup instanceof THREE.Group);
+  assert.ok(carto.needleNMesh instanceof THREE.Mesh);
+  assert.ok(carto.needleSMesh instanceof THREE.Mesh);
+
+  // Comprobar que la aguja Norte tiene el material carmesí
+  assert.equal(carto.needleNMesh.material, mats.needleNorth);
+  assert.equal(carto.needleSMesh.material, mats.needleSouth);
+
+  for (const g of Object.values(geos)) g?.dispose?.();
+  for (const m of Object.values(mats)) m?.dispose?.();
+});
+

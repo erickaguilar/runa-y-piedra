@@ -366,7 +366,20 @@ export class PropShowcaseRenderer {
       } else if (anim.type === 'cartography') {
         anim.phase = (anim.phase || 0) + dt;
         if (anim.compassMesh) {
-          anim.compassMesh.rotation.y += dt * 0.5;
+          anim.compassMesh.rotation.y += dt * 0.45;
+          anim.compassMesh.position.y = Math.sin(anim.phase * 2.2) * 0.04;
+        }
+        if (anim.needleGroup) {
+          const needleSway = Math.sin(anim.phase * 2.8) * 0.18 + Math.cos(anim.phase * 5.2) * 0.06;
+          anim.needleGroup.rotation.y = needleSway - (anim.compassMesh?.rotation?.y || 0);
+        }
+        if (anim.outerRingMesh) {
+          anim.outerRingMesh.rotation.y += dt * 0.75;
+          anim.outerRingMesh.rotation.z += dt * 0.25;
+        }
+        if (anim.innerRingMesh) {
+          anim.innerRingMesh.rotation.y -= dt * 0.95;
+          anim.innerRingMesh.rotation.x += dt * 0.45;
         }
       }
     }

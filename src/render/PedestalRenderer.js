@@ -188,11 +188,16 @@ export class PedestalRenderer {
           p.innerRingMesh.rotation.y -= safeDt * 0.95;
           p.innerRingMesh.rotation.x += safeDt * 0.45;
         }
-        // 2. Bobbing y rotación del núcleo poliédrico
-        if (p.coreMesh) {
-          p.coreMesh.rotation.y += safeDt * 1.4;
-          p.coreMesh.rotation.x += safeDt * 0.7;
-          p.coreMesh.position.y = Math.sin(time * 2.2 + p.phase) * 0.04;
+        // 2. Bobbing y orientación magnética de la brújula y su aguja imantada
+        if (p.compassGroup || p.coreMesh) {
+          const comp = p.compassGroup || p.coreMesh;
+          comp.position.y = Math.sin(time * 2.2 + p.phase) * 0.04;
+          comp.rotation.y += safeDt * 0.45; // Giro pausado del dial de bronce
+        }
+        if (p.needleGroup) {
+          // La aguja oscila magnéticamente buscando el Norte arcano
+          const needleSway = Math.sin(time * 2.8 + p.phase) * 0.18 + Math.cos(time * 5.2) * 0.06;
+          p.needleGroup.rotation.y = needleSway - (p.compassGroup?.rotation?.y || 0);
         }
         // 3. Pulso de luz celestial
         if (p.light) {

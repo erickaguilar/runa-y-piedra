@@ -36,6 +36,16 @@ export function createCartographyMaterials() {
       transparent: true,
       opacity: 0.96,
     }), // Núcleo astronómico de orientación
+    needleNorth: new THREE.MeshLambertMaterial({
+      color: 0xef4444, // Flecha Norte: Carmesí magnético
+      emissive: 0x991b1b,
+      emissiveIntensity: 0.8,
+    }),
+    needleSouth: new THREE.MeshLambertMaterial({
+      color: 0xf8fafc, // Flecha Sur: Acero / Blanco plata
+      emissive: 0x64748b,
+      emissiveIntensity: 0.4,
+    }),
     stardust: new THREE.PointsMaterial({
       color: 0x38bdf8,
       size: 0.05,
@@ -50,7 +60,7 @@ export function createCartographyMaterials() {
 
 /**
  * Geometrías para la Mesa de Cartografía: pedestal de 4 pilares, losa de mapa,
- * aros armilares de orientación y núcleo celestial poliédrico.
+ * aros armilares de orientación y brújula náutica mística (rosa de los vientos y aguja imantada).
  */
 export function createCartographyGeometries() {
   // 1. Zócalo escalonado inferior
@@ -105,8 +115,37 @@ export function createCartographyGeometries() {
   const outerArmillary = new THREE.TorusGeometry(0.32, 0.016, 8, 32);
   const innerArmillary = new THREE.TorusGeometry(0.22, 0.014, 8, 28);
 
-  // 6. Núcleo celestial de orientación (Dodecaedro místico)
-  const celestialCore = new THREE.DodecahedronGeometry(0.11, 0);
+  // 6. Brújula Cartográfica 3D (Caja cilíndrica de bronce, rosa de los vientos y aguja magnética)
+  // Caja / Limbo graduado de la brújula
+  const compassCase = new THREE.CylinderGeometry(0.18, 0.18, 0.035, 24);
+  const compassRim = new THREE.TorusGeometry(0.18, 0.012, 6, 24);
+  compassRim.rotateX(Math.PI / 2);
+  const compassCenterPin = new THREE.CylinderGeometry(0.02, 0.02, 0.07, 12);
+  const compassDialGeo = mergeGeometries([compassCase, compassRim, compassCenterPin]);
+  compassCase.dispose(); compassRim.dispose(); compassCenterPin.dispose();
+
+  // Aguja Norte (Pirámide/Cono carmesí alargado hacia +Z)
+  const needleN = new THREE.ConeGeometry(0.04, 0.18, 4);
+  needleN.rotateX(Math.PI / 2); // Apunta hacia +Z
+  needleN.translate(0, 0.02, 0.09);
+
+  // Aguja Sur (Pirámide/Cono plateado alargado hacia -Z)
+  const needleS = new THREE.ConeGeometry(0.04, 0.18, 4);
+  needleS.rotateX(-Math.PI / 2); // Apunta hacia -Z
+  needleS.translate(0, 0.02, -0.09);
+
+  // Rosa de los vientos: cruz Este-Oeste de latón
+  const needleE = new THREE.ConeGeometry(0.025, 0.09, 4);
+  needleE.rotateZ(-Math.PI / 2);
+  needleE.translate(0.045, 0.015, 0);
+  const needleW = new THREE.ConeGeometry(0.025, 0.09, 4);
+  needleW.rotateZ(Math.PI / 2);
+  needleW.translate(-0.045, 0.015, 0);
+  const compassCrossEW = mergeGeometries([needleE, needleW]);
+  needleE.dispose(); needleW.dispose();
+
+  // Para retrocompatibilidad
+  const celestialCore = compassDialGeo;
 
   return {
     stoneBase,
@@ -118,6 +157,10 @@ export function createCartographyGeometries() {
     outerArmillary,
     innerArmillary,
     celestialCore,
+    compassDialGeo,
+    needleN,
+    needleS,
+    compassCrossEW,
   };
 }
 
@@ -154,10 +197,32 @@ export function buildCartographyTableMesh(geos, mats) {
   innerRingMesh.rotation.z = Math.PI * 0.35;
   astrolabePivot.add(innerRingMesh);
 
-  // Núcleo celestial central
-  const coreMesh = new THREE.Mesh(geos.celestialCore, mats.celestialCore);
-  astrolabePivot.add(coreMesh);
+  // Brújula náutica mística flotante central
+  const compassGroup = new THREE.Group();
+  compassGroup.name = 'CompassUnit';
 
+  // Limbo / plato de bronce de la brújula
+  const dialMesh = new THREE.Mesh(geos.compassDialGeo, mats.bronzeTrim);
+  compassGroup.add(dialMesh);
+
+  // Rosa de los vientos (ejes Este - Oeste)
+  const crossEWMesh = new THREE.Mesh(geos.compassCrossEW, mats.bronzeTrim);
+  compassGroup.add(crossEWMesh);
+
+  // Aguja imantada articulada: gira marcando el rumbo
+  const needleGroup = new THREE.Group();
+  needleGroup.name = 'CompassNeedle';
+  const needleNMesh = new THREE.Mesh(geos.needleN, mats.needleNorth); // Norte carmesí
+  const needleSMesh = new THREE.Mesh(geos.needleS, mats.needleSouth); // Sur blanco plata
+  needleGroup.add(needleNMesh, needleSMesh);
+  compassGroup.add(needleGroup);
+
+  // Perno central / joya de orientación
+  const coreMesh = new THREE.Mesh(geos.celestialCore, mats.celestialCore);
+  coreMesh.scale.set(0.35, 0.35, 0.35);
+  compassGroup.add(coreMesh);
+
+  astrolabePivot.add(compassGroup);
   root.add(astrolabePivot);
 
   // Luz celestial azulada del mapa
@@ -188,7 +253,13 @@ export function buildCartographyTableMesh(geos, mats) {
     astrolabePivot,
     outerRingMesh,
     innerRingMesh,
-    coreMesh,
+    coreMesh: compassGroup, // Para retrocompatibilidad y giro de la brújula
+    compassGroup,
+    compassMesh: compassGroup,
+    needleGroup,
+    dialMesh,
+    needleNMesh,
+    needleSMesh,
     light,
     stardustPoints,
     stardustPos,
