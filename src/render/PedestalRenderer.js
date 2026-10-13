@@ -237,15 +237,16 @@ export class PedestalRenderer {
 
       // Accesorio temático (halo abisal u órbita de moneda del mercader) ceñido al cristal
       if (p.accessoryMesh) {
+        const baseY = p.isMerchant ? 1.68 : 1.66;
         if (p.isMerchant) {
           // El anillo de balance/moneda gira suavemente en contra-rotación junto al cuenco
           p.accessoryMesh.rotation.z += safeDt * 0.9;
-          p.accessoryMesh.position.y = Math.sin(time * 2.0 + p.phase) * 0.03;
+          p.accessoryMesh.position.y = baseY + Math.sin(time * 2.0 + p.phase) * 0.03;
         } else {
           // El halo orbital abisal describe una oscilación mística ceñida alrededor del cristal
           p.accessoryMesh.rotation.y += safeDt * 1.5;
           p.accessoryMesh.rotation.z += safeDt * 0.5;
-          p.accessoryMesh.position.y = Math.sin(time * 1.8 + p.phase) * 0.03;
+          p.accessoryMesh.position.y = baseY + Math.sin(time * 1.8 + p.phase) * 0.03;
         }
       }
 

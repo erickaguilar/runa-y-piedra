@@ -189,10 +189,9 @@ function _createAbyssPedestalGeometries() {
   const crystal = mergeGeometries([coneTop, coneBottom]);
   coneTop.dispose(); coneBottom.dispose();
 
-  // Halo orbital de sombras (anillo ceñido y recogido, orbitando el cristal a y=1.66)
+  // Halo orbital de sombras (geometría centrada en su propio origen local 0,0,0)
   const abyssHalo = new THREE.TorusGeometry(0.20, 0.014, 6, 24);
   abyssHalo.rotateX(Math.PI * 0.35);
-  abyssHalo.translate(0, 1.66, 0);
 
   return {
     variant: 'abyss',
@@ -247,10 +246,9 @@ function _createMerchantPedestalGeometries() {
   const crystal = new THREE.IcosahedronGeometry(0.14, 0);
   crystal.translate(0, 1.68, 0);
 
-  // Accesorio comercial: Balanza / aro de cambio ceñido justo encima del cuenco (y=1.68)
+  // Accesorio comercial: Balanza / aro de cambio centrado en su origen local (0,0,0)
   const coinRing = new THREE.TorusGeometry(0.21, 0.015, 8, 20);
   coinRing.rotateX(Math.PI / 2);
-  coinRing.translate(0, 1.68, 0);
 
   return {
     variant: 'merchant',
@@ -293,8 +291,10 @@ export function buildPedestalMesh(geos, mats) {
 
   // Accesorio único opcional (ej: halo orbital abisal o anillo de comercio)
   let accessoryMesh = null;
+  const accessoryBaseY = geos.variant === 'merchant' ? 1.68 : 1.66;
   if (geos.accessory) {
     accessoryMesh = new THREE.Mesh(geos.accessory, mats.gold);
+    accessoryMesh.position.set(0, accessoryBaseY, 0);
     root.add(accessoryMesh);
   }
 
