@@ -119,9 +119,9 @@ function _createClassicPedestalGeometries() {
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.445, 0);
 
-  // Cristal rúnico central (octaedro simétrico sagrado)
-  const crystal = new THREE.OctahedronGeometry(0.15, 0);
-  crystal.translate(0, 1.95, 0);
+  // Cristal rúnico central (octaedro simétrico sagrado a corta distancia de la mesa)
+  const crystal = new THREE.OctahedronGeometry(0.14, 0);
+  crystal.translate(0, 1.66, 0);
 
   return {
     variant: 'classic',
@@ -147,15 +147,15 @@ function _createAbyssPedestalGeometries() {
   // Fuste hexagonal estilizado
   const colHex = new THREE.CylinderGeometry(0.32, 0.42, 0.88, 6).translate(0, 0.76, 0);
 
-  // 4 Pilares espigados / colmillos ceremoniales que ascienden hacia la gema
+  // 4 Pilares espigados / colmillos ceremoniales que enmarcan la gema flotante
   const spikeGeos = [];
-  const radius = 0.38;
+  const radius = 0.34;
   for (let i = 0; i < 4; i++) {
     const angle = (i * Math.PI) / 2 + Math.PI / 4;
     const sx = Math.cos(angle) * radius;
     const sz = Math.sin(angle) * radius;
-    const spike = new THREE.ConeGeometry(0.065, 0.55, 4);
-    spike.translate(sx, 1.42, sz);
+    const spike = new THREE.ConeGeometry(0.055, 0.42, 4);
+    spike.translate(sx, 1.48, sz);
     spikeGeos.push(spike);
   }
   const column = mergeGeometries([colHex, ...spikeGeos]);
@@ -181,18 +181,18 @@ function _createAbyssPedestalGeometries() {
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.445, 0);
 
-  // Cristal de Vacío: prisma bi-piramidal alargado (doble cono estirado)
-  const coneTop = new THREE.ConeGeometry(0.13, 0.28, 6).translate(0, 2.05, 0);
-  const coneBottom = new THREE.ConeGeometry(0.13, 0.28, 6);
+  // Cristal de Vacío: prisma bi-piramidal alargado (doble cono estirado centrado en y=1.66)
+  const coneTop = new THREE.ConeGeometry(0.12, 0.24, 6).translate(0, 1.76, 0);
+  const coneBottom = new THREE.ConeGeometry(0.12, 0.24, 6);
   coneBottom.rotateX(Math.PI);
-  coneBottom.translate(0, 1.83, 0);
+  coneBottom.translate(0, 1.56, 0);
   const crystal = mergeGeometries([coneTop, coneBottom]);
   coneTop.dispose(); coneBottom.dispose();
 
-  // Halo orbital de sombras (anillo oblicuo flotante alrededor del cristal abisal)
-  const abyssHalo = new THREE.TorusGeometry(0.28, 0.015, 6, 24);
+  // Halo orbital de sombras (anillo ceñido y recogido, orbitando el cristal a y=1.66)
+  const abyssHalo = new THREE.TorusGeometry(0.20, 0.014, 6, 24);
   abyssHalo.rotateX(Math.PI * 0.35);
-  abyssHalo.translate(0, 1.94, 0);
+  abyssHalo.translate(0, 1.66, 0);
 
   return {
     variant: 'abyss',
@@ -243,14 +243,14 @@ function _createMerchantPedestalGeometries() {
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.485, 0);
 
-  // Gema del Mercader: Icosaedro facetado ("Esmeralda Imperial")
-  const crystal = new THREE.IcosahedronGeometry(0.16, 0);
-  crystal.translate(0, 1.95, 0);
+  // Gema del Mercader: Icosaedro facetado ("Esmeralda Imperial" flotando cerca del cuenco a y=1.68)
+  const crystal = new THREE.IcosahedronGeometry(0.14, 0);
+  crystal.translate(0, 1.68, 0);
 
-  // Accesorio comercial: Balanza o aro de cambio flotante horizontal
-  const coinRing = new THREE.TorusGeometry(0.26, 0.016, 8, 20);
+  // Accesorio comercial: Balanza / aro de cambio ceñido justo encima del cuenco (y=1.68)
+  const coinRing = new THREE.TorusGeometry(0.21, 0.015, 8, 20);
   coinRing.rotateX(Math.PI / 2);
-  coinRing.translate(0, 1.95, 0);
+  coinRing.translate(0, 1.68, 0);
 
   return {
     variant: 'merchant',
@@ -299,20 +299,20 @@ export function buildPedestalMesh(geos, mats) {
   }
 
   // Luz cálida o mística del altar
-  const light = new THREE.PointLight(mats.rune.color, IDLE_LIGHT, 9, 2.0);
-  light.position.set(0, 2.1, 0);
+  const light = new THREE.PointLight(mats.rune.color, IDLE_LIGHT, 8.5, 2.0);
+  light.position.set(0, 1.75, 0);
   root.add(light);
 
   // Brasas ascendentes
   const emberPos = new Float32Array(PARTICLE_COUNT * 3);
   const emberSpeed = new Float32Array(PARTICLE_COUNT);
   for (let k = 0; k < PARTICLE_COUNT; k++) {
-    const r = 0.15 + Math.random() * 0.45;
+    const r = 0.12 + Math.random() * 0.35;
     const a = Math.random() * Math.PI * 2;
     emberPos[k * 3] = Math.cos(a) * r;
-    emberPos[k * 3 + 1] = Math.random() * 2.2;
+    emberPos[k * 3 + 1] = 0.2 + Math.random() * 1.7;
     emberPos[k * 3 + 2] = Math.sin(a) * r;
-    emberSpeed[k] = 0.25 + Math.random() * 0.35;
+    emberSpeed[k] = 0.22 + Math.random() * 0.30;
   }
   const emberGeo = new THREE.BufferGeometry();
   emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos, 3));
