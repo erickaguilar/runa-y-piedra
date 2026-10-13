@@ -682,11 +682,27 @@ export class VoxelSandboxGame {
     }
   }
 
-  /** Tema visual del altar según la mazmorra activa (dorado / brasa / amatista). */
+  /** Tema visual del altar según la mazmorra activa y su capítulo (dorado clásico / amatista crepuscular). */
   pedestalTheme() {
-    const id = this.world.levelRegistry.getCurrentLevel()?.id || '';
+    const curLevel = this.world?.levelRegistry?.getCurrentLevel?.();
+    const id = curLevel?.id || '';
+
+    // 1. Declaración explícita del nivel o del objetivo principal
+    if (curLevel?.pedestalTheme) return curLevel.pedestalTheme;
+    const firstPed = curLevel?.objectives?.find?.(o => (o.type || 'pedestal') === 'pedestal');
+    if (firstPed?.theme) return firstPed.theme;
+
+    // 2. Vinculación formal por capítulo en ChapterRegistry
+    const ch = this.chapterRegistry?.getChapterForLevel?.(id);
+    if (ch) {
+      if (ch.id === 'capitulo_1' || ch.number === 1) return 'classic'; // Cap 1: Cáliz Sagrado Dorado
+      if (ch.id === 'capitulo_2' || ch.number === 2) return 'abyss';   // Cap 2: Altar Crepuscular (Amatista)
+    }
+
+    // 3. Fallbacks contextuales por ID de nivel
+    if (id === 'shadow_sanctum' || id.startsWith('shadow_')) return 'abyss';
+    if (id === 'abyss_throne' || id.startsWith('dungeon_') || id === 'dev_showroom') return 'classic';
     if (id.includes('inferno')) return 'inferno';
-    if (id.includes('abyss')) return 'abyss';
     return 'classic';
   }
 

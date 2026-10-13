@@ -369,3 +369,17 @@ test('Capítulo 2 - shadow_sanctum: preserva el desafío cooperativo de 2 jugado
   assert.equal(s2.maxZ, 52.0, 'Sala 2 llega hasta z=52');
   assert.equal(s3.minZ, 52.5, 'Sala 3 arranca en z=52.5');
 });
+
+test('Altares de Clímax: Capítulo 1 finaliza con Altar Dorado (Cáliz Sagrado) y Capítulo 2 con Altar Crepuscular (Ojo del Vacío)', () => {
+  const world = new World();
+  const cap1Final = world.levelRegistry.getLevel('abyss_throne');
+  const cap2Final = world.levelRegistry.getLevel('shadow_sanctum');
+
+  assert.equal(cap1Final.pedestalTheme, 'classic', 'Capítulo 1 debe culminar con altar classic (dorado)');
+  assert.equal(cap1Final.objectives[0].theme, 'classic');
+  assert.equal(cap1Final.objectives[0].name, 'Altar Dorado de los Primeros Reyes');
+
+  assert.equal(cap2Final.pedestalTheme, 'abyss', 'Capítulo 2 debe culminar con altar abyss (crepuscular)');
+  assert.equal(cap2Final.objectives[0].theme, 'abyss');
+  assert.equal(cap2Final.objectives[0].name, 'Altar Crepuscular');
+});

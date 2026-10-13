@@ -466,3 +466,33 @@ test('Mesa de Cartografía: integra Brújula náutica 3D (dial, rosa de los vien
   for (const m of Object.values(mats)) m?.dispose?.();
 });
 
+test('Escalinata Ancestral: Mejora A integra Brocal 3D de cantería fija con rieles y cromática adaptativa (oro/fuego vs amatista/abismo)', () => {
+  const rect = { x1: 11, x2: 12, z1: 31, z2: 33 };
+
+  // 1. Tema Clásico (Capítulo 1: Mazmorra Ancestral y Cripta de Fuego)
+  const classicMats = createStairsMaterials(null, 'classic');
+  assert.equal(classicMats.lightColor, 0xea580c, 'Luz abisal clásica debe ser ígnea / ámbar');
+  assert.equal(classicMats.gold.color.getHex(), 0xf59e0b, 'Runas deben ser de oro solar');
+
+  const classicModel = buildStairsMesh(rect, classicMats, 'classic');
+  assert.ok(classicModel.root instanceof THREE.Group);
+  assert.ok(classicModel.slab instanceof THREE.Group, 'Debe contener la losa corrediza');
+  assert.ok(classicModel.frame instanceof THREE.Group, 'Debe contener el marco brocal 3D de cantería');
+  assert.equal(classicModel.frame.name, 'StairsStoneFrame');
+  assert.ok(classicModel.frame.children.length >= 3, 'El marco debe incluir bordillos, rieles de forja y cantoneras');
+  assert.equal(classicModel.pitLight.color.getHex(), 0xea580c);
+  assert.equal(classicModel.root.children.includes(classicModel.frame), true, 'El marco debe estar anclado a root');
+
+  // 2. Tema Abisal (Capítulo 2: Cripta de las Sombras)
+  const abyssMats = createStairsMaterials(null, 'abyss');
+  assert.equal(abyssMats.lightColor, 0x8b5cf6, 'Luz abisal de sombras debe ser violeta / amatista');
+  assert.equal(abyssMats.gold.color.getHex(), 0xc084fc, 'Runas deben ser de amatista espectral');
+
+  const abyssModel = buildStairsMesh(rect, abyssMats, 'abyss');
+  assert.equal(abyssModel.pitLight.color.getHex(), 0x8b5cf6);
+  assert.ok(abyssModel.frame instanceof THREE.Group);
+
+  for (const m of Object.values(classicMats)) m?.dispose?.();
+  for (const m of Object.values(abyssMats)) m?.dispose?.();
+});
+

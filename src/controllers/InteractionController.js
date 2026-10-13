@@ -628,13 +628,20 @@ export class InteractionController {
     this.game.ui.showNarrativeMessage(':stone: ¡La losa cede! Una escalinata desciende a la oscuridad. ¡Bajad!', 4500);
   }
 
-  /** Oscurece el pozo (serpentina en degradado + fondo y muros casi negros). */
+  /** Oscurece el pozo (serpentina en degradado + fondo y muros casi negros o azul pizarra abisal). */
   tintStairPit(rect) {
     if (!rect) return;
     const game = this.game;
     const BOTTOM = WORLD_CONFIG.MIN_Y ?? -8;
+    const isAbyss = (game.pedestalTheme ? game.pedestalTheme() : 'classic') === 'abyss';
     const shade = (y) => {
       const f = Math.min(1, Math.max(0, (-1 - y) / (-1 - BOTTOM)));
+      if (isAbyss) {
+        const r = Math.round(50 - f * (50 - 10));
+        const g = Math.round(45 - f * (45 - 8));
+        const b = Math.round(85 - f * (85 - 18));
+        return (r << 16) | (g << 8) | b;
+      }
       const v = Math.round(74 - f * (74 - 11));
       return (v << 16) | (v << 8) | v;
     };
@@ -649,7 +656,7 @@ export class InteractionController {
       for (let z = rect.z1 - 1; z <= rect.z2 + 1; z++) {
         for (let y = BOTTOM; y <= -1; y++) {
           if (game.world.get(x, y, z) === BLOCK_TYPES.WALL) {
-            game.voxelMap.setTint(x, y, z, 0x141414);
+            game.voxelMap.setTint(x, y, z, isAbyss ? 0x0f1422 : 0x141414);
           }
         }
       }
@@ -767,7 +774,8 @@ export class InteractionController {
   ensureStairsState() {
     const game = this.game;
     const rect = this.stairPitRect();
-    game.stairsRenderer.loadStairs(rect);
+    const theme = game.pedestalTheme ? game.pedestalTheme() : 'classic';
+    game.stairsRenderer.loadStairs(rect, theme);
     if (!rect) return;
     const shouldOpen = !!rect.open || this.isPitOpenInBlocks(rect);
     if (shouldOpen) {

@@ -76,15 +76,17 @@
       "respawn": { "x": 11.5, "y": 1.2, "z": 25.0 }
     }
   ],
+  "pedestalTheme": "classic",
   "objectives": [
     {
       "type": "pedestal",
-      "name": "Trono del Vacío",
+      "theme": "classic",
+      "name": "Altar Dorado de los Primeros Reyes",
       "x": 12,
       "y": 1,
       "z": 30,
       "triggerRadius": 3.2,
-      "completeMessage": ":crown: ¡Trono del Vacío Reclamado! Sois leyendas de la mazmorra cooperativa."
+      "completeMessage": ":crown: ¡Altar Dorado de los Primeros Reyes Consagrado! ¡Capítulo 1: El Descenso Ancestral Conquistado!"
     }
   ],
   "stairs": null,

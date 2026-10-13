@@ -85,7 +85,10 @@ export class PedestalRenderer {
         const y = cfg.y ?? 1.0;
         const z = cfg.z ?? 30;
 
-        const pMesh = buildPedestalMesh(themeGeos, this._mats);
+        const objTheme = cfg.theme || theme;
+        const geos = this._getGeometries(objTheme);
+        const mats = (objTheme === this._mats.theme) ? this._mats : this._createMaterials(objTheme);
+        const pMesh = buildPedestalMesh(geos, mats);
 
         pMesh.root.position.set(x, Math.max(1.0, y), z);
         this.group.add(pMesh.root);

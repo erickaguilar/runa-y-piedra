@@ -32,16 +32,30 @@ export class StairsRenderer {
   /**
    * Registra la escalinata sellada sobre el rectángulo de fosa.
    * @param {{x1,x2,z1,z2}} rect bloques de suelo que se retirarán al abrir
+   * @param {string} theme tema visual ('classic' u 'abyss')
    */
-  loadStairs(rect = null) {
+  loadStairs(rect = null, theme = 'classic') {
     this.clear();
     if (!rect) return;
 
-    const { root, slab, pitLight, fog } = buildStairsMesh(rect, this.mats);
+    if (this.mats?.theme !== theme) {
+      for (const [k, m] of Object.entries(this.mats || {})) {
+        if (k !== 'wood' && m?.dispose) m.dispose();
+      }
+      this.mats = createStairsMaterials(this._woodTexture, theme);
+      this.woodMat = this.mats.wood;
+      this.stoneMat = this.mats.stone;
+      this.stoneDarkMat = this.mats.stoneDark;
+      this.ironMat = this.mats.iron;
+      this.goldMat = this.mats.gold;
+      this.blackMat = this.mats.black;
+    }
+
+    const { root, slab, frame, pitLight, fog } = buildStairsMesh(rect, this.mats, theme);
     this.group.add(root);
 
     this.stairs = {
-      rect, root, slab, pitLight, fog,
+      rect, root, slab, frame, pitLight, fog,
       state: 'closed', t: 0, shakeSeed: Math.random() * 10,
     };
   }
