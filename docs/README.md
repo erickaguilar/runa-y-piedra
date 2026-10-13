@@ -152,3 +152,9 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Desglose detallado de los 11 modelos 3D del motor: 5 arquetipos de héroes con kits distintivos, cofre de botín animado a 85°, puertas batientes de doble hoja, altar con orbe flotante en levitación armónica, escalinata ceremonial con losa corrediza y malla instanciada del mundo vóxel.
     - Modularización atómica de componentes gráficos en `src/render/textures/` (sprites SVG por familia, incluyendo `ceilings.js`) y `src/render/models/` (constructores paramétricos de héroes y props).
     - Matriz cuantitativa de geometrías, algoritmos deterministas de selección de tiles y presupuestos de Draw Calls (20-35 DC).
+
+26. [**26. Arquitectura de Altares por Capítulo y Separación Mecánica de Escalinatas**](./26-altares-por-capitulo-y-escalinatas.md)
+    - Desacoplamiento conceptual y jugable neto entre la losa de escalinata (avance entre mazmorras) y los altares (clímax de capítulo y utilidades de campamento).
+    - Funcionamiento autoritativo de `stairs` con fosa dinámica a $y=-8$ y cuenta atrás de descenso.
+    - Catálogo de los altares únicos por capítulo: Altar Sagrado Ancestral (Capítulo 1), Altar Crepuscular con halo orbital (Capítulo 2), Pedestal del Mercader con Balanza 3D (*Scales*) y Mesa de Cartografía con Brújula náutica 3D y aguja magnética.
+    - Hoja de ruta para los Capítulos 3 al 10 e invariantes técnicas de centrado y cinemática orbital.
