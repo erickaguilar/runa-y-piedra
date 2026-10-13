@@ -119,9 +119,8 @@ function _createClassicPedestalGeometries() {
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.445, 0);
 
-  // Cristal rúnico central (octaedro simétrico sagrado a corta distancia de la mesa)
+  // Cristal rúnico central (octaedro simétrico centrado en su origen local 0,0,0)
   const crystal = new THREE.OctahedronGeometry(0.14, 0);
-  crystal.translate(0, 1.66, 0);
 
   return {
     variant: 'classic',
@@ -181,11 +180,11 @@ function _createAbyssPedestalGeometries() {
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.445, 0);
 
-  // Cristal de Vacío: prisma bi-piramidal alargado (doble cono estirado centrado en y=1.66)
-  const coneTop = new THREE.ConeGeometry(0.12, 0.24, 6).translate(0, 1.76, 0);
+  // Cristal de Vacío: prisma bi-piramidal alargado centrado en origen local (0,0,0)
+  const coneTop = new THREE.ConeGeometry(0.12, 0.24, 6).translate(0, 0.10, 0);
   const coneBottom = new THREE.ConeGeometry(0.12, 0.24, 6);
   coneBottom.rotateX(Math.PI);
-  coneBottom.translate(0, 1.56, 0);
+  coneBottom.translate(0, -0.10, 0);
   const crystal = mergeGeometries([coneTop, coneBottom]);
   coneTop.dispose(); coneBottom.dispose();
 
@@ -242,9 +241,8 @@ function _createMerchantPedestalGeometries() {
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.485, 0);
 
-  // Gema del Mercader: Icosaedro facetado ("Esmeralda Imperial" flotando cerca del cuenco a y=1.68)
+  // Gema del Mercader: Icosaedro facetado centrado en origen local (0,0,0)
   const crystal = new THREE.IcosahedronGeometry(0.14, 0);
-  crystal.translate(0, 1.68, 0);
 
   // Accesorio comercial: Balanza / aro de cambio centrado en su origen local (0,0,0)
   const coinRing = new THREE.TorusGeometry(0.21, 0.015, 8, 20);
@@ -285,16 +283,19 @@ export function buildPedestalMesh(geos, mats) {
   runePivot.add(runeMesh, ringMesh);
   root.add(runePivot);
 
+  // Cota de altura compartida: las figuras geométricas y sus aros coinciden en el mismo centro
+  const baseY = geos.variant === 'merchant' ? 1.68 : 1.66;
+
   // Cristal flotante
   const crystalMesh = new THREE.Mesh(geos.crystal, mats.crystal);
+  crystalMesh.position.set(0, baseY, 0);
   root.add(crystalMesh);
 
   // Accesorio único opcional (ej: halo orbital abisal o anillo de comercio)
   let accessoryMesh = null;
-  const accessoryBaseY = geos.variant === 'merchant' ? 1.68 : 1.66;
   if (geos.accessory) {
     accessoryMesh = new THREE.Mesh(geos.accessory, mats.gold);
-    accessoryMesh.position.set(0, accessoryBaseY, 0);
+    accessoryMesh.position.set(0, baseY, 0);
     root.add(accessoryMesh);
   }
 

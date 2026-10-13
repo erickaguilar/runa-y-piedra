@@ -337,19 +337,20 @@ export class PropShowcaseRenderer {
         if (anim.runePivot) {
           anim.runePivot.rotation.y += dt * 0.8;
         }
+        const baseY = anim.variant === 'merchant' ? 1.68 : 1.66;
+        const bob = Math.sin(anim.phase * 2.2) * 0.035;
+
         if (anim.crystalMesh) {
-          const baseY = anim.variant === 'merchant' ? 1.68 : 1.66;
-          anim.crystalMesh.position.y = baseY + Math.sin(anim.phase * 2.2) * 0.04;
+          anim.crystalMesh.position.y = baseY + bob;
           anim.crystalMesh.rotation.y += dt * 1.2;
         }
         if (anim.accessoryMesh) {
+          anim.accessoryMesh.position.y = baseY + bob;
           if (anim.variant === 'merchant') {
             anim.accessoryMesh.rotation.z += dt * 0.9;
-            anim.accessoryMesh.position.y = 1.68 + Math.sin(anim.phase * 2.0) * 0.03;
           } else {
             anim.accessoryMesh.rotation.y += dt * 1.5;
             anim.accessoryMesh.rotation.z += dt * 0.5;
-            anim.accessoryMesh.position.y = 1.66 + Math.sin(anim.phase * 1.8) * 0.03;
           }
         }
         if (anim.embers && anim.emberSpeed) {

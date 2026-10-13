@@ -228,25 +228,26 @@ export class PedestalRenderer {
       p.runePivot.rotation.y += safeDt * (0.6 + p.spinBoost);
       p.ringMesh.rotation.y -= safeDt * 0.35;
 
-      // Cristal: levitación + giro + latido suave (cerca de la coronación del altar)
-      const bob = Math.sin(time * 1.6 + p.phase) * 0.04;
-      p.crystalMesh.position.y = bob;
+      // Base de altura común para el cristal y su aro
+      const baseY = p.isMerchant ? 1.68 : 1.66;
+      const bob = Math.sin(time * 1.6 + p.phase) * 0.035;
+
+      // Cristal: levitación + giro + latido suave a la altura exacta del aro
+      p.crystalMesh.position.y = baseY + bob;
       p.crystalMesh.rotation.y += safeDt * (1.2 + p.spinBoost * 0.5);
       const pulse = 1 + Math.sin(time * 2.2 + p.phase) * 0.05 + p.flash * 0.6;
       p.crystalMesh.scale.set(pulse, pulse * 1.2, pulse);
 
-      // Accesorio temático (halo abisal u órbita de moneda del mercader) ceñido al cristal
+      // Accesorio temático (halo abisal u órbita de moneda del mercader) concéntrico a la figura
       if (p.accessoryMesh) {
-        const baseY = p.isMerchant ? 1.68 : 1.66;
+        p.accessoryMesh.position.y = baseY + bob;
         if (p.isMerchant) {
           // El anillo de balance/moneda gira suavemente en contra-rotación junto al cuenco
           p.accessoryMesh.rotation.z += safeDt * 0.9;
-          p.accessoryMesh.position.y = baseY + Math.sin(time * 2.0 + p.phase) * 0.03;
         } else {
           // El halo orbital abisal describe una oscilación mística ceñida alrededor del cristal
           p.accessoryMesh.rotation.y += safeDt * 1.5;
           p.accessoryMesh.rotation.z += safeDt * 0.5;
-          p.accessoryMesh.position.y = baseY + Math.sin(time * 1.8 + p.phase) * 0.03;
         }
       }
 
