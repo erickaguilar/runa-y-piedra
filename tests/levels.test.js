@@ -580,4 +580,30 @@ test('DoorRenderer: genera marco arquitectónico 3D con dintel de piedra para ca
   renderer.dispose();
 });
 
+test('dev_showroom: Sala 6 (Galería de Modelos 3D) tiene suelo sólido y acceso continuo sin barreras', async () => {
+  const { tryMove } = await import('../src/core/PhysicsAABB.js');
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('dev_showroom'));
+
+  assert.equal(world.sizeZ, 96);
+  assert.equal(world.blocks.length, 24 * 24 * 96);
+
+  // 1. Suelo sólido existe en toda la Sala 6
+  for (let z = 64; z <= 94; z++) {
+    const floorTile = world.get(12, 0, z);
+    assert.ok(
+      [BLOCK_TYPES.FLOOR_STONE, BLOCK_TYPES.FLOOR_WORN, BLOCK_TYPES.FLOOR_MOSS].includes(floorTile),
+      `Debe existir suelo válido en z=${z}`
+    );
+  }
+
+  // 2. Paso libre por el pasillo central de Sala 5 (z=58) a Sala 6 (z=75)
+  const p = { x: 12.0, y: 1.0, z: 58.0 };
+  for (let step = 0; step < 35; step++) {
+    const res = tryMove(world, p, 0, 0, 0.5);
+    assert.equal(res.hitZ, false, `No debe chocar contra ninguna barrera en z=${p.z.toFixed(2)}`);
+  }
+  assert.ok(p.z >= 75.0, 'El jugador debe poder avanzar libremente hasta el interior de la Sala 6');
+});
+
 

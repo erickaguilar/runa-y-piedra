@@ -69,15 +69,26 @@ export class LevelLoader {
     const sizeY = levelData.dimensions?.sizeY || WORLD_CONFIG.SIZE_Y;
     const sizeZ = levelData.dimensions?.sizeZ || WORLD_CONFIG.SIZE_Z;
 
-    // 1. Limpiar todos los bloques
-    world.blocks.fill(BLOCK_TYPES.AIR);
+    const minY = world.minY ?? (WORLD_CONFIG.MIN_Y ?? 0);
+    const verticalSpan = (levelData.dimensions?.sizeY !== undefined)
+      ? (sizeY - minY)
+      : (world.sizeY || (WORLD_CONFIG.SIZE_Y - minY));
+
+    world.sizeX = sizeX;
+    world.sizeY = verticalSpan;
+    world.sizeZ = sizeZ;
+
+    // 1. Asegurar capacidad y limpiar todos los bloques
+    const totalBlocks = sizeX * verticalSpan * sizeZ;
+    if (!world.blocks || world.blocks.length !== totalBlocks) {
+      world.blocks = new Uint8Array(totalBlocks);
+    } else {
+      world.blocks.fill(BLOCK_TYPES.AIR);
+    }
     world.isDoor1Open = false;
     world.isDoor2Open = false;
 
     // 2. Asociar metadata y configuraciones de nivel
-    world.sizeX = sizeX;
-    world.sizeY = sizeY;
-    world.sizeZ = sizeZ;
     world.currentLevel = levelData;
     world.doors = (levelData.doors || []).map(d => ({
       ...d,

@@ -7,7 +7,7 @@ const MIN_Y = WORLD_CONFIG.MIN_Y ?? 0;
 
 export function isSolid(world, bx, by, bz) {
   const block = world.get(bx, by, bz);
-  return block !== BLOCK_TYPES.AIR && block !== BLOCK_TYPES.LAVA;
+  return block !== BLOCK_TYPES.AIR && block !== BLOCK_TYPES.LAVA && block !== undefined && block !== null;
 }
 
 function overlaps(world, x, y, z) {

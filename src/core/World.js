@@ -40,13 +40,16 @@ export class World {
   }
 
   idx(x, y, z) {
-    return x + (y - this.minY) * WORLD_X + z * WORLD_X * this.sizeY;
+    const sx = this.sizeX || WORLD_X;
+    const sy = this.sizeY || WORLD_Y_SIZE;
+    return x + (y - this.minY) * sx + z * sx * sy;
   }
 
   inBounds(x, y, z) {
     const maxX = this.sizeX || WORLD_X;
     const maxZ = this.sizeZ || WORLD_Z;
-    return x >= 0 && x < maxX && y >= this.minY && y < WORLD_Y && z >= 0 && z < maxZ;
+    const maxY = (this.minY ?? WORLD_MIN_Y) + (this.sizeY || WORLD_Y_SIZE);
+    return x >= 0 && x < maxX && y >= this.minY && y < maxY && z >= 0 && z < maxZ;
   }
 
   isBorder(x, z) {
@@ -64,12 +67,15 @@ export class World {
 
   get(x, y, z) {
     if (!this.inBounds(x, y, z)) return BLOCK_TYPES.AIR;
-    return this.blocks[this.idx(x, y, z)];
+    const val = this.blocks[this.idx(x, y, z)];
+    return val !== undefined ? val : BLOCK_TYPES.AIR;
   }
 
   set(x, y, z, v) {
     if (!this.inBounds(x, y, z)) return false;
-    this.blocks[this.idx(x, y, z)] = v;
+    const i = this.idx(x, y, z);
+    if (i >= this.blocks.length) return false;
+    this.blocks[i] = v;
     return true;
   }
 
@@ -87,6 +93,9 @@ export class World {
   }
 
   setFromArray(arr) {
+    if (this.blocks.length !== arr.length) {
+      this.blocks = new Uint8Array(arr.length);
+    }
     this.blocks.set(arr);
     this.isDoor1Open = (this.get(11, 1, 11) === BLOCK_TYPES.AIR);
     this.isDoor2Open = (this.get(11, 1, 24) === BLOCK_TYPES.AIR);

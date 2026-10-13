@@ -24,7 +24,7 @@ export class VoxelMap {
     this.scene = scene;
     this.minY = world.minY ?? WORLD_MIN_Y;
     this.sizeY = world.sizeY ?? WORLD_Y_SIZE;
-    this.max = WORLD_X * this.sizeY * WORLD_Z;
+    this.max = Math.max(WORLD_X * this.sizeY * WORLD_Z, 65536);
 
     const geo = new THREE.BoxGeometry(1, 1, 1);
 
@@ -83,7 +83,8 @@ varying vec2 vAtlasOffset;`
     this.dummy = new THREE.Object3D();
 
     // Mapeos biyectivos
-    this.blockToInst = new Int32Array(this.max).fill(-1);
+    const totalBlocks = Math.max(this.world?.blocks?.length || 0, this.max);
+    this.blockToInst = new Int32Array(totalBlocks).fill(-1);
     this.instToBlock = new Int32Array(this.max).fill(-1);
     this.freeSlots = [];
     this.usedCount = 0;
@@ -97,6 +98,12 @@ varying vec2 vAtlasOffset;`
     if (type === BLOCK_TYPES.DOOR) return; // Las puertas las renderiza DoorRenderer con hojas 3D batientes
     if (type === BLOCK_TYPES.PEDESTAL) return; // El pedestal lo renderiza PedestalRenderer como altar 3D
     const bIdx = this.world.idx(x, y, z);
+    if (bIdx < 0) return;
+    if (bIdx >= this.blockToInst.length) {
+      const next = new Int32Array(Math.max(bIdx + 2048, this.blockToInst.length * 2)).fill(-1);
+      next.set(this.blockToInst);
+      this.blockToInst = next;
+    }
     if (this.blockToInst[bIdx] !== -1) return;
 
     let inst;
@@ -130,7 +137,9 @@ varying vec2 vAtlasOffset;`
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
   }
 
-  removeBlock(x, y, z) {    const bIdx = this.world.idx(x, y, z);
+  removeBlock(x, y, z) {
+    const bIdx = this.world.idx(x, y, z);
+    if (bIdx < 0 || bIdx >= this.blockToInst.length) return;
     const inst = this.blockToInst[bIdx];
     if (inst === -1) return;
 
@@ -152,6 +161,7 @@ varying vec2 vAtlasOffset;`
    */
   setTint(x, y, z, hex) {
     const bIdx = this.world.idx(x, y, z);
+    if (bIdx < 0 || bIdx >= this.blockToInst.length) return false;
     const inst = this.blockToInst[bIdx];
     if (inst === undefined || inst === -1) return false;
     this.mesh.setColorAt(inst, new THREE.Color(hex));
@@ -181,6 +191,15 @@ varying vec2 vAtlasOffset;`
   }
 
   rebuildFromWorld() {
+    this.minY = this.world?.minY ?? WORLD_MIN_Y;
+    this.sizeY = this.world?.sizeY ?? WORLD_Y_SIZE;
+    const requiredCap = Math.max(
+      this.world?.blocks?.length || 0,
+      (this.world?.sizeX || WORLD_X) * (this.world?.sizeY || this.sizeY) * (this.world?.sizeZ || WORLD_Z)
+    );
+    if (this.blockToInst.length < requiredCap) {
+      this.blockToInst = new Int32Array(requiredCap);
+    }
     this.blockToInst.fill(-1);
     this.instToBlock.fill(-1);
     this.freeSlots.length = 0;
@@ -189,8 +208,9 @@ varying vec2 vAtlasOffset;`
 
     const maxX = this.world?.sizeX || WORLD_X;
     const maxZ = this.world?.sizeZ || WORLD_Z;
+    const maxY = this.minY + this.sizeY;
     for (let x = 0; x < maxX; x++) {
-      for (let y = this.minY; y < WORLD_Y; y++) {
+      for (let y = this.minY; y < maxY; y++) {
         for (let z = 0; z < maxZ; z++) {
           const t = this.world.get(x, y, z);
           if (t !== BLOCK_TYPES.AIR && t !== BLOCK_TYPES.DOOR && t !== BLOCK_TYPES.PEDESTAL) {
@@ -202,11 +222,11 @@ varying vec2 vAtlasOffset;`
   }
 
   /** Convierte índice interno en coordenadas {x, y, z}. */
-  static blockIndexToXYZ(bIdx) {
-    const x = bIdx % WORLD_X;
-    const tmp = Math.floor(bIdx / WORLD_X);
-    const y = (tmp % WORLD_Y_SIZE) + WORLD_MIN_Y;
-    const z = Math.floor(tmp / WORLD_Y_SIZE);
+  static blockIndexToXYZ(bIdx, sizeX = WORLD_X, sizeY = WORLD_Y_SIZE) {
+    const x = bIdx % sizeX;
+    const tmp = Math.floor(bIdx / sizeX);
+    const y = (tmp % sizeY) + WORLD_MIN_Y;
+    const z = Math.floor(tmp / sizeY);
     return { x, y, z };
   }
 

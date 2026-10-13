@@ -167,7 +167,7 @@
     {
       "id": "sala_modelos",
       "name": "Sala 6 (Galería de Modelos y Props 3D)",
-      "minZ": 64.5,
+      "minZ": 64.0,
       "maxZ": 96.0,
       "respawn": { "x": 12.0, "y": 1.2, "z": 66.5 }
     }
@@ -369,7 +369,7 @@
     { "type": "divider", "z": 24, "height": 6, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
     { "type": "divider", "z": 37, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13] },
     { "type": "divider", "z": 49, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13] },
-    { "type": "divider", "z": 64, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13] },
+    { "type": "divider", "z": 64, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13], "openHeight": 3 },
 
     { "type": "fill", "block": "FLOOR_STONE", "from": [4, 1, 3], "to": [5, 1, 4] },
     { "type": "fill", "block": "FLOOR_WORN", "from": [7, 1, 3], "to": [8, 1, 4] },
@@ -434,7 +434,6 @@
     { "type": "pillar", "x": 21, "z": 62, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 4, "z": 62, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 8, "z": 62, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 12, "z": 62, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 16, "z": 62, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 20, "z": 62, "height": 5, "block": "PILLAR" },
 
