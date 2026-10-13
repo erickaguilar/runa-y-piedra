@@ -345,8 +345,10 @@ export class PropShowcaseRenderer {
           if (anim.variant === 'merchant') {
             anim.crystalMesh.rotation.y += dt * 0.8;
             anim.crystalMesh.rotation.z = Math.sin(anim.phase * 1.8) * 0.08;
+          } else if (anim.variant === 'abyss') {
+            anim.crystalMesh.rotation.y += dt * 0.9;
           } else {
-            anim.crystalMesh.rotation.y += dt * 1.2;
+            anim.crystalMesh.rotation.y += dt * 0.6;
           }
         }
         if (anim.accessoryMesh) {
@@ -354,9 +356,11 @@ export class PropShowcaseRenderer {
           if (anim.variant === 'merchant') {
             anim.accessoryMesh.rotation.y = anim.crystalMesh.rotation.y;
             anim.accessoryMesh.rotation.z = anim.crystalMesh.rotation.z;
+          } else if (anim.variant === 'abyss') {
+            anim.accessoryMesh.rotation.y += dt * 1.3;
+            anim.accessoryMesh.rotation.z += dt * 0.4;
           } else {
-            anim.accessoryMesh.rotation.y += dt * 1.5;
-            anim.accessoryMesh.rotation.z += dt * 0.5;
+            anim.accessoryMesh.rotation.y -= dt * 1.4;
           }
         }
         if (anim.embers && anim.emberSpeed) {

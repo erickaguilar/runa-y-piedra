@@ -237,30 +237,37 @@ export class PedestalRenderer {
       const baseY = p.isMerchant ? 1.68 : 1.66;
       const bob = Math.sin(time * 1.6 + p.phase) * 0.035;
 
-      // Cristal / Balanza: levitación + giro suave sobre el pedestal
+      // Reliquia central: levitación + giro suave sobre el pedestal
       p.crystalMesh.position.y = baseY + bob;
       if (p.isMerchant) {
         // La balanza gira con elegancia y oscila levemente (inclinación de pesaje)
         p.crystalMesh.rotation.y += safeDt * 0.8;
         const tilt = Math.sin(time * 1.4 + p.phase) * 0.08;
         p.crystalMesh.rotation.z = tilt;
+      } else if (p.isClassic || (!p.isMerchant && !p.isAbyss && !p.accessoryMesh?.geometry?.parameters?.arc)) {
+        // Cáliz Sagrado: giro señorial pausado
+        p.crystalMesh.rotation.y += safeDt * 0.6;
       } else {
-        p.crystalMesh.rotation.y += safeDt * (1.2 + p.spinBoost * 0.5);
-        const pulse = 1 + Math.sin(time * 2.2 + p.phase) * 0.05 + p.flash * 0.6;
-        p.crystalMesh.scale.set(pulse, pulse * 1.2, pulse);
+        // Ojo del Vacío: pulso y mirada mística
+        p.crystalMesh.rotation.y += safeDt * 0.9;
+        const pulse = 1 + Math.sin(time * 2.2 + p.phase) * 0.04 + p.flash * 0.5;
+        p.crystalMesh.scale.set(pulse, pulse, pulse);
       }
 
-      // Accesorio temático (halo abisal u órbita de gema tasadora)
+      // Accesorio temático (Esencia Solar / Corona de Sombras / Gema de Tasación)
       if (p.accessoryMesh) {
         p.accessoryMesh.position.y = baseY + bob;
         if (p.isMerchant) {
           // La gema de tasación sigue la orientación y balanceo de la balanza
           p.accessoryMesh.rotation.y = p.crystalMesh.rotation.y;
           p.accessoryMesh.rotation.z = p.crystalMesh.rotation.z;
+        } else if (p.isClassic || (!p.isMerchant && !p.isAbyss && !p.accessoryMesh?.geometry?.parameters?.arc)) {
+          // La Esencia Solar gira dentro de la copa del cáliz en contra-rotación
+          p.accessoryMesh.rotation.y -= safeDt * 1.4;
         } else {
-          // El halo orbital abisal describe una oscilación mística ceñida alrededor del cristal
-          p.accessoryMesh.rotation.y += safeDt * 1.5;
-          p.accessoryMesh.rotation.z += safeDt * 0.5;
+          // La Corona de Sombras orbita y oscila protegiendo el Ojo del Vacío
+          p.accessoryMesh.rotation.y += safeDt * 1.3;
+          p.accessoryMesh.rotation.z += safeDt * 0.4;
         }
       }
 

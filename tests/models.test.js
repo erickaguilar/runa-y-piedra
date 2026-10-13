@@ -397,23 +397,26 @@ test('Modelos Puertas: createDoorMaterials define polygonOffset y buildDoorFrame
 });
 
 test('Modelos Pedestales: geometrías y accesorios únicos para Classic, Abismo y Mercader', () => {
-  // 1. Altar Clásico: fuste con 4 contrafuertes y cristal octaédrico
+  // 1. Altar Clásico: fuste con 4 contrafuertes, Cáliz Sagrado 3D y Esencia Solar flotante
   const classicGeos = createPedestalGeometries('classic');
   const classicMats = createPedestalMaterials('classic');
   assert.equal(classicGeos.variant, 'classic');
-  assert.equal(classicGeos.accessory, undefined);
+  assert.ok(classicGeos.crystal instanceof THREE.BufferGeometry, 'Debe incluir la geometría del Cáliz Sagrado');
+  assert.ok(classicGeos.accessory instanceof THREE.BufferGeometry, 'Debe incluir la Esencia Solar');
   const classicModel = buildPedestalMesh(classicGeos, classicMats);
   assert.ok(classicModel.root instanceof THREE.Group);
-  assert.ok(classicModel.crystalMesh);
-  assert.equal(classicModel.accessoryMesh, null);
+  assert.ok(classicModel.crystalMesh instanceof THREE.Mesh);
+  assert.ok(classicModel.accessoryMesh instanceof THREE.Mesh);
 
-  // 2. Altar Abisal: fuste hexagonal con 4 colmillos, doble cono y halo orbital
+  // 2. Altar Abisal: fuste hexagonal con 4 colmillos, Ojo del Vacío 3D y Corona de Sombras
   const abyssGeos = createPedestalGeometries('abyss');
   const abyssMats = createPedestalMaterials('abyss');
   assert.equal(abyssGeos.variant, 'abyss');
-  assert.ok(abyssGeos.accessory instanceof THREE.TorusGeometry, 'Debe incluir halo orbital de sombras');
+  assert.ok(abyssGeos.crystal instanceof THREE.BufferGeometry, 'Debe incluir el Ojo del Vacío');
+  assert.ok(abyssGeos.accessory instanceof THREE.BufferGeometry, 'Debe incluir la Corona / Creciente de Sombras');
   const abyssModel = buildPedestalMesh(abyssGeos, abyssMats);
-  assert.ok(abyssModel.accessoryMesh instanceof THREE.Mesh, 'Debe instanciar malla de halo accesorio');
+  assert.ok(abyssModel.crystalMesh instanceof THREE.Mesh);
+  assert.ok(abyssModel.accessoryMesh instanceof THREE.Mesh);
 
   // 3. Pedestal Mercader: fuste octogonal, mostrador con cuenco, Balanza de Comercio (Scales) y gema tasadora
   const merchantGeos = createPedestalGeometries('merchant');

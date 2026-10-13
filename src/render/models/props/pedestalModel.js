@@ -119,8 +119,24 @@ function _createClassicPedestalGeometries() {
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.445, 0);
 
-  // Cristal rúnico central (octaedro simétrico centrado en su origen local 0,0,0)
-  const crystal = new THREE.OctahedronGeometry(0.14, 0);
+  // 1. Reliquia del Capítulo 1: Cáliz Sagrado de los Primeros Reyes (Cáliz 3D en forja de oro)
+  // Base / pie acampanado del cáliz
+  const chaliceFoot = new THREE.CylinderGeometry(0.045, 0.11, 0.035, 16).translate(0, -0.12, 0);
+  // Tallo y nudo central cincelado
+  const chaliceStem = new THREE.CylinderGeometry(0.022, 0.026, 0.10, 12).translate(0, -0.05, 0);
+  const chaliceNode = new THREE.SphereGeometry(0.036, 12, 10).translate(0, -0.05, 0);
+  // Copa del cáliz (cuerpo cónico suave + reborde circular)
+  const chaliceCup = new THREE.CylinderGeometry(0.125, 0.04, 0.14, 16).translate(0, 0.07, 0);
+  const chaliceRim = new THREE.TorusGeometry(0.125, 0.012, 6, 20);
+  chaliceRim.rotateX(Math.PI / 2);
+  chaliceRim.translate(0, 0.14, 0);
+
+  const chaliceGeo = mergeGeometries([chaliceFoot, chaliceStem, chaliceNode, chaliceCup, chaliceRim]);
+  chaliceFoot.dispose(); chaliceStem.dispose(); chaliceNode.dispose();
+  chaliceCup.dispose(); chaliceRim.dispose();
+
+  // 2. Esencia solar sagrada: pequeña lágrima / gema sagrada flotando en la boca del cáliz
+  const solarRelic = new THREE.OctahedronGeometry(0.045, 0).translate(0, 0.13, 0);
 
   return {
     variant: 'classic',
@@ -131,7 +147,8 @@ function _createClassicPedestalGeometries() {
     goldTrim,
     runeDisc,
     runeRing,
-    crystal,
+    crystal: chaliceGeo,
+    accessory: solarRelic,
   };
 }
 
@@ -146,7 +163,7 @@ function _createAbyssPedestalGeometries() {
   // Fuste hexagonal estilizado
   const colHex = new THREE.CylinderGeometry(0.32, 0.42, 0.88, 6).translate(0, 0.76, 0);
 
-  // 4 Pilares espigados / colmillos ceremoniales que enmarcan la gema flotante
+  // 4 Pilares espigados / colmillos ceremoniales que enmarcan el Ojo del Vacío
   const spikeGeos = [];
   const radius = 0.34;
   for (let i = 0; i < 4; i++) {
@@ -180,17 +197,27 @@ function _createAbyssPedestalGeometries() {
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.445, 0);
 
-  // Cristal de Vacío: prisma bi-piramidal alargado centrado en origen local (0,0,0)
-  const coneTop = new THREE.ConeGeometry(0.12, 0.24, 6).translate(0, 0.10, 0);
-  const coneBottom = new THREE.ConeGeometry(0.12, 0.24, 6);
-  coneBottom.rotateX(Math.PI);
-  coneBottom.translate(0, -0.10, 0);
-  const crystal = mergeGeometries([coneTop, coneBottom]);
-  coneTop.dispose(); coneBottom.dispose();
+  // Reliquia del Capítulo 2: Corona de las Sombras / Ojo del Vacío 3D
+  // Orbe central del ojo de sombra
+  const eyeSphere = new THREE.SphereGeometry(0.09, 16, 14);
+  // Iris / pupila rasgada de obsidiana
+  const pupilTop = new THREE.ConeGeometry(0.032, 0.08, 4).translate(0, 0.035, 0.085);
+  const pupilBottom = new THREE.ConeGeometry(0.032, 0.08, 4);
+  pupilBottom.rotateX(Math.PI);
+  pupilBottom.translate(0, -0.035, 0.085);
+  const voidEyeCore = mergeGeometries([eyeSphere, pupilTop, pupilBottom]);
+  eyeSphere.dispose(); pupilTop.dispose(); pupilBottom.dispose();
 
-  // Halo orbital de sombras (geometría centrada en su propio origen local 0,0,0)
-  const abyssHalo = new THREE.TorusGeometry(0.20, 0.014, 6, 24);
-  abyssHalo.rotateX(Math.PI * 0.35);
+  // Corona o creciente de colmillos de vacío (arco astral punteado que custodia el ojo)
+  const crownArc = new THREE.TorusGeometry(0.18, 0.016, 6, 24, Math.PI * 1.35);
+  crownArc.rotateZ(-Math.PI * 0.17);
+  const tooth1 = new THREE.ConeGeometry(0.025, 0.11, 4).translate(-0.17, 0.08, 0);
+  const tooth2 = new THREE.ConeGeometry(0.025, 0.11, 4).translate(0.17, 0.08, 0);
+  const voidCrownGeo = mergeGeometries([crownArc, tooth1, tooth2]);
+  crownArc.dispose(); tooth1.dispose(); tooth2.dispose();
+
+  // Halo orbital de sombras (anillo oblicuo flotante alrededor del Ojo)
+  const abyssHalo = voidCrownGeo;
 
   return {
     variant: 'abyss',
@@ -201,7 +228,7 @@ function _createAbyssPedestalGeometries() {
     goldTrim,
     runeDisc,
     runeRing,
-    crystal,
+    crystal: voidEyeCore,
     accessory: abyssHalo,
   };
 }
@@ -331,17 +358,31 @@ export function buildPedestalMesh(geos, mats) {
   // Cota de altura compartida: las figuras geométricas y sus aros coinciden en el mismo centro
   const baseY = geos.variant === 'merchant' ? 1.68 : 1.66;
 
-  // Figura central flotante: Balanza de Comercio (Scales) en forja dorada / jade para mercader, o cristal para altares
-  const isMerchant = geos.variant === 'merchant';
-  const centerMat = isMerchant ? mats.gold : mats.crystal;
+  // Figura central flotante y reliquia temática según el capítulo:
+  // - classic: Cáliz de Oro (mats.gold) con Esencia Solar Sagrada (mats.crystal)
+  // - abyss: Ojo del Vacío Amatista (mats.crystal) custodiado por Corona de Sombras (mats.gold)
+  // - merchant: Balanza de Comercio (mats.gold) con Gema Esmeralda de Pesaje (mats.crystal)
+  let centerMat = mats.crystal;
+  let accMat = mats.gold;
+
+  if (geos.variant === 'classic') {
+    centerMat = mats.gold;
+    accMat = mats.crystal;
+  } else if (geos.variant === 'merchant') {
+    centerMat = mats.gold;
+    accMat = mats.crystal;
+  } else if (geos.variant === 'abyss') {
+    centerMat = mats.crystal;
+    accMat = mats.gold;
+  }
+
   const crystalMesh = new THREE.Mesh(geos.crystal, centerMat);
   crystalMesh.position.set(0, baseY, 0);
   root.add(crystalMesh);
 
-  // Accesorio único opcional (ej: gema esmeralda de tasación en el platillo, o halo abisal)
+  // Accesorio temático opcional
   let accessoryMesh = null;
   if (geos.accessory) {
-    const accMat = isMerchant ? mats.crystal : mats.gold;
     accessoryMesh = new THREE.Mesh(geos.accessory, accMat);
     accessoryMesh.position.set(0, baseY, 0);
     root.add(accessoryMesh);
