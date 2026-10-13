@@ -331,6 +331,18 @@ export class ChapterRegistry {
     return this.isChapterUnlocked(idOrNumber);
   }
 
+  getHighestUnlockedPlayableChapter() {
+    this.load();
+    const highestNum = Math.max(1, Number(this.progress?.highestChapterUnlocked) || 1);
+    for (let num = highestNum; num >= 1; num--) {
+      const ch = this.getChapter(num);
+      if (ch && this.isChapterPlayable(ch.id)) {
+        return ch;
+      }
+    }
+    return this.catalog.find(ch => !ch.underConstruction) || this.catalog[0];
+  }
+
   completeChapter(idOrNumber, stats = {}) {
     const ch = this.getChapter(idOrNumber);
     if (!ch) return null;

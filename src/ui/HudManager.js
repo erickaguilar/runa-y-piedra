@@ -48,11 +48,19 @@ export const HudMixin = {
       : false;
     const btnInteract = document.getElementById('btn-interact');
     const btnJump = document.getElementById('btn-jump');
+    const flightStick = document.getElementById('flight-stick-zone');
 
     this._actionButtonsVisible = !!visible;
 
-    // El botón táctil de salto solo se muestra en dispositivos móviles (en desktop se usa Espacio)
-    if (btnJump) btnJump.style.display = (visible && isTouch) ? 'flex' : 'none';
+    // En modo de vuelo activo, la palanca de vuelo del lado derecho sustituye al botón de salto
+    if (this._isFlightMode) {
+      if (btnJump) btnJump.style.display = 'none';
+      if (flightStick) flightStick.style.display = visible ? 'flex' : 'none';
+    } else {
+      if (flightStick) flightStick.style.display = 'none';
+      if (btnJump) btnJump.style.display = (visible && isTouch) ? 'flex' : 'none';
+    }
+
     if (btnInteract) {
       if (!isTouch) {
         // En desktop solo se muestra si hay un objeto interactuable cercano (indicador de tecla E)
@@ -60,6 +68,24 @@ export const HudMixin = {
       } else {
         btnInteract.style.display = visible ? 'flex' : 'none';
       }
+    }
+  },
+
+  setFlightMode(enabled) {
+    this._isFlightMode = !!enabled;
+    const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? (window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0))
+      : false;
+    const btnJump = document.getElementById('btn-jump');
+    const flightStick = document.getElementById('flight-stick-zone');
+    const isVisible = this._actionButtonsVisible !== false;
+
+    if (this._isFlightMode) {
+      if (btnJump) btnJump.style.display = 'none';
+      if (flightStick) flightStick.style.display = isVisible ? 'flex' : 'none';
+    } else {
+      if (flightStick) flightStick.style.display = 'none';
+      if (btnJump) btnJump.style.display = (isVisible && isTouch) ? 'flex' : 'none';
     }
   },
 

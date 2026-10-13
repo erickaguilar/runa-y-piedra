@@ -34,6 +34,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
     assert.equal(typeof UIManager.prototype.openSaveSlotsModal, 'function');
     assert.equal(typeof UIManager.prototype.closeSaveSlotsModal, 'function');
     assert.equal(typeof UIManager.prototype.toggleSaveSlotsModal, 'function');
+    assert.equal(typeof UIManager.prototype.setFlightMode, 'function');
   });
 
   describe('comportamiento con DOM simulado', () => {
@@ -487,7 +488,7 @@ describe('UIManager - Contratos de API de Configuración', () => {
       ui.openInventoryModal();
       const overlay = document.getElementById('modal-inventory-overlay');
       assert.ok(overlay);
-      assert.match(overlay.innerHTML, /POCIONES Y ELIXIRES/);
+      assert.match(overlay.innerHTML, /POCIONES Y (CONSUMIBLES|ELIXIRES)/);
       assert.match(overlay.innerHTML, /Poción de Vida/);
 
       const useBtn = overlay.querySelector('.btn-use-potion');
@@ -497,6 +498,16 @@ describe('UIManager - Contratos de API de Configuración', () => {
       useBtn.onclick();
       assert.equal(usedPotion?.id, 'pocion_vida');
       assert.equal(usedIndex, 0);
+
+      // Probar renderizado de Pergamino de Retorno con botón "Usar"
+      ui.updateInventory({
+        keys: [],
+        gems: 0,
+        relics: [],
+        potions: [{ id: 'pergamino_retorno', name: 'Pergamino de Retorno', type: 'scroll' }],
+      });
+      assert.match(overlay.innerHTML, /Pergamino de Retorno/);
+      assert.match(overlay.innerHTML, /Usar/);
 
       ui.closeInventoryModal();
     });
@@ -1085,6 +1096,22 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(confirmed.colorIndex, 2);
 
       ui.closeGuestJoinModal();
+    });
+
+    it('gestiona la activación y alternancia de la palanca de vuelo activo (setFlightMode)', () => {
+      const ui = new UIManager();
+      const flightStick = document.getElementById('flight-stick-zone');
+      const btnJump = document.getElementById('btn-jump');
+
+      ui.setActionButtonsVisible(true);
+      ui.setFlightMode(true);
+      assert.equal(ui._isFlightMode, true);
+      assert.equal(btnJump.style.display, 'none', 'btn-jump debe ocultarse al activar vuelo');
+      assert.equal(flightStick.style.display, 'flex', 'la palanca de vuelo debe mostrarse al activar vuelo');
+
+      ui.setFlightMode(false);
+      assert.equal(ui._isFlightMode, false);
+      assert.equal(flightStick.style.display, 'none', 'la palanca de vuelo debe ocultarse al desactivar vuelo');
     });
   });
 });

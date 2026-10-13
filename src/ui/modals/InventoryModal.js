@@ -104,21 +104,37 @@ export const InventoryModalMixin = {
     let keysHtml = '';
     if (keys.length > 0) {
       keysHtml = `
-        <div class="inv-section">
-          <div class="inv-section-title">
-            ${renderIcon('key', { size: 14, color: '#fbbf24' })} LLAVES DE MAZMORRA (${keys.length})
+        <div class="inv-section inv-keychain-section" style="${potions.length > 0 ? 'margin-top:14px;' : ''}">
+          <div class="inv-section-title" style="justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${renderIcon('key', { size: 14, color: '#fbbf24' })} LLAVERO DE MAZMORRA (${keys.length})
+            </div>
+            <span class="inv-status-pill key">Uso en Puertas</span>
+          </div>
+          <div class="inv-keychain-banner">
+            ${renderIcon('lock', { size: 14, color: '#fbbf24' })}
+            <span>Objetos de misión exclusivos: no se compran ni venden. Se usan automáticamente al interactuar ante su puerta sellada.</span>
           </div>
           <div class="inv-items-list">
             ${keys.map(k => {
-              const name = typeof k === 'string' ? k : (k?.name || 'Llave');
+              const name = typeof k === 'string' ? k : (k?.name || 'Llave de Mazmorra');
+              const desc = (typeof k === 'object' && (k.description || k.desc)) || 'Llave de paso • Abre puertas selladas';
+              const lore = (typeof k === 'object' && k.lore) ? `<div style="font-size:10px;color:#cbd5e1;font-style:italic;margin-top:2px;">"${escapeHtml(k.lore)}"</div>` : '';
               return `
-                <div class="inv-detail-card">
+                <div class="inv-detail-card inv-key-card">
                   <div class="inv-detail-icon key-bg">${renderIcon('key', { size: 20, color: '#fbbf24' })}</div>
                   <div class="inv-detail-info">
-                    <div class="inv-detail-name">${escapeHtml(name)}</div>
-                    <div class="inv-detail-desc">Llave de paso • Abre puertas selladas</div>
+                    <div class="inv-detail-header-row">
+                      <span class="inv-detail-name" style="color:#fef08a;">${escapeHtml(name)}</span>
+                      <span class="inv-status-pill key">Puerta Sellada</span>
+                    </div>
+                    <div class="inv-detail-desc">${escapeHtml(desc)}</div>
+                    ${lore}
+                    <div class="inv-key-rule-tag">
+                      ${renderIcon('check', { size: 11, color: '#10b981' })}
+                      <span>Apertura automática • No vendible en bazar</span>
+                    </div>
                   </div>
-                  <span class="inv-status-pill key">Activa</span>
                 </div>
               `;
             }).join('')}
@@ -130,7 +146,7 @@ export const InventoryModalMixin = {
     let gemsHtml = '';
     if (gems > 0) {
       gemsHtml = `
-        <div class="inv-section" style="${keys.length > 0 ? 'margin-top:14px;' : ''}">
+        <div class="inv-section" style="${(potions.length > 0 || keys.length > 0) ? 'margin-top:14px;' : ''}">
           <div class="inv-section-title">
             ${renderIcon('gem', { size: 14, color: '#38bdf8' })} TESORO EN GEMAS
           </div>
@@ -138,7 +154,7 @@ export const InventoryModalMixin = {
             <div class="inv-detail-icon gem-bg">${renderIcon('gem', { size: 22, color: '#38bdf8' })}</div>
             <div class="inv-detail-info">
               <div class="inv-detail-name" style="color:#38bdf8;font-size:15px;font-weight:800;">${gems} Gemas</div>
-              <div class="inv-detail-desc">Riquezas extraídas de cofres antiguos</div>
+              <div class="inv-detail-desc">Riquezas acumuladas de cofres de expedición</div>
             </div>
             <span class="inv-status-pill gem">Acumulado</span>
           </div>
@@ -149,7 +165,7 @@ export const InventoryModalMixin = {
     let relicsHtml = '';
     if (relics.length > 0) {
       relicsHtml = `
-        <div class="inv-section" style="${(keys.length > 0 || gems > 0) ? 'margin-top:14px;' : ''}">
+        <div class="inv-section" style="${(potions.length > 0 || keys.length > 0 || gems > 0) ? 'margin-top:14px;' : ''}">
           <div class="inv-section-title">
             ${renderIcon('trophy', { size: 14, color: '#eab308' })} RELIQUIAS MÍTICAS (${relics.length})
           </div>
@@ -177,26 +193,48 @@ export const InventoryModalMixin = {
     let potionsHtml = '';
     if (potions.length > 0) {
       potionsHtml = `
-        <div class="inv-section" style="${(keys.length > 0 || gems > 0 || relics.length > 0) ? 'margin-top:14px;' : ''}">
+        <div class="inv-section inv-consumables-section">
           <div class="inv-section-title">
-            ${renderIcon('potion', { size: 14, color: '#f43f5e' })} POCIONES Y ELIXIRES (${potions.length})
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${renderIcon('potion', { size: 14, color: '#f43f5e' })} POCIONES Y CONSUMIBLES (${potions.length})
+            </div>
+            <span class="inv-quick-hint">Acción rápida</span>
           </div>
-          <div class="inv-items-list">
+          <div class="inv-consumables-grid">
             ${potions.map((p, idx) => {
               const name = typeof p === 'string' ? p : (p?.name || 'Poción de Vida');
-              const icon = (typeof p === 'object' && p?.icon) || 'potion';
-              const color = (typeof p === 'object' && p?.color) || '#f43f5e';
+              const isScroll = (typeof p === 'object' && (p?.id === 'pergamino_retorno' || p?.id === 'runa_retorno' || p?.type === 'scroll'));
+              const healAmount = (typeof p === 'object' && p?.healAmount) || (isScroll ? 0 : 1);
+              const icon = (typeof p === 'object' && p?.icon) || (isScroll ? 'vortex' : 'potion');
+              const color = (typeof p === 'object' && p?.color) || (isScroll ? '#38bdf8' : (healAmount >= 2 ? '#fb7185' : '#f43f5e'));
+              const desc = (typeof p === 'object' && (p.desc || p.description)) || (isScroll ? 'Canaliza portal al Campamento Central (Lobby)' : (healAmount >= 2 ? 'Restaura 2 corazones de salud vital (+2 ❤️❤️)' : 'Restaura 1 corazón de salud vital (+1 ❤️)'));
+              const effectBadge = isScroll ? 'Portal Lobby' : (healAmount >= 2 ? '+2 ❤️❤️' : '+1 ❤️');
+              const actionLabel = isScroll ? 'Usar' : 'Beber';
+              const actionIcon = isScroll ? 'sparkles' : 'potion';
+              const actionBtnClass = isScroll ? 'btn-consumable-scroll' : 'btn-consumable-potion';
+
               return `
-                <div class="inv-detail-card" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                  <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
-                    <div class="inv-detail-icon potion-bg" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.3);display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;flex-shrink:0;">${renderIcon(icon, { size: 20, color })}</div>
-                    <div class="inv-detail-info" style="min-width:0;">
-                      <div class="inv-detail-name" style="color:#fda4af;">${escapeHtml(name)}</div>
-                      <div class="inv-detail-desc">Restaura 1 corazón de vida</div>
+                <div class="inv-consumable-card ${isScroll ? 'scroll-card' : 'potion-card'}">
+                  <div class="inv-card-main">
+                    <div class="inv-detail-icon potion-bg" style="background:${color}22;border:1px solid ${color}55;">
+                      ${renderIcon(icon, { size: 22, color })}
+                    </div>
+                    <div class="inv-detail-info">
+                      <div class="inv-detail-header-row">
+                        <span class="inv-detail-name" style="color:${color};font-weight:800;">${escapeHtml(name)}</span>
+                        <span class="inv-effect-badge ${isScroll ? 'effect-scroll' : 'effect-heal'}">${effectBadge}</span>
+                      </div>
+                      <div class="inv-detail-desc">${escapeHtml(desc)}</div>
                     </div>
                   </div>
-                  <button class="btn-use-potion" data-potion-index="${idx}" title="Beber Poción de Vida" style="background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(244,63,94,0.35);flex-shrink:0;transition:transform 0.1s,background 0.2s;">
-                    ${renderIcon('potion', { size: 14, color: '#fff' })} Beber
+                  <button
+                    type="button"
+                    class="btn-use-potion btn-quick-use ${actionBtnClass}"
+                    data-potion-index="${idx}"
+                    title="${actionLabel} ${escapeHtml(name)}"
+                  >
+                    ${renderIcon(actionIcon, { size: 14, color: '#fff' })}
+                    <span>${actionLabel}</span>
                   </button>
                 </div>
               `;
@@ -222,9 +260,15 @@ export const InventoryModalMixin = {
 
     if (activeFilter === 'keys') {
       return keysHtml || `
-        <div class="inv-modal-empty" style="padding:16px 10px;display:flex;align-items:center;justify-content:center;gap:8px;">
-          ${renderIcon('key', { size: 16, color: '#64748b' })}
-          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">No tienes ninguna llave en tu llavero todavía. Abre cofres en las cámaras para obtener llaves de paso.</p>
+        <div class="inv-modal-empty" style="padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="inv-detail-icon key-bg" style="width:48px;height:48px;border-radius:50%;margin-bottom:2px;">
+            ${renderIcon('key', { size: 24, color: '#fbbf24' })}
+          </div>
+          <h4 style="margin:0;color:#fef08a;font-size:13px;font-weight:700;">Llavero de Expedición Vacío</h4>
+          <p style="color:#94a3b8;font-size:11px;text-align:center;margin:0;line-height:1.4;">
+            No tienes llaves en tu llavero. Explora las cámaras para saquear cofres con llaves de paso.<br>
+            Las llaves son objetos de misión: no pueden comprarse ni venderse en el mercado.
+          </p>
         </div>
       `;
     }
@@ -251,12 +295,12 @@ export const InventoryModalMixin = {
       return potionsHtml || `
         <div class="inv-modal-empty" style="padding:16px 10px;display:flex;align-items:center;justify-content:center;gap:8px;">
           ${renderIcon('potion', { size: 16, color: '#64748b' })}
-          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">No tienes pociones de vida disponibles.</p>
+          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">No tienes pociones ni consumibles disponibles.</p>
         </div>
       `;
     }
 
-    return keysHtml + gemsHtml + relicsHtml + potionsHtml;
+    return potionsHtml + keysHtml + relicsHtml + gemsHtml;
   },
 
   /**
@@ -310,10 +354,10 @@ export const InventoryModalMixin = {
       filterTagsHtml = `
         <div class="inv-filter-tags">
           <button type="button" class="inv-filter-tag ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">Todos (${totalItems})</button>
-          <button type="button" class="inv-filter-tag ${activeFilter === 'keys' ? 'active' : ''}" data-filter="keys">${renderIcon('key', { size: 14 })} Solo Llaves (${keys.length})</button>
-          <button type="button" class="inv-filter-tag ${activeFilter === 'gems' ? 'active' : ''}" data-filter="gems">${renderIcon('gem', { size: 14 })} Gemas (${gems})</button>
-          <button type="button" class="inv-filter-tag ${activeFilter === 'relics' ? 'active' : ''}" data-filter="relics">${renderIcon('trophy', { size: 14 })} Reliquias (${relics.length})</button>
-          <button type="button" class="inv-filter-tag ${activeFilter === 'potions' ? 'active' : ''}" data-filter="potions">${renderIcon('potion', { size: 14 })} Pociones (${potions.length})</button>
+          <button type="button" class="inv-filter-tag ${activeFilter === 'potions' ? 'active' : ''}" data-filter="potions">${renderIcon('potion', { size: 14, color: '#f43f5e' })} Consumibles (${potions.length})</button>
+          <button type="button" class="inv-filter-tag ${activeFilter === 'keys' ? 'active' : ''}" data-filter="keys">${renderIcon('key', { size: 14, color: '#fbbf24' })} Llavero (${keys.length})</button>
+          <button type="button" class="inv-filter-tag ${activeFilter === 'relics' ? 'active' : ''}" data-filter="relics">${renderIcon('trophy', { size: 14, color: '#eab308' })} Reliquias (${relics.length})</button>
+          <button type="button" class="inv-filter-tag ${activeFilter === 'gems' ? 'active' : ''}" data-filter="gems">${renderIcon('gem', { size: 14, color: '#38bdf8' })} Gemas (${gems})</button>
         </div>
       `;
     }

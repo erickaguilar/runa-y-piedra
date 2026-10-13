@@ -472,6 +472,149 @@
       margin: 0 auto 10px;
     }
 
+    /* Cards de Consumibles de Uso Rápido */
+    .inv-consumables-section .inv-section-title {
+      justify-content: space-between;
+      color: #fda4af;
+    }
+    .inv-quick-hint {
+      font-size: 9px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+    .inv-consumables-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .inv-consumable-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.7));
+      border: 1px solid rgba(244, 63, 94, 0.28);
+      border-radius: 13px;
+      padding: 10px 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .inv-consumable-card:hover {
+      border-color: rgba(244, 63, 94, 0.5);
+      box-shadow: 0 4px 18px rgba(244, 63, 94, 0.16);
+    }
+    .inv-consumable-card.scroll-card {
+      border-color: rgba(56, 189, 248, 0.32);
+    }
+    .inv-consumable-card.scroll-card:hover {
+      border-color: rgba(56, 189, 248, 0.6);
+      box-shadow: 0 4px 18px rgba(56, 189, 248, 0.18);
+    }
+    .inv-card-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+    .inv-detail-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .inv-effect-badge {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+    }
+    .inv-effect-badge.effect-heal {
+      background: rgba(244, 63, 94, 0.2);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fda4af;
+    }
+    .inv-effect-badge.effect-scroll {
+      background: rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #7dd3fc;
+    }
+    .btn-quick-use {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 13px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      transition: transform 0.1s, filter 0.15s, box-shadow 0.15s;
+      min-height: 36px;
+      touch-action: manipulation;
+    }
+    .btn-quick-use:active {
+      transform: scale(0.94);
+    }
+    .btn-consumable-potion {
+      background: linear-gradient(135deg, #f43f5e, #be123c);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(244, 63, 94, 0.45);
+    }
+    .btn-consumable-potion:hover {
+      filter: brightness(1.12);
+      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.55);
+    }
+    .btn-consumable-scroll {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.45);
+    }
+    .btn-consumable-scroll:hover {
+      filter: brightness(1.12);
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.55);
+    }
+
+    /* Tag y Vista de Llavero Independiente */
+    .inv-keychain-banner {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 11px;
+      color: #fde68a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+    .inv-key-card {
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+    .inv-key-card:hover {
+      border-color: rgba(245, 158, 11, 0.5);
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);
+    }
+    .inv-key-rule-tag {
+      font-size: 10px;
+      color: #94a3b8;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .inv-key-rule-tag span {
+      color: #cbd5e1;
+    }
+
 /* ==========================================================================
    Modal de Ranuras de Guardado (Save Slots Manager)
    ========================================================================== */

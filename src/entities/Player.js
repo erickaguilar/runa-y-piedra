@@ -33,6 +33,7 @@ export class Player {
     // Modo espectador / vuelo libre para depuración y calibración
     this.isNoclip = false;
     this.inputFlyDown = false;
+    this.inputFlyY = 0;
 
     // Metadatos de red para sincronización de roster y elección determinista de líder
     this.peerId = '';

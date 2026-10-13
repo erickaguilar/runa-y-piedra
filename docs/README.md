@@ -158,3 +158,9 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Funcionamiento autoritativo de `stairs` con fosa dinámica a $y=-8$ y cuenta atrás de descenso.
     - Catálogo de los altares únicos por capítulo: Altar Sagrado Ancestral (Capítulo 1), Altar Crepuscular con halo orbital (Capítulo 2), Pedestal del Mercader con Balanza 3D (*Scales*) y Mesa de Cartografía con Brújula náutica 3D y aguja magnética.
     - Hoja de ruta para los Capítulos 3 al 10 e invariantes técnicas de centrado y cinemática orbital.
+
+27. [**27. Catálogo Canónico de Objetos, Reliquias y Consumibles**](./27-catalogo-de-objetos-reliquias-y-consumibles.md)
+    - Consolidación del consumible de retorno al Lobby en un único objeto canónico: `pergamino_retorno`.
+    - Panteón cerrado e invariable de exactamente diez (10) Reliquias Míticas (6 activas y 4 selladas) con regla de no generación de reliquias adicionales tras su activación.
+    - Especificación teórica de diseño de las funcionalidades mecánicas proyectadas para las diez reliquias (en estado documental sin saturar mazmorras hasta culminar los 10 capítulos).
+    - Precios de compra y venta en el Bazar Rúnico y función de calibración dinámica `setShopItemPrice`.

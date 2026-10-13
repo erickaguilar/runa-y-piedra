@@ -625,6 +625,15 @@ export class InteractionController {
     }
     this.game.stairsRenderer.open();
     this.game.soundManager.playSlabGrind();
+
+    const curLevelId = this.game.world.levelRegistry.getCurrentLevel()?.id;
+    if ((curLevelId === 'lobby_tutorial' || curLevelId === 'lobby') && this.game.chapterRegistry) {
+      const targetChapter = this.game.chapterRegistry.getHighestUnlockedPlayableChapter?.();
+      if (targetChapter) {
+        this.game.ui.showNarrativeMessage(`:stone: ¡La losa cede! Desciende al Capítulo ${targetChapter.number}: ${targetChapter.name}. ¡Bajad!`, 4500);
+        return;
+      }
+    }
     this.game.ui.showNarrativeMessage(':stone: ¡La losa cede! Una escalinata desciende a la oscuridad. ¡Bajad!', 4500);
   }
 

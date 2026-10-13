@@ -251,6 +251,74 @@ test('DescentManager orquesta descenso sincronizado a 5 segundos con notificaci�
   assert.equal(descent.active, false);
 });
 
+test('DescentManager desde el lobby desciende al capítulo más alto desbloqueado', () => {
+  const broadcasts = [];
+  let switchedTo = null;
+
+  const mockChapter1 = {
+    id: 'capitulo_1',
+    number: 1,
+    name: 'El Descenso Ancestral',
+    dungeons: [{ id: 'dungeon_classic', name: 'Mazmorra Ancestral' }],
+  };
+  const mockChapter2 = {
+    id: 'capitulo_2',
+    number: 2,
+    name: 'Cripta de las Sombras',
+    dungeons: [{ id: 'shadow_vault', name: 'Bóveda Umbría' }],
+  };
+
+  let highestChapter = mockChapter2;
+  let currentChapterSet = null;
+
+  const mockGame = {
+    mode: 'host',
+    playerManager: {
+      getAllPlayers: () => [],
+    },
+    world: {
+      stairsOpen: true,
+      levelRegistry: {
+        getCurrentLevel: () => ({ id: 'lobby_tutorial' }),
+        getLevel: (id) => ({ id, name: id }),
+        getAllLevels: () => [
+          { id: 'lobby_tutorial', name: 'Lobby' },
+          { id: 'dungeon_classic', name: 'Mazmorra Ancestral' },
+        ],
+      },
+    },
+    chapterRegistry: {
+      getHighestUnlockedPlayableChapter: () => highestChapter,
+      setCurrentChapter: (chId) => { currentChapterSet = chId; },
+      getDungeonsForChapter: (chId) => (chId === 'capitulo_2' ? mockChapter2.dungeons : mockChapter1.dungeons),
+    },
+    interaction: {
+      isTransitioning: () => false,
+    },
+    network: {
+      broadcast: (buf) => broadcasts.push(buf),
+    },
+    ui: {
+      hideNarrativeMessage: () => {},
+      showDescentCountdown: () => {},
+      hideDescent: () => {},
+      showLevelTransition: () => {},
+    },
+    soundManager: {
+      playDescentEcho: () => {},
+    },
+    switchLevel: (lvlId) => { switchedTo = lvlId; },
+  };
+
+  const descent = new DescentManager(mockGame);
+  descent.goNow();
+
+  assert.equal(currentChapterSet, 'capitulo_2', 'Debe establecer el capítulo activo al más alto desbloqueado');
+  assert.equal(descent.transitioning, true);
+  mockGame.switchLevel('shadow_vault');
+  assert.equal(switchedTo, 'shadow_vault', 'Debe transferir a la primera mazmorra del capítulo 2 (shadow_vault)');
+});
+
 test('openStairsCeremony abre la escalinata sin congelar al jugador (isTransitioning es false)', () => {
   let narrativeMsg = '';
   let stairsOpened = false;
@@ -400,6 +468,35 @@ test('Respawn fija la orientación canónica (yaw) del nivel y restablece pitch 
   assert.equal(p.yaw, world.spawnPoint.yaw, 'Game over debe restablecer yaw al spawn');
   assert.equal(p.pitch, 0, 'Game over debe restablecer pitch a 0');
 });
+
+test('Modo Vuelo Activo (Noclip) responde proporcionalmente a la palanca de elevación (inputFlyY)', () => {
+  const { sim } = setup();
+  const p = new Player(0, 10, 5.0, 10);
+  p.isNoclip = true;
+  const initialY = p.pos.y;
+  const dt = 1 / 30;
+
+  // 1. Palanca empujada hacia arriba (subir / ascender al 100%)
+  p.inputFlyY = 1.0;
+  sim.integratePlayer(p, dt, 0);
+  assert.ok(p.pos.y > initialY, 'la posición Y debe ascender cuando la palanca apunta hacia arriba');
+  const deltaUp = p.pos.y - initialY;
+
+  // 2. Palanca empujada hacia abajo (bajar / descender al 100%)
+  const highY = p.pos.y;
+  p.inputFlyY = -1.0;
+  sim.integratePlayer(p, dt, 0);
+  assert.ok(p.pos.y < highY, 'la posición Y debe descender cuando la palanca apunta hacia abajo');
+  const deltaDown = highY - p.pos.y;
+  assert.ok(Math.abs(deltaUp - deltaDown) < 1e-6, 'magnitudes de ascenso y descenso simétricas a máxima intensidad');
+
+  // 3. Palanca en reposo (inputFlyY = 0)
+  const stillY = p.pos.y;
+  p.inputFlyY = 0;
+  sim.integratePlayer(p, dt, 0);
+  assert.equal(p.pos.y, stillY, 'la posición Y debe mantenerse constante cuando la palanca está en reposo');
+});
+
 
 
 

@@ -66,7 +66,24 @@ export class DescentManager {
     const curLevelId = game.world.levelRegistry.getCurrentLevel()?.id;
     let next = null;
 
-    if (game.chapterRegistry) {
+    if (curLevelId === 'lobby_tutorial' || curLevelId === 'lobby') {
+      if (game.chapterRegistry) {
+        const targetChapter = game.chapterRegistry.getHighestUnlockedPlayableChapter?.()
+          || game.chapterRegistry.getChapter(game.chapterRegistry.progress?.highestChapterUnlocked)
+          || game.chapterRegistry.getChapter(1);
+        if (targetChapter) {
+          game.chapterRegistry.setCurrentChapter(targetChapter.id);
+          const dungeons = game.chapterRegistry.getDungeonsForChapter(targetChapter.id);
+          const firstDungeon = dungeons[0];
+          if (firstDungeon) {
+            next = game.world.levelRegistry.getLevel(firstDungeon.id);
+            if (game.network && (game.network.connections?.length > 0 || game.network.isHost)) {
+              game.network.broadcast(Proto.serializeChapterSelect(targetChapter.id, firstDungeon.id));
+            }
+          }
+        }
+      }
+    } else if (game.chapterRegistry) {
       const nextDungeon = game.chapterRegistry.getNextDungeonInChapter(curLevelId);
       if (nextDungeon) {
         next = game.world.levelRegistry.getLevel(nextDungeon.id);

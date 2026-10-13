@@ -185,5 +185,18 @@ describe('ChapterRegistry - Catálogo y Progresión de Campaña', () => {
         delete globalThis.localStorage;
       }
     });
+
+    it('obtiene el capítulo más alto desbloqueado y jugable (getHighestUnlockedPlayableChapter)', () => {
+      // Estado inicial: solo capítulo 1 desbloqueado
+      assert.equal(registry.getHighestUnlockedPlayableChapter().id, 'capitulo_1');
+
+      // Completar capítulo 1 desbloquea capítulo 2
+      registry.completeChapter('capitulo_1', { timeSec: 100 });
+      assert.equal(registry.getHighestUnlockedPlayableChapter().id, 'capitulo_2');
+
+      // Si highestChapterUnlocked fuera 5 (en construcción), debe retornar el más alto jugable (capítulo 2)
+      registry.progress.highestChapterUnlocked = 5;
+      assert.equal(registry.getHighestUnlockedPlayableChapter().id, 'capitulo_2');
+    });
   });
 });

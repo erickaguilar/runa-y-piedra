@@ -180,6 +180,7 @@ export class VoxelSandboxGame {
         this.ui.toggleControlsHud(true);
       },
       onChapterMapToggle: () => this.ui.toggleChapterModal(),
+      onToggleFlightMode: () => this.toggleFlightMode(),
     });
     const initialSettings = saveManager.getSettings();
     this.cameraMode = initialSettings.camera || (typeof localStorage !== 'undefined' ? localStorage.getItem('dungeon_camera') : null) || 'first';
@@ -461,6 +462,19 @@ export class VoxelSandboxGame {
     };
   }
 
+  toggleFlightMode(enable = null) {
+    const local = this.playerManager.localPlayer;
+    if (!local) return;
+    const nextVal = enable !== null ? !!enable : !local.isNoclip;
+    local.isNoclip = nextVal;
+    if (local.cancelLavaSinking) local.cancelLavaSinking();
+    local.vel.y = 0;
+    local.inputFlyY = 0;
+    this.input?.setFlightMode?.(nextVal);
+    this.ui?.setFlightMode?.(nextVal);
+    this.ui.showHudMessage(nextVal ? '🦅 Modo Vuelo (Noclip) ACTIVADO' : '🚶 Modo Vuelo DESACTIVADO');
+  }
+
   initDev() {
     this.ui.bindDev({
       onEnterShowroom: async () => {
@@ -551,13 +565,7 @@ export class VoxelSandboxGame {
         this.setHeroLocal(colorIndex);
       },
       onToggleNoclip: (enable) => {
-        const local = this.playerManager.localPlayer;
-        if (local) {
-          local.isNoclip = !!enable;
-          if (local.cancelLavaSinking) local.cancelLavaSinking();
-          local.vel.y = 0;
-          this.ui.showHudMessage(enable ? '🦅 Modo Vuelo (Noclip) ACTIVADO' : '🚶 Modo Vuelo DESACTIVADO');
-        }
+        this.toggleFlightMode(enable);
       },
       onToggleCoordsOverlay: (enable) => {
         this.roomDebugOverlay?.setEnabled(enable);
@@ -719,6 +727,12 @@ export class VoxelSandboxGame {
 
         if (local.isNoclip) {
           local.inputFlyDown = !!(this.input?.keys?.['ShiftLeft'] || this.input?.keys?.['ShiftRight'] || this.input?.keys?.['KeyC']);
+          local.inputFlyY = this.input?.getFlightElevation?.() ?? 0;
+          const flightYawDelta = this.input?.consumeFlightYawDelta?.(FIXED_DT) ?? 0;
+          if (flightYawDelta !== 0) {
+            this.input.yaw += flightYawDelta;
+            local.yaw = this.input.yaw;
+          }
         }
 
         // Salto con perdón: buffer 150ms (pulsa antes de aterrizar) + coyote 120ms

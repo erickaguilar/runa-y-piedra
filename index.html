@@ -72,6 +72,10 @@
           <span class="hud-kbd">B</span>
           <span class="hud-control-desc">Ver Botín</span>
         </div>
+        <div class="hud-control-row">
+          <span class="hud-kbd">V</span>
+          <span class="hud-control-desc">Vuelo (Dev)</span>
+        </div>
       </div>
       <!-- Versión Táctil (Móvil / Tablet) -->
       <div class="hud-touch-controls">
@@ -86,6 +90,10 @@
         <div class="hud-control-row">
           <span class="hud-touch-pill hud-pill-action">USAR</span>
           <span class="hud-control-desc">Acción / Bajar</span>
+        </div>
+        <div class="hud-control-row">
+          <span class="hud-touch-pill"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-2px;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>VUELO</span>
+          <span class="hud-control-desc">Palanca subir / bajar</span>
         </div>
         <div class="hud-control-row">
           <span class="hud-touch-pill"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-2px;"><path d="M3 10c0-4.5 4-6.5 9-6.5s9 2 9 6.5v1H3v-1zM3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8H3zM7 5.5v15.5M17 5.5v15.5M10 10h4v4h-4z"/><circle cx="12" cy="12" r="0.6" fill="#f59e0b"/></svg>BOTÍN</span>
@@ -106,6 +114,26 @@
     <span class="ab-icon"><svg class="svg-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><polyline points="18 15 12 9 6 15" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="21" stroke-linecap="round"/></svg></span>
     <span class="ab-label">SALTAR</span>
   </button>
+  <!-- Palanca de Vuelo Activo (Lado Derecho) -->
+  <div id="flight-stick-zone" class="flight-stick-zone" style="display:none;" aria-label="Palanca de vuelo">
+    <div class="flight-stick-badge" id="flight-stick-badge" title="Tocar para salir de vuelo">
+      <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span>VUELO ACTIVO</span>
+    </div>
+    <div class="flight-stick-base" id="flight-stick-base">
+      <div class="flight-arrow flight-arrow-up">▲ SUBIR</div>
+      <div class="flight-arrow flight-arrow-down">▼ BAJAR</div>
+      <div class="flight-arrow flight-arrow-left">◀</div>
+      <div class="flight-arrow flight-arrow-right">▶</div>
+      <div class="flight-crosshair-h"></div>
+      <div class="flight-crosshair-v"></div>
+      <div class="flight-stick-knob" id="flight-stick-knob" title="Palanca de navegación de vuelo">
+        <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M2 12h20M7 7l5-5 5 5M7 17l5 5 5-5"/>
+        </svg>
+      </div>
+    </div>
+  </div>
   <div id="ui"></div>
   <div id="hud-message"></div>
   <script type="module" src="/src/main.js"></script>

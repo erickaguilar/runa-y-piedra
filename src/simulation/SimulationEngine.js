@@ -117,7 +117,9 @@ export class SimulationEngine {
       const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
       const rx =  Math.cos(p.yaw), rz = -Math.sin(p.yaw);
       let vy = 0;
-      if (actions & ACTION_FLAGS.JUMP) {
+      if (typeof p.inputFlyY === 'number' && Math.abs(p.inputFlyY) > 0.05) {
+        vy = flySpeed * Math.max(-1, Math.min(1, p.inputFlyY));
+      } else if (actions & ACTION_FLAGS.JUMP) {
         vy = flySpeed;
       } else if (p.inputFlyDown) {
         vy = -flySpeed;

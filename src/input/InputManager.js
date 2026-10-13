@@ -2,7 +2,7 @@ import nipplejs from 'nipplejs';
 import { saveManager } from '../storage/SaveManager.js';
 
 export class InputManager {
-  constructor({ canvas, inputMode = null, isGameActive = null, onJump, onInteract, onCameraToggle, onSettingsToggle, onInventoryToggle, onUsePotion, onControlsToggle, onChapterMapToggle }) {
+  constructor({ canvas, inputMode = null, isGameActive = null, onJump, onInteract, onCameraToggle, onSettingsToggle, onInventoryToggle, onUsePotion, onControlsToggle, onChapterMapToggle, onToggleFlightMode }) {
     this.canvas = canvas;
     this.inputMode = inputMode;
     this.isGameActive = isGameActive;
@@ -14,9 +14,12 @@ export class InputManager {
     this.onUsePotion = onUsePotion;
     this.onControlsToggle = onControlsToggle;
     this.onChapterMapToggle = onChapterMapToggle;
+    this.onToggleFlightMode = onToggleFlightMode;
 
     this.keys = {};
     this.moveJoystick = { x: 0, y: 0 };
+    this.flightJoystick = { x: 0, y: 0 };
+    this.isFlightMode = false;
     this.pendingJump = false;
 
     this.yaw = Math.PI;
@@ -42,6 +45,7 @@ export class InputManager {
     this.initKeyboard();
     this.initMouseLook();
     this.initTouchControls();
+    this.initFlightStick();
   }
 
   clearKeys() {
@@ -49,6 +53,8 @@ export class InputManager {
     this.pendingJump = false;
     this.moveJoystick.x = 0;
     this.moveJoystick.y = 0;
+    this.flightJoystick.x = 0;
+    this.flightJoystick.y = 0;
   }
 
   initKeyboard() {
@@ -94,6 +100,12 @@ export class InputManager {
         return;
       }
 
+      if (e.code === 'KeyV') {
+        e.preventDefault();
+        this.onToggleFlightMode?.();
+        return;
+      }
+
       if (e.code === 'Escape') {
         this.onSettingsToggle?.();
         return;
@@ -117,7 +129,7 @@ export class InputManager {
   }
 
   initMouseLook() {
-    this.canvas.addEventListener('click', (e) => {
+    this.canvas.addEventListener('click', (_e) => {
       // Solo en modo PC y si la partida está activa (evitar capturar ratón en menús)
       if (this.inputMode && this.inputMode.mode !== 'pc') return;
       if (this.isGameActive && !this.isGameActive()) return;
@@ -193,6 +205,16 @@ export class InputManager {
       if (this.lookTouchId !== null) return;
       for (const t of e.changedTouches) {
         if (t.clientX > window.innerWidth * 0.45) {
+          // Si el toque cae dentro del área de la palanca de vuelo activa, no capturarlo como rotación de cámara
+          if (this.isFlightMode) {
+            const flightZone = document.getElementById('flight-stick-zone');
+            if (flightZone && flightZone.style.display !== 'none') {
+              const r = flightZone.getBoundingClientRect();
+              if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+                continue;
+              }
+            }
+          }
           this.lookTouchId = t.identifier;
           this.lookTouchX = t.clientX;
           this.lookTouchY = t.clientY;
@@ -229,6 +251,155 @@ export class InputManager {
       this.onJump?.();
     });
     this.bindTouchButton('btn-interact', () => this.onInteract?.());
+  }
+
+  initFlightStick() {
+    const base = document.getElementById('flight-stick-base');
+    const knob = document.getElementById('flight-stick-knob');
+    const badge = document.getElementById('flight-stick-badge');
+
+    if (!base || !knob) return;
+
+    if (badge) {
+      const toggle = (e) => {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+        this.onToggleFlightMode?.();
+      };
+      badge.addEventListener('click', toggle);
+      badge.addEventListener('touchend', toggle, { passive: false });
+    }
+
+    let activePointerId = null;
+    const maxRadius = 38;
+
+    const updateKnob = (clientX, clientY) => {
+      const rect = base.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxRadius) {
+        dx = (dx / dist) * maxRadius;
+        dy = (dy / dist) * maxRadius;
+      }
+
+      knob.style.transform = `translate(${dx}px, ${dy}px)`;
+
+      // Normalizado: -1 a 1
+      // dy < 0 hacia ARRIBA -> elevarse (subir)
+      // dy > 0 hacia ABAJO -> descender (bajar)
+      this.flightJoystick.x = dx / maxRadius;
+      this.flightJoystick.y = -dy / maxRadius;
+    };
+
+    const handlePointerDown = (e) => {
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+      if (activePointerId !== null) return;
+      activePointerId = e.pointerId ?? (e.touches ? e.touches[0]?.identifier : 1);
+
+      if (knob.setPointerCapture && e.pointerId !== undefined) {
+        try { knob.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+      }
+
+      knob.classList.add('active');
+      knob.style.transition = 'none';
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate(10); } catch { /* ignore */ }
+      }
+
+      const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
+      const clientY = e.clientY ?? e.touches?.[0]?.clientY ?? 0;
+      updateKnob(clientX, clientY);
+    };
+
+    const handlePointerMove = (e) => {
+      if (activePointerId === null) return;
+      const currentId = e.pointerId ?? (e.touches ? e.touches[0]?.identifier : activePointerId);
+      if (currentId !== activePointerId && e.pointerId !== undefined) return;
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+
+      const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
+      const clientY = e.clientY ?? e.touches?.[0]?.clientY ?? 0;
+      updateKnob(clientX, clientY);
+    };
+
+    const handlePointerUp = (e) => {
+      if (activePointerId === null) return;
+      if (e.pointerId !== undefined && e.pointerId !== activePointerId) return;
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+
+      if (knob.releasePointerCapture && e.pointerId !== undefined) {
+        try { knob.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+      }
+
+      activePointerId = null;
+      knob.classList.remove('active');
+      knob.style.transition = 'transform 0.15s cubic-bezier(0.25, 1, 0.5, 1)';
+      knob.style.transform = 'translate(0px, 0px)';
+
+      this.flightJoystick.x = 0;
+      this.flightJoystick.y = 0;
+
+      setTimeout(() => {
+        if (activePointerId === null) {
+          knob.style.transition = 'none';
+        }
+      }, 160);
+    };
+
+    base.addEventListener('pointerdown', handlePointerDown, { passive: false });
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
+    window.addEventListener('pointerup', handlePointerUp, { passive: false });
+    window.addEventListener('pointercancel', handlePointerUp, { passive: false });
+
+    base.addEventListener('touchstart', handlePointerDown, { passive: false });
+    window.addEventListener('touchmove', handlePointerMove, { passive: false });
+    window.addEventListener('touchend', handlePointerUp, { passive: false });
+    window.addEventListener('touchcancel', handlePointerUp, { passive: false });
+  }
+
+  setFlightMode(enabled) {
+    this.isFlightMode = !!enabled;
+    const zone = document.getElementById('flight-stick-zone');
+    const btnJump = document.getElementById('btn-jump');
+    if (zone) {
+      zone.style.display = this.isFlightMode ? 'flex' : 'none';
+    }
+    if (btnJump) {
+      if (this.isFlightMode) {
+        btnJump.style.display = 'none';
+      } else {
+        const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+          ? (window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0))
+          : false;
+        btnJump.style.display = isTouch ? 'flex' : 'none';
+      }
+    }
+    if (!this.isFlightMode) {
+      this.flightJoystick.x = 0;
+      this.flightJoystick.y = 0;
+      const knob = document.getElementById('flight-stick-knob');
+      if (knob) knob.style.transform = 'translate(0px, 0px)';
+    }
+  }
+
+  getFlightElevation() {
+    if (!this.isFlightMode) return 0;
+    return this.flightJoystick.y;
+  }
+
+  consumeFlightYawDelta(dt) {
+    if (!this.isFlightMode || Math.abs(this.flightJoystick.x) < 0.05) return 0;
+    const turnSpeed = 2.4 * this.sensitivity;
+    return -this.flightJoystick.x * turnSpeed * dt;
   }
 
   bindTouchButton(id, callback) {

@@ -7,7 +7,7 @@
 import { renderIcon, escapeHtml } from '../Icons.js';
 import { soundManager } from '../../audio/SoundManager.js';
 
-export const SHOP_CATALOG = Object.freeze([
+export const SHOP_CATALOG = [
   {
     id: 'pocion_vida',
     type: 'potion',
@@ -16,7 +16,7 @@ export const SHOP_CATALOG = Object.freeze([
     color: '#f43f5e',
     healAmount: 1,
     desc: 'Restaura 1 corazón de salud vital (+1 ❤️).',
-    price: 100,
+    price: 50,
   },
   {
     id: 'pocion_mayor',
@@ -26,15 +26,15 @@ export const SHOP_CATALOG = Object.freeze([
     color: '#fb7185',
     healAmount: 2,
     desc: 'Elixir vigorizante. Restaura 2 corazones vitales (+2 ❤️❤️).',
-    price: 220,
+    price: 100,
   },
   {
-    id: 'llave_tutorial',
-    type: 'key',
-    name: 'Llave de Forja del Aprendiz',
-    icon: 'key',
+    id: 'pergamino_retorno',
+    type: 'scroll',
+    name: 'Pergamino de Retorno',
+    icon: 'vortex',
     color: '#38bdf8',
-    desc: 'Llave de repuesto para franquear puertas en el campo de entrenamiento.',
+    desc: 'Canaliza un portal instantáneo de regreso al Campamento Central (Lobby).',
     price: 120,
   },
   {
@@ -46,23 +46,45 @@ export const SHOP_CATALOG = Object.freeze([
     desc: 'Reliquia milenaria que canaliza bendiciones de buena fortuna.',
     price: 350,
   },
-]);
+];
+
+/**
+ * Modifica o ajusta el precio de compra de un artículo del bazar.
+ * Permite balancear la economía o personalizar el coste de adquisición de vidas u objetos.
+ * @param {string} id ID del artículo (ej. 'pocion_vida', 'pocion_mayor')
+ * @param {number} newPrice Nuevo precio en gemas
+ * @returns {boolean}
+ */
+export function setShopItemPrice(id, newPrice) {
+  const item = SHOP_CATALOG.find(i => i.id === id);
+  if (item && typeof newPrice === 'number' && newPrice > 0) {
+    item.price = Math.round(newPrice);
+    return true;
+  }
+  return false;
+}
 
 export function getSellPrice(item) {
   if (!item) return 50;
   const id = typeof item === 'string' ? item : (item.id || item.name || '');
   const type = typeof item === 'object' ? item.type : '';
 
+  if (id === 'tomo_astral' || /Tomo/i.test(id)) return 650;
   if (id === 'cetro_sombras' || /Cetro/i.test(id)) return 600;
+  if (id === 'reloj_arenas_tiempo' || /Reloj/i.test(id)) return 550;
   if (id === 'corona_vacio' || /Corona/i.test(id)) return 500;
+  if (id === 'lagrima_hielo' || /L[aá]grima/i.test(id)) return 450;
+  if (id === 'orbe_tempestad' || /Orbe/i.test(id)) return 400;
   if (id === 'corazon_volcan' || /Coraz[oó]n/i.test(id)) return 350;
   if (id === 'caliz_sagrado' || /C[aá]liz/i.test(id)) return 250;
+  if (id === 'espejo_sombras' || /Espejo/i.test(id)) return 200;
   if (id === 'amuleto_jade') return 200;
+  if (id === 'pergamino_retorno' || id === 'runa_retorno' || type === 'scroll') return 60;
 
   if (type === 'potion' || item.healAmount) {
-    return (item.healAmount >= 2) ? 110 : 50;
+    return (item.healAmount >= 2) ? 50 : 25;
   }
-  if (type === 'key') return 60;
+  if (type === 'key') return 0;
   if (type === 'relic') return 200;
 
   return 50;
@@ -272,20 +294,21 @@ export const ShopModalMixin = {
   },
 
   _getShopSellListHtml() {
-    const { keys = [], relics = [], potions = [] } = this.inventory || {};
+    const { relics = [], potions = [] } = this.inventory || {};
     const sellableList = [];
 
-    // 1. Pociones
+    // 1. Pociones y Consumibles
     potions.forEach(p => {
       const price = getSellPrice(p);
+      const isScroll = (typeof p === 'object' && (p.id === 'pergamino_retorno' || p.id === 'runa_retorno' || p.type === 'scroll'));
       sellableList.push({
         raw: p,
         id: p.id || p.name || 'pocion',
-        name: p.name || 'Poción de Vida',
-        type: 'potion',
-        icon: 'potion',
-        color: p.color || '#f43f5e',
-        desc: `Restaura vida • Valor de venta: ${price} gemas`,
+        name: p.name || (isScroll ? 'Pergamino de Retorno' : 'Poción de Vida'),
+        type: isScroll ? 'scroll' : 'potion',
+        icon: (typeof p === 'object' && p.icon) || (isScroll ? 'vortex' : 'potion'),
+        color: (typeof p === 'object' && p.color) || (isScroll ? '#38bdf8' : '#f43f5e'),
+        desc: isScroll ? `Retorno al Campamento • Valor de venta: ${price} gemas` : `Restaura vida • Valor de venta: ${price} gemas`,
         price,
       });
     });
@@ -305,30 +328,13 @@ export const ShopModalMixin = {
       });
     });
 
-    // 3. Llaves
-    keys.forEach(k => {
-      const price = getSellPrice(k);
-      const name = typeof k === 'string' ? k : (k.name || 'Llave');
-      const id = typeof k === 'string' ? k : (k.id || name);
-      sellableList.push({
-        raw: k,
-        id,
-        name,
-        type: 'key',
-        icon: 'key',
-        color: '#fbbf24',
-        desc: `Llave de mazmorra • Valor de venta: ${price} gemas`,
-        price,
-      });
-    });
-
     if (sellableList.length === 0) {
       return `
         <div class="shop-empty-state">
           <div class="shop-empty-icon">${renderIcon('chest', { size: 32, color: '#64748b' })}</div>
           <div class="shop-empty-title">Sin objetos vendibles</div>
           <p class="shop-empty-desc">
-            No tienes pociones, reliquias ni llaves en tu inventario actual.<br>
+            No tienes pociones, pergaminos ni reliquias en tu inventario actual.<br>
             ¡Explora las mazmorras y saquea cofres para vender tu botín!
           </p>
         </div>
