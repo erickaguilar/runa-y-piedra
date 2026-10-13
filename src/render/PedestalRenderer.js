@@ -95,6 +95,10 @@ export class PedestalRenderer {
 
         this.pedestals.set(id, {
           id, x, y, z, ...pMesh,
+          theme: objTheme,
+          isClassic: objTheme === 'classic',
+          isAbyss: (objTheme === 'abyss' || objTheme === 'shadow'),
+          isMerchant: objTheme === 'merchant',
           isActive: false, flash: 0, spinBoost: 0, phase: Math.random() * Math.PI * 2,
         });
       });
@@ -247,14 +251,14 @@ export class PedestalRenderer {
         p.crystalMesh.rotation.y += safeDt * 0.8;
         const tilt = Math.sin(time * 1.4 + p.phase) * 0.08;
         p.crystalMesh.rotation.z = tilt;
-      } else if (p.isClassic || (!p.isMerchant && !p.isAbyss && !p.accessoryMesh?.geometry?.parameters?.arc)) {
-        // Cáliz Sagrado: giro señorial pausado
-        p.crystalMesh.rotation.y += safeDt * 0.6;
-      } else {
-        // Ojo del Vacío: pulso y mirada mística
-        p.crystalMesh.rotation.y += safeDt * 0.9;
+      } else if (p.isAbyss) {
+        // Ojo del Vacío: rotación y pulso místico
+        p.crystalMesh.rotation.y += safeDt * 0.8;
         const pulse = 1 + Math.sin(time * 2.2 + p.phase) * 0.04 + p.flash * 0.5;
         p.crystalMesh.scale.set(pulse, pulse, pulse);
+      } else {
+        // Cáliz Sagrado: giro señorial pausado
+        p.crystalMesh.rotation.y += safeDt * 0.6;
       }
 
       // Accesorio temático (Esencia Solar / Corona de Sombras / Gema de Tasación)
@@ -264,13 +268,13 @@ export class PedestalRenderer {
           // La gema de tasación sigue la orientación y balanceo de la balanza
           p.accessoryMesh.rotation.y = p.crystalMesh.rotation.y;
           p.accessoryMesh.rotation.z = p.crystalMesh.rotation.z;
-        } else if (p.isClassic || (!p.isMerchant && !p.isAbyss && !p.accessoryMesh?.geometry?.parameters?.arc)) {
+        } else if (p.isAbyss) {
+          // La Corona de Sombras orbita y oscila protegiendo el Ojo del Vacío
+          p.accessoryMesh.rotation.y -= safeDt * 1.2;
+          p.accessoryMesh.rotation.z = Math.sin(time * 1.5 + p.phase) * 0.12;
+        } else {
           // La Esencia Solar gira dentro de la copa del cáliz en contra-rotación
           p.accessoryMesh.rotation.y -= safeDt * 1.4;
-        } else {
-          // La Corona de Sombras orbita y oscila protegiendo el Ojo del Vacío
-          p.accessoryMesh.rotation.y += safeDt * 1.3;
-          p.accessoryMesh.rotation.z += safeDt * 0.4;
         }
       }
 

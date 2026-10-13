@@ -102,6 +102,12 @@ test('Capítulo 2 - Nivel 3 (shadow_sanctum) es el Climax con altar y sin escali
   assert.equal(world.objectives.length, 1, 'Debe tener el altar del pedestal');
   assert.equal(world.objectives[0].type, 'pedestal');
   assert.equal(world.objectives[0].name, 'Altar Crepuscular');
+
+  // El altar debe descansar en el suelo (y=0) y no estar enterrado por bloques sólidos en y=1 o y=2
+  const ped = world.objectives[0];
+  assert.notEqual(world.get(ped.x, 0, ped.z), 0, 'La base bajo el altar en y=0 debe ser suelo sólido');
+  assert.equal(world.get(ped.x, 1, ped.z), 0, 'El espacio del altar en y=1 no debe contener bloques sólidos que lo oculten');
+  assert.equal(world.get(ped.x, 2, ped.z), 0, 'El espacio superior del altar en y=2 debe ser aire libre');
 });
 
 test('Capítulo 2 - completeChapter culmina Cripta de las Sombras y desbloquea Capítulo 3', () => {

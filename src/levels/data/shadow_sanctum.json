@@ -275,7 +275,6 @@
     { "type": "pillar", "x": 6, "z": 60, "height": 6, "block": "PILLAR" },
     { "type": "pillar", "x": 17, "z": 60, "height": 6, "block": "PILLAR" },
 
-    { "type": "fill", "block": "PILLAR", "from": [10, 0, 57], "to": [14, 0, 59] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 1, 57], "to": [14, 1, 59] }
+    { "type": "fill", "block": "FLOOR_WORN", "from": [10, 0, 57], "to": [14, 0, 59] }
   ]
 }

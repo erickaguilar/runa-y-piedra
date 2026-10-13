@@ -154,70 +154,81 @@ function _createClassicPedestalGeometries() {
 
 /** Geometrías para el Altar Abisal / Trono del Vacío */
 function _createAbyssPedestalGeometries() {
-  // Base escalonada hexagonal más esbelta y afilada
-  const step1 = new THREE.CylinderGeometry(0.62, 0.68, 0.16, 6).translate(0, 0.08, 0);
-  const step2 = new THREE.CylinderGeometry(0.52, 0.58, 0.16, 6).translate(0, 0.24, 0);
+  // 1. Base escalonada hexagonal de piedra oscura
+  const step1 = new THREE.CylinderGeometry(0.66, 0.72, 0.16, 6).translate(0, 0.08, 0);
+  const step2 = new THREE.CylinderGeometry(0.54, 0.60, 0.16, 6).translate(0, 0.24, 0);
   const stoneBase = mergeGeometries([step1, step2]);
   step1.dispose(); step2.dispose();
 
-  // Fuste hexagonal estilizado
-  const colHex = new THREE.CylinderGeometry(0.32, 0.42, 0.88, 6).translate(0, 0.76, 0);
+  // 2. Fuste hexagonal estilizado con anillo de forja central
+  const colHex = new THREE.CylinderGeometry(0.34, 0.44, 0.88, 6).translate(0, 0.76, 0);
+  const midRing = new THREE.CylinderGeometry(0.40, 0.40, 0.08, 6).translate(0, 0.76, 0);
 
-  // 4 Pilares espigados / colmillos ceremoniales que enmarcan el Ojo del Vacío
-  const spikeGeos = [];
-  const radius = 0.34;
+  // 4 garras / colmillos ceremoniales perimetrales en las esquinas de la losa superior
+  const talonGeos = [];
+  const talonRadius = 0.46;
   for (let i = 0; i < 4; i++) {
     const angle = (i * Math.PI) / 2 + Math.PI / 4;
-    const sx = Math.cos(angle) * radius;
-    const sz = Math.sin(angle) * radius;
-    const spike = new THREE.ConeGeometry(0.055, 0.42, 4);
-    spike.translate(sx, 1.48, sz);
-    spikeGeos.push(spike);
+    const sx = Math.cos(angle) * talonRadius;
+    const sz = Math.sin(angle) * talonRadius;
+    const tBase = new THREE.CylinderGeometry(0.045, 0.055, 0.08, 4).translate(sx, 1.40, sz);
+    const tHorn = new THREE.ConeGeometry(0.04, 0.26, 4).translate(sx, 1.57, sz);
+    talonGeos.push(tBase, tHorn);
   }
-  const column = mergeGeometries([colHex, ...spikeGeos]);
-  colHex.dispose();
-  for (const s of spikeGeos) s.dispose();
+  const column = mergeGeometries([colHex, midRing, ...talonGeos]);
+  colHex.dispose(); midRing.dispose();
+  for (const t of talonGeos) t.dispose();
 
-  // Collar de forja oscura y losa de coronación hexagonal
+  // 3. Collar de forja oscura y losa de coronación hexagonal
   const collar = new THREE.CylinderGeometry(0.44, 0.46, 0.10, 6).translate(0, 1.25, 0);
   const cap = new THREE.CylinderGeometry(0.50, 0.44, 0.12, 6).translate(0, 1.36, 0);
 
   // Ribete de runas amatistas en los bordes
-  const rim = new THREE.TorusGeometry(0.48, 0.025, 4, 6);
+  const rim = new THREE.TorusGeometry(0.48, 0.024, 4, 6);
   rim.rotateX(Math.PI / 2);
   rim.translate(0, 1.425, 0);
   const goldTrim = rim;
 
-  // Runa abisal: sello de vacío de 6 puntas (anillo dentado)
-  const runeDisc = new THREE.CircleGeometry(0.26, 6);
+  // 4. Runa abisal: sello de vacío de 6 puntas
+  const runeDisc = new THREE.CircleGeometry(0.24, 6);
   runeDisc.rotateX(-Math.PI / 2);
   runeDisc.translate(0, 1.445, 0);
 
-  const runeRing = new THREE.RingGeometry(0.30, 0.38, 6);
+  const runeRing = new THREE.RingGeometry(0.28, 0.36, 6);
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.445, 0);
 
-  // Reliquia del Capítulo 2: Corona de las Sombras / Ojo del Vacío 3D
-  // Orbe central del ojo de sombra
-  const eyeSphere = new THREE.SphereGeometry(0.09, 16, 14);
-  // Iris / pupila rasgada de obsidiana
-  const pupilTop = new THREE.ConeGeometry(0.032, 0.08, 4).translate(0, 0.035, 0.085);
-  const pupilBottom = new THREE.ConeGeometry(0.032, 0.08, 4);
-  pupilBottom.rotateX(Math.PI);
-  pupilBottom.translate(0, -0.035, 0.085);
-  const voidEyeCore = mergeGeometries([eyeSphere, pupilTop, pupilBottom]);
-  eyeSphere.dispose(); pupilTop.dispose(); pupilBottom.dispose();
+  // 5. Reliquia del Capítulo 2: Ojo del Vacío Amatista 3D (Completo en 360°)
+  const eyeSphere = new THREE.SphereGeometry(0.10, 20, 16);
+  const eyelidTop = new THREE.TorusGeometry(0.102, 0.015, 6, 16, Math.PI);
+  eyelidTop.rotateX(Math.PI * 0.15).translate(0, 0.02, 0);
+  const eyelidBottom = new THREE.TorusGeometry(0.102, 0.015, 6, 16, Math.PI);
+  eyelidBottom.rotateX(Math.PI * 1.15).translate(0, -0.02, 0);
 
-  // Corona o creciente de colmillos de vacío (arco astral punteado que custodia el ojo)
-  const crownArc = new THREE.TorusGeometry(0.18, 0.016, 6, 24, Math.PI * 1.35);
-  crownArc.rotateZ(-Math.PI * 0.17);
-  const tooth1 = new THREE.ConeGeometry(0.025, 0.11, 4).translate(-0.17, 0.08, 0);
-  const tooth2 = new THREE.ConeGeometry(0.025, 0.11, 4).translate(0.17, 0.08, 0);
-  const voidCrownGeo = mergeGeometries([crownArc, tooth1, tooth2]);
-  crownArc.dispose(); tooth1.dispose(); tooth2.dispose();
+  const pupilFront = new THREE.BoxGeometry(0.022, 0.11, 0.03).translate(0, 0, 0.092);
+  const pupilBack = new THREE.BoxGeometry(0.022, 0.11, 0.03).translate(0, 0, -0.092);
 
-  // Halo orbital de sombras (anillo oblicuo flotante alrededor del Ojo)
-  const abyssHalo = voidCrownGeo;
+  const voidEyeCore = mergeGeometries([eyeSphere, eyelidTop, eyelidBottom, pupilFront, pupilBack]);
+  eyeSphere.dispose(); eyelidTop.dispose(); eyelidBottom.dispose();
+  pupilFront.dispose(); pupilBack.dispose();
+
+  // 6. Corona de las Sombras 3D: anillo celestial cerrado con 6 puntas astrales (sin cortes)
+  const crownGeos = [];
+  const baseRing = new THREE.TorusGeometry(0.21, 0.014, 8, 32);
+  baseRing.rotateX(Math.PI / 2);
+  crownGeos.push(baseRing);
+
+  for (let k = 0; k < 6; k++) {
+    const angle = (k * Math.PI) / 3;
+    const px = Math.cos(angle) * 0.21;
+    const pz = Math.sin(angle) * 0.21;
+    const spike = new THREE.ConeGeometry(0.026, 0.10, 4);
+    spike.translate(px, 0.05, pz);
+    crownGeos.push(spike);
+  }
+
+  const voidCrownGeo = mergeGeometries(crownGeos);
+  for (const g of crownGeos) g.dispose();
 
   return {
     variant: 'abyss',
@@ -229,7 +240,7 @@ function _createAbyssPedestalGeometries() {
     runeDisc,
     runeRing,
     crystal: voidEyeCore,
-    accessory: abyssHalo,
+    accessory: voidCrownGeo,
   };
 }
 
