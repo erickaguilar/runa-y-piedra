@@ -241,12 +241,56 @@ function _createMerchantPedestalGeometries() {
   runeRing.rotateX(-Math.PI / 2);
   runeRing.translate(0, 1.485, 0);
 
-  // Gema del Mercader: Icosaedro facetado centrado en origen local (0,0,0)
-  const crystal = new THREE.IcosahedronGeometry(0.14, 0);
+  // 1. Mástil y fulcro central de la balanza
+  const mast = new THREE.CylinderGeometry(0.018, 0.024, 0.34, 12);
+  const fulcrumCap = new THREE.SphereGeometry(0.034, 12, 12).translate(0, 0.17, 0);
+  const mastGeo = mergeGeometries([mast, fulcrumCap]);
+  mast.dispose(); fulcrumCap.dispose();
 
-  // Accesorio comercial: Balanza / aro de cambio centrado en su origen local (0,0,0)
-  const coinRing = new THREE.TorusGeometry(0.21, 0.015, 8, 20);
-  coinRing.rotateX(Math.PI / 2);
+  // 2. Travesaño / Brazo basculante horizontal de la balanza
+  const beamBar = new THREE.CylinderGeometry(0.012, 0.012, 0.38, 8);
+  beamBar.rotateZ(Math.PI / 2);
+  beamBar.translate(0, 0.155, 0);
+  const beamPivot = new THREE.TorusGeometry(0.025, 0.008, 6, 12).translate(0, 0.155, 0);
+  const beamGeo = mergeGeometries([beamBar, beamPivot]);
+  beamBar.dispose(); beamPivot.dispose();
+
+  // 3. Platillos de pesaje (izquierdo y derecho) + tirantes/cadenas
+  const panLeftDish = new THREE.CylinderGeometry(0.065, 0.035, 0.02, 16).translate(-0.16, 0.04, 0);
+  const chainL1 = new THREE.CylinderGeometry(0.004, 0.004, 0.115, 4);
+  chainL1.rotateZ(0.18);
+  chainL1.translate(-0.16, 0.095, 0.03);
+  const chainL2 = new THREE.CylinderGeometry(0.004, 0.004, 0.115, 4);
+  chainL2.rotateZ(0.18);
+  chainL2.translate(-0.16, 0.095, -0.03);
+
+  const panRightDish = new THREE.CylinderGeometry(0.065, 0.035, 0.02, 16).translate(0.16, 0.04, 0);
+  const chainR1 = new THREE.CylinderGeometry(0.004, 0.004, 0.115, 4);
+  chainR1.rotateZ(-0.18);
+  chainR1.translate(0.16, 0.095, 0.03);
+  const chainR2 = new THREE.CylinderGeometry(0.004, 0.004, 0.115, 4);
+  chainR2.rotateZ(-0.18);
+  chainR2.translate(0.16, 0.095, -0.03);
+
+  // Balanza completa de cantería y forja dorada
+  const scalesGeo = mergeGeometries([
+    mastGeo,
+    beamGeo,
+    panLeftDish, chainL1, chainL2,
+    panRightDish, chainR1, chainR2,
+  ]);
+  mastGeo.dispose(); beamGeo.dispose();
+  panLeftDish.dispose(); chainL1.dispose(); chainL2.dispose();
+  panRightDish.dispose(); chainR1.dispose(); chainR2.dispose();
+
+  // Peso / Gema de tasación: pequeña esmeralda facetada en el platillo izquierdo
+  const gemWeight = new THREE.OctahedronGeometry(0.035, 0).translate(-0.16, 0.065, 0);
+
+  // La balanza reemplaza la figura geométrica
+  const crystal = scalesGeo;
+
+  // El accesorio opcional es la pequeña gema esmeralda de tasación o aro
+  const accessory = gemWeight;
 
   return {
     variant: 'merchant',
@@ -258,7 +302,8 @@ function _createMerchantPedestalGeometries() {
     runeDisc,
     runeRing,
     crystal,
-    accessory: coinRing,
+    scalesGeo,
+    accessory,
   };
 }
 
@@ -286,15 +331,18 @@ export function buildPedestalMesh(geos, mats) {
   // Cota de altura compartida: las figuras geométricas y sus aros coinciden en el mismo centro
   const baseY = geos.variant === 'merchant' ? 1.68 : 1.66;
 
-  // Cristal flotante
-  const crystalMesh = new THREE.Mesh(geos.crystal, mats.crystal);
+  // Figura central flotante: Balanza de Comercio (Scales) en forja dorada / jade para mercader, o cristal para altares
+  const isMerchant = geos.variant === 'merchant';
+  const centerMat = isMerchant ? mats.gold : mats.crystal;
+  const crystalMesh = new THREE.Mesh(geos.crystal, centerMat);
   crystalMesh.position.set(0, baseY, 0);
   root.add(crystalMesh);
 
-  // Accesorio único opcional (ej: halo orbital abisal o anillo de comercio)
+  // Accesorio único opcional (ej: gema esmeralda de tasación en el platillo, o halo abisal)
   let accessoryMesh = null;
   if (geos.accessory) {
-    accessoryMesh = new THREE.Mesh(geos.accessory, mats.gold);
+    const accMat = isMerchant ? mats.crystal : mats.gold;
+    accessoryMesh = new THREE.Mesh(geos.accessory, accMat);
     accessoryMesh.position.set(0, baseY, 0);
     root.add(accessoryMesh);
   }

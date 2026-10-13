@@ -415,13 +415,15 @@ test('Modelos Pedestales: geometrías y accesorios únicos para Classic, Abismo 
   const abyssModel = buildPedestalMesh(abyssGeos, abyssMats);
   assert.ok(abyssModel.accessoryMesh instanceof THREE.Mesh, 'Debe instanciar malla de halo accesorio');
 
-  // 3. Pedestal Mercader: fuste octogonal, mostrador con cuenco, icosaedro y anillo de cambio
+  // 3. Pedestal Mercader: fuste octogonal, mostrador con cuenco, Balanza de Comercio (Scales) y gema tasadora
   const merchantGeos = createPedestalGeometries('merchant');
   const merchantMats = createPedestalMaterials('merchant');
   assert.equal(merchantGeos.variant, 'merchant');
-  assert.ok(merchantGeos.accessory instanceof THREE.TorusGeometry, 'Debe incluir aro de cambio/moneda');
+  assert.ok(merchantGeos.scalesGeo instanceof THREE.BufferGeometry, 'Debe incluir la geometría de la balanza de comercio');
+  assert.ok(merchantGeos.accessory instanceof THREE.BufferGeometry, 'Debe incluir la gema de tasación en el platillo');
   const merchantModel = buildPedestalMesh(merchantGeos, merchantMats);
-  assert.ok(merchantModel.accessoryMesh instanceof THREE.Mesh, 'Debe instanciar accesorio de moneda comercial');
+  assert.ok(merchantModel.crystalMesh instanceof THREE.Mesh, 'Debe instanciar la balanza central');
+  assert.ok(merchantModel.accessoryMesh instanceof THREE.Mesh, 'Debe instanciar accesorio de pesaje');
 
   // Limpieza de recursos de la prueba
   for (const g of Object.values(classicGeos)) g?.dispose?.();

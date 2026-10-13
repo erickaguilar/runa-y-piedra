@@ -237,18 +237,26 @@ export class PedestalRenderer {
       const baseY = p.isMerchant ? 1.68 : 1.66;
       const bob = Math.sin(time * 1.6 + p.phase) * 0.035;
 
-      // Cristal: levitación + giro + latido suave a la altura exacta del aro
+      // Cristal / Balanza: levitación + giro suave sobre el pedestal
       p.crystalMesh.position.y = baseY + bob;
-      p.crystalMesh.rotation.y += safeDt * (1.2 + p.spinBoost * 0.5);
-      const pulse = 1 + Math.sin(time * 2.2 + p.phase) * 0.05 + p.flash * 0.6;
-      p.crystalMesh.scale.set(pulse, pulse * 1.2, pulse);
+      if (p.isMerchant) {
+        // La balanza gira con elegancia y oscila levemente (inclinación de pesaje)
+        p.crystalMesh.rotation.y += safeDt * 0.8;
+        const tilt = Math.sin(time * 1.4 + p.phase) * 0.08;
+        p.crystalMesh.rotation.z = tilt;
+      } else {
+        p.crystalMesh.rotation.y += safeDt * (1.2 + p.spinBoost * 0.5);
+        const pulse = 1 + Math.sin(time * 2.2 + p.phase) * 0.05 + p.flash * 0.6;
+        p.crystalMesh.scale.set(pulse, pulse * 1.2, pulse);
+      }
 
-      // Accesorio temático (halo abisal u órbita de moneda del mercader) concéntrico a la figura
+      // Accesorio temático (halo abisal u órbita de gema tasadora)
       if (p.accessoryMesh) {
         p.accessoryMesh.position.y = baseY + bob;
         if (p.isMerchant) {
-          // El anillo de balance/moneda gira suavemente en contra-rotación junto al cuenco
-          p.accessoryMesh.rotation.z += safeDt * 0.9;
+          // La gema de tasación sigue la orientación y balanceo de la balanza
+          p.accessoryMesh.rotation.y = p.crystalMesh.rotation.y;
+          p.accessoryMesh.rotation.z = p.crystalMesh.rotation.z;
         } else {
           // El halo orbital abisal describe una oscilación mística ceñida alrededor del cristal
           p.accessoryMesh.rotation.y += safeDt * 1.5;

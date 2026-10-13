@@ -342,12 +342,18 @@ export class PropShowcaseRenderer {
 
         if (anim.crystalMesh) {
           anim.crystalMesh.position.y = baseY + bob;
-          anim.crystalMesh.rotation.y += dt * 1.2;
+          if (anim.variant === 'merchant') {
+            anim.crystalMesh.rotation.y += dt * 0.8;
+            anim.crystalMesh.rotation.z = Math.sin(anim.phase * 1.8) * 0.08;
+          } else {
+            anim.crystalMesh.rotation.y += dt * 1.2;
+          }
         }
         if (anim.accessoryMesh) {
           anim.accessoryMesh.position.y = baseY + bob;
           if (anim.variant === 'merchant') {
-            anim.accessoryMesh.rotation.z += dt * 0.9;
+            anim.accessoryMesh.rotation.y = anim.crystalMesh.rotation.y;
+            anim.accessoryMesh.rotation.z = anim.crystalMesh.rotation.z;
           } else {
             anim.accessoryMesh.rotation.y += dt * 1.5;
             anim.accessoryMesh.rotation.z += dt * 0.5;
