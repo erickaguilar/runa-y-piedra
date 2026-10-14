@@ -5,6 +5,9 @@ import abyssThrone from './data/abyss_throne.json' with { type: 'json' };
 import shadowVault from './data/shadow_vault.json' with { type: 'json' };
 import shadowChasm from './data/shadow_chasm.json' with { type: 'json' };
 import shadowSanctum from './data/shadow_sanctum.json' with { type: 'json' };
+import fallsAqueduct from './data/falls_aqueduct.json' with { type: 'json' };
+import fallsTorrent from './data/falls_torrent.json' with { type: 'json' };
+import fallsReservoir from './data/falls_reservoir.json' with { type: 'json' };
 import devShowroom from './data/dev_showroom.json' with { type: 'json' };
 
 export class LevelRegistry {
@@ -20,6 +23,10 @@ export class LevelRegistry {
     this.registerLevel(shadowVault);
     this.registerLevel(shadowChasm);
     this.registerLevel(shadowSanctum);
+    // Capítulo 3: Cataratas Subterráneas
+    this.registerLevel(fallsAqueduct);
+    this.registerLevel(fallsTorrent);
+    this.registerLevel(fallsReservoir);
     // Nivel Showroom de pruebas exclusivo de herramientas dev
     this.registerLevel(devShowroom);
     this.currentLevelId = lobbyTutorial.id;

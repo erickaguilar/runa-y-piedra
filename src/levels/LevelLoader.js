@@ -146,6 +146,9 @@ export class LevelLoader {
       message: p.message || ':stone: ¡Click! Has presionado la losa mecánica.',
       releaseMessage: p.releaseMessage || (p.mode === 'hold' ? ':stone: ¡Click! Te has retirado de la losa de presencia. ¡El mecanismo se desactiva!' : null),
     }));
+    world.waterStreams = Array.isArray(levelData.waterStreams)
+      ? levelData.waterStreams.map(s => ({ ...s }))
+      : [];
     // Escalinata de descenso:
     // - Si el nivel define "stairs" explícito se usa (openFromStart para fosa abierta).
     // - "stairs": null la desactiva aunque haya altar (nivel final).

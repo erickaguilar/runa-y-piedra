@@ -81,6 +81,10 @@ export class VoxelSandboxGame {
         this.soundManager.playJump();
         this.ui.showNarrativeMessage(':bolt: ¡Impulso rúnico vertical!', 1000);
       },
+      onPlayerWaterEnter: (p) => {
+        if (p !== this.playerManager.localPlayer) return;
+        this.soundManager.playWaterSplash();
+      },
       onPlayerLavaSink: (p) => {
         if (p !== this.playerManager.localPlayer) return;
         this.soundManager.playHurt();

@@ -164,3 +164,10 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Panteón cerrado e invariable de exactamente diez (10) Reliquias Míticas (6 activas y 4 selladas) con regla de no generación de reliquias adicionales tras su activación.
     - Especificación teórica de diseño de las funcionalidades mecánicas proyectadas para las diez reliquias (en estado documental sin saturar mazmorras hasta culminar los 10 capítulos).
     - Precios de compra y venta en el Bazar Rúnico y función de calibración dinámica `setShopItemPrice`.
+
+28. [**28. Capítulo 3: Cataratas Subterráneas y Mecánica de Torrentes Fluviales**](./28-capitulo-3-cataratas-y-mecanica-torrente.md)
+    - Activación del Capítulo 3 (`subterranean_falls`) y catálogo de sus 3 mazmorras: `falls_aqueduct` (intro), `falls_torrent` (desafío) y `falls_reservoir` (clímax).
+    - Mecánica de Torrentes y Corrientes Acuáticas Direccionales (`WATER`, `WATER_STREAM_NORTH`, `WATER_STREAM_SOUTH`, `WATER_STREAM_EAST`, `WATER_STREAM_WEST`).
+    - Modelo físico en `SimulationEngine`: empuje vectorial horizontal continuo, flotabilidad, amortiguación de caída libre terminal (-3.5 m/s) y salto acuático a 30 Hz determinista Zero-GC.
+    - Cuatro nuevos sprites procedurales vectoriales en el Texture Atlas 4x8 (Tiles 28 a 31: agua cristalina, torrente Z, torrente X y cascada).
+    - Síntesis de audio procedural `playWaterSplash()` en `SoundManager` e iluminación/materiales de caliza y zafiro para altares y escalinatas.

@@ -1,0 +1,185 @@
+{
+  "id": "falls_reservoir",
+  "name": "Cisterna Sumergida: El Ojo de las Aguas",
+  "description": "El corazón hidráulico de la cordillera subterránea. Navega las compuertas de la gran cisterna, domina los saltos sobre cascadas y despierta el Altar Fluvial Supremo.",
+  "difficulty": "Épico",
+  "icon": "droplet",
+  "dimensions": {
+    "sizeX": 24,
+    "sizeY": 16,
+    "sizeZ": 60
+  },
+  "spawn": {
+    "x": 12.0,
+    "y": 1.2,
+    "z": 2.5,
+    "facing": "north"
+  },
+  "pressurePlates": [
+    {
+      "id": "losa_cisterna_norte",
+      "name": "Losa del Aliviadero Norte",
+      "x": 5.0,
+      "y": 1.0,
+      "z": 18.0,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 2,
+      "action": "open_door",
+      "reusable": true,
+      "message": ":door: ¡Click! ¡Has activado el aliviadero norte! ¡La esclusa hacia el Santuario Fluvial se ha abierto!"
+    }
+  ],
+  "doors": [
+    {
+      "id": 1,
+      "name": "Puerta 1 (Acceso a la Gran Cisterna)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 11,
+      "swingDir": 1,
+      "coords": [
+        { "x": 11, "y": 1, "z": 11 },
+        { "x": 11, "y": 2, "z": 11 },
+        { "x": 12, "y": 1, "z": 11 },
+        { "x": 12, "y": 2, "z": 11 }
+      ],
+      "openMessage": ":door: ¡Puerta 1 abierta! ¡Bienvenidos a la Gran Cisterna Sumergida!",
+      "lockedMessage": ":key: La Puerta 1 requiere la Llave de la Cisterna."
+    },
+    {
+      "id": 2,
+      "name": "Puerta 2 (Santuario Fluvial Supremo)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 38,
+      "swingDir": 1,
+      "coords": [
+        { "x": 11, "y": 1, "z": 38 },
+        { "x": 11, "y": 2, "z": 38 },
+        { "x": 12, "y": 1, "z": 38 },
+        { "x": 12, "y": 2, "z": 38 }
+      ],
+      "openMessage": ":door: ¡Puerta 2 abierta! ¡El Santuario Fluvial Supremo os aguarda!",
+      "lockedMessage": ":lock: La esclusa del Santuario está cerrada. Activa la losa del aliviadero en la galería oeste."
+    }
+  ],
+  "keys": [
+    {
+      "id": "key_reservoir_1",
+      "doorId": 1,
+      "name": "Llave de la Cisterna",
+      "x": 19.0,
+      "y": 1.2,
+      "z": 6.0,
+      "triggerRadius": 1.5,
+      "message": ":key: ¡Has recogido la Llave de la Cisterna! Abre la Puerta 1 hacia la Gran Cisterna."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "sala_1",
+      "name": "Sala 1 (Atrio de las Compuertas)",
+      "minZ": 0,
+      "maxZ": 11.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 2.5 }
+    },
+    {
+      "id": "sala_2",
+      "name": "Sala 2 (La Gran Cisterna Sumergida)",
+      "minZ": 11.5,
+      "maxZ": 38.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 12.5 }
+    },
+    {
+      "id": "sala_3",
+      "name": "Sala 3 (Santuario Fluvial Supremo)",
+      "minZ": 38.5,
+      "maxZ": 60.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 39.5 }
+    }
+  ],
+  "pedestalTheme": "subterranean_falls",
+  "objectives": [
+    {
+      "type": "pedestal",
+      "theme": "subterranean_falls",
+      "name": "Altar Fluvial Supremo",
+      "x": 12,
+      "y": 1,
+      "z": 52,
+      "triggerRadius": 3.2,
+      "completeMessage": ":trophy: ¡Altar Fluvial Supremo Consagrado! ¡Capítulo 3: Cataratas Subterráneas Conquistado!"
+    }
+  ],
+  "stairs": null,
+  "chests": [
+    {
+      "id": 1,
+      "name": "Cofre de la Bóveda Sumergida",
+      "x": 19.0,
+      "y": 1.0,
+      "z": 28.0,
+      "facing": "west",
+      "reward": ":gem: 300 Gemas y Runa de Velocidad",
+      "message": ":chest: ¡Has abierto el Cofre de la Bóveda Sumergida! Obtenidas :gem: 300 Gemas."
+    },
+    {
+      "id": 2,
+      "name": "Cofre del Altar Fluvial",
+      "x": 5.0,
+      "y": 1.0,
+      "z": 50.0,
+      "facing": "east",
+      "reward": ":gem: 350 Gemas y Poción de Vida Mayor",
+      "message": ":chest: ¡Has abierto el Cofre del Altar Fluvial! Obtenidas :gem: 350 Gemas."
+    }
+  ],
+  "regions": [
+    { "type": "perimeter", "height": 5, "block": "WALL" },
+    { "type": "ceiling", "y": 6, "block": "CEILING" },
+
+    { "type": "fill", "block": "WALL", "from": [1, -1, 1], "to": [22, -1, 58] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 10] },
+    { "type": "fill", "block": "WATER_STREAM_SOUTH", "from": [11, 0, 4], "to": [12, 0, 10] },
+
+    { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorOpening": [11, 12], "openHeight": 2, "doorId": 1 },
+
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 12], "to": [22, 0, 37] },
+
+    { "type": "fill", "block": "WATER", "from": [6, 0, 15], "to": [17, 0, 34] },
+
+    { "type": "fill", "block": "WATER_STREAM_SOUTH", "from": [10, 0, 16], "to": [13, 0, 20] },
+    { "type": "fill", "block": "WATER_STREAM_EAST", "from": [6, 0, 21], "to": [17, 0, 23] },
+    { "type": "fill", "block": "WATER_STREAM_WEST", "from": [6, 0, 28], "to": [17, 0, 30] },
+
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 1, 24], "to": [13, 1, 27] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [11, 1, 25], "to": [12, 1, 25] },
+
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 1, 17], "to": [6, 1, 19] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [18, 1, 27], "to": [20, 1, 29] },
+
+    { "type": "pillar", "x": 5, "z": 14, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 14, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 5, "z": 35, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 35, "height": 5, "block": "PILLAR" },
+
+    { "type": "divider", "z": 38, "height": 5, "block": "WALL", "doorOpening": [11, 12], "openHeight": 2, "doorId": 2 },
+
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 39], "to": [22, 0, 58] },
+
+    { "type": "fill", "block": "WATER_STREAM_SOUTH", "from": [10, 0, 40], "to": [13, 0, 45] },
+    { "type": "fill", "block": "WATER", "from": [8, 0, 46], "to": [15, 0, 56] },
+
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 1, 50], "to": [14, 1, 54] },
+
+    { "type": "pillar", "x": 6, "z": 44, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 44, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 54, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 54, "height": 5, "block": "PILLAR" }
+  ]
+}

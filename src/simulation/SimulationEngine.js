@@ -6,16 +6,96 @@ const HALF_W = (PHYSICS_CONFIG.PLAYER_W || 0.6) / 2;
 const PLAYER_H = PHYSICS_CONFIG.PLAYER_H || 1.8;
 
 export class SimulationEngine {
-  constructor(world, { onPlayerRespawn, onPlayerLavaSink, onStairTouch, onJumpPad, onPressurePlateStep, onPressurePlateRelease, isTransitioning, lavaSinkTicks } = {}) {
+  constructor(world, { onPlayerRespawn, onPlayerLavaSink, onPlayerWaterEnter, onStairTouch, onJumpPad, onPressurePlateStep, onPressurePlateRelease, isTransitioning, lavaSinkTicks } = {}) {
     this.world = world;
     this.onPlayerRespawn = onPlayerRespawn || null;
     this.onPlayerLavaSink = onPlayerLavaSink || null;
+    this.onPlayerWaterEnter = onPlayerWaterEnter || null;
     this.onStairTouch = onStairTouch || null;
     this.onJumpPad = onJumpPad || null;
     this.onPressurePlateStep = onPressurePlateStep || null;
     this.onPressurePlateRelease = onPressurePlateRelease || null;
     this.isTransitioning = isTransitioning || null;
     this.lavaSinkTicks = lavaSinkTicks !== undefined ? lavaSinkTicks : (PHYSICS_CONFIG.LAVA_SINK_TICKS ?? 36);
+  }
+
+  getWaterInteraction(p) {
+    const minX = Math.floor(p.pos.x - HALF_W);
+    const maxX = Math.floor(p.pos.x + HALF_W);
+    const minY = Math.floor(p.pos.y);
+    const maxY = Math.floor(p.pos.y + PLAYER_H - 1e-4);
+    const minZ = Math.floor(p.pos.z - HALF_W);
+    const maxZ = Math.floor(p.pos.z + HALF_W);
+
+    let inWater = false;
+    let streamVx = 0;
+    let streamVz = 0;
+    let streamCount = 0;
+    const baseSpeed = PHYSICS_CONFIG.WATER_STREAM_SPEED ?? 4.2;
+
+    // 1. Chequeo de vóxeles de agua en el volumen del cuerpo
+    for (let bx = minX; bx <= maxX; bx++) {
+      for (let by = minY; by <= maxY; by++) {
+        for (let bz = minZ; bz <= maxZ; bz++) {
+          const block = this.world.get(bx, by, bz);
+          if (block >= BLOCK_TYPES.WATER && block <= BLOCK_TYPES.WATER_STREAM_WEST) {
+            inWater = true;
+            if (block === BLOCK_TYPES.WATER_STREAM_NORTH) {
+              streamVz -= baseSpeed; streamCount++;
+            } else if (block === BLOCK_TYPES.WATER_STREAM_SOUTH) {
+              streamVz += baseSpeed; streamCount++;
+            } else if (block === BLOCK_TYPES.WATER_STREAM_EAST) {
+              streamVx += baseSpeed; streamCount++;
+            } else if (block === BLOCK_TYPES.WATER_STREAM_WEST) {
+              streamVx -= baseSpeed; streamCount++;
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Chequeo bajo los pies (canal bajo o flotando en superficie)
+    const feetBy = Math.floor(p.pos.y - 0.08);
+    for (let bx = minX; bx <= maxX; bx++) {
+      for (let bz = minZ; bz <= maxZ; bz++) {
+        const block = this.world.get(bx, feetBy, bz);
+        if (block >= BLOCK_TYPES.WATER && block <= BLOCK_TYPES.WATER_STREAM_WEST) {
+          inWater = true;
+          if (block === BLOCK_TYPES.WATER_STREAM_NORTH) {
+            streamVz -= baseSpeed; streamCount++;
+          } else if (block === BLOCK_TYPES.WATER_STREAM_SOUTH) {
+            streamVz += baseSpeed; streamCount++;
+          } else if (block === BLOCK_TYPES.WATER_STREAM_EAST) {
+            streamVx += baseSpeed; streamCount++;
+          } else if (block === BLOCK_TYPES.WATER_STREAM_WEST) {
+            streamVx -= baseSpeed; streamCount++;
+          }
+        }
+      }
+    }
+
+    if (streamCount > 1) {
+      streamVx /= streamCount;
+      streamVz /= streamCount;
+    }
+
+    // 3. Chequeo de zonas declarativas waterStreams
+    if (Array.isArray(this.world.waterStreams) && this.world.waterStreams.length > 0) {
+      for (const stream of this.world.waterStreams) {
+        if (
+          p.pos.x >= stream.x1 && p.pos.x <= stream.x2 &&
+          p.pos.z >= stream.z1 && p.pos.z <= stream.z2 &&
+          p.pos.y >= (stream.y1 ?? -2) && p.pos.y <= (stream.y2 ?? 5)
+        ) {
+          inWater = true;
+          const sSpeed = stream.speed ?? baseSpeed;
+          streamVx += (stream.flowX ?? 0) * sSpeed;
+          streamVz += (stream.flowZ ?? 0) * sSpeed;
+        }
+      }
+    }
+
+    return { inWater, streamVx, streamVz };
   }
 
 
@@ -150,10 +230,22 @@ export class SimulationEngine {
       }
     }
 
+    // Comprobación de contacto con agua y cálculo de corrientes
+    const water = this.getWaterInteraction(p);
+    const inWater = water.inWater;
+    if (inWater && !p._inWater) {
+      p._inWater = true;
+      if (this.onPlayerWaterEnter) {
+        this.onPlayerWaterEnter(p);
+      }
+    } else if (!inWater && p._inWater) {
+      p._inWater = false;
+    }
+
     // 0. Aplicar acciones edge-triggered deterministas (Salto autoritativo)
     // Se deshabilita por completo el salto si está en lava o hundiéndose en ella
     if (actions & ACTION_FLAGS.JUMP) {
-      if (p.onGround && !p.isSinkingInLava && !inLava) {
+      if ((p.onGround || inWater) && !p.isSinkingInLava && !inLava) {
         // Detección de losa rúnica JUMP_PAD bajo cualquier parte de la huella del jugador
         // (aterrizar en el borde de una losa también otorga el impulso completo)
         const feetY = Math.floor(p.pos.y - 0.05);
@@ -165,7 +257,8 @@ export class SimulationEngine {
           }
         }
 
-        const jumpMult = (p.hero?.jumpMultiplier || 1.0) * (isJumpPad ? 1.35 : 1.0);
+        const waterJumpScale = (!p.onGround && inWater) ? 0.85 : 1.0;
+        const jumpMult = (p.hero?.jumpMultiplier || 1.0) * (isJumpPad ? 1.35 : 1.0) * waterJumpScale;
         p.vel.y = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult;
         p.onGround = false;
 
@@ -195,13 +288,24 @@ export class SimulationEngine {
     const currentSpeed = PHYSICS_CONFIG.SPEED * speedMult;
     const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
     const rx =  Math.cos(p.yaw), rz = -Math.sin(p.yaw);
-    p.vel.x = (fx * p.inputForward + rx * p.inputRight) * currentSpeed;
-    p.vel.z = (fz * p.inputForward + rz * p.inputRight) * currentSpeed;
+    p.vel.x = (fx * p.inputForward + rx * p.inputRight) * currentSpeed + water.streamVx;
+    p.vel.z = (fz * p.inputForward + rz * p.inputRight) * currentSpeed + water.streamVz;
 
     if (p.isSinkingInLava || inLava) {
       // Caída lenta / hundimiento amortiguado en la lava viscosa
       const sinkSpeed = PHYSICS_CONFIG.LAVA_SINK_SPEED ?? -1.0;
       p.vel.y = sinkSpeed;
+    } else if (inWater) {
+      // Amortiguación de caída en agua profunda y flotabilidad
+      const cushionTerminal = PHYSICS_CONFIG.WATER_CUSHION_TERMINAL_VELOCITY ?? -3.5;
+      if (p.vel.y < cushionTerminal) {
+        p.vel.y = Math.min(cushionTerminal, p.vel.y + 35 * dt);
+      } else {
+        p.vel.y += (PHYSICS_CONFIG.GRAVITY * 0.3) * dt;
+        if (p.vel.y < cushionTerminal) {
+          p.vel.y = cushionTerminal;
+        }
+      }
     } else {
       p.vel.y += PHYSICS_CONFIG.GRAVITY * dt;
       if (p.vel.y < PHYSICS_CONFIG.TERMINAL_VELOCITY) {

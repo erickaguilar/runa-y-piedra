@@ -16,6 +16,12 @@ const THREE_COLORS = {
   10: new THREE.Color(BLOCK_COLORS[10] || 0xffffff),
   11: new THREE.Color(BLOCK_COLORS[11] || 0xffffff),
   12: new THREE.Color(BLOCK_COLORS[12] || 0xffffff),
+  13: new THREE.Color(BLOCK_COLORS[13] || 0xffffff),
+  14: new THREE.Color(BLOCK_COLORS[14] || 0xffffff),
+  15: new THREE.Color(BLOCK_COLORS[15] || 0xffffff),
+  16: new THREE.Color(BLOCK_COLORS[16] || 0xffffff),
+  17: new THREE.Color(BLOCK_COLORS[17] || 0xffffff),
+  18: new THREE.Color(BLOCK_COLORS[18] || 0xffffff),
 };
 
 export class VoxelMap {
@@ -94,9 +100,18 @@ varying vec2 vAtlasOffset;`
     this.rebuildFromWorld();
   }
 
+  isPedestal3D(x, y, z) {
+    return !!this.world?.objectives?.some(obj =>
+      (obj.type || 'pedestal') === 'pedestal' &&
+      Math.floor(obj.x ?? -999) === x &&
+      Math.floor(obj.y ?? -999) === y &&
+      Math.floor(obj.z ?? -999) === z
+    );
+  }
+
   addBlock(x, y, z, type) {
     if (type === BLOCK_TYPES.DOOR) return; // Las puertas las renderiza DoorRenderer con hojas 3D batientes
-    if (type === BLOCK_TYPES.PEDESTAL) return; // El pedestal lo renderiza PedestalRenderer como altar 3D
+    if (type === BLOCK_TYPES.PEDESTAL && this.isPedestal3D(x, y, z)) return; // Si coincide con un altar 3D interactivo, lo omite para evitar solapamiento
     const bIdx = this.world.idx(x, y, z);
     if (bIdx < 0) return;
     if (bIdx >= this.blockToInst.length) {
@@ -213,7 +228,8 @@ varying vec2 vAtlasOffset;`
       for (let y = this.minY; y < maxY; y++) {
         for (let z = 0; z < maxZ; z++) {
           const t = this.world.get(x, y, z);
-          if (t !== BLOCK_TYPES.AIR && t !== BLOCK_TYPES.DOOR && t !== BLOCK_TYPES.PEDESTAL) {
+          if (t !== BLOCK_TYPES.AIR && t !== BLOCK_TYPES.DOOR) {
+            if (t === BLOCK_TYPES.PEDESTAL && this.isPedestal3D(x, y, z)) continue;
             this.addBlock(x, y, z, t);
           }
         }
@@ -252,26 +268,40 @@ varying vec2 vAtlasOffset;`
 
     switch (type) {
       case BLOCK_TYPES.WALL: {
-        // 5 Variantes de Muros: 80% sillar regular limpio (Tile 0), 20% variantes (agrietado Tile 1, mampostería Tile 2, musgo Tile 3, glifo Tile 4)
+        // Distribución calibrada para variedad estética zen:
+        // - 2% Círculo Místico / Ensō Sagrado (Tile 4)
+        // - 12% Musgo de templo Koke-dera (Tile 3)
+        // - 18% Fractura de pincel seco Nōboku (Tile 1)
+        // - 24% Mampostería zen asimétrica (Tile 2)
+        // - 44% Sillar regular sereno (Tile 0)
         const r = h % 100;
-        if (r < 80) return 0; // sillar regular limpio (~80%)
-        const decorVariants = [1, 2, 3, 4];
-        return decorVariants[(h >>> 8) % decorVariants.length];
+        if (r < 2) return 4;  // Círculo místico / Ensō arcano (~2%)
+        if (r < 14) return 3; // Musgo Koke-dera (~12%)
+        if (r < 32) return 1; // Fractura de pincel seco (~18%)
+        if (r < 56) return 2; // Mampostería asimétrica (~24%)
+        return 0;             // Sillar regular limpio (~44%)
       }
       case BLOCK_TYPES.STONE_FLOOR:
       case BLOCK_TYPES.FLOOR_STONE:
       case BLOCK_TYPES.FLOOR_WORN:
       case BLOCK_TYPES.FLOOR_MOSS: {
-        if (type === BLOCK_TYPES.FLOOR_STONE) return 5; // floorTiles (adoquín limpio)
-        if (type === BLOCK_TYPES.FLOOR_WORN) return 6;  // floorTilesWorn (con grietas)
-        if (type === BLOCK_TYPES.FLOOR_MOSS) return 7;  // floorTilesMossy (con musgo)
+        if (type === BLOCK_TYPES.FLOOR_STONE) return 5; // sumieDungeonFloor (losas limpias)
+        if (type === BLOCK_TYPES.FLOOR_WORN) return 6;  // floorWorn (con fracturas)
+        if (type === BLOCK_TYPES.FLOOR_MOSS) return 7;  // floorMossy (con musgo)
 
-        // Si es STONE_FLOOR genérico (tipo 1): distribución determinista estable (90% limpio, 6% con grietas, 4% con musgo)
+        // Si es STONE_FLOOR genérico (tipo 1): distribución determinista orgánica:
+        // - ~80% losas base de calabozo (Tile 5)
+        // - ~8% losas con fracturas Nōboku (Tile 6)
+        // - ~6% losas con musgo y humedad (Tile 7)
+        // - ~4% rejas de drenaje de calabozo (Tile 8)
+        // - ~2% falla sellada con talismán Ofuda (Tile 9)
         const hFloor = ((x * 374761393) ^ (z * 668265263)) >>> 0;
         const r = hFloor % 100;
-        if (r < 90) return 5; // floorClean (losas limpias ~90%)
-        if (r < 96) return 6; // floorTilesWorn (~6%)
-        return 7;             // floorTilesMossy (~4%)
+        if (r < 80) return 5; // sumieDungeonFloor (~80%)
+        if (r < 88) return 6; // floorWorn (~8%)
+        if (r < 94) return 7; // floorMossy (~6%)
+        if (r < 98) return 8; // sumieDungeonGrate (~4%)
+        return 9;             // sumieDungeonCursed con Ofuda (~2%)
       }
       case BLOCK_TYPES.PILLAR: {
         // 5 Variantes de Pilares / Columnas (distribución orgánica determinista):
@@ -306,6 +336,16 @@ varying vec2 vAtlasOffset;`
         const decorVariants = [24, 25, 26, 27];
         return decorVariants[(h >>> 8) % decorVariants.length];
       }
+      case BLOCK_TYPES.PRESSURE_PAD:
+        return 14; // Losa de presión estilizada
+      case BLOCK_TYPES.WATER:
+        return 28; // Agua tranquila cristalina
+      case BLOCK_TYPES.WATER_STREAM_NORTH:
+      case BLOCK_TYPES.WATER_STREAM_SOUTH:
+        return 29; // Torrente longitudinal Z
+      case BLOCK_TYPES.WATER_STREAM_EAST:
+      case BLOCK_TYPES.WATER_STREAM_WEST:
+        return 30; // Torrente transversal X
       default:
         return 0;
     }

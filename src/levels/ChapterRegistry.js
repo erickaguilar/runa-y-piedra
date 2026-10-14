@@ -43,11 +43,10 @@ export const CHAPTER_CATALOG = Object.freeze([
     theme: 'subterranean_falls',
     lore: 'Piedra caliza húmeda y acueductos milenarios con corrientes turbulentas.',
     icon: 'droplet',
-    underConstruction: true,
     dungeons: [
-      { id: 'falls_aqueduct', role: 'intro', name: 'Acueducto Arcaico', underConstruction: true },
-      { id: 'falls_torrent', role: 'challenge', name: 'Torrente Subterráneo', underConstruction: true },
-      { id: 'falls_reservoir', role: 'climax', name: 'Cisterna Sumergida', underConstruction: true }
+      { id: 'falls_aqueduct', role: 'intro', name: 'Acueducto Arcaico' },
+      { id: 'falls_torrent', role: 'challenge', name: 'Torrente Subterráneo' },
+      { id: 'falls_reservoir', role: 'climax', name: 'Cisterna Sumergida' }
     ]
   },
   {

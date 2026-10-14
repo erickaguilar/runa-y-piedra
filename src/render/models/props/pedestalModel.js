@@ -13,6 +13,8 @@ export const THEMES = {
   abyss: { light: 0xa78bfa, rune: 0xddd6fe, crystal: 0x7c3aed, ember: 0x8b5cf6 },
   cartography: { light: 0x38bdf8, rune: 0xbae6fd, crystal: 0x0284c7, ember: 0x38bdf8 },
   merchant: { light: 0x10b981, rune: 0xa7f3d0, crystal: 0x059669, ember: 0x34d399 },
+  falls: { light: 0x38bdf8, rune: 0x7dd3fc, crystal: 0x0284c7, ember: 0x38bdf8 },
+  subterranean_falls: { light: 0x38bdf8, rune: 0x7dd3fc, crystal: 0x0284c7, ember: 0x38bdf8 },
 };
 
 /**
@@ -41,6 +43,11 @@ export function createPedestalMaterials(themeName = 'classic') {
     stoneDarkColor = 0x1a0b0b;
     accentColor = 0xf97316;
     emissiveAccent = 0x7c2d12;
+  } else if (themeName === 'falls' || themeName === 'subterranean_falls') {
+    stoneColor = 0x64748b; // Caliza húmeda azulada
+    stoneDarkColor = 0x334155; // Pizarra húmeda profunda
+    accentColor = 0x0ea5e9; // Zafiro acuático radiante
+    emissiveAccent = 0x0369a1;
   }
 
   return {

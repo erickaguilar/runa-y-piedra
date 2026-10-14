@@ -19,14 +19,25 @@ export const FOG_COUNT = 24;
 export function createStairsMaterials(woodTexture = null, theme = 'classic') {
   const tex = woodTexture || createWoodPlankTexture(256, 512);
   const isAbyss = theme === 'abyss' || theme === 'shadow';
+  const isFalls = theme === 'falls' || theme === 'subterranean_falls';
 
-  const stoneColor = isAbyss ? 0x334155 : 0x475569;
-  const stoneDarkColor = isAbyss ? 0x0f172a : 0x1e293b;
-  const ironColor = isAbyss ? 0x1e293b : 0x27272a;
-  const goldColor = isAbyss ? 0xc084fc : 0xf59e0b;
-  const emissiveColor = isAbyss ? 0x4c1d95 : 0x78350f;
-  const fogColor = isAbyss ? 0x818cf8 : 0x94a3b8;
-  const lightColor = isAbyss ? 0x8b5cf6 : 0xea580c;
+  let stoneColor = isAbyss ? 0x334155 : 0x475569;
+  let stoneDarkColor = isAbyss ? 0x0f172a : 0x1e293b;
+  let ironColor = isAbyss ? 0x1e293b : 0x27272a;
+  let goldColor = isAbyss ? 0xc084fc : 0xf59e0b;
+  let emissiveColor = isAbyss ? 0x4c1d95 : 0x78350f;
+  let fogColor = isAbyss ? 0x818cf8 : 0x94a3b8;
+  let lightColor = isAbyss ? 0x8b5cf6 : 0xea580c;
+
+  if (isFalls) {
+    stoneColor = 0x64748b;
+    stoneDarkColor = 0x334155;
+    ironColor = 0x1e293b;
+    goldColor = 0x38bdf8;
+    emissiveColor = 0x0369a1;
+    fogColor = 0x7dd3fc;
+    lightColor = 0x0284c7;
+  }
 
   return {
     theme,

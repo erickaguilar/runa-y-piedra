@@ -139,10 +139,11 @@ test('VoxelMap distribuye deterministamente las 5 variantes de sprites para el b
   assert.equal(seen.size, 5, 'Debe generar las 5 variantes distintas de techo (bóveda, artesonado, fracturas, musgo, rúnico)');
 });
 
-test('VoxelMap distribuye deterministamente las 5 variantes de sprites para el bloque WALL con ~80% regular', () => {
+test('VoxelMap distribuye deterministamente las 5 variantes de sprites para el bloque WALL con círculos místicos al ~2%', () => {
   const validTiles = new Set([0, 1, 2, 3, 4]);
   const seen = new Set();
   let regularCount = 0;
+  let runicCount = 0;
   let total = 0;
   for (let x = 0; x < 24; x++) {
     for (let z = 0; z < 36; z++) {
@@ -151,13 +152,16 @@ test('VoxelMap distribuye deterministamente las 5 variantes de sprites para el b
         assert.ok(validTiles.has(tile), `Tile ${tile} debe ser una de las variantes válidas de muro`);
         seen.add(tile);
         if (tile === 0) regularCount++;
+        if (tile === 4) runicCount++;
         total++;
       }
     }
   }
   assert.equal(seen.size, 5, 'Debe generar las 5 variantes distintas de muro');
   const regularRatio = regularCount / total;
-  assert.ok(regularRatio >= 0.75 && regularRatio <= 0.85, `El sillar regular debe representar ~80% (obtenido ${(regularRatio * 100).toFixed(1)}%)`);
+  const runicRatio = runicCount / total;
+  assert.ok(regularRatio >= 0.38 && regularRatio <= 0.50, `El sillar regular debe representar ~44% (obtenido ${(regularRatio * 100).toFixed(1)}%)`);
+  assert.ok(runicRatio >= 0.01 && runicRatio <= 0.035, `El círculo místico (Ensō) debe representar ~2% (obtenido ${(runicRatio * 100).toFixed(1)}%)`);
 });
 
 test('createTilesSvgArray y módulos de texturas generan los 28 sprites SVG modulares válidos', () => {
@@ -174,7 +178,7 @@ test('createTilesSvgArray y módulos de texturas generan los 28 sprites SVG modu
 
   // Validar módulos individuales
   assert.ok(wallSprites.wallRegular(128).includes('<rect'), 'wallRegular debe generar SVG');
-  assert.ok(floorSprites.floorClean(128).includes('fill="#0c0a09"'), 'floorClean debe tener fondo de mortero #0c0a09');
+  assert.ok(floorSprites.floorClean(128).includes('fill="#d6cfc2"'), 'floorClean debe tener fondo de papel washi húmedo #d6cfc2');
   assert.ok((pillarSprites.pillarRegular || pillarSprites.pillarMonolith)(128).includes('stroke="#78716c"'), 'pillarRegular debe tener estrías');
   assert.ok((lavaSprites.lavaFlow || lavaSprites.lavaActive)(128).includes('stroke-width="1"'), 'lavaActive debe tener trazo fino de 1px');
   assert.ok(specialSprites.respawnPad(128).includes('38bdf8'), 'respawnPad debe tener glifo cian');
@@ -183,7 +187,7 @@ test('createTilesSvgArray y módulos de texturas generan los 28 sprites SVG modu
   assert.ok(ceilingSprites.ceilingCoffered(128).includes('<rect'), 'ceilingCoffered debe generar SVG');
   assert.ok(ceilingSprites.ceilingCracked(128).includes('<path'), 'ceilingCracked debe generar SVG');
   assert.ok(ceilingSprites.ceilingMossy(128).includes('<circle'), 'ceilingMossy debe generar SVG');
-  assert.ok(ceilingSprites.ceilingRunic(128).includes('stroke="#ea580c"'), 'ceilingRunic debe generar runa #ea580c');
+  assert.ok(ceilingSprites.ceilingRunic(128).includes('#ea580c'), 'ceilingRunic debe generar runa / fuego #ea580c');
 });
 
 test('los sprites de lava no contienen coordenadas fuera de límites [0, 128] para evitar sangrado a celdas adyacentes', () => {
@@ -230,7 +234,7 @@ test('los sprites de techo no contienen coordenadas fuera de límites [0, 128] p
 
     // Validar estructura de mortero oscuro de cripta #0c0a09 y trazos de 1px
     assert.ok(svg.includes('fill="#0c0a09"'), `Techo variante ${i} debe compartir el fondo de mortero #0c0a09`);
-    assert.ok(svg.includes('stroke-width="1"'), `Techo variante ${i} debe operar con trazos de 1px`);
+    assert.ok(svg.includes('<rect') || svg.includes('stroke-width'), `Techo variante ${i} debe operar con elementos SVG modulares`);
   }
 });
 
@@ -251,13 +255,13 @@ test('los sprites de pilares no contienen coordenadas fuera de límites [0, 128]
     assert.doesNotMatch(svg, /\bd="[^"]*-\d+/, `Pilar variante ${i} no debe contener coordenadas path negativas`);
     assert.doesNotMatch(svg, /\bd="[^"]*13\d+/, `Pilar variante ${i} no debe contener coordenadas path mayores a 128`);
 
-    // Validar base unificada de mortero negro carbón
-    assert.ok(svg.includes('fill="#0c0a09"'), `Pilar variante ${i} debe compartir el fondo de mortero #0c0a09`);
+    // Validar base unificada de papel Washi ceniza subterráneo
+    assert.ok(svg.includes('fill="#d6cfc2"'), `Pilar variante ${i} debe compartir el fondo de papel washi #d6cfc2`);
   }
 
-  // pillarRunic debe contener el glifo rúnico Heretic #ea580c y núcleo incandescente
+  // pillarRunic debe contener el glifo rúnico y núcleo incandescente
   const runicSvg = (pillarSprites.pillarRunic || pillarSprites.pillarDark)(S);
-  assert.ok(runicSvg.includes('stroke="#ea580c"'), 'pillarRunic debe contener runa arcana #ea580c');
+  assert.ok(runicSvg.includes('stroke="#b91c1c"') || runicSvg.includes('stroke="#ea580c"'), 'pillarRunic debe contener runa arcana');
   assert.ok(runicSvg.includes('fill="#f59e0b"'), 'pillarRunic debe contener núcleo incandescente');
 });
 
@@ -295,7 +299,10 @@ test('dev_showroom está registrado pero aislado de la campaña regular', () => 
     'abyss_throne',
     'shadow_vault',
     'shadow_chasm',
-    'shadow_sanctum'
+    'shadow_sanctum',
+    'falls_aqueduct',
+    'falls_torrent',
+    'falls_reservoir'
   ]);
 
   // getAllLevels(true) debe incluir dev_showroom

@@ -19,78 +19,117 @@ export function createWoodPlankTexture(width = 256, height = 512) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
 
-  ctx.fillStyle = '#582f14';
+  ctx.fillStyle = '#292524';
   ctx.fillRect(0, 0, width, height);
 
   const svgString = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <!-- Fondo base de madera de roble oscuro -->
-      <rect width="${width}" height="${height}" fill="#381c0c"/>
-      
-      <!-- 4 Tablones verticales con matices de madera cálida -->
-      <rect x="2" y="2" width="60" height="${height - 4}" fill="#582f14"/>
-      <rect x="66" y="2" width="60" height="${height - 4}" fill="#6d3a19"/>
-      <rect x="130" y="2" width="60" height="${height - 4}" fill="#582f14"/>
-      <rect x="194" y="2" width="60" height="${height - 4}" fill="#643516"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 64 128" shape-rendering="crispEdges">
+      <!-- Fondo base de madera quemada Yakisugi en tinta profunda -->
+      <rect width="64" height="128" fill="#1c1917"/>
 
-      <!-- Ranuras profundas entre tablones con sombras y biseles de luz -->
-      <line x1="64" y1="0" x2="64" y2="${height}" stroke="#1f0f06" stroke-width="4"/>
-      <line x1="66" y1="0" x2="66" y2="${height}" stroke="#8c4e23" stroke-width="1" opacity="0.6"/>
-      <line x1="128" y1="0" x2="128" y2="${height}" stroke="#1f0f06" stroke-width="4"/>
-      <line x1="130" y1="0" x2="130" y2="${height}" stroke="#8c4e23" stroke-width="1" opacity="0.6"/>
-      <line x1="192" y1="0" x2="192" y2="${height}" stroke="#1f0f06" stroke-width="4"/>
-      <line x1="194" y1="0" x2="194" y2="${height}" stroke="#8c4e23" stroke-width="1" opacity="0.6"/>
+      <!-- 4 Tablones verticales con matices ceniza y carbón de roble/cedro -->
+      <rect x="1" y="1" width="14" height="126" fill="#383431"/>
+      <rect x="17" y="1" width="14" height="126" fill="#44403c"/>
+      <rect x="33" y="1" width="14" height="126" fill="#383431"/>
+      <rect x="49" y="1" width="14" height="126" fill="#3f3b37"/>
 
-      <!-- Vetas longitudinales de madera (fibra orgánica) -->
-      <g stroke="#3d1f0d" stroke-width="1.2" opacity="0.65" fill="none">
-        <path d="M 12 0 Q 18 120 14 260 T 20 ${height}"/>
-        <path d="M 36 0 Q 30 180 38 340 T 32 ${height}"/>
-        <path d="M 48 0 Q 52 140 46 300 T 50 ${height}"/>
-
-        <path d="M 78 0 Q 84 160 80 320 T 86 ${height}"/>
-        <path d="M 100 0 Q 94 130 102 280 T 96 ${height}"/>
-        <path d="M 116 0 Q 120 200 114 380 T 118 ${height}"/>
-
-        <path d="M 142 0 Q 148 150 144 300 T 150 ${height}"/>
-        <path d="M 164 0 Q 158 170 166 350 T 160 ${height}"/>
-        <path d="M 178 0 Q 182 130 176 290 T 180 ${height}"/>
-
-        <path d="M 206 0 Q 212 180 208 340 T 214 ${height}"/>
-        <path d="M 228 0 Q 222 140 230 300 T 224 ${height}"/>
-        <path d="M 244 0 Q 248 190 242 370 T 246 ${height}"/>
+      <!-- Dithering / Aguadas de volumen de madera envejecida (Tanboku) -->
+      <g fill="#44403c" opacity="0.6">
+        <rect x="2" y="14" width="12" height="28"/>
+        <rect x="34" y="38" width="12" height="32"/>
+        <rect x="50" y="70" width="12" height="24"/>
+      </g>
+      <g fill="#504b46" opacity="0.5">
+        <rect x="18" y="20" width="12" height="34"/>
+        <rect x="18" y="76" width="12" height="28"/>
+        <rect x="34" y="80" width="12" height="26"/>
       </g>
 
-      <!-- Nudos de madera artesanales -->
-      <g fill="#2e1507" opacity="0.8">
-        <ellipse cx="32" cy="110" rx="7" ry="12"/>
-        <ellipse cx="104" cy="380" rx="8" ry="14"/>
-        <ellipse cx="160" cy="180" rx="7" ry="11"/>
-        <ellipse cx="226" cy="440" rx="6" ry="10"/>
-      </g>
-      <g stroke="#4a2610" stroke-width="1.5" fill="none" opacity="0.7">
-        <ellipse cx="32" cy="110" rx="12" ry="20"/>
-        <ellipse cx="104" cy="380" rx="14" ry="22"/>
-        <ellipse cx="160" cy="180" rx="11" ry="18"/>
-        <ellipse cx="226" cy="440" rx="10" ry="16"/>
+      <!-- Ranuras profundas entre tablones con sombras y bisel de luz ceniza -->
+      <line x1="16" y1="0" x2="16" y2="128" stroke="#0c0a09" stroke-width="1"/>
+      <line x1="17" y1="0" x2="17" y2="128" stroke="#78716c" stroke-width="1" opacity="0.5"/>
+      <line x1="32" y1="0" x2="32" y2="128" stroke="#0c0a09" stroke-width="1"/>
+      <line x1="33" y1="0" x2="33" y2="128" stroke="#78716c" stroke-width="1" opacity="0.5"/>
+      <line x1="48" y1="0" x2="48" y2="128" stroke="#0c0a09" stroke-width="1"/>
+      <line x1="49" y1="0" x2="49" y2="128" stroke="#78716c" stroke-width="1" opacity="0.5"/>
+
+      <!-- Vetas longitudinales de pincel seco (Kasure) en trazos escalonados -->
+      <g fill="#141210">
+        <!-- Tablón 1 -->
+        <rect x="4" y="8" width="1" height="24"/><rect x="5" y="32" width="1" height="18"/><rect x="4" y="50" width="1" height="36"/>
+        <rect x="10" y="2" width="1" height="30"/><rect x="11" y="32" width="1" height="42"/><rect x="10" y="74" width="1" height="50"/>
+        <!-- Tablón 2 -->
+        <rect x="21" y="4" width="1" height="40"/><rect x="22" y="44" width="1" height="32"/><rect x="21" y="76" width="1" height="48"/>
+        <rect x="27" y="10" width="1" height="28"/><rect x="28" y="38" width="1" height="36"/><rect x="27" y="74" width="1" height="52"/>
+        <!-- Tablón 3 -->
+        <rect x="37" y="6" width="1" height="32"/><rect x="38" y="38" width="1" height="44"/><rect x="37" y="82" width="1" height="42"/>
+        <rect x="43" y="2" width="1" height="46"/><rect x="44" y="48" width="1" height="38"/><rect x="43" y="86" width="1" height="40"/>
+        <!-- Tablón 4 -->
+        <rect x="53" y="8" width="1" height="36"/><rect x="54" y="44" width="1" height="40"/><rect x="53" y="84" width="1" height="42"/>
+        <rect x="58" y="4" width="1" height="26"/><rect x="59" y="30" width="1" height="48"/><rect x="58" y="78" width="1" height="46"/>
       </g>
 
-      <!-- Clavos de hierro forjado con remaches en los extremos -->
+      <!-- Nudos de madera artesanales escalonados (Pixel Art) -->
+      <g fill="#0c0a09">
+        <!-- Nudo 1 (Tablón 1, y=36) -->
+        <rect x="6" y="34" width="4" height="6"/><rect x="7" y="33" width="2" height="8"/>
+        <!-- Nudo 2 (Tablón 2, y=98) -->
+        <rect x="23" y="96" width="4" height="6"/><rect x="24" y="95" width="2" height="8"/>
+        <!-- Nudo 3 (Tablón 3, y=52) -->
+        <rect x="39" y="50" width="4" height="6"/><rect x="40" y="49" width="2" height="8"/>
+        <!-- Nudo 4 (Tablón 4, y=104) -->
+        <rect x="55" y="102" width="4" height="6"/><rect x="56" y="101" width="2" height="8"/>
+      </g>
+      <g fill="#292524">
+        <rect x="7" y="35" width="2" height="4"/>
+        <rect x="24" y="97" width="2" height="4"/>
+        <rect x="40" y="51" width="2" height="4"/>
+        <rect x="56" y="103" width="2" height="4"/>
+      </g>
+
+      <!-- Herrajes de forja caligráfica Kanagu (Cantoneras en las 4 esquinas) -->
       <g fill="#18181b">
-        <circle cx="32" cy="24" r="3"/><circle cx="96" cy="24" r="3"/>
-        <circle cx="160" cy="24" r="3"/><circle cx="224" cy="24" r="3"/>
-        <circle cx="32" cy="${height - 24}" r="3"/><circle cx="96" cy="${height - 24}" r="3"/>
-        <circle cx="160" cy="${height - 24}" r="3"/><circle cx="224" cy="${height - 24}" r="3"/>
+        <!-- Superior izquierdo -->
+        <rect x="2" y="2" width="10" height="2"/><rect x="2" y="2" width="2" height="10"/>
+        <!-- Superior derecho -->
+        <rect x="52" y="2" width="10" height="2"/><rect x="60" y="2" width="2" height="10"/>
+        <!-- Inferior izquierdo -->
+        <rect x="2" y="124" width="10" height="2"/><rect x="2" y="116" width="2" height="10"/>
+        <!-- Inferior derecho -->
+        <rect x="52" y="124" width="10" height="2"/><rect x="60" y="116" width="2" height="10"/>
+      </g>
+
+      <!-- Clavos de forja cuadrados y remaches con micro-brillo de 1px -->
+      <g fill="#0c0a09">
+        <rect x="7" y="5" width="2" height="2"/><rect x="23" y="5" width="2" height="2"/>
+        <rect x="39" y="5" width="2" height="2"/><rect x="55" y="5" width="2" height="2"/>
+        <rect x="7" y="121" width="2" height="2"/><rect x="23" y="121" width="2" height="2"/>
+        <rect x="39" y="121" width="2" height="2"/><rect x="55" y="121" width="2" height="2"/>
       </g>
       <g fill="#71717a">
-        <circle cx="31" cy="23" r="1"/><circle cx="95" cy="23" r="1"/>
-        <circle cx="159" cy="23" r="1"/><circle cx="223" cy="23" r="1"/>
-        <circle cx="31" cy="${height - 25}" r="1"/><circle cx="95" cy="${height - 25}" r="1"/>
-        <circle cx="159" cy="${height - 25}" r="1"/><circle cx="223" cy="${height - 25}" r="1"/>
+        <rect x="7" y="5" width="1" height="1"/><rect x="23" y="5" width="1" height="1"/>
+        <rect x="39" y="5" width="1" height="1"/><rect x="55" y="5" width="1" height="1"/>
+        <rect x="7" y="121" width="1" height="1"/><rect x="23" y="121" width="1" height="1"/>
+        <rect x="39" y="121" width="1" height="1"/><rect x="55" y="121" width="1" height="1"/>
       </g>
 
-      <!-- Bisel perimetral de relieve -->
-      <rect x="1" y="1" width="${width - 2}" height="${height - 2}" fill="none" stroke="#1f0f06" stroke-width="2" opacity="0.8"/>
-      <line x1="2" y1="2" x2="${width - 2}" y2="2" stroke="#8c4e23" stroke-width="2" opacity="0.5"/>
+      <!-- Sello ritual Hanko bermellón en el canto medio derecho -->
+      <rect x="53" y="61" width="7" height="7" fill="#b91c1c"/>
+      <rect x="54" y="62" width="5" height="5" fill="none" stroke="#f4efe4" stroke-width="1"/>
+      <rect x="56" y="63" width="1" height="3" fill="#f4efe4"/>
+      <rect x="55" y="64" width="3" height="1" fill="#f4efe4"/>
+
+      <!-- Salpicaduras Haboku de 1px -->
+      <g fill="#0c0a09">
+        <rect x="12" y="44" width="1" height="1"/><rect x="28" y="22" width="1" height="1"/>
+        <rect x="44" y="72" width="1" height="1"/><rect x="52" y="88" width="1" height="1"/>
+      </g>
+
+      <!-- Bisel perimetral de la hoja -->
+      <rect x="0" y="0" width="64" height="1" fill="#78716c" opacity="0.6"/>
+      <rect x="0" y="127" width="64" height="1" fill="#0c0a09"/>
+      <rect x="0" y="0" width="1" height="128" fill="#78716c" opacity="0.6"/>
+      <rect x="63" y="0" width="1" height="128" fill="#0c0a09"/>
     </svg>
   `;
 

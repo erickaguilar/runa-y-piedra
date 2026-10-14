@@ -51,7 +51,7 @@ export class TextureGenerator {
     }
 
     const fullSvgString = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${atlasWidth}" height="${atlasHeight}" viewBox="0 0 ${atlasWidth} ${atlasHeight}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="${atlasWidth}" height="${atlasHeight}" viewBox="0 0 ${atlasWidth} ${atlasHeight}" shape-rendering="crispEdges">
         ${innerSvg}
       </svg>
     `;

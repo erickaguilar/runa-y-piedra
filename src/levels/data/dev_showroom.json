@@ -362,13 +362,23 @@
     { "type": "divider", "z": 49, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13] },
     { "type": "divider", "z": 64, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13], "openHeight": 3 },
 
-    { "type": "fill", "block": "FLOOR_STONE", "from": [4, 1, 3], "to": [5, 1, 4] },
-    { "type": "fill", "block": "FLOOR_WORN", "from": [7, 1, 3], "to": [8, 1, 4] },
-    { "type": "fill", "block": "FLOOR_MOSS", "from": [4, 1, 6], "to": [5, 1, 7] },
-    { "type": "fill", "block": "WALL", "from": [7, 1, 6], "to": [8, 1, 7] },
-    { "type": "fill", "block": "PILLAR", "from": [4, 1, 9], "to": [5, 2, 10] },
-    { "type": "fill", "block": "RESPAWN_PAD", "from": [7, 1, 9], "to": [8, 1, 10] },
-    { "type": "fill", "block": "PRESSURE_PAD", "from": [5, 1, 11], "to": [6, 1, 11] },
+    { "type": "fill", "block": "FLOOR_STONE", "from": [3, 1, 3], "to": [4, 1, 4] },
+    { "type": "fill", "block": "FLOOR_WORN", "from": [6, 1, 3], "to": [7, 1, 4] },
+    { "type": "fill", "block": "FLOOR_MOSS", "from": [9, 1, 3], "to": [10, 1, 4] },
+    { "type": "fill", "block": "WALL", "from": [3, 1, 6], "to": [4, 2, 7] },
+    { "type": "fill", "block": "PILLAR", "from": [6, 1, 6], "to": [7, 2, 7] },
+
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [3, 0, 9], "to": [4, 0, 10] },
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [3, 1, 9], "to": [4, 1, 10] },
+
+    { "type": "fill", "block": "JUMP_PAD", "from": [6, 0, 9], "to": [7, 0, 10] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [6, 1, 9], "to": [7, 1, 10] },
+
+    { "type": "fill", "block": "PRESSURE_PAD", "from": [3, 0, 11], "to": [4, 0, 12] },
+    { "type": "fill", "block": "PRESSURE_PAD", "from": [3, 1, 11], "to": [4, 1, 12] },
+
+    { "type": "fill", "block": "PEDESTAL", "from": [6, 0, 11], "to": [7, 0, 12] },
+    { "type": "fill", "block": "PEDESTAL", "from": [6, 1, 11], "to": [7, 1, 12] },
 
     { "type": "fill", "block": "WALL", "from": [14, 1, 1], "to": [14, 6, 2] },
     { "type": "fill", "block": "WALL", "from": [14, 4, 3], "to": [14, 6, 4] },

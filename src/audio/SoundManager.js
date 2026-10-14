@@ -450,6 +450,50 @@ export class SoundManager {
   }
 
   /**
+   * Salpicadura y corriente acuática al entrar en torrente o canales de agua.
+   */
+  playWaterSplash() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const oscGain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(320, t);
+    osc.frequency.exponentialRampToValueAtTime(120, t + 0.15);
+
+    oscGain.gain.setValueAtTime(0.22, t);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+
+    osc.connect(oscGain);
+    oscGain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.17);
+
+    if (this._noiseBuffer) {
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = this._noiseBuffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(800, t);
+      filter.frequency.exponentialRampToValueAtTime(400, t + 0.2);
+      filter.Q.setValueAtTime(2.0, t);
+
+      const noiseGain = this.ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.28, t);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(this.masterGain);
+      noise.start(t);
+      noise.stop(t + 0.23);
+    }
+  }
+
+  /**
    * Retroalimentación sonora al hacer clic en botones de la interfaz.
    */
   playClick() {

@@ -22,66 +22,112 @@ export function createChestWoodTexture(width = 256, height = 256) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
 
-  ctx.fillStyle = '#422006';
+  ctx.fillStyle = '#292524';
   ctx.fillRect(0, 0, width, height);
 
   const svgString = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <!-- Fondo base de madera de roble oscuro -->
-      <rect width="${width}" height="${height}" fill="#2e1405"/>
-      
-      <!-- 4 Tablones horizontales con matices cálidos de madera antigua -->
-      <rect x="2" y="4" width="${width - 4}" height="58" fill="#4a240a"/>
-      <rect x="2" y="66" width="${width - 4}" height="58" fill="#5c2e0e"/>
-      <rect x="2" y="128" width="${width - 4}" height="58" fill="#452109"/>
-      <rect x="2" y="190" width="${width - 4}" height="60" fill="#54290c"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 64 64" shape-rendering="crispEdges">
+      <!-- Fondo base de madera quemada Yakisugi en tinta profunda -->
+      <rect width="64" height="64" fill="#1c1917"/>
 
-      <!-- Ranuras profundas entre tablones con sombras y bisel de luz -->
-      <line x1="0" y1="64" x2="${width}" y2="64" stroke="#170902" stroke-width="3"/>
-      <line x1="0" y1="66" x2="${width}" y2="66" stroke="#7a3f18" stroke-width="1" opacity="0.6"/>
-      <line x1="0" y1="126" x2="${width}" y2="126" stroke="#170902" stroke-width="3"/>
-      <line x1="0" y1="128" x2="${width}" y2="128" stroke="#7a3f18" stroke-width="1" opacity="0.6"/>
-      <line x1="0" y1="188" x2="${width}" y2="188" stroke="#170902" stroke-width="3"/>
-      <line x1="0" y1="190" x2="${width}" y2="190" stroke="#7a3f18" stroke-width="1" opacity="0.6"/>
+      <!-- 4 Tablones horizontales con matices ceniza y carbón de roble/cedro Tansu -->
+      <rect x="1" y="1" width="62" height="14" fill="#383431"/>
+      <rect x="1" y="17" width="62" height="14" fill="#44403c"/>
+      <rect x="1" y="33" width="62" height="14" fill="#383431"/>
+      <rect x="1" y="49" width="62" height="14" fill="#3f3b37"/>
 
-      <!-- Vetas horizontales de madera noble -->
-      <g stroke="#331604" stroke-width="1.2" opacity="0.6" fill="none">
-        <path d="M 0 18 Q 60 26 130 16 T ${width} 24"/>
-        <path d="M 0 42 Q 90 32 180 46 T ${width} 38"/>
-        <path d="M 0 82 Q 70 94 160 80 T ${width} 88"/>
-        <path d="M 0 106 Q 110 98 200 112 T ${width} 104"/>
-        <path d="M 0 146 Q 50 156 140 142 T ${width} 150"/>
-        <path d="M 0 168 Q 100 160 190 174 T ${width} 166"/>
-        <path d="M 0 210 Q 70 218 150 206 T ${width} 214"/>
-        <path d="M 0 232 Q 90 226 180 238 T ${width} 230"/>
+      <!-- Dithering / Aguadas de volumen Tanboku en las tablas -->
+      <g fill="#44403c" opacity="0.6">
+        <rect x="6" y="2" width="20" height="12"/>
+        <rect x="36" y="2" width="22" height="12"/>
+        <rect x="10" y="34" width="24" height="12"/>
+        <rect x="40" y="34" width="18" height="12"/>
+      </g>
+      <g fill="#504b46" opacity="0.5">
+        <rect x="8" y="18" width="24" height="12"/>
+        <rect x="38" y="18" width="20" height="12"/>
+        <rect x="6" y="50" width="22" height="12"/>
+        <rect x="34" y="50" width="24" height="12"/>
       </g>
 
-      <!-- Nudos de madera artesanal en distintas tablas -->
-      <g fill="#1a0b02" opacity="0.85">
-        <ellipse cx="64" cy="32" rx="10" ry="6"/>
-        <ellipse cx="192" cy="94" rx="12" ry="7"/>
-        <ellipse cx="48" cy="156" rx="9" ry="5"/>
-        <ellipse cx="160" cy="220" rx="11" ry="6"/>
-      </g>
-      <g stroke="#3d1806" stroke-width="1.2" fill="none" opacity="0.75">
-        <ellipse cx="64" cy="32" rx="16" ry="10"/>
-        <ellipse cx="192" cy="94" rx="18" ry="11"/>
-        <ellipse cx="48" cy="156" rx="14" ry="9"/>
-        <ellipse cx="160" cy="220" rx="17" ry="10"/>
+      <!-- Ranuras profundas entre tablones con sombras y bisel de luz ceniza -->
+      <line x1="0" y1="16" x2="64" y2="16" stroke="#0c0a09" stroke-width="1"/>
+      <line x1="0" y1="17" x2="64" y2="17" stroke="#78716c" stroke-width="1" opacity="0.5"/>
+      <line x1="0" y1="32" x2="64" y2="32" stroke="#0c0a09" stroke-width="1"/>
+      <line x1="0" y1="33" x2="64" y2="33" stroke="#78716c" stroke-width="1" opacity="0.5"/>
+      <line x1="0" y1="48" x2="64" y2="48" stroke="#0c0a09" stroke-width="1"/>
+      <line x1="0" y1="49" x2="64" y2="49" stroke="#78716c" stroke-width="1" opacity="0.5"/>
+
+      <!-- Vetas horizontales de pincel seco (Kasure) en trazos escalonados -->
+      <g fill="#141210">
+        <!-- Tablón 1 (y=1..15) -->
+        <rect x="4" y="4" width="22" height="1"/><rect x="28" y="5" width="18" height="1"/><rect x="48" y="4" width="12" height="1"/>
+        <rect x="8" y="9" width="26" height="1"/><rect x="36" y="10" width="20" height="1"/>
+        <!-- Tablón 2 (y=17..31) -->
+        <rect x="2" y="21" width="20" height="1"/><rect x="24" y="22" width="24" height="1"/><rect x="50" y="21" width="10" height="1"/>
+        <rect x="6" y="26" width="28" height="1"/><rect x="36" y="27" width="22" height="1"/>
+        <!-- Tablón 3 (y=33..47) -->
+        <rect x="4" y="37" width="24" height="1"/><rect x="30" y="38" width="16" height="1"/><rect x="48" y="37" width="12" height="1"/>
+        <rect x="8" y="42" width="22" height="1"/><rect x="32" y="43" width="26" height="1"/>
+        <!-- Tablón 4 (y=49..62) -->
+        <rect x="2" y="53" width="18" height="1"/><rect x="22" y="54" width="22" height="1"/><rect x="46" y="53" width="14" height="1"/>
+        <rect x="6" y="58" width="26" height="1"/><rect x="34" y="59" width="24" height="1"/>
       </g>
 
-      <!-- Clavos de forja en los laterales para los esquineros -->
+      <!-- Nudos de madera artesanales escalonados (Pixel Art) -->
+      <g fill="#0c0a09">
+        <!-- Nudo 1 (Tablón 1, x=16, y=7) -->
+        <rect x="14" y="6" width="6" height="4"/><rect x="15" y="5" width="4" height="6"/>
+        <!-- Nudo 2 (Tablón 2, x=48, y=23) -->
+        <rect x="46" y="22" width="6" height="4"/><rect x="47" y="21" width="4" height="6"/>
+        <!-- Nudo 3 (Tablón 3, x=12, y=39) -->
+        <rect x="10" y="38" width="6" height="4"/><rect x="11" y="37" width="4" height="6"/>
+        <!-- Nudo 4 (Tablón 4, x=44, y=55) -->
+        <rect x="42" y="54" width="6" height="4"/><rect x="43" y="53" width="4" height="6"/>
+      </g>
+      <g fill="#292524">
+        <rect x="15" y="7" width="4" height="2"/>
+        <rect x="47" y="23" width="4" height="2"/>
+        <rect x="11" y="39" width="4" height="2"/>
+        <rect x="43" y="55" width="4" height="2"/>
+      </g>
+
+      <!-- Herrajes Kanagu laterales de hierro negro forjado -->
       <g fill="#18181b">
-        <circle cx="16" cy="16" r="3"/><circle cx="16" cy="78" r="3"/><circle cx="16" cy="140" r="3"/><circle cx="16" cy="202" r="3"/>
-        <circle cx="${width - 16}" cy="16" r="3"/><circle cx="${width - 16}" cy="78" r="3"/><circle cx="${width - 16}" cy="140" r="3"/><circle cx="${width - 16}" cy="202" r="3"/>
+        <rect x="1" y="1" width="4" height="62"/>
+        <rect x="59" y="1" width="4" height="62"/>
       </g>
-      <g fill="#71717a">
-        <circle cx="15" cy="15" r="1"/><circle cx="15" cy="77" r="1"/><circle cx="15" cy="139" r="1"/><circle cx="15" cy="201" r="1"/>
-        <circle cx="${width - 17}" cy="15" r="1"/><circle cx="${width - 17}" cy="77" r="1"/><circle cx="${width - 17}" cy="139" r="1"/><circle cx="${width - 17}" cy="201" r="1"/>
+      <!-- Clavos de forja cuadrados con remaches dorados de bronce antiguo -->
+      <g fill="#0c0a09">
+        <rect x="2" y="4" width="2" height="2"/><rect x="2" y="20" width="2" height="2"/>
+        <rect x="2" y="36" width="2" height="2"/><rect x="2" y="52" width="2" height="2"/>
+        <rect x="60" y="4" width="2" height="2"/><rect x="60" y="20" width="2" height="2"/>
+        <rect x="60" y="36" width="2" height="2"/><rect x="60" y="52" width="2" height="2"/>
+      </g>
+      <g fill="#ca8a04">
+        <rect x="2" y="4" width="1" height="1"/><rect x="2" y="20" width="1" height="1"/>
+        <rect x="2" y="36" width="1" height="1"/><rect x="2" y="52" width="1" height="1"/>
+        <rect x="60" y="4" width="1" height="1"/><rect x="60" y="20" width="1" height="1"/>
+        <rect x="60" y="36" width="1" height="1"/><rect x="60" y="52" width="1" height="1"/>
       </g>
 
-      <!-- Bisel de profundidad y viñeteado perimetral -->
-      <rect x="1" y="1" width="${width - 2}" height="${height - 2}" fill="none" stroke="#170902" stroke-width="3" opacity="0.8"/>
+      <!-- Sello ritual Hanko bermellón en la esquina inferior derecha -->
+      <rect x="48" y="52" width="6" height="6" fill="#b91c1c"/>
+      <rect x="49" y="53" width="4" height="4" fill="none" stroke="#f4efe4" stroke-width="1"/>
+      <rect x="51" y="54" width="1" height="2" fill="#f4efe4"/>
+      <rect x="50" y="55" width="2" height="1" fill="#f4efe4"/>
+
+      <!-- Salpicaduras Haboku de tinta de 1px -->
+      <g fill="#0c0a09">
+        <rect x="26" y="10" width="1" height="1"/><rect x="34" y="26" width="1" height="1"/>
+        <rect x="22" y="44" width="1" height="1"/><rect x="38" y="58" width="1" height="1"/>
+      </g>
+
+      <!-- Bisel perimetral del arcón -->
+      <rect x="0" y="0" width="64" height="1" fill="#78716c" opacity="0.6"/>
+      <rect x="0" y="63" width="64" height="1" fill="#0c0a09"/>
+      <rect x="0" y="0" width="1" height="64" fill="#78716c" opacity="0.6"/>
+      <rect x="63" y="0" width="1" height="64" fill="#0c0a09"/>
     </svg>
   `;
 

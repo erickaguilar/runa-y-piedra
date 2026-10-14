@@ -31,6 +31,8 @@ export const PHYSICS_CONFIG = {
   TICK_HZ: 30,
   LAVA_SINK_TICKS: 36, // ~1.2s a 30 ticks/s de animación de hundimiento/caída lenta
   LAVA_SINK_SPEED: -1.0, // Velocidad vertical lenta dentro del magma viscoso
+  WATER_STREAM_SPEED: 4.2, // Velocidad de arrastre horizontal base de torrentes
+  WATER_CUSHION_TERMINAL_VELOCITY: -3.5, // Amortiguación de caída en agua profunda
 };
 
 export const NET_CONFIG = {
@@ -65,6 +67,11 @@ export const BLOCK_TYPES = {
   RESPAWN_PAD: 11,
   CEILING: 12,
   PRESSURE_PAD: 13,
+  WATER: 14,
+  WATER_STREAM_NORTH: 15,
+  WATER_STREAM_SOUTH: 16,
+  WATER_STREAM_EAST: 17,
+  WATER_STREAM_WEST: 18,
 };
 
 export const BLOCK_FLOOR_STONE = 8;
@@ -76,7 +83,7 @@ export const BLOCK_COLORS = {
   2: 0xffffff, // Muro de mazmorra de cripta (blanco neutro para respetar la paleta oscura, óxido y runas del SVG)
   3: 0xd97706, // Puerta de madera y hierro reforzado
   4: 0xffffff, // Columnas y pilares monolíticos (blanco neutro para respetar tonos oscuros y desgaste del SVG)
-  5: 0xfbbf24, // Pedestal/Luz rúnica dorada
+  5: 0xffffff, // Pedestal/Losa Ceremonial con Octagrama (blanco neutro para respetar marfil, sellos y dorado del SVG)
   6: 0xffffff, // Plataforma de Salto JUMP_PAD (blanco neutro para respetar base de sillar y runa ámbar del SVG)
   7: 0xffffff, // Lava volcánica (blanco neutro para respetar naranjas y rojos del SVG)
   8: 0xffffff, // Adoquín limpio
@@ -85,6 +92,11 @@ export const BLOCK_COLORS = {
   11: 0xffffff, // Losa de Respawn / Invocación Rúnica (blanco neutro para respetar azul cian radiante y sillar oscuro del SVG)
   12: 0xffffff, // Techo y bóveda de mazmorra (blanco neutro para respetar los tonos y relieves del SVG)
   13: 0xffffff, // Losa de Presión PRESSURE_PAD (blanco neutro para respetar basalto y runas del SVG)
+  14: 0xffffff, // Agua tranquila cristalina (textura SVG turquesa propia)
+  15: 0xffffff, // Torrente Norte (-Z, textura SVG con flujo longitudinal)
+  16: 0xffffff, // Torrente Sur (+Z, textura SVG con flujo longitudinal)
+  17: 0xffffff, // Torrente Este (+X, textura SVG con flujo transversal)
+  18: 0xffffff, // Torrente Oeste (-X, textura SVG con flujo transversal)
 };
 
 import heroesData from '../heroes/data/heroes.json' with { type: 'json' };

@@ -16,6 +16,11 @@ const BLOCK_NAMES = {
   [BLOCK_TYPES.RESPAWN_PAD]: 'Losa de Respawn',
   [BLOCK_TYPES.CEILING]: 'Techo / Bóveda',
   [BLOCK_TYPES.PRESSURE_PAD]: 'Losa de Presión Mecánica',
+  [BLOCK_TYPES.WATER]: 'Agua Subterránea',
+  [BLOCK_TYPES.WATER_STREAM_NORTH]: 'Torrente Fluvial Norte (-Z)',
+  [BLOCK_TYPES.WATER_STREAM_SOUTH]: 'Torrente Fluvial Sur (+Z)',
+  [BLOCK_TYPES.WATER_STREAM_EAST]: 'Torrente Fluvial Este (+X)',
+  [BLOCK_TYPES.WATER_STREAM_WEST]: 'Torrente Fluvial Oeste (-X)',
 };
 
 export class RoomDebugOverlay {

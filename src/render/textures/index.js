@@ -5,6 +5,7 @@ export * from './pillars.js';
 export * from './specials.js';
 export * from './lava.js';
 export * from './ceilings.js';
+export * from './water.js';
 
 import { wallSprites } from './walls.js';
 import { floorSprites } from './floors.js';
@@ -12,6 +13,7 @@ import { pillarSprites } from './pillars.js';
 import { specialSprites } from './specials.js';
 import { lavaSprites } from './lava.js';
 import { ceilingSprites } from './ceilings.js';
+import { waterSprites } from './water.js';
 
 /**
  * Ensambla el arreglo de fragmentos SVG para las casillas del Texture Atlas (matriz 4x8, 32 casillas posibles).
@@ -60,6 +62,12 @@ export function createTilesSvgArray(S = 128) {
   tilesSvg[25] = ceilingSprites.ceilingCracked(S);
   tilesSvg[26] = ceilingSprites.ceilingMossy(S);
   tilesSvg[27] = ceilingSprites.ceilingRunic(S);
+
+  // ==================== GRUPO 7: AGUA Y TORRENTES (Tiles 28 a 31) ====================
+  tilesSvg[28] = waterSprites.waterCalm(S);
+  tilesSvg[29] = waterSprites.waterCurrentZ(S);
+  tilesSvg[30] = waterSprites.waterCurrentX(S);
+  tilesSvg[31] = waterSprites.waterCascade(S);
 
   return tilesSvg;
 }

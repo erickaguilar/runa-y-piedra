@@ -1,292 +1,360 @@
 // src/render/textures/floors.js
 
 /**
- * Tile 5: Piso Regular / Losas de Cantería Gris Claro (floorClean)
- * Cuatro losas cuadradas en tonos de piedra gris clara (#8a929d, #78808c, #6c7480, #7f8793)
- * con biseles de luz cenital de 1 px (#d1d5db, #b0b7c1) y mortero negro carbón de 2 px.
+ * Tile 5: Piso de Mazmorra Base Pixel Art (floorClean / sumieDungeonFloor — Losas de Calabozo)
+ * Cuatro losas sombrías en resolución retro 64x64 con crispEdges, técnica Tarashikomi en pixel clusters,
+ * cruz central de mortero en x=32 y y=32, argolla de grillete oxidado, rasguños kasure y salpicaduras Haboku.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function floorClean(S = 128) {
+  const scale = S / 64;
   return `
-    <!-- Fondo de mortero carbón de 2px -->
-    <rect width="${S}" height="${S}" fill="#0c0a09"/>
+    <g transform="scale(${scale})" shape-rendering="crispEdges">
+      <!-- Fondo de papel Washi envejecido y húmedo (tono ceniza subterráneo) -->
+      <rect width="64" height="64" fill="#d6cfc2"/>
+      <rect width="64" height="64" fill="#bfb6a6" opacity="0.45"/>
 
-    <!-- Losa 1: Superior Izquierda (Gris claro cenital) -->
-    <rect x="1" y="1" width="62" height="62" fill="#8a929d"/>
-    <line x1="2" y1="2" x2="62" y2="2" stroke="#d1d5db" stroke-width="1" opacity="0.9"/>
-    <line x1="2" y1="2" x2="2" y2="62" stroke="#d1d5db" stroke-width="1" opacity="0.9"/>
-    <line x1="2" y1="62" x2="62" y2="62" stroke="#374151" stroke-width="1"/>
-    <line x1="62" y1="2" x2="62" y2="62" stroke="#374151" stroke-width="1"/>
+      <!-- AGUADAS DE HUMEDAD EN LAS 4 LOSAS (Técnica Tarashikomi en Pixel Clusters) -->
+      <!-- Losa Superior Izquierda (x=1..30, y=1..30) -->
+      <rect x="2" y="2" width="28" height="28" fill="#57534e" opacity="0.35"/>
+      <rect x="5" y="6" width="20" height="18" fill="#292524" opacity="0.25"/>
 
-    <!-- Losa 2: Superior Derecha (Gris medio) -->
-    <rect x="65" y="1" width="62" height="62" fill="#78808c"/>
-    <line x1="66" y1="2" x2="126" y2="2" stroke="#b0b7c1" stroke-width="1" opacity="0.8"/>
-    <line x1="66" y1="2" x2="66" y2="62" stroke="#b0b7c1" stroke-width="1" opacity="0.8"/>
-    <line x1="66" y1="62" x2="126" y2="62" stroke="#374151" stroke-width="1"/>
-    <line x1="126" y1="2" x2="126" y2="62" stroke="#374151" stroke-width="1"/>
+      <!-- Losa Superior Derecha (x=33..62, y=1..30) -->
+      <rect x="34" y="2" width="28" height="28" fill="#44403c" opacity="0.4"/>
+      <rect x="38" y="7" width="20" height="18" fill="#1c1917" opacity="0.25"/>
 
-    <!-- Losa 3: Inferior Izquierda (Gris basalto frío) -->
-    <rect x="1" y="65" width="62" height="62" fill="#6c7480"/>
-    <line x1="2" y1="66" x2="62" y2="66" stroke="#9ca3af" stroke-width="1" opacity="0.75"/>
-    <line x1="2" y1="66" x2="2" y2="126" stroke="#9ca3af" stroke-width="1" opacity="0.75"/>
-    <line x1="2" y1="126" x2="62" y2="126" stroke="#2d333d" stroke-width="1"/>
-    <line x1="62" y1="66" x2="62" y2="126" stroke="#2d333d" stroke-width="1"/>
+      <!-- Losa Inferior Izquierda (x=1..30, y=33..62) -->
+      <rect x="2" y="34" width="28" height="28" fill="#44403c" opacity="0.42"/>
+      <rect x="7" y="38" width="18" height="20" fill="#1c1917" opacity="0.28"/>
 
-    <!-- Losa 4: Inferior Derecha (Gris cantería cálida suave) -->
-    <rect x="65" y="65" width="62" height="62" fill="#7f8793"/>
-    <line x1="66" y1="66" x2="126" y2="66" stroke="#b8bfc9" stroke-width="1" opacity="0.85"/>
-    <line x1="66" y1="66" x2="66" y2="126" stroke="#b8bfc9" stroke-width="1" opacity="0.85"/>
-    <line x1="66" y1="126" x2="126" y2="126" stroke="#374151" stroke-width="1"/>
-    <line x1="126" y1="66" x2="126" y2="126" stroke="#374151" stroke-width="1"/>
+      <!-- Losa Inferior Derecha (x=33..62, y=33..62) -->
+      <rect x="34" y="34" width="28" height="28" fill="#57534e" opacity="0.35"/>
+      <rect x="38" y="38" width="20" height="18" fill="#292524" opacity="0.25"/>
 
-    <!-- Pátina sutil en juntas centrales -->
-    <path d="M 63,22 L 63,44 L 60,32 Z" fill="#374151" opacity="0.35"/>
-    <path d="M 65,84 L 65,106 L 68,96 Z" fill="#374151" opacity="0.35"/>
+      <!-- HALO DE SANGRADO DIFUSO EN LAS JUNTAS -->
+      <rect x="0" y="30" width="64" height="4" fill="#292524" opacity="0.3"/>
+      <rect x="30" y="0" width="4" height="64" fill="#292524" opacity="0.3"/>
+      <rect x="0" y="0" width="64" height="64" fill="none" stroke="#292524" stroke-width="2" opacity="0.3"/>
 
-    <!-- Piqueteado fino de cincel y textura mineral (1 a 2 px) -->
-    <g fill="#374151" opacity="0.55">
-      <rect x="18" y="24" width="2" height="2"/>
-      <rect x="42" y="16" width="3" height="2"/>
-      <rect x="28" y="48" width="2" height="3"/>
-      <rect x="84" y="20" width="3" height="2"/>
-      <rect x="108" y="38" width="2" height="2"/>
-      <rect x="94" y="52" width="2" height="3"/>
-      <rect x="22" y="84" width="3" height="2"/>
-      <rect x="44" y="106" width="2" height="2"/>
-      <rect x="80" y="80" width="2" height="2"/>
-      <rect x="112" y="96" width="3" height="2"/>
-    </g>
-    <!-- Destellos minerales y granos claros -->
-    <g fill="#d1d5db" opacity="0.8">
-      <rect x="19" y="25" width="1" height="1"/>
-      <rect x="85" y="21" width="1" height="1"/>
-      <rect x="45" y="107" width="1" height="1"/>
-      <rect x="109" y="39" width="1" height="1"/>
-    </g>
-    <g fill="#e5e7eb" opacity="0.65">
-      <rect x="43" y="17" width="1" height="1"/>
-      <rect x="23" y="85" width="1" height="1"/>
+      <!-- JUNTAS CALIGRÁFICAS EN PIXEL ART (Cruz central continua en x=31..32, y=31..32) -->
+      <rect x="0" y="31" width="64" height="2" fill="#121212"/>
+      <rect x="31" y="0" width="2" height="64" fill="#121212"/>
+
+      <!-- Bordes perimetrales (1px para sumar 2px idénticos a la cruz al repetir) -->
+      <rect x="0" y="0" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="63" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="0" width="1" height="64" fill="#121212"/>
+      <rect x="63" y="0" width="1" height="64" fill="#121212"/>
+
+      <!-- Pozo de sombra central (Piedra desportillada) -->
+      <rect x="29" y="30" width="6" height="4" fill="#121212"/>
+      <rect x="30" y="29" width="4" height="6" fill="#121212"/>
+
+      <!-- GRIETAS DE PINCEL SECO ESCALONADAS -->
+      <!-- Grieta Losa 1 -->
+      <g fill="#121212">
+        <rect x="0" y="14" width="8" height="1"/>
+        <rect x="8" y="15" width="4" height="1"/>
+        <rect x="12" y="12" width="7" height="1"/>
+        <rect x="12" y="10" width="2" height="2"/>
+      </g>
+      <!-- Grieta Losa 2 -->
+      <g fill="#121212">
+        <rect x="32" y="18" width="9" height="1"/>
+        <rect x="41" y="14" width="6" height="1"/>
+        <rect x="47" y="19" width="8" height="1"/>
+      </g>
+      <!-- Grieta Losa 3 -->
+      <g fill="#121212">
+        <rect x="32" y="48" width="9" height="1"/>
+        <rect x="23" y="44" width="9" height="1"/>
+        <rect x="16" y="51" width="7" height="1"/>
+      </g>
+      <!-- Grieta Losa 4 -->
+      <g fill="#121212">
+        <rect x="46" y="32" width="1" height="9"/>
+        <rect x="44" y="41" width="1" height="8"/>
+        <rect x="51" y="47" width="1" height="9"/>
+      </g>
+
+      <!-- Rasguños Kasure (Cerdas abiertas en 1 px) -->
+      <g fill="#292524" opacity="0.65">
+        <rect x="7" y="22" width="6" height="1"/>
+        <rect x="41" y="8" width="7" height="1"/>
+        <rect x="14" y="39" width="7" height="1"/>
+        <rect x="39" y="54" width="6" height="1"/>
+      </g>
+
+      <!-- Argolla de grillete / hierro oxidado en Losa 3 -->
+      <rect x="12" y="53" width="3" height="3" fill="#121212"/>
+      <rect x="11" y="55" width="5" height="5" fill="none" stroke="#121212" stroke-width="1"/>
+      <rect x="13" y="57" width="2" height="1" fill="#7f1d1d"/>
+
+      <!-- Salpicaduras Haboku y óxido de 1 px -->
+      <rect x="22" y="26" width="1" height="1" fill="#121212"/>
+      <rect x="38" y="24" width="1" height="1" fill="#121212"/>
+      <rect x="26" y="39" width="1" height="1" fill="#121212"/>
+      <rect x="53" y="41" width="1" height="1" fill="#7f1d1d"/>
+      <rect x="55" y="43" width="1" height="1" fill="#7f1d1d"/>
     </g>
   `;
 }
 
 /**
- * Tile 6: Piso Desgastado / Agrietado (floorWorn)
- * Losas de cantería gris claro fracturadas con grietas afiladas de 1 px y filos iluminados.
+ * Tile 6: Piso Desgastado / Fracturado Pixel Art (floorWorn)
+ * Losas de calabozo con fracturas profundas de pincel seco Nōboku escalonadas en 64x64.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function floorWorn(S = 128) {
+  const scale = S / 64;
   return `
-    <rect width="${S}" height="${S}" fill="#0c0a09"/>
+    <g transform="scale(${scale})" shape-rendering="crispEdges">
+      <rect width="64" height="64" fill="#d6cfc2"/>
+      <rect width="64" height="64" fill="#bfb6a6" opacity="0.45"/>
 
-    <!-- 4 Losas base en tonos gris claro -->
-    <rect x="1" y="1" width="62" height="62" fill="#8a929d"/>
-    <rect x="65" y="1" width="62" height="62" fill="#78808c"/>
-    <rect x="1" y="65" width="62" height="62" fill="#6c7480"/>
-    <rect x="65" y="65" width="62" height="62" fill="#7f8793"/>
+      <!-- Aguadas de humedad en las losas -->
+      <rect x="2" y="2" width="28" height="28" fill="#57534e" opacity="0.4"/>
+      <rect x="34" y="2" width="28" height="28" fill="#44403c" opacity="0.45"/>
+      <rect x="2" y="34" width="28" height="28" fill="#44403c" opacity="0.45"/>
+      <rect x="34" y="34" width="28" height="28" fill="#57534e" opacity="0.4"/>
 
-    <!-- Biseles periféricos en tonos claros -->
-    <line x1="2" y1="2" x2="62" y2="2" stroke="#d1d5db" stroke-width="1" opacity="0.85"/>
-    <line x1="66" y1="2" x2="126" y2="2" stroke="#b0b7c1" stroke-width="1" opacity="0.75"/>
-    <line x1="2" y1="66" x2="126" y2="66" stroke="#9ca3af" stroke-width="1" opacity="0.7"/>
+      <!-- Juntas continuas caligráficas -->
+      <rect x="0" y="31" width="64" height="2" fill="#121212"/>
+      <rect x="31" y="0" width="2" height="64" fill="#121212"/>
+      <rect x="0" y="0" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="63" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="0" width="1" height="64" fill="#121212"/>
+      <rect x="63" y="0" width="1" height="64" fill="#121212"/>
 
-    <!-- FRACTURAS TECTÓNICAS DE 1px CON FILO ILUMINADO CLARO -->
-    <!-- Grieta en Losa Superior Izquierda -->
-    <path d="M 22,2 L 28,18 L 18,34 L 32,48 L 26,62" stroke="#000000" stroke-width="3" fill="none"/>
-    <path d="M 22,2 L 28,18 L 18,34 L 32,48 L 26,62" stroke="#181b20" stroke-width="1.8" fill="none"/>
-    <path d="M 23,2 L 29,18 L 19,34 L 33,48 L 27,62" stroke="#e5e7eb" stroke-width="1" opacity="0.9" fill="none"/>
-    <path d="M 18,34 L 8,40" stroke="#181b20" stroke-width="1.5" fill="none"/>
-    <path d="M 18,35 L 8,41" stroke="#d1d5db" stroke-width="1" opacity="0.8" fill="none"/>
+      <!-- Múltiples fracturas escalonadas Nōboku intensas -->
+      <g fill="#121212">
+        <rect x="11" y="2" width="2" height="10"/>
+        <rect x="10" y="12" width="6" height="2"/>
+        <rect x="15" y="14" width="2" height="9"/>
+        <rect x="32" y="16" width="11" height="2"/>
+        <rect x="42" y="11" width="8" height="2"/>
+        <rect x="49" y="13" width="2" height="8"/>
+        <rect x="19" y="32" width="2" height="10"/>
+        <rect x="17" y="42" width="7" height="2"/>
+        <rect x="23" y="44" width="2" height="11"/>
+        <rect x="48" y="32" width="2" height="11"/>
+        <rect x="49" y="43" width="8" height="2"/>
+        <rect x="56" y="45" width="2" height="11"/>
+      </g>
+      <!-- Filo claro de 1px -->
+      <g fill="#a8a29e">
+        <rect x="13" y="2" width="1" height="10"/>
+        <rect x="17" y="14" width="1" height="9"/>
+        <rect x="21" y="32" width="1" height="10"/>
+        <rect x="25" y="44" width="1" height="11"/>
+      </g>
 
-    <!-- Grieta en Losa Superior Derecha -->
-    <path d="M 65,36 L 82,24 L 98,38 L 92,54 L 110,62" stroke="#000000" stroke-width="3" fill="none"/>
-    <path d="M 65,36 L 82,24 L 98,38 L 92,54 L 110,62" stroke="#181b20" stroke-width="1.8" fill="none"/>
-    <path d="M 66,36 L 83,24 L 99,38 L 93,54 L 111,62" stroke="#e5e7eb" stroke-width="1" opacity="0.9" fill="none"/>
-
-    <!-- Grieta en Losa Inferior Izquierda -->
-    <path d="M 38,65 L 48,82 L 42,102 L 56,118 L 52,126" stroke="#000000" stroke-width="3" fill="none"/>
-    <path d="M 38,65 L 48,82 L 42,102 L 56,118 L 52,126" stroke="#181b20" stroke-width="1.8" fill="none"/>
-    <path d="M 39,65 L 49,82 L 43,102 L 57,118 L 53,126" stroke="#e5e7eb" stroke-width="1" opacity="0.85" fill="none"/>
-
-    <!-- Grieta en Losa Inferior Derecha -->
-    <path d="M 96,65 L 108,84 L 102,104 L 118,116" stroke="#000000" stroke-width="2.5" fill="none"/>
-    <path d="M 96,65 L 108,84 L 102,104 L 118,116" stroke="#181b20" stroke-width="1.6" fill="none"/>
-    <path d="M 97,65 L 109,84 L 103,104 L 119,116" stroke="#d1d5db" stroke-width="1" opacity="0.8" fill="none"/>
-
-    <!-- Desconchones y lascas en la cruz central -->
-    <polygon points="63,60 63,65 58,65" fill="#181b20"/>
-    <polygon points="65,65 72,65 65,72" fill="#181b20"/>
-    <polygon points="66,66 70,66 66,70" fill="#9ca3af"/>
-    <polygon points="60,26 63,26 63,34" fill="#181b20"/>
-    <polygon points="98,63 106,63 102,65" fill="#181b20"/>
+      <!-- Salpicaduras Haboku -->
+      <rect x="17" y="13" width="1" height="1" fill="#121212"/>
+      <rect x="46" y="14" width="1" height="1" fill="#121212"/>
+      <rect x="24" y="44" width="1" height="1" fill="#121212"/>
+      <rect x="52" y="47" width="1" height="1" fill="#121212"/>
+    </g>
   `;
 }
 
 /**
- * Tile 7: Piso con Moho / Cripta Húmeda (floorMossy)
- * Losas de cantería gris claro con colonización vegetal de moho y líquenes en 3 capas.
+ * Tile 7: Piso con Moho y Humedad Pixel Art (floorMossy)
+ * Losas de calabozo con veladuras orgánicas de musgo Koke-dera en racimos de píxeles.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function floorMossy(S = 128) {
+  const scale = S / 64;
   return `
-    <rect width="${S}" height="${S}" fill="#0c0a09"/>
+    <g transform="scale(${scale})" shape-rendering="crispEdges">
+      <rect width="64" height="64" fill="#d6cfc2"/>
+      <rect width="64" height="64" fill="#bfb6a6" opacity="0.45"/>
 
-    <!-- 4 Losas base en tonos gris claro -->
-    <rect x="1" y="1" width="62" height="62" fill="#8a929d"/>
-    <rect x="65" y="1" width="62" height="62" fill="#78808c"/>
-    <rect x="1" y="65" width="62" height="62" fill="#6c7480"/>
-    <rect x="65" y="65" width="62" height="62" fill="#7f8793"/>
+      <!-- Aguadas de piedra base -->
+      <rect x="2" y="2" width="28" height="28" fill="#57534e" opacity="0.35"/>
+      <rect x="34" y="2" width="28" height="28" fill="#44403c" opacity="0.4"/>
+      <rect x="2" y="34" width="28" height="28" fill="#44403c" opacity="0.42"/>
+      <rect x="34" y="34" width="28" height="28" fill="#57534e" opacity="0.35"/>
 
-    <line x1="2" y1="2" x2="126" y2="2" stroke="#d1d5db" stroke-width="1" opacity="0.75"/>
-    <line x1="2" y1="66" x2="126" y2="66" stroke="#b0b7c1" stroke-width="1" opacity="0.65"/>
+      <!-- Juntas continuas caligráficas -->
+      <rect x="0" y="31" width="64" height="2" fill="#121212"/>
+      <rect x="31" y="0" width="2" height="64" fill="#121212"/>
+      <rect x="0" y="0" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="63" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="0" width="1" height="64" fill="#121212"/>
+      <rect x="63" y="0" width="1" height="64" fill="#121212"/>
 
-    <!-- Mancha viscosa de humedad que brota de la cruz central -->
-    <path d="M 64,28 Q 84,40 78,64 Q 96,78 78,92 Q 64,106 48,88 Q 30,76 44,56 Q 38,36 64,28 Z" fill="#1f2937" opacity="0.5"/>
-
-    <!-- Capa 1: Raíz y base de musgo oscuro de cripta -->
-    <g fill="#14532d" opacity="0.95">
-      <circle cx="64" cy="64" r="14"/><circle cx="54" cy="58" r="11"/><circle cx="74" cy="68" r="12"/>
-      <circle cx="64" cy="46" r="9"/><circle cx="64" cy="80" r="10"/>
-      <circle cx="46" cy="64" r="10"/><circle cx="82" cy="64" r="9"/>
-      <circle cx="16" cy="64" r="7"/><circle cx="112" cy="64" r="7"/>
-      <circle cx="64" cy="14" r="7"/><circle cx="64" cy="114" r="7"/>
+      <!-- Racimos de musgo verde matcha Koke-dera en la cruz central -->
+      <g fill="#14532d">
+        <rect x="22" y="26" width="20" height="12"/>
+        <rect x="26" y="22" width="12" height="20"/>
+        <rect x="10" y="30" width="8" height="4"/>
+        <rect x="46" y="30" width="8" height="4"/>
+      </g>
+      <g fill="#3f6212">
+        <rect x="25" y="28" width="14" height="8"/>
+        <rect x="28" y="25" width="8" height="14"/>
+        <rect x="12" y="31" width="4" height="2"/>
+        <rect x="48" y="31" width="4" height="2"/>
+      </g>
+      <g fill="#65a30d">
+        <rect x="29" y="29" width="6" height="6"/>
+        <rect x="31" y="31" width="2" height="2" fill="#dcfce7"/>
+      </g>
     </g>
-
-    <!-- Capa 2: Follaje activo de líquenes (Verde oliva) -->
-    <g fill="#3f6212">
-      <circle cx="63" cy="63" r="10"/><circle cx="53" cy="57" r="7.5"/><circle cx="73" cy="67" r="8"/>
-      <circle cx="63" cy="45" r="6"/><circle cx="63" cy="79" r="6.5"/>
-      <circle cx="45" cy="63" r="6.5"/><circle cx="81" cy="63" r="6"/>
-      <circle cx="15" cy="63" r="4.5"/><circle cx="111" cy="63" r="4.5"/>
-      <circle cx="63" cy="13" r="4.5"/><circle cx="63" cy="113" r="4.5"/>
-    </g>
-
-    <!-- Capa 3: Esporas húmedas luminiscentes (Verde lima marchito y brillo claro) -->
-    <g fill="#65a30d" opacity="0.85">
-      <circle cx="62" cy="61" r="5"/><circle cx="51" cy="55" r="3.5"/><circle cx="72" cy="65" r="4"/>
-      <circle cx="62" cy="43" r="2.8"/><circle cx="62" cy="77" r="3"/>
-      <circle cx="43" cy="61" r="3"/><circle cx="79" cy="61" r="2.8"/>
-    </g>
-    <circle cx="62" cy="60" r="1.5" fill="#dcfce7"/>
-    <circle cx="52" cy="54" r="1.2" fill="#dcfce7"/>
-    <circle cx="71" cy="64" r="1.2" fill="#dcfce7"/>
   `;
 }
 
 /**
- * Tile 8: Piso con Moho y Grietas (floorMossyWorn)
- * Deterioro combinado sobre losas gris claro: fracturas y colonización botánica.
+ * Tile 8: Piso con Drenaje / Reja Pixel Art (floorMossyWorn / sumieDungeonGrate)
+ * Pozo abismal central de tinta pura cubierto por reja forjada en pixel art con remaches bermellón.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function floorMossyWorn(S = 128) {
+  const scale = S / 64;
   return `
-    <rect width="${S}" height="${S}" fill="#0c0a09"/>
+    <g transform="scale(${scale})" shape-rendering="crispEdges">
+      <rect width="64" height="64" fill="#d6cfc2"/>
+      <rect width="64" height="64" fill="#bfb6a6" opacity="0.45"/>
 
-    <!-- 4 Losas base -->
-    <rect x="1" y="1" width="62" height="62" fill="#8a929d"/>
-    <rect x="65" y="1" width="62" height="62" fill="#78808c"/>
-    <rect x="1" y="65" width="62" height="62" fill="#6c7480"/>
-    <rect x="65" y="65" width="62" height="62" fill="#7f8793"/>
+      <!-- Juntas perimetrales y cruz -->
+      <rect x="0" y="31" width="64" height="2" fill="#121212"/>
+      <rect x="31" y="0" width="2" height="64" fill="#121212"/>
+      <rect x="0" y="0" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="63" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="0" width="1" height="64" fill="#121212"/>
+      <rect x="63" y="0" width="1" height="64" fill="#121212"/>
 
-    <!-- Grietas profundas de 1px con filo claro -->
-    <path d="M 64,36 L 52,50 L 64,64 L 48,82 L 32,96" stroke="#000000" stroke-width="3" fill="none"/>
-    <path d="M 64,36 L 52,50 L 64,64 L 48,82 L 32,96" stroke="#181b20" stroke-width="1.8" fill="none"/>
-    <path d="M 65,36 L 53,50 L 65,64 L 49,82 L 33,96" stroke="#e5e7eb" stroke-width="1" opacity="0.85" fill="none"/>
+      <!-- Halo de humedad alrededor del pozo central -->
+      <rect x="11" y="11" width="42" height="42" rx="3" fill="#1c1917" opacity="0.45"/>
 
-    <path d="M 80,90 L 96,104 L 90,118 L 94,126" stroke="#000000" stroke-width="2.5" fill="none"/>
-    <path d="M 80,90 L 96,104 L 90,118 L 94,126" stroke="#181b20" stroke-width="1.6" fill="none"/>
-    <path d="M 81,90 L 97,104 L 91,118 L 95,126" stroke="#d1d5db" stroke-width="1" opacity="0.8" fill="none"/>
+      <!-- POZO ABISMAL CENTRAL (Tinta negra pura Nōboku) -->
+      <rect x="14" y="14" width="36" height="36" fill="#121212"/>
+      <!-- Bisel de piedra irregular -->
+      <rect x="14" y="14" width="36" height="36" fill="none" stroke="#d6cfc2" stroke-width="1" opacity="0.5"/>
 
-    <!-- Humedad estancada en las fisuras -->
-    <path d="M 64,48 Q 50,60 58,74 Q 44,88 38,98 Q 48,96 56,84 Q 68,70 64,48 Z" fill="#1f2937" opacity="0.45"/>
+      <!-- BARROTES DE HIERRO FORJADO EN PIXEL ART -->
+      <!-- Verticales (x=23, 31, 40) -->
+      <g fill="#292524">
+        <rect x="22" y="14" width="3" height="36"/>
+        <rect x="31" y="14" width="3" height="36"/>
+        <rect x="40" y="14" width="3" height="36"/>
+      </g>
+      <g fill="#a8a29e">
+        <rect x="22" y="15" width="1" height="34"/>
+        <rect x="31" y="15" width="1" height="34"/>
+        <rect x="40" y="15" width="1" height="34"/>
+      </g>
 
-    <!-- Moho brotando de las entrañas de la grieta -->
-    <g fill="#14532d" opacity="0.95">
-      <circle cx="64" cy="64" r="11"/><circle cx="56" cy="54" r="8"/>
-      <circle cx="52" cy="74" r="8"/><circle cx="40" cy="88" r="6"/>
-      <circle cx="92" cy="100" r="7"/>
-    </g>
-    <g fill="#3f6212">
-      <circle cx="63" cy="63" r="7.5"/><circle cx="55" cy="53" r="5.5"/>
-      <circle cx="51" cy="73" r="5.5"/><circle cx="39" cy="87" r="4"/>
-      <circle cx="91" cy="99" r="4.5"/>
-    </g>
-    <g fill="#65a30d" opacity="0.8">
-      <circle cx="62" cy="62" r="3.5"/><circle cx="54" cy="52" r="2.5"/>
-      <circle cx="50" cy="72" r="2.5"/><circle cx="38" cy="86" r="2"/>
-      <circle cx="90" cy="98" r="2.2"/>
+      <!-- Horizontales (y=23, 31, 40) -->
+      <g fill="#292524">
+        <rect x="14" y="22" width="36" height="3"/>
+        <rect x="14" y="31" width="36" height="3"/>
+        <rect x="14" y="40" width="36" height="3"/>
+      </g>
+      <g fill="#a8a29e">
+        <rect x="15" y="22" width="34" height="1"/>
+        <rect x="15" y="31" width="34" height="1"/>
+        <rect x="15" y="40" width="34" height="1"/>
+      </g>
+
+      <!-- Remaches con óxido bermellón -->
+      <g fill="#7f1d1d">
+        <rect x="23" y="23" width="1" height="1"/><rect x="32" y="23" width="1" height="1"/><rect x="41" y="23" width="1" height="1"/>
+        <rect x="23" y="32" width="1" height="1"/><rect x="32" y="32" width="1" height="1"/><rect x="41" y="32" width="1" height="1"/>
+        <rect x="23" y="41" width="1" height="1"/><rect x="32" y="41" width="1" height="1"/><rect x="41" y="41" width="1" height="1"/>
+      </g>
+
+      <!-- Grietas en las 4 esquinas de la reja -->
+      <g fill="#121212">
+        <rect x="10" y="10" width="4" height="1"/><rect x="7" y="9" width="3" height="1"/>
+        <rect x="50" y="10" width="4" height="1"/><rect x="54" y="9" width="3" height="1"/>
+        <rect x="10" y="53" width="4" height="1"/><rect x="7" y="54" width="3" height="1"/>
+        <rect x="50" y="53" width="4" height="1"/><rect x="54" y="54" width="3" height="1"/>
+      </g>
     </g>
   `;
 }
 
 /**
- * Tile 9: Piso Santuario Ceremonial / Placa de Presión (floorSanctuary)
- * Rombo ritual tallado en bajorrelieve sobre losas gris claro con biseles de 1 px y canal de fuego.
+ * Tile 9: Piso Quebrado con Sello Ofuda Pixel Art (floorSanctuary / sumieDungeonCursed)
+ * Gran falla caligráfica violenta sellada con un talismán Ofuda bermellón en diagonal y caligrafía ritual.
  * @param {number} S - Tamaño de la casilla en píxeles (default: 128).
  * @returns {string} Fragmento SVG.
  */
 export function floorSanctuary(S = 128) {
+  const scale = S / 64;
   return `
-    <rect width="${S}" height="${S}" fill="#0c0a09"/>
+    <g transform="scale(${scale})" shape-rendering="crispEdges">
+      <rect width="64" height="64" fill="#d6cfc2"/>
+      <rect width="64" height="64" fill="#bfb6a6" opacity="0.45"/>
 
-    <!-- 4 Losas de base en tonos gris claro -->
-    <rect x="1" y="1" width="62" height="62" fill="#8a929d"/>
-    <rect x="65" y="1" width="62" height="62" fill="#78808c"/>
-    <rect x="1" y="65" width="62" height="62" fill="#6c7480"/>
-    <rect x="65" y="65" width="62" height="62" fill="#7f8793"/>
+      <!-- Aguadas de piedra húmeda -->
+      <rect x="2" y="2" width="28" height="28" fill="#44403c" opacity="0.38"/>
+      <rect x="34" y="2" width="28" height="28" fill="#57534e" opacity="0.32"/>
+      <rect x="2" y="34" width="28" height="28" fill="#57534e" opacity="0.35"/>
+      <rect x="34" y="34" width="28" height="28" fill="#44403c" opacity="0.42"/>
 
-    <!-- Sombra de inserción del rombo ceremonial -->
-    <polygon points="64,13 115,64 64,115 13,64" fill="#0c0a09" opacity="0.6"/>
+      <!-- Juntas de conexión continua -->
+      <rect x="0" y="31" width="64" height="2" fill="#121212"/>
+      <rect x="31" y="0" width="2" height="64" fill="#121212"/>
+      <rect x="0" y="0" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="63" width="64" height="1" fill="#121212"/>
+      <rect x="0" y="0" width="1" height="64" fill="#121212"/>
+      <rect x="63" y="0" width="1" height="64" fill="#121212"/>
 
-    <!-- Rombo exterior tallado (Placa de piedra pesada) -->
-    <polygon points="64,15 113,64 64,113 15,64" fill="#4b5563" stroke="#181b20" stroke-width="1.5"/>
-    <!-- Bisel de luz superior del rombo exterior en tono claro realzado -->
-    <path d="M 15,64 L 64,15 L 113,64" stroke="#d1d5db" stroke-width="1.2" fill="none" opacity="0.9"/>
-    <path d="M 15,64 L 64,113 L 113,64" stroke="#1f2937" stroke-width="1.2" fill="none"/>
+      <!-- GRAN FALLA CALIGRÁFICA DE MAZMORRA (Trazo violento escalonado) -->
+      <g fill="#121212">
+        <rect x="9" y="7" width="12" height="3"/>
+        <rect x="18" y="10" width="3" height="10"/>
+        <rect x="21" y="20" width="11" height="3"/>
+        <rect x="30" y="23" width="3" height="9"/>
+        <rect x="33" y="32" width="12" height="3"/>
+        <rect x="42" y="35" width="3" height="10"/>
+        <rect x="45" y="45" width="10" height="3"/>
+        <rect x="52" y="48" width="3" height="9"/>
+      </g>
 
-    <!-- Rombo interior rehundido -->
-    <polygon points="64,28 100,64 64,100 28,64" fill="#2d333d" stroke="#181b20" stroke-width="1.5"/>
-    <path d="M 28,64 L 64,28 L 100,64" stroke="#181b20" stroke-width="1.5" fill="none"/>
-    <path d="M 28,64 L 64,100 L 100,64" stroke="#9ca3af" stroke-width="1" fill="none" opacity="0.75"/>
+      <!-- TALISMÁN OFUDA PEGADO SOBRE LA GRIETA CENTRAL -->
+      <g transform="rotate(-35 32 32)">
+        <!-- Sombra del pergamino -->
+        <rect x="27" y="21" width="12" height="24" fill="#121212" opacity="0.4"/>
+        <!-- Cuerpo del talismán en rojo cinabrio -->
+        <rect x="26" y="20" width="12" height="24" fill="#991b1b" stroke="#121212" stroke-width="1"/>
+        <rect x="28" y="22" width="8" height="20" fill="none" stroke="#f4efe4" stroke-width="0.8" opacity="0.7"/>
+        <!-- Caligrafía ritual interna -->
+        <rect x="31" y="23" width="2" height="18" fill="#121212"/>
+        <rect x="29" y="26" width="6" height="1" fill="#121212"/>
+        <rect x="29" y="37" width="6" height="1" fill="#121212"/>
+        <rect x="31" y="31" width="2" height="2" fill="#fef08a"/>
+      </g>
 
-    <!-- CANAL DEL GLIFO DE AZUFRE / FUEGO ARCANO (Heretic) -->
-    <!-- Sombra interior del grabado -->
-    <polygon points="63,39 89,63 63,89 37,63" stroke="#0c0a09" stroke-width="3" fill="none"/>
-    <line x1="63" y1="33" x2="63" y2="95" stroke="#0c0a09" stroke-width="2.5"/>
-    <line x1="33" y1="63" x2="95" y2="63" stroke="#0c0a09" stroke-width="2.5"/>
-
-    <!-- Línea de incandescencia arcana de 1px -->
-    <polygon points="64,40 88,64 64,88 40,64" stroke="#ea580c" stroke-width="1.5" fill="none"/>
-    <line x1="64" y1="34" x2="64" y2="94" stroke="#ea580c" stroke-width="1.5"/>
-    <line x1="34" y1="64" x2="94" y2="64" stroke="#ea580c" stroke-width="1.5"/>
-
-    <!-- Resplandor amarillo central -->
-    <polygon points="64,40 88,64 64,88 40,64" stroke="#f59e0b" stroke-width="0.8" fill="none"/>
-    <line x1="64" y1="34" x2="64" y2="94" stroke="#fef08a" stroke-width="0.8"/>
-    <line x1="34" y1="64" x2="94" y2="64" stroke="#fef08a" stroke-width="0.8"/>
-
-    <!-- Orbe central / Placa activadora de presión -->
-    <circle cx="64" cy="64" r="8" fill="#181b20" stroke="#2d333d" stroke-width="1"/>
-    <circle cx="64" cy="64" r="6" fill="#7f1d1d"/>
-    <circle cx="64" cy="64" r="3.5" fill="#f59e0b"/>
-    <circle cx="63" cy="63" r="1.5" fill="#fef08a"/>
-
-    <!-- Remaches de bronce en los vértices del rombo -->
-    <circle cx="64" cy="20" r="2" fill="#d97706" stroke="#181b20" stroke-width="0.8"/>
-    <circle cx="108" cy="64" r="2" fill="#d97706" stroke="#181b20" stroke-width="0.8"/>
-    <circle cx="64" cy="108" r="2" fill="#d97706" stroke="#181b20" stroke-width="0.8"/>
-    <circle cx="20" cy="64" r="2" fill="#d97706" stroke="#181b20" stroke-width="0.8"/>
+      <!-- Salpicaduras de tinta y cinabrio de 1px -->
+      <rect x="24" y="24" width="1" height="1" fill="#121212"/>
+      <rect x="40" y="28" width="1" height="1" fill="#991b1b"/>
+      <rect x="26" y="41" width="1" height="1" fill="#991b1b"/>
+      <rect x="39" y="44" width="1" height="1" fill="#121212"/>
+      <rect x="15" y="12" width="1" height="1" fill="#121212"/>
+      <rect x="49" y="53" width="1" height="1" fill="#121212"/>
+    </g>
   `;
 }
+
+export const sumieDungeonFloor = floorClean;
+export const sumieDungeonGrate = floorMossyWorn;
+export const sumieDungeonCursed = floorSanctuary;
 
 export const floorSprites = {
   floorClean,
   floorWorn,
   floorMossy,
   floorMossyWorn,
-  floorSanctuary
+  floorSanctuary,
+  sumieDungeonFloor,
+  sumieDungeonGrate,
+  sumieDungeonCursed,
 };
