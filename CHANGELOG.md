@@ -38,6 +38,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - **Optimización de Parkour en Santuario Crepuscular (`shadow_sanctum`, `src/levels/data/shadow_sanctum.json`)**:
   - En la Sala 2 (Gran Salón Crepuscular), se eliminaron todos los pads de salto (`JUMP_PAD`), reemplazándolos por sólidas plataformas de piedra (`STONE_FLOOR`) soportadas por pilares monolíticos (`PILLAR`).
   - Se rediseñó la separación de bloques a lo largo de las alas Oeste y Este, introduciendo fosas de lava continuas de 2 metros de separación entre pedestales para un ritmo de salto orgánico, claro y satisfactorio en lugar de bloques hacinados.
+- **Rediseño de Parkour y Muro Central en Bóveda Umbría (`shadow_vault`, `src/levels/data/shadow_vault.json`)**:
+  - En la Sala 2 (Galerías Gemelas), se redujo la plataforma de llegada de 7 bloques a solo 3 bloques (`z: 40..42`), expandiendo la fosa de lava y el desafío de parkour a lo largo de `z: 15..39`.
+  - Se sustituyeron todas las plataformas sobredimensionadas (`3x2`) y los pads de salto (`JUMP_PAD`) por pedestales individuales de 1 único bloque (`1x1`) soportados por columnas de pilares (`PILLAR`) ancladas en el lecho de lava (`y = -1`), con ritmo de verticalidad escalonada ($y = 0 \to 1 \to 2 \to 1 \to 0$) perfectamente alcanzable por todos los héroes (incluido el Guardián).
+  - Se corrigió el orden de construcción de regiones en el mapa para anclar el muro divisorio central (`x: 11..13`) directamente en el lecho de magma desde `y = -1` hasta el techo en `y = 6`, eliminando la sensación visual de muro flotante.
+  - Se reubicaron las losas de activación cruzada `losa_gemela_izq` y `losa_gemela_der` a `z = 41.0` sobre la nueva plataforma de llegada.
 - **Cobertura de Pruebas Unitarias (`tests/`)**:
   - 290 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
 

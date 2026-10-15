@@ -178,30 +178,38 @@ test('Capítulo 2 - shadow_vault: Puertas de mecanismo no se abren con el botón
   assert.equal(targetNearDoor3, null, 'No debe mostrar prompt contextual de abrir en Puerta 3');
 });
 
-test('Capítulo 2 - shadow_vault: Dispone de bloques de aterrizaje en z=42 frente a Puerta 2 y Puerta 3 sin huecos de vacío', () => {
+test('Capítulo 2 - shadow_vault: Dispone de bloques de aterrizaje en z=40..42 frente a Puerta 2 y Puerta 3 y muro central anclado en la lava', () => {
   const world = new World();
   const levelData = world.levelRegistry.getLevel('shadow_vault');
   world.loadLevel(levelData);
 
-  // Galería izquierda: frente a Puerta 2 y ancho transitable en z=42 (x=4..8)
-  for (let x = 4; x <= 8; x++) {
-    assert.notEqual(world.get(x, 0, 42), 0, `Suelo en galería izquierda (x=${x}, z=42) debe ser sólido`);
-    assert.notEqual(world.get(x, 0, 42), 7, `Suelo en galería izquierda (x=${x}, z=42) no debe ser lava`);
+  // Galería izquierda: frente a Puerta 2 y ancho transitable en z=40..42 (x=4..8)
+  for (let z = 40; z <= 42; z++) {
+    for (let x = 4; x <= 8; x++) {
+      assert.notEqual(world.get(x, 0, z), 0, `Suelo en galería izquierda (x=${x}, z=${z}) debe ser sólido`);
+      assert.notEqual(world.get(x, 0, z), 7, `Suelo en galería izquierda (x=${x}, z=${z}) no debe ser lava`);
+    }
   }
 
-  // Galería derecha: frente a Puerta 3 y ancho transitable en z=42 (x=16..20)
-  for (let x = 16; x <= 20; x++) {
-    assert.notEqual(world.get(x, 0, 42), 0, `Suelo en galería derecha (x=${x}, z=42) debe ser sólido`);
-    assert.notEqual(world.get(x, 0, 42), 7, `Suelo en galería derecha (x=${x}, z=42) no debe ser lava`);
+  // Galería derecha: frente a Puerta 3 y ancho transitable en z=40..42 (x=16..20)
+  for (let z = 40; z <= 42; z++) {
+    for (let x = 16; x <= 20; x++) {
+      assert.notEqual(world.get(x, 0, z), 0, `Suelo en galería derecha (x=${x}, z=${z}) debe ser sólido`);
+      assert.notEqual(world.get(x, 0, z), 7, `Suelo en galería derecha (x=${x}, z=${z}) no debe ser lava`);
+    }
   }
 
-  // Muro divisorio central sólido en z=42 (sin hueco ni vacío flotante)
-  for (let x = 11; x <= 13; x++) {
-    assert.notEqual(world.get(x, 0, 42), 0, `Base del muro divisorio central en (x=${x}, z=42) no debe ser vacío`);
+  // Muro divisorio central sólido en z=14..43 y anclado en la lava (y=-1 a y=6 sin hueco ni flotación)
+  for (let z = 15; z <= 42; z++) {
+    for (let x = 11; x <= 13; x++) {
+      assert.equal(world.get(x, -1, z), 2, `Muro central en (x=${x}, y=-1, z=${z}) debe estar anclado en lava`);
+      assert.equal(world.get(x, 0, z), 2, `Muro central en (x=${x}, y=0, z=${z}) no debe ser vacío`);
+      assert.equal(world.get(x, 1, z), 2, `Muro central en (x=${x}, y=1, z=${z}) debe ser muro`);
+    }
   }
 });
 
-test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas galerías con margen y verticalidad escalonada', async () => {
+test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas galerías con plataformas de 1 bloque y sin jump pads', async () => {
   const { PLAYER_HEROES, PHYSICS_CONFIG, BLOCK_TYPES } = await import('../src/config/constants.js');
   const world = new World();
   world.loadLevel(world.levelRegistry.getLevel('shadow_vault'));
@@ -224,34 +232,69 @@ test('Capítulo 2 - shadow_vault: todos los héroes alcanzan cada salto de ambas
   );
   const galleries = {
     izquierda: [
-      [5, 7, 0, 16, 17], // y=0
-      [5, 7, 1, 20, 21], // y=1
-      [5, 7, 2, 24, 25], // y=2 (cúspide)
-      [5, 7, 1, 28, 29], // y=1
-      [5, 7, 0, 32, 33], // y=0
-      [4, 8, 0, 36, 42], // y=0 (plataforma losa continua a Puerta 2)
+      [1, 22, 0, 11, 14], // Plataforma umbral
+      [6, 6, 0, 16, 16],  // Salto 1 (y=0)
+      [5, 5, 1, 18, 18],  // Salto 2 (y=1)
+      [6, 6, 1, 20, 20],  // Salto 3 (y=1)
+      [7, 7, 2, 22, 22],  // Salto 4 (y=2)
+      [6, 6, 2, 24, 24],  // Salto 5 (y=2)
+      [5, 5, 2, 26, 26],  // Salto 6 (y=2)
+      [6, 6, 2, 28, 28],  // Salto 7 (y=2)
+      [7, 7, 1, 30, 30],  // Salto 8 (y=1)
+      [6, 6, 1, 32, 32],  // Salto 9 (y=1)
+      [5, 5, 1, 34, 34],  // Salto 10 (y=1)
+      [6, 6, 0, 36, 36],  // Salto 11 (y=0)
+      [6, 6, 0, 38, 38],  // Salto 12 (y=0)
+      [1, 10, 0, 40, 42], // Plataforma de llegada reducida frente a Puerta 2
     ],
     derecha: [
-      [17, 18, 0, 16, 17], // y=0
-      [19, 20, 1, 20, 21], // y=1
-      [16, 17, 2, 24, 25], // y=2 (cúspide)
-      [19, 20, 1, 28, 29], // y=1
-      [16, 17, 0, 32, 33], // y=0
-      [16, 20, 0, 36, 42], // y=0 (plataforma losa continua a Puerta 3)
+      [1, 22, 0, 11, 14], // Plataforma umbral
+      [18, 18, 0, 16, 16], // Salto 1 (y=0)
+      [19, 19, 1, 18, 18], // Salto 2 (y=1)
+      [18, 18, 1, 20, 20], // Salto 3 (y=1)
+      [17, 17, 2, 22, 22], // Salto 4 (y=2)
+      [18, 18, 2, 24, 24], // Salto 5 (y=2)
+      [19, 19, 2, 26, 26], // Salto 6 (y=2)
+      [18, 18, 2, 28, 28], // Salto 7 (y=2)
+      [17, 17, 1, 30, 30], // Salto 8 (y=1)
+      [18, 18, 1, 32, 32], // Salto 9 (y=1)
+      [19, 19, 1, 34, 34], // Salto 10 (y=1)
+      [18, 18, 0, 36, 36], // Salto 11 (y=0)
+      [18, 18, 0, 38, 38], // Salto 12 (y=0)
+      [14, 22, 0, 40, 42], // Plataforma de llegada reducida frente a Puerta 3
     ],
   };
 
   for (const [name, surfaces] of Object.entries(galleries)) {
-    // Las losas de salto declaradas existen realmente en el mapa a su cota correspondiente
-    for (const s of surfaces.slice(0, -1)) {
-      assert.equal(world.get(s[0], s[2], s[3]), BLOCK_TYPES.JUMP_PAD, `JUMP_PAD esperado en galería ${name} (${s[0]},${s[2]},${s[3]})`);
+    // Las plataformas de 1 bloque existen en el mapa como suelo sólido
+    for (const s of surfaces.slice(1, -1)) {
+      const block = world.get(s[0], s[2], s[3]);
+      assert.ok(
+        block === BLOCK_TYPES.STONE_FLOOR ||
+        block === BLOCK_TYPES.FLOOR_STONE ||
+        block === BLOCK_TYPES.FLOOR_WORN ||
+        block === BLOCK_TYPES.FLOOR_MOSS,
+        `Suelo de piedra esperado en galería ${name} (${s[0]},${s[2]},${s[3]}) pero obtuvo ${block}`
+      );
+      // Plataforma de 1 único bloque de tamaño
+      assert.equal(s[0], s[1], `Plataforma debe ser de 1 bloque de ancho X (${s[0]} === ${s[1]})`);
+      assert.equal(s[3], s[4], `Plataforma debe ser de 1 bloque de profundidad Z (${s[3]} === ${s[4]})`);
     }
     for (const h of PLAYER_HEROES) {
       for (let i = 0; i < surfaces.length - 1; i++) {
         const deltaY = surfaces[i + 1][2] - surfaces[i][2];
-        const r = reach(h.jumpMultiplier * 1.35, h.speedMultiplier, deltaY);
+        const r = reach(h.jumpMultiplier, h.speedMultiplier, deltaY);
         const g = gap(surfaces[i], surfaces[i + 1]);
         assert.ok(g <= r * 0.65, `${h.name} en galería ${name}, salto ${i + 1} (dY=${deltaY}): ${g.toFixed(2)}m excede el 65% de su alcance (${r.toFixed(2)}m)`);
+      }
+    }
+  }
+
+  // Verificar que NO queda ningún JUMP_PAD (tipo 6) en toda la Sala 2
+  for (let z = 15; z <= 42; z++) {
+    for (let x = 1; x <= 22; x++) {
+      for (let y = 0; y <= 4; y++) {
+        assert.notEqual(world.get(x, y, z), BLOCK_TYPES.JUMP_PAD, `No debe haber JUMP_PAD en Sala 2 (x=${x}, y=${y}, z=${z})`);
       }
     }
   }
@@ -262,26 +305,30 @@ test('Capítulo 2 - shadow_vault: incorpora verticalidad escalonada (y=0, y=1, y
   world.loadLevel(world.levelRegistry.getLevel('shadow_vault'));
 
   // Galería Izquierda: soportes y cotas
-  assert.equal(world.get(5, 0, 16), 6, 'Salto 1 izquierdo en y=0');
-  assert.equal(world.get(5, 0, 20), 4, 'Pilar bajo Salto 2 izquierdo');
-  assert.equal(world.get(5, 1, 20), 6, 'Salto 2 izquierdo en y=1');
-  assert.equal(world.get(5, 0, 24), 4, 'Pilar inferior bajo cúspide izquierda');
-  assert.equal(world.get(5, 1, 24), 4, 'Pilar intermedio bajo cúspide izquierda');
-  assert.equal(world.get(5, 2, 24), 6, 'Cúspide izquierda en y=2');
-  assert.equal(world.get(5, 0, 28), 4, 'Pilar bajo Salto 4 izquierdo');
-  assert.equal(world.get(5, 1, 28), 6, 'Salto 4 izquierdo en y=1');
-  assert.equal(world.get(5, 0, 32), 6, 'Salto 5 izquierdo en y=0');
+  assert.notEqual(world.get(6, 0, 16), 0, 'Salto 1 izquierdo en y=0');
+  assert.notEqual(world.get(6, 0, 16), 7, 'Salto 1 izquierdo no es lava');
+  assert.equal(world.get(6, -1, 16), 4, 'Pilar bajo Salto 1 izquierdo anclado en lava');
+  assert.equal(world.get(5, 1, 18), 1, 'Salto 2 izquierdo en y=1');
+  assert.equal(world.get(5, 0, 18), 4, 'Pilar bajo Salto 2 izquierdo en y=0');
+  assert.equal(world.get(7, 2, 22), 1, 'Cúspide izquierda en y=2');
+  assert.equal(world.get(7, 1, 22), 4, 'Pilar superior bajo cúspide izquierda');
+  assert.equal(world.get(7, 0, 22), 4, 'Pilar inferior bajo cúspide izquierda');
+  assert.notEqual(world.get(6, 0, 38), 0, 'Salto 12 izquierdo en y=0');
+  assert.notEqual(world.get(6, 0, 38), 7, 'Salto 12 izquierdo no es lava');
+  assert.equal(world.get(6, -1, 38), 4, 'Pilar bajo Salto 12 izquierdo anclado en lava');
 
   // Galería Derecha: soportes y cotas
-  assert.equal(world.get(17, 0, 16), 6, 'Salto 1 derecho en y=0');
-  assert.equal(world.get(19, 0, 20), 4, 'Pilar bajo Salto 2 derecho');
-  assert.equal(world.get(19, 1, 20), 6, 'Salto 2 derecho en y=1');
-  assert.equal(world.get(16, 0, 24), 4, 'Pilar inferior bajo cúspide derecha');
-  assert.equal(world.get(16, 1, 24), 4, 'Pilar intermedio bajo cúspide derecha');
-  assert.equal(world.get(16, 2, 24), 6, 'Cúspide derecha en y=2');
-  assert.equal(world.get(19, 0, 28), 4, 'Pilar bajo Salto 4 derecho');
-  assert.equal(world.get(19, 1, 28), 6, 'Salto 4 derecho en y=1');
-  assert.equal(world.get(16, 0, 32), 6, 'Salto 5 derecho en y=0');
+  assert.notEqual(world.get(18, 0, 16), 0, 'Salto 1 derecho en y=0');
+  assert.notEqual(world.get(18, 0, 16), 7, 'Salto 1 derecho no es lava');
+  assert.equal(world.get(18, -1, 16), 4, 'Pilar bajo Salto 1 derecho anclado en lava');
+  assert.equal(world.get(19, 1, 18), 1, 'Salto 2 derecho en y=1');
+  assert.equal(world.get(19, 0, 18), 4, 'Pilar bajo Salto 2 derecho en y=0');
+  assert.equal(world.get(17, 2, 22), 1, 'Cúspide derecha en y=2');
+  assert.equal(world.get(17, 1, 22), 4, 'Pilar superior bajo cúspide derecha');
+  assert.equal(world.get(17, 0, 22), 4, 'Pilar inferior bajo cúspide derecha');
+  assert.notEqual(world.get(18, 0, 38), 0, 'Salto 12 derecho en y=0');
+  assert.notEqual(world.get(18, 0, 38), 7, 'Salto 12 derecho no es lava');
+  assert.equal(world.get(18, -1, 38), 4, 'Pilar bajo Salto 12 derecho anclado en lava');
 });
 
 test('Capítulo 2 - shadow_sanctum: incorpora Sala 2 extendida (sizeZ: 64) con verticalidad escalonada (y=0, y=1, y=2) en ambas alas', () => {
