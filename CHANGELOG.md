@@ -42,9 +42,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - En la Sala 2 (Galerías Gemelas), se redujo la plataforma de llegada de 7 bloques a solo 3 bloques (`z: 40..42`), expandiendo la fosa de lava y el desafío de parkour a lo largo de `z: 15..39`.
   - Se sustituyeron todas las plataformas sobredimensionadas (`3x2`) y los pads de salto (`JUMP_PAD`) por pedestales individuales de 1 único bloque (`1x1`) soportados por columnas de pilares (`PILLAR`) ancladas en el lecho de lava (`y = -1`), con ritmo de verticalidad escalonada ($y = 0 \to 1 \to 2 \to 1 \to 0$) perfectamente alcanzable por todos los héroes (incluido el Guardián).
   - Se corrigió el orden de construcción de regiones en el mapa para anclar el muro divisorio central (`x: 11..13`) directamente en el lecho de magma desde `y = -1` hasta el techo en `y = 6`, eliminando la sensación visual de muro flotante.
-  - Se reubicaron las losas de activación cruzada `losa_gemela_izq` y `losa_gemela_der` a `z = 41.0` sobre la nueva plataforma de llegada.
+- **Rediseño de Parkour y Expansión en Mazmorra Ancestral (`dungeon_classic`, `src/levels/data/dungeon_classic.json`)**:
+  - En la Sala 2 (El Abismo), se expandió la zona segura de entrada un bloque adicional (`z: 11..13`) hacia el foso, proporcionando mayor margen y comodidad al cruzar la Puerta 1.
+  - Se homogeneizó la separación entre todas las plataformas y zonas seguras a exactamente 2 bloques de lava continuos (fosas de 2 metros), manteniendo la geometría original de plataformas (`JUMP_PAD` en cotas $y=0$ e $y=1$) con cadencia rítmica limpia y holgada para todos los héroes.
+  - Se expandió la longitud total de la mazmorra (`sizeZ: 42`), reubicando la Puerta 2 a `z = 30`, la zona segura de llegada a `z: 28..30`, el cofre oculto a `z = 33.5`, los pilares del Santuario a `z = 35` y la escalinata de descenso a `z: 37..39`.
 - **Cobertura de Pruebas Unitarias (`tests/`)**:
-  - 290 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
+  - 291 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
 
 ## [1.39.0] - 2026-10-04
 

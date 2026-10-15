@@ -98,8 +98,18 @@ export class World {
       this.blocks = new Uint8Array(arr.length);
     }
     this.blocks.set(arr);
-    this.isDoor1Open = (this.get(11, 1, 11) === BLOCK_TYPES.AIR);
-    this.isDoor2Open = (this.get(11, 1, 24) === BLOCK_TYPES.AIR);
+    const d1 = this.doors?.find(d => d.id === 1);
+    const d2 = this.doors?.find(d => d.id === 2);
+    if (d1?.coords?.length) {
+      this.isDoor1Open = (this.get(d1.coords[0].x, d1.coords[0].y, d1.coords[0].z) === BLOCK_TYPES.AIR);
+    } else {
+      this.isDoor1Open = (this.get(11, 1, 11) === BLOCK_TYPES.AIR);
+    }
+    if (d2?.coords?.length) {
+      this.isDoor2Open = (this.get(d2.coords[0].x, d2.coords[0].y, d2.coords[0].z) === BLOCK_TYPES.AIR);
+    } else {
+      this.isDoor2Open = (this.get(11, 1, 24) === BLOCK_TYPES.AIR);
+    }
   }
 
   openDoor(doorId = 1) {

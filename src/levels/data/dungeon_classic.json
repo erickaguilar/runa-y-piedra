@@ -7,7 +7,7 @@
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,
-    "sizeZ": 36
+    "sizeZ": 42
   },
   "spawn": {
     "x": 12.0,
@@ -40,13 +40,13 @@
       "x2": 13,
       "y1": 1,
       "y2": 3,
-      "z": 24,
+      "z": 30,
       "swingDir": 1,
       "coords": [
-        { "x": 11, "y": 1, "z": 24 },
-        { "x": 11, "y": 2, "z": 24 },
-        { "x": 12, "y": 1, "z": 24 },
-        { "x": 12, "y": 2, "z": 24 }
+        { "x": 11, "y": 1, "z": 30 },
+        { "x": 11, "y": 2, "z": 30 },
+        { "x": 12, "y": 1, "z": 30 },
+        { "x": 12, "y": 2, "z": 30 }
       ],
       "openMessage": ":door: ¡Puerta 2 abierta! ¡Has superado el Abismo! Avanzad al Santuario Ancestral.",
       "requiresKey": "llave_santuario",
@@ -65,19 +65,19 @@
       "id": "sala_2",
       "name": "Sala 2 (El Abismo)",
       "minZ": 11.5,
-      "maxZ": 24.0,
+      "maxZ": 30.0,
       "respawn": { "x": 11.5, "y": 1.2, "z": 12.0 }
     },
     {
       "id": "sala_3",
       "name": "Sala 3 (Santuario Ancestral)",
-      "minZ": 24.5,
-      "maxZ": 36.0,
-      "respawn": { "x": 11.5, "y": 1.2, "z": 25.0 }
+      "minZ": 30.5,
+      "maxZ": 42.0,
+      "respawn": { "x": 11.5, "y": 1.2, "z": 31.0 }
     }
   ],
   "objectives": [],
-  "stairs": { "x1": 11, "x2": 12, "z1": 31, "z2": 33, "openFromStart": false },
+  "stairs": { "x1": 11, "x2": 12, "z1": 37, "z2": 39, "openFromStart": false },
   "chests": [
     {
       "id": 1,
@@ -96,7 +96,7 @@
       "name": "Cofre Oculto del Santuario",
       "x": 4.5,
       "y": 1.0,
-      "z": 27.5,
+      "z": 33.5,
       "facing": "east",
       "reward": ":trophy: Reliquia Dorada",
       "message": ":chest: ¡Has abierto el Cofre Secreto del Santuario! Has obtenido: :trophy: Cáliz Sagrado y :gem: 250 Gemas Legendarias."
@@ -104,24 +104,24 @@
   ],
   "regions": [
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 24], "to": [22, 0, 34] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 30], "to": [22, 0, 40] },
     { "type": "perimeter", "height": 5, "block": "WALL" },
     { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
-    { "type": "divider", "z": 24, "height": 5, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
-    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
-    { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 23] },
+    { "type": "divider", "z": 30, "height": 5, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
+    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 40 },
+    { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 29] },
     { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 17, "z": 5, "height": 5, "block": "PILLAR" },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 11], "to": [13, 0, 12] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [11, 0, 14], "to": [12, 0, 14] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [10, 0, 17], "to": [13, 0, 17] },
-    { "type": "fill", "block": "PILLAR", "from": [1, 5, 17], "to": [22, 5, 17] },
-    { "type": "fill", "block": "PILLAR", "from": [11, 0, 19], "to": [12, 0, 19] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [11, 1, 19], "to": [12, 1, 19] },
-    { "type": "fill", "block": "PILLAR", "from": [11, 0, 21], "to": [12, 0, 21] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [11, 1, 21], "to": [12, 1, 21] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 23], "to": [13, 0, 24] },
-    { "type": "pillar", "x": 6, "z": 29, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 29, "height": 5, "block": "PILLAR" }
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 11], "to": [13, 0, 13] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [11, 0, 16], "to": [12, 0, 16] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [10, 0, 19], "to": [13, 0, 19] },
+    { "type": "fill", "block": "PILLAR", "from": [1, 5, 19], "to": [22, 5, 19] },
+    { "type": "fill", "block": "PILLAR", "from": [11, 0, 22], "to": [12, 0, 22] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [11, 1, 22], "to": [12, 1, 22] },
+    { "type": "fill", "block": "PILLAR", "from": [11, 0, 25], "to": [12, 0, 25] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [11, 1, 25], "to": [12, 1, 25] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 28], "to": [13, 0, 30] },
+    { "type": "pillar", "x": 6, "z": 35, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 35, "height": 5, "block": "PILLAR" }
   ]
 }

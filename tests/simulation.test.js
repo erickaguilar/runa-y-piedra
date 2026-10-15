@@ -172,7 +172,7 @@ test('la muerte en cualquier sala intermedia o avanzada siempre reaparece en el 
     onPlayerRespawn: (p, cp, info) => events.push(info),
   });
   // Jugador caminando sobre el suelo de la Sala 3 (Santuario Ancestral)
-  const p = new Player(0, 12, 1.0, 26.0);
+  const p = new Player(0, 12, 1.0, 32.0);
   p.invulnTicks = 0;
   // Simular pisar suelo firme en Sala 3
   sim.integratePlayer(p, 1 / 30, 0);
