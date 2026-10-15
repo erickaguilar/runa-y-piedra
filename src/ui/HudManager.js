@@ -274,16 +274,110 @@ export const HudMixin = {
     }
   },
 
-  showGameOver(lives, maxLives) {
+  showGameOver(lives, maxLives, { onContinue = null } = {}) {
     this.updateLives(lives, maxLives);
-    this.showNarrativeMessage(
-      ':skull: ¡GAME OVER! Has caído en la expedición. Regresando al Campamento con tus vidas restauradas.',
-      4500
-    );
+    this.hideGameOver();
+    this.hideNarrativeMessage?.();
+
+    if (typeof document === 'undefined') return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'game-over-overlay';
+    overlay.className = 'game-over-overlay-sumie';
+    overlay.setAttribute?.('role', 'alertdialog');
+    overlay.setAttribute?.('aria-modal', 'true');
+    overlay.setAttribute?.('aria-label', 'Fin de la partida: Game Over');
+
+    const card = document.createElement('div');
+    card.id = 'game-over-card';
+    card.className = 'game-over-card-sumie';
+
+    card.innerHTML = `
+      <div class="game-over-seal-box">
+        <span class="game-over-hanko-seal" title="Sello Imperial de Caída">
+          ${renderIcon('hanko', { size: 36, color: '#ef4444' })}
+        </span>
+      </div>
+      <div class="game-over-header">
+        <h2 class="game-over-title">¡GAME OVER!</h2>
+        <div class="game-over-pill">EXPEDICIÓN FALLIDA</div>
+      </div>
+      <div class="game-over-body">
+        <p class="game-over-desc">
+          Has sucumbido a las sombras de la mazmorra.
+        </p>
+        <div class="game-over-notice">
+          ${renderIcon('refresh', { size: 14, color: '#38bdf8' })}
+          <span>Regresando al <strong>Campamento Central</strong> con tus vidas restauradas.</span>
+        </div>
+      </div>
+      <div class="game-over-actions">
+        <button id="btn-game-over-continue" class="btn-primary game-over-continue-btn" type="button" autofocus aria-label="Continuar al Campamento">
+          ${renderIcon('check', { size: 16, color: '#ffffff' })} Continuar
+        </button>
+      </div>
+    `;
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    this.gameOverOverlay = overlay;
+    this.gameOverCard = card;
+
+    const handleDismiss = (e) => {
+      if (e) {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+      }
+      soundManager.playClick();
+      this.hideGameOver();
+      if (typeof onContinue === 'function') onContinue();
+    };
+
+    const continueBtn = document.getElementById('btn-game-over-continue') || card.querySelector('#btn-game-over-continue');
+    if (continueBtn) {
+      continueBtn.onclick = handleDismiss;
+      continueBtn.focus?.();
+    }
+
+    const handleKey = (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        handleDismiss(e);
+      }
+    };
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      window.addEventListener('keydown', handleKey);
+      this._gameOverKeyHandler = handleKey;
+    }
+
+    // Auto-cierre de seguridad a los 5.5s
+    this._gameOverTimer = setTimeout(() => {
+      this.hideGameOver();
+      if (typeof onContinue === 'function') onContinue();
+    }, 5500);
+  },
+
+  hideGameOver() {
+    if (this._gameOverTimer) {
+      clearTimeout(this._gameOverTimer);
+      this._gameOverTimer = null;
+    }
+    if (this._gameOverKeyHandler) {
+      if (typeof window !== 'undefined' && window.removeEventListener) {
+        window.removeEventListener('keydown', this._gameOverKeyHandler);
+      }
+      this._gameOverKeyHandler = null;
+    }
+    if (this.gameOverOverlay) {
+      this.gameOverOverlay.remove();
+      this.gameOverOverlay = null;
+    }
+    this.gameOverCard = null;
   },
 
   /** Velo de transición entre mazmorras (fade negro estilo Dark Souls con nombre del destino). */
   showLevelTransition(title = '', subtitle = '', { victory = false, autoHideMs = 0, onClose = null } = {}) {
+    this.hideGameOver?.();
     if (!this.transitionEl) return;
     if (this._transitionTimer) { clearTimeout(this._transitionTimer); this._transitionTimer = null; }
     this.transitionEl.className = victory ? 'visible victory' : 'visible';
@@ -323,6 +417,7 @@ export const HudMixin = {
   },
 
   hideLevelTransition() {
+    this.hideGameOver?.();
     if (!this.transitionEl) return;
     if (this._transitionTimer) { clearTimeout(this._transitionTimer); this._transitionTimer = null; }
     this.transitionEl.classList.remove('visible', 'victory');
@@ -336,6 +431,7 @@ export const HudMixin = {
    */
   showDescentCountdown({ byName = 'Un compañero', endsAtMs = 0, onNow = null } = {}) {
     this.hideDescent();
+    this.hideNarrativeMessage?.();
     const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? window.matchMedia('(pointer: coarse)').matches
       : false;
@@ -359,7 +455,7 @@ export const HudMixin = {
           <span>¡${escapeHtml(byName)} desciende!</span>
           <span class="hanko-seal-mini" title="Sello Hanko Imperial" style="display:inline-flex;align-items:center;">${renderIcon('hanko', { size: 14 })}</span>
         </div>
-        <div class="descent-sub">${isTouch ? 'Toca para bajar o baja a la escalinata' : 'Pulsa [E / Clic] o baja a la escalinata'}</div>
+        <div class="descent-sub">${isTouch ? 'Toca aquí para descender' : 'Pulsa [E / Clic] o toca aquí para bajar'}</div>
       </div>
       <div class="descent-action-pill">
         <span class="descent-action-text">${isTouch ? 'BAJAR YA' : '[E] BAJAR YA'}</span>
@@ -367,9 +463,13 @@ export const HudMixin = {
       </div>
     `;
 
-    card.innerHTML = contentHtml;
     bigBtn.innerHTML = contentHtml;
     card.appendChild(bigBtn);
+    Object.defineProperty(card, 'innerHTML', {
+      get() { return bigBtn.innerHTML; },
+      set(val) { bigBtn.innerHTML = val; },
+      configurable: true
+    });
     document.body.appendChild(card);
     this.descentCard = card;
     this.descentBtn = bigBtn;

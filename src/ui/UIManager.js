@@ -114,6 +114,10 @@ export class UIManager {
     this.descentBtn = null;
     this.descentOnNow = null;
     this._descentInterval = null;
+    this.gameOverOverlay = null;
+    this.gameOverCard = null;
+    this._gameOverTimer = null;
+    this._gameOverKeyHandler = null;
 
     // Cargar perfil guardado del jugador desde saveManager con fallback legacy
     const profile = saveManager.getProfile?.() || {};

@@ -24,11 +24,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - **Modal del Bazar Rúnico del Mercader (`ShopModal.js`)**: Mostrador de cantería y jade, monedero de gemas rúnico, pestañas de comercio "Comprar" y "Vender" y botones de transacción esmeralda y oro.
   - **Modal de Herramientas Dev y Selector de Salas (`DevModal.js`)**: Losa de calibración con marcos de tinta y acentos de jade, select rúnico de salas (`#dev-sel-room`), botón "Viajar" (`#btn-dev-teleport-room`) biselado en cian y selector rápido de héroes.
   - **Palanca Táctil de Vuelo Activo y Overlays de Diagnóstico (`#flight-stick-zone`, `#room-coords-overlay`, `#net-debug-panel`)**: Timón de vuelo con base octogonal de piedra tallada, pomo de cinabrio Hanko y sello `VUELO ACTIVO`; overlays de coordenadas y telemetría P2P en tablillas de basalto y tinta sin desenfoques modernos.
-- **Unificación de Notificación y Botón de Descenso por Escalinata (`src/ui/HudManager.js`, `src/styles/hud.css`, `src/styles/sumie-ui.css`)**:
-  - Fusión de la alerta superior y el botón flotante en una única losa interactiva superior (`#descent-card` y `#btn-descend-now`).
+- **Unificación Central de Notificación y Botón de Descenso por Escalinata (`src/ui/HudManager.js`, `src/styles/hud.css`, `src/styles/sumie-ui.css`)**:
+  - Fusión de la alerta y el botón en una única losa interactiva centralizada en pantalla (`#descent-card` y `#btn-descend-now` a `top: 50%; left: 50%; transform: translate(-50%, -50%)`).
+  - Eliminación de nodos visuales duplicados en el DOM mediante montaje unificado del botón de acción.
   - Incorpora emblema octogonal de escalinata en oro rúnico, título `¡${byName} desciende!`, sello Hanko imperial miniatura, subtítulo de ayuda contextual y pastilla táctil integrada `BAJAR YA` con badge cuadrado de cuenta regresiva en tiempo real (`<span class="descent-timer">5</span>s`).
+- **Modal Central de Game Over Accesible y Visible (`src/ui/HudManager.js`, `src/styles/sumie-ui.css`)**:
+  - Notificación centralizada de derrota (`#game-over-overlay` y `#game-over-card`) sobre velo de tinta y losa de basalto biselada.
+  - Sello Hanko bermellón con calavera rúnica, título en `Silkscreen`, pastilla de salud agotada y botón de cinabrio `#btn-game-over-continue`.
+  - Accesibilidad completa: rol semántico `alertdialog`, atajos de teclado (`Enter`, `Espacio`, `Escape`), autofoco en el botón de acción y descarte automático por temporizador.
 - **Cobertura de Pruebas Unitarias (`tests/`)**:
-  - 287 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
+  - 288 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
 
 ## [1.39.0] - 2026-10-04
 

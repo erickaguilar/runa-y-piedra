@@ -155,12 +155,14 @@ Presente como sello imperial en el Menú Principal, Diálogos de Confirmación, 
 ## 4. Unificación de la Notificación y Botón de Descenso por Escalinata
 
 ### 4.1. El Problema Previo
-Al interactuar con la escalinata o activarse el descenso por un compañero, la interfaz desplegaba dos elementos visualmente discordantes y desconectados:
-1. Una tarjeta flotante de aviso en la parte superior (`#descent-card` a `top: 16px`).
-2. Un botón gigante flotante independiente en el tercio inferior (`#btn-descend-now` a `top: 62%`) que tapaba el centro de la pantalla y la mira del jugador.
+Al interactuar con la escalinata o activarse el descenso por un compañero, la interfaz desplegaba avisos discordantes o duplicados:
+1. Una tarjeta flotante de aviso y un botón independiente en ubicaciones dispares.
+2. Contenido duplicado renderizado dentro del mismo contenedor (`card.innerHTML` + `card.appendChild(bigBtn)`).
 
-### 4.2. Solución Unificada Sumi-e (`src/ui/HudManager.js`, `src/styles/sumie-ui.css`)
-Ambas alertas se han fusionado en un **único componente interactivo superior**:
+### 4.2. Solución Unificada Central Sumi-e (`src/ui/HudManager.js`, `src/styles/hud.css`, `src/styles/sumie-ui.css`)
+Ambas alertas se han fusionado en un **único componente interactivo centralizado**:
+- **Posición Central Óptima**: Centrado en pantalla (`top: 50%; left: 50%; transform: translate(-50%, -50%)`), con alta visibilidad y sin bloquear de forma permanente la vista una vez activado el descenso.
+- **Sin Duplicación en el DOM**: Montaje limpio del botón único interactivo con mapeo reactivo de propiedades, evitando la renderización de bloques visuales gemelos.
 - **Estructura:**
   - **Izquierda:** Emblema octogonal tallado de la escalinata (`.descent-badge-seal`) en oro rúnico.
   - **Centro:** Columna informativa con el título `¡${byName} desciende!` en `Silkscreen`, sello Hanko imperial miniatura y subtítulo de ayuda contextual (`Toca para bajar o baja a la escalinata`).
@@ -171,6 +173,32 @@ Ambas alertas se han fusionado en un **único componente interactivo superior**:
 
 ---
 
-## 5. Hoja de Estilos Centralizada (`src/styles/sumie-ui.css`)
+## 5. Notificación Central de Game Over Accesible y Visible (`src/ui/HudManager.js`, `src/styles/sumie-ui.css`)
 
-Para facilitar el mantenimiento y evitar regresiones, todas las reglas de transformación visual se consolidaron en la hoja modular `src/styles/sumie-ui.css`, importada al final de `src/style.css`. De esta manera, no se rompe la lógica interna ni los contratos de eventos de `UIManager`, asegurando compatibilidad del 100% con la suite automatizada de pruebas (287 pruebas pasando).
+### 5.1. Diseño e Inmersión Sumi-e Dark Fantasy
+- **Overlay Sombreado de Tinta (`#game-over-overlay.game-over-overlay-sumie`)**:
+  - Telón de fondo con oscurecimiento dramático en degradado radial (`rgba(12,10,9,0.88)` a `rgba(2,1,1,0.96)`) y `backdrop-filter: blur(4px)`.
+- **Losa Central de Derrota (`#game-over-card.game-over-card-sumie`)**:
+  - Centrada en pantalla (`top: 50%; left: 50%; transform: translate(-50%, -50%)`).
+  - Marco de piedra de basalto (`#181615`) con borde de tinta china (`#0c0a09`) de 4px y doble filete bermellón `#991b1b`.
+  - Recorte octogonal en esquinas mediante biseles de relieve.
+- **Sello Hanko Imperial de Derrota (`.game-over-hanko-seal`)**:
+  - Emblema rojo lacre con icono vectorial `skull` y muesca rúnica.
+- **Tipografía y Jerarquía**:
+  - Título principal `GAME OVER` en `Silkscreen` (28px) en carmesí `#fca5a5` con sombra de tinta dura.
+  - Pastilla de estado de vidas (`0 / 3 Vidas Restantes`).
+  - Mensaje de lore en `Pixelify Sans`: "Tu espíritu ha regresado al Campamento Central."
+- **Botón "Continuar" (`#btn-game-over-continue.game-over-continue-btn`)**:
+  - Botón táctil prominente de cinabrio (`#991b1b` a `#7f1d1d`) con icono vectorial `refresh-cw` y bisel de relieve.
+
+### 5.2. Accesibilidad y Ergonomía
+- **Semántica y Roles**: `role="alertdialog"`, `aria-modal="true"`, `aria-label="Fin de la partida - Game Over"`.
+- **Navegación por Teclado**: Soporte para descarte mediante teclas `Enter`, `Espacio` o `Escape`, con autofoco en el botón de acción (`continueBtn.focus()`).
+- **Cierre Seguro Automático**: Temporizador de seguridad (fallback de 5.5s) que garantiza la reanudación del flujo de juego si el jugador no interactúa.
+
+---
+
+## 6. Hoja de Estilos Centralizada (`src/styles/sumie-ui.css`)
+
+Para facilitar el mantenimiento y evitar regresiones, todas las reglas de transformación visual se consolidaron en la hoja modular `src/styles/sumie-ui.css`, importada al final de `src/style.css`. De esta manera, no se rompe la lógica interna ni los contratos de eventos de `UIManager`, asegurando compatibilidad del 100% con la suite automatizada de pruebas (288 pruebas pasando).
+

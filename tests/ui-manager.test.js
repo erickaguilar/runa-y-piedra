@@ -667,6 +667,27 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(ui.descentBtn, null);
     });
 
+    it('gestiona la notificación central de Game Over accesible y visible', () => {
+      const ui = new UIManager();
+      assert.equal(ui.gameOverOverlay, null);
+      assert.equal(ui.gameOverCard, null);
+
+      let continued = false;
+      ui.showGameOver(0, 3, { onContinue: () => { continued = true; } });
+
+      assert.ok(ui.gameOverOverlay);
+      assert.ok(ui.gameOverCard);
+      assert.match(ui.gameOverCard.innerHTML, /GAME OVER/);
+      assert.match(ui.gameOverCard.innerHTML, /Campamento Central/);
+
+      const continueBtn = document.getElementById('btn-game-over-continue');
+      assert.ok(continueBtn);
+      continueBtn.onclick();
+      assert.equal(continued, true);
+      assert.equal(ui.gameOverOverlay, null);
+      assert.equal(ui.gameOverCard, null);
+    });
+
     it('showLevelTransition renderiza botón de cerrar en victoria y ejecuta onClose al pulsar', () => {
       const ui = new UIManager();
       assert.ok(ui.transitionEl);

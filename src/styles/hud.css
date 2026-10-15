@@ -719,9 +719,9 @@
     /* Tarjeta y Botón Unificado de Descenso Sincronizado */
     #descent-card {
       position: fixed;
-      top: max(16px, env(safe-area-inset-top));
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate(-50%, -50%);
       z-index: 9998;
       display: flex;
       align-items: center;
