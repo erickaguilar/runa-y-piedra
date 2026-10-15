@@ -1,5 +1,6 @@
 // src/render/models/heroes/guardianGear.js
 import * as THREE from 'three';
+import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
 
 /**
  * Kit del Guardián (guardian): arquetipo de coloso acorazado / tanque de vanguardia.
@@ -78,6 +79,15 @@ export function buildGuardianGear(a, G, add) {
   );
   crownGem.position.set(0, 0.20, 0.24);
   crown.add(crownGem);
+
+  // Aplicar textura facial Sumi-e propia del Guardián a la cara frontal (+Z) de la cabeza
+  let faceMat = null;
+  if (a.parts?.head && Array.isArray(a.parts.head.material)) {
+    faceMat = createHeroFaceMaterial('guardian');
+    if (faceMat) {
+      a.parts.head.material[4] = faceMat;
+    }
+  }
 
   if (a.parts?.head) {
     add(crown, a.parts.head);
@@ -289,7 +299,7 @@ export function buildGuardianGear(a, G, add) {
     add(bootRimR, a.gear);
   }
 
-  return [
+  const mats = [
     goldMat,
     goldDarkMat,
     bronzeMat,
@@ -298,6 +308,8 @@ export function buildGuardianGear(a, G, add) {
     steelDkMat,
     gemMat,
   ];
+  if (faceMat) mats.push(faceMat);
+  return mats;
 }
 
 export { buildGuardianGear as guardianGear };

@@ -77,7 +77,7 @@ export const GuestJoinModalMixin = {
                role="button"
                tabindex="${isBlocked ? '-1' : '0'}"
                title="${blockedTitle}">
-            ${renderIcon(isBlocked ? 'lock' : (h.icon || 'shield'), { size: 18, color: '#fff' })}
+            ${renderIcon(isBlocked ? 'lock' : (h.avatar || h.icon || 'shield'), { size: (!isBlocked && h.avatar) ? 36 : 18, color: '#fff' })}
             ${isBlocked ? `<span class="hero-chip-lock-badge">${renderIcon('lock', { size: 10, color: '#fef08a' })}</span>` : ''}
           </div>
         `;

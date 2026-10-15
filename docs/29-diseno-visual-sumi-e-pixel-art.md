@@ -216,5 +216,43 @@ Al consagrar el altar supremo que culmina un capítulo (ej. `abyss_throne` en el
 
 ## 7. Hoja de Estilos Centralizada (`src/styles/sumie-ui.css`)
 
-Para facilitar el mantenimiento y evitar regresiones, todas las reglas de transformación visual se consolidaron en la hoja modular `src/styles/sumie-ui.css`, importada al final de `src/style.css`. De esta manera, no se rompe la lógica interna ni los contratos de eventos de `UIManager`, asegurando compatibilidad del 100% con la suite automatizada de pruebas (290 pruebas pasando).
+Para facilitar el mantenimiento y evitar regresiones, todas las reglas de transformación visual se consolidaron en la hoja modular `src/styles/sumie-ui.css`, importada al final de `src/style.css`. De esta manera, no se rompe la lógica interna ni los contratos de eventos de `UIManager`, asegurando compatibilidad del 100% con la suite automatizada de pruebas (290+ pruebas pasando).
+
+---
+
+## 8. Retratos de Héroes Sumi-e Pixel Art (`src/heroes/heroPortraits.js`, `public/assets/heroes/`)
+
+### 8.1. Arquitectura Dual UI 2D y Texturizado 3D Vóxel
+Se ha inaugurado el sistema canónico de retratos en Pixel Art (32×32) con renderizado `crispEdges` para los héroes de *Runa y Piedra*:
+
+1. **Guardián (`guardian`)**:
+   - **Interfaz 2D**: Icono canónico `avatar_guardian` en el selector de clases (`.hero-chip`), modal de invitados (`GuestJoinModal.js`) y ranuras de guardado (`SaveSlotsModal.js`).
+   - **Texturizado Facial 3D (`guardianGear.js`)**: Corona de oro viejo, gema Hanko bermellón y rostro caligráfico severo con ojos espirituales cian (`#0284c7`) inyectado en la cara frontal (`+Z`) del cubo craneal.
+
+2. **Hechicero (`wizard`)**:
+   - **Interfaz 2D**: Icono canónico `avatar_wizard` en el selector de clases, modal de invitados y ranuras de guardado. Muestra el sabio anciano con sombra proyectada por el ala del sombrero, runa amatista en el entrecejo, ojos arcanos y bigote blanco en relieve.
+   - **Texturizado Dual Cabeza + Torso 3D (`wizardGear.js`)**:
+     - *Cabeza (+Z)*: Textura facial con cejas pobladas y barba superior de sabio.
+     - *Pecho (+Z)*: Textura de túnica arcana morada (`#581c87`, `#6b21a8`) con estola bordada en oro, cinturón con grimorio y la continuación fluida de los mechones y surcos verticales de pincel seco (*Kasure*) de la barba larga, eliminando el antiguo bloque 3D que obstruía la boca y el rostro.
+   - **Ciclo de Vida de Materiales (`AvatarRenderer.js`)**: Restauración automática y transparente tanto del material facial (`_sharedMats.face`) como del material original de túnica del torso (`_origTorsoMat`) en `_clearGear()`.
+
+3. **Explorador (`ranger`)**:
+   - **Interfaz 2D**: Icono canónico `avatar_ranger` en el selector de clases, modal de invitados y ranuras de guardado. Retrato de rastreador ágil con capucha y flequillo verde bosque (`#14532d`, `#15803d`), pluma de explorador blanca y roja carmesí, ojos vivos color jade esmeralda (`#047857`, `#10b981`), pinturas de guerra en las mejillas (`#7f1d1d`), cicatriz en el puente de la nariz y una sonrisa confiada de lado (*smirk*).
+   - **Texturizado Facial 3D (`rangerGear.js`)**: La capucha deja el frente despejado mientras la textura facial Sumi-e Pixel Art viste la cara frontal (+Z) del vóxel craneal con la expresión y plumaje del arquero.
+   - **Ciclo de Vida de Materiales**: Registro de `faceMat` para su disposición y restauración a `_sharedMats.face` al desequipar o alternar de clase.
+
+4. **Paladín (`paladin`)**:
+   - **Interfaz 2D**: Icono canónico `avatar_paladin` en el selector de clases, modal de invitados y ranuras de guardado. Retrato de caballero sagrado con yelmo de acero forjado (`#52525b`, `#71717a`, `#a1a1aa`, `#e4e4e7`), visera y protector nasal con filo dorado sagrado (`#d97706`, `#fef08a`), engaste de penacho bermellón (`#991b1b`), cejas severas, ojos azul celestial templario (`#1d4ed8`, `#38bdf8`), cicatriz vertical de honor en el pómulo izquierdo y mandíbula firme con barba corta en gris acero.
+   - **Texturizado Facial 3D (`paladinGear.js`)**: El casco de acero envuelve nuca, laterales y techo con la cresta de pluma roja en 3D, mientras que la cara frontal (+Z) del vóxel craneal proyecta la visera, protector nasal, ojos templarios y mentón en Pixel Art con máxima nitidez.
+   - **Ciclo de Vida de Materiales**: Registro de `faceMat` y restauración limpia a `_sharedMats.face` en `_clearGear()`.
+
+5. **Aventurero (`adventurer`)**:
+   - **Interfaz 2D**: Icono canónico `avatar_adventurer` en el selector de clases, modal de invitados y ranuras de guardado. Retrato de explorador versátil con cabello castaño despeinado (`#2e1909`, `#451a03`, `#78350f`), cejas expresivas, ojos azul cian de brújula (`#0369a1`, `#38bdf8`), parche/tirita en cruz en la mejilla derecha (`#78716c`, `#f4efe4`, `#e7ded0`), polvo de mazmorra en la mejilla izquierda, boca audaz con destello de sonrisa confiada y oclusión inferior para empalmar con la bufanda marrón.
+   - **Texturizado Facial 3D (`adventurerGear.js`)**: La cara frontal (+Z) proyecta la expresión heroica y el flequillo del aventurero en perfecta continuidad con el casquete y mechón castaño 3D en la parte superior.
+   - **Ciclo de Vida de Materiales**: Registro de `faceMat` y restauración a `_sharedMats.face` en `_clearGear()`.
+
+
+
+
+
 

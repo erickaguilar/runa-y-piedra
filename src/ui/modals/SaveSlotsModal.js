@@ -88,7 +88,7 @@ export const SaveSlotsModalMixin = {
           <div class="slot-card-body">
             <div class="slot-hero-info">
               <div class="slot-hero-avatar" style="background:${hero.color};box-shadow: 0 0 12px ${hero.color}55;">
-                ${renderIcon(hero.icon || 'shield', { size: 20, color: '#ffffff' })}
+                ${renderIcon(hero.avatar || hero.icon || 'shield', { size: hero.avatar ? 32 : 20, color: '#ffffff' })}
               </div>
               <div class="slot-player-meta">
                 <div class="slot-player-name">${escapeHtml(s.name)}</div>

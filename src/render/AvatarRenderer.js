@@ -29,6 +29,13 @@ export class AvatarRenderer {
 
   /** Retira el equipo anterior del avatar (nodos + materiales). */
   _clearGear(a) {
+    if (a.parts?.head && Array.isArray(a.parts.head.material) && a.parts.head.material[4] !== this._sharedMats.face) {
+      a.parts.head.material[4] = this._sharedMats.face;
+    }
+    if (a.parts?.torso && a._origTorsoMat) {
+      a.parts.torso.material = a._origTorsoMat;
+      a._origTorsoMat = null;
+    }
     for (const { obj, parent } of a.gearNodes || []) {
       parent.remove(obj);
       obj.traverse((o) => { if (o.isMesh) o.geometry.dispose?.(); });

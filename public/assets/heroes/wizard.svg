@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">
+  <!-- Fondo piel pergamino envejecido (Washi) -->
+  <rect width="32" height="32" fill="#d6cfc2"/>
+
+  <!-- Contorno perimetral de tinta negra (1px Sumi-e) -->
+  <path d="M0,0 H32 V32 H0 Z M1,1 V31 H31 V1 Z" fill="#0c0a09"/>
+
+  <!-- SOMBRA PROYECTADA POR EL ALA DEL SOMBRERO (Parte superior y=1 a 6) -->
+  <rect x="1" y="1" width="30" height="3" fill="#1c1917"/>
+  <rect x="1" y="4" width="30" height="2" fill="#57534e"/>
+  <!-- Tramado (dithering) de transición de sombra en la frente -->
+  <g fill="#78716c">
+    <rect x="2" y="6" width="28" height="1"/>
+    <rect x="4" y="7" width="2" height="1"/><rect x="10" y="7" width="2" height="1"/>
+    <rect x="20" y="7" width="2" height="1"/><rect x="26" y="7" width="2" height="1"/>
+  </g>
+
+  <!-- Sombras laterales de pómulos y arrugas de sabiduría -->
+  <rect x="1" y="6" width="3" height="14" fill="#bfb6a6"/>
+  <rect x="28" y="6" width="3" height="14" fill="#a8a29e"/>
+  <!-- Líneas de expresión en la frente (Pincel seco) -->
+  <rect x="9" y="8" width="14" height="1" fill="#a8a29e"/>
+
+  <!-- RUNA ARCANO-AMATISTA EN EL ENTRECEJO -->
+  <rect x="15" y="7" width="2" height="5" fill="#581c87"/>
+  <rect x="14" y="9" width="4" height="1" fill="#581c87"/>
+  <rect x="15" y="8" width="2" height="3" fill="#a855f7"/>
+  <rect x="15" y="9" width="1" height="1" fill="#f3e8ff"/>
+
+  <!-- PATILLAS Y CABELLO CANOSO LATERAL -->
+  <g fill="#78716c">
+    <rect x="1" y="6" width="3" height="12"/>
+    <rect x="28" y="6" width="3" height="12"/>
+  </g>
+  <g fill="#a8a29e">
+    <rect x="2" y="8" width="2" height="10"/>
+    <rect x="28" y="8" width="2" height="10"/>
+  </g>
+
+  <!-- CEJAS POBLADAS CANOSAS (Arqueadas con contorno de tinta) -->
+  <g fill="#0c0a09">
+    <rect x="5" y="10" width="8" height="2"/>
+    <rect x="19" y="10" width="8" height="2"/>
+  </g>
+  <g fill="#d6cfc2">
+    <rect x="5" y="11" width="7" height="2"/>
+    <rect x="20" y="11" width="7" height="2"/>
+    <rect x="4" y="12" width="2" height="1"/>
+    <rect x="26" y="12" width="2" height="1"/>
+  </g>
+  <g fill="#ffffff">
+    <rect x="6" y="11" width="4" height="1"/>
+    <rect x="22" y="11" width="4" height="1"/>
+  </g>
+
+  <!-- OJOS MÍSTICOS (Tinta negra + Brillo amatista del báculo) -->
+  <!-- Cuenca y pestañas en tinta negra -->
+  <rect x="6" y="13" width="5" height="5" fill="#0c0a09"/>
+  <rect x="21" y="13" width="5" height="5" fill="#0c0a09"/>
+  <!-- Esclerótica -->
+  <rect x="7" y="14" width="4" height="4" fill="#f4efe4"/>
+  <rect x="21" y="14" width="4" height="4" fill="#f4efe4"/>
+  <!-- Iris púrpura arcano -->
+  <rect x="8" y="14" width="3" height="4" fill="#6b21a8"/>
+  <rect x="22" y="14" width="3" height="4" fill="#6b21a8"/>
+  <rect x="8" y="15" width="2" height="3" fill="#a855f7"/>
+  <rect x="22" y="15" width="2" height="3" fill="#a855f7"/>
+  <!-- Destello blanco de sabiduría mágica -->
+  <rect x="7" y="14" width="2" height="2" fill="#ffffff"/>
+  <rect x="21" y="14" width="2" height="2" fill="#ffffff"/>
+
+  <!-- Ojeras sutiles bajo los ojos -->
+  <rect x="7" y="18" width="4" height="1" fill="#a8a29e"/>
+  <rect x="21" y="18" width="4" height="1" fill="#a8a29e"/>
+
+  <!-- Nariz sombreada -->
+  <rect x="15" y="15" width="2" height="4" fill="#bfb6a6"/>
+  <rect x="14" y="18" width="4" height="2" fill="#a8a29e"/>
+  <rect x="15" y="19" width="2" height="1" fill="#57534e"/>
+
+  <!-- BARBA Y BIGOTE DE SABIO (Conecta directo con el rectángulo gris del pecho) -->
+  <!-- Contorno superior de tinta negra del bigote y barba -->
+  <path d="M1,18 H5 V21 H9 V20 H13 V19 H19 V20 H23 V21 H27 V18 H31 V32 H1 Z" fill="#0c0a09"/>
+
+  <!-- Masa base de la barba en gris ceniza oscuro -->
+  <path d="M2,19 H4 V22 H8 V21 H24 V22 H28 V19 H30 V31 H2 Z" fill="#78716c"/>
+
+  <!-- Mechones principales en gris piedra (Mismo tono que la barba del torso) -->
+  <path d="M3,22 H7 V25 H5 V31 H27 V25 H25 V22 H29 V31 H3 Z" fill="#a8a29e"/>
+  <rect x="8" y="21" width="16" height="10" fill="#a8a29e"/>
+
+  <!-- Bigote prominente en relieve (Gris claro y blanco pergamino) -->
+  <path d="M8,21 H14 V22 H18 V21 H24 V24 H26 V26 H22 V24 H18 V23 H14 V24 H10 V26 H6 V24 H8 Z" fill="#d6cfc2"/>
+  <rect x="10" y="21" width="4" height="1" fill="#ffffff"/>
+  <rect x="18" y="21" width="4" height="1" fill="#ffffff"/>
+
+  <!-- Boca entreabierta bajo el bigote -->
+  <rect x="13" y="23" width="6" height="2" fill="#1c1917"/>
+  <rect x="14" y="24" width="4" height="1" fill="#450a0a"/>
+
+  <!-- Surcos verticales de pincel seco en la barba (Kasure) para unir con el pecho -->
+  <g fill="#44403c">
+    <rect x="6" y="27" width="1" height="4"/>
+    <rect x="11" y="25" width="1" height="6"/>
+    <rect x="15" y="26" width="2" height="5"/>
+    <rect x="20" y="25" width="1" height="6"/>
+    <rect x="25" y="27" width="1" height="4"/>
+  </g>
+  <g fill="#d6cfc2">
+    <rect x="8" y="26" width="2" height="5"/>
+    <rect x="13" y="26" width="2" height="5"/>
+    <rect x="17" y="26" width="2" height="5"/>
+    <rect x="22" y="26" width="2" height="5"/>
+  </g>
+</svg>

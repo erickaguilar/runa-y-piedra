@@ -1,5 +1,6 @@
 // src/render/models/heroes/paladinGear.js
 import * as THREE from 'three';
+import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
 
 /**
  * Kit del Paladín (paladin): arquetipo de caballero sagrado y vanguardia.
@@ -55,22 +56,6 @@ export function buildPaladinGear(a, G, add) {
   helmSideR.position.set(0.20, 0.06, 0);
   helm.add(helmSideR);
 
-  // Banda frontal (visor abierto por encima de los ojos)
-  const helmBrow = new THREE.Mesh(
-    new THREE.BoxGeometry(0.42, 0.08, 0.06),
-    steelMat
-  );
-  helmBrow.position.set(0, 0.14, 0.19);
-  helm.add(helmBrow);
-
-  // Ribete dorado sobre la banda frontal
-  const helmBrowGold = new THREE.Mesh(
-    new THREE.BoxGeometry(0.44, 0.025, 0.06),
-    goldMat
-  );
-  helmBrowGold.position.set(0, 0.18, 0.19);
-  helm.add(helmBrowGold);
-
   // Base de la cresta (soporte dorado)
   const crestBase = new THREE.Mesh(
     new THREE.BoxGeometry(0.08, 0.04, 0.34),
@@ -86,6 +71,15 @@ export function buildPaladinGear(a, G, add) {
   );
   crest.position.set(0, 0.32, -0.02);
   helm.add(crest);
+
+  // Aplicar textura facial Sumi-e propia del Paladín a la cara frontal (+Z) de la cabeza
+  let faceMat = null;
+  if (a.parts?.head && Array.isArray(a.parts.head.material)) {
+    faceMat = createHeroFaceMaterial('paladin');
+    if (faceMat) {
+      a.parts.head.material[4] = faceMat;
+    }
+  }
 
   if (a.parts?.head) {
     add(helm, a.parts.head);
@@ -206,5 +200,7 @@ export function buildPaladinGear(a, G, add) {
   buckle.position.set(0, 0.84, 0.18);
   add(buckle, a.gear);
 
-  return [steelMat, steelDarkMat, goldMat, redMat];
+  const mats = [steelMat, steelDarkMat, goldMat, redMat];
+  if (faceMat) mats.push(faceMat);
+  return mats;
 }

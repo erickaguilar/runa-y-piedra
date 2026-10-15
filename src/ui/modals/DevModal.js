@@ -170,7 +170,10 @@ export const DevModalMixin = {
                         const isActive = currentHeroIdx === idx;
                         return `
                           <button class="btn-secondary btn-dev-hero-pick ${isActive ? 'active' : ''}" data-hero-idx="${idx}">
-                            <div style="color:${h.hex || '#fff'};font-weight:700;">${h.name}</div>
+                            <div style="display:flex;align-items:center;gap:6px;color:${h.color || '#fff'};font-weight:700;">
+                              ${renderIcon(h.avatar || h.icon || 'shield', { size: h.avatar ? 18 : 14, color: h.color })}
+                              <span>${h.name}</span>
+                            </div>
                             <div style="color:var(--washi-muted,#94a3b8);font-size:9px;">Salto ×${h.jumpMultiplier.toFixed(2)} · Vel ×${h.speedMultiplier.toFixed(2)}</div>
                           </button>
                         `;

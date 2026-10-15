@@ -1,5 +1,6 @@
 // src/render/models/heroes/adventurerGear.js
 import * as THREE from 'three';
+import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
 
 /**
  * Kit del Aventurero (adventurer): arquetipo de explorador versátil.
@@ -120,5 +121,16 @@ export function buildAdventurerGear(a, G, add) {
   hairTuft.position.set(0.06, 1.86, 0.18);
   add(hairTuft, a.gear);
 
-  return [leatherMat, leatherDarkMat, clothMat, brassMat, bootsMat, hairMat];
+  // Aplicar textura facial Sumi-e propia del Aventurero a la cara frontal (+Z) de la cabeza
+  let faceMat = null;
+  if (a.parts?.head && Array.isArray(a.parts.head.material)) {
+    faceMat = createHeroFaceMaterial('adventurer');
+    if (faceMat) {
+      a.parts.head.material[4] = faceMat;
+    }
+  }
+
+  const mats = [leatherMat, leatherDarkMat, clothMat, brassMat, bootsMat, hairMat];
+  if (faceMat) mats.push(faceMat);
+  return mats;
 }

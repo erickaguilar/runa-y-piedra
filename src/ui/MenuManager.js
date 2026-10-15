@@ -17,7 +17,7 @@ export const MenuMixin = {
            data-index="${i}" 
            style="background:${h.color}; --hero-color:${h.color}" 
            title="${h.name} (${h.title || ''})">
-        ${renderIcon(h.icon || 'shield', { size: 18, color: '#ffffff' })}
+        ${renderIcon(h.avatar || h.icon || 'shield', { size: h.avatar ? 36 : 18, color: '#ffffff' })}
       </div>
     `).join('');
 

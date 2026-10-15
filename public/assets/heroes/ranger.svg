@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">
+  <!-- Fondo base piel pergamino Washi -->
+  <rect width="32" height="32" fill="#d6cfc2"/>
+
+  <!-- Contorno perimetral de tinta negra (1px Sumi-e) -->
+  <path d="M0,0 H32 V32 H0 Z M1,1 V31 H31 V1 Z" fill="#0c0a09"/>
+
+  <!-- Sombras laterales de pómulos y mandíbula ágil -->
+  <rect x="1" y="10" width="3" height="21" fill="#bfb6a6"/>
+  <rect x="28" y="10" width="3" height="21" fill="#a8a29e"/>
+  <rect x="1" y="27" width="30" height="4" fill="#a8a29e"/>
+  <rect x="4" y="29" width="24" height="2" fill="#78716c"/>
+
+  <!-- CABELLO / CAPUCHA DE GUARDABOSQUES (Empalma con el bloque verde superior) -->
+  <!-- Sombra negra bajo el flequillo -->
+  <path d="M1,1 H31 V10 H28 V8 H24 V9 H18 V7 H12 V9 H7 V7 H4 V11 H1 Z" fill="#0c0a09"/>
+  <!-- Masa principal verde bosque oscuro (#14532d) -->
+  <path d="M1,1 H31 V8 H28 V6 H23 V8 H18 V5 H11 V8 H6 V6 H3 V9 H1 Z" fill="#14532d"/>
+  <!-- Mechones iluminados en verde musgo (#15803d y #16a34a) -->
+  <path d="M2,1 H29 V5 H24 V6 H19 V4 H10 V6 H5 V4 H2 Z" fill="#15803d"/>
+  <g fill="#22c55e">
+    <rect x="4" y="2" width="5" height="1"/>
+    <rect x="12" y="2" width="6" height="1"/>
+    <rect x="22" y="2" width="5" height="1"/>
+  </g>
+
+  <!-- Patillas afiladas enmarcando la cara -->
+  <rect x="1" y="9" width="3" height="7" fill="#0c0a09"/>
+  <rect x="2" y="9" width="2" height="6" fill="#14532d"/>
+  <rect x="28" y="9" width="3" height="7" fill="#0c0a09"/>
+  <rect x="28" y="9" width="2" height="6" fill="#14532d"/>
+
+  <!-- DETALLE DE PLUMA DE EXPLORADOR EN EL LADO DERECHO (Símbolo de su clase) -->
+  <path d="M24,7 L29,2 H31 V4 L26,9 Z" fill="#0c0a09"/>
+  <path d="M25,7 L29,3 H30 V4 L26,8 Z" fill="#f4efe4"/>
+  <rect x="28" y="3" width="2" height="2" fill="#dc2626"/>
+
+  <!-- Sombra proyectada sobre la frente -->
+  <rect x="4" y="9" width="24" height="1" fill="#a8a29e"/>
+
+  <!-- CEJAS AFILADAS Y DETERMINADAS -->
+  <path d="M5,12 H12 V14 H10 V13 H5 Z" fill="#0c0a09"/>
+  <path d="M20,12 H27 V13 H22 V14 H20 Z" fill="#0c0a09"/>
+
+  <!-- OJOS DE ARQUERO (Tinta negra + Iris Esmeralda Vivo) -->
+  <rect x="6" y="14" width="5" height="5" fill="#0c0a09"/>
+  <rect x="21" y="14" width="5" height="5" fill="#0c0a09"/>
+  <!-- Esclerótica -->
+  <rect x="7" y="15" width="4" height="4" fill="#f4efe4"/>
+  <rect x="21" y="15" width="4" height="4" fill="#f4efe4"/>
+  <!-- Iris verde esmeralda / jade -->
+  <rect x="8" y="15" width="3" height="4" fill="#047857"/>
+  <rect x="22" y="15" width="3" height="4" fill="#047857"/>
+  <rect x="8" y="16" width="2" height="3" fill="#10b981"/>
+  <rect x="22" y="16" width="2" height="3" fill="#10b981"/>
+  <!-- Brillo especular blanco -->
+  <rect x="7" y="15" width="2" height="2" fill="#ffffff"/>
+  <rect x="21" y="15" width="2" height="2" fill="#ffffff"/>
+
+  <!-- PINTURA DE GUERRA / CAMUFLAJE EN LAS MEJILLAS (Estilo Sumi-e rojo/carbón) -->
+  <g fill="#7f1d1d">
+    <rect x="4" y="20" width="4" height="1"/>
+    <rect x="5" y="22" width="3" height="1"/>
+    <rect x="24" y="20" width="4" height="1"/>
+    <rect x="24" y="22" width="3" height="1"/>
+  </g>
+
+  <!-- Nariz con cicatriz horizontal de aventurero -->
+  <rect x="15" y="16" width="2" height="5" fill="#bfb6a6"/>
+  <rect x="14" y="20" width="4" height="1" fill="#78716c"/>
+  <!-- Cicatriz cruzando el puente de la nariz -->
+  <rect x="13" y="17" width="6" height="1" fill="#a8a29e"/>
+  <rect x="14" y="17" width="4" height="1" fill="#f4efe4"/>
+
+  <!-- BOCA CON SONRISA CONFIADA DE LADO (Smirk) -->
+  <rect x="11" y="24" width="9" height="2" fill="#451a03"/>
+  <path d="M11,24 H19 V23 H21 V25 H11 Z" fill="#0c0a09"/>
+  <!-- Sombra bajo el labio inferior -->
+  <rect x="13" y="26" width="5" height="1" fill="#78716c"/>
+</svg>

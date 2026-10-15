@@ -1,5 +1,6 @@
 // src/render/models/heroes/rangerGear.js
 import * as THREE from 'three';
+import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
 
 /**
  * Kit del Explorador (ranger): arquetipo de rastreador ágil y arquero.
@@ -74,6 +75,15 @@ export function buildRangerGear(a, G, add) {
   );
   hoodTail.position.set(0, -0.26, -0.22);
   hoodGroup.add(hoodTail);
+
+  // Aplicar textura facial Sumi-e propia del Explorador a la cara frontal (+Z) de la cabeza
+  let faceMat = null;
+  if (a.parts?.head && Array.isArray(a.parts.head.material)) {
+    faceMat = createHeroFaceMaterial('ranger');
+    if (faceMat) {
+      a.parts.head.material[4] = faceMat;
+    }
+  }
 
   if (a.parts?.head) {
     add(hoodGroup, a.parts.head);
@@ -222,7 +232,7 @@ export function buildRangerGear(a, G, add) {
     add(gloveR, a.parts.armRPivot);
   }
 
-  return [
+  const mats = [
     hoodMat,
     hoodDarkMat,
     cloakMat,
@@ -233,6 +243,8 @@ export function buildRangerGear(a, G, add) {
     shaftMat,
     bootsMat,
   ];
+  if (faceMat) mats.push(faceMat);
+  return mats;
 }
 
 export { buildRangerGear as rangerGear };

@@ -10,6 +10,9 @@ import {
   GEAR_BUILDERS,
   createNameSprite,
 } from '../src/render/models/heroes/index.js';
+import { HERO_PORTRAITS, createHeroFaceMaterial } from '../src/heroes/heroPortraits.js';
+import { renderIcon, ICONS } from '../src/ui/Icons.js';
+import { PLAYER_HEROES } from '../src/config/constants.js';
 import { AvatarRenderer } from '../src/render/AvatarRenderer.js';
 import { HeroShowcaseRenderer } from '../src/render/HeroShowcaseRenderer.js';
 import { PropShowcaseRenderer } from '../src/render/PropShowcaseRenderer.js';
@@ -495,4 +498,331 @@ test('Escalinata Ancestral: Mejora A integra Brocal 3D de cantería fija con rie
   for (const m of Object.values(classicMats)) m?.dispose?.();
   for (const m of Object.values(abyssMats)) m?.dispose?.();
 });
+
+test('Héroes Sumi-e: Guardián integra retrato Pixel Art en UI (Icons, PLAYER_HEROES) y textura facial 3D', () => {
+  // 1. Verificación del catálogo de retratos
+  assert.ok(HERO_PORTRAITS.guardian, 'HERO_PORTRAITS debe definir al guardián');
+  assert.equal(HERO_PORTRAITS.guardian.icon, 'avatar_guardian');
+  assert.ok(HERO_PORTRAITS.guardian.svg.includes('shape-rendering="crispEdges"'));
+  assert.ok(HERO_PORTRAITS.guardian.body.includes('fill="#d6cfc2"'), 'Debe incluir fondo pergamino Washi');
+  assert.ok(HERO_PORTRAITS.guardian.body.includes('fill="#0284c7"'), 'Debe incluir ojos con pupila azul espiritual');
+
+  // 2. Verificación de Icons.js
+  assert.ok(ICONS.avatar_guardian, 'ICONS debe incluir avatar_guardian');
+  const rendered = renderIcon('avatar_guardian', { size: 36 });
+  assert.ok(rendered.includes('shape-rendering="crispEdges"'), 'renderIcon debe incluir shape-rendering');
+  assert.ok(rendered.includes('width="36"'));
+  const aliasRendered = renderIcon('hero_guardian');
+  assert.ok(aliasRendered.includes('viewBox="0 0 32 32"'));
+
+  // 3. Verificación de definición en constants / heroes.json
+  const guardianHero = PLAYER_HEROES.find(h => h.id === 'guardian');
+  assert.ok(guardianHero, 'PLAYER_HEROES debe incluir al guardián');
+  assert.equal(guardianHero.avatar, 'avatar_guardian', 'Guardián debe tener avatar_guardian asignado');
+
+  // 4. Verificación del modelo 3D y asignación de cara frontal (+Z)
+  const geos = buildSharedGeometries();
+  const mats = buildSharedMaterials();
+  const { root, parts } = buildBaseAvatarMesh('#fbbf24', geos, mats);
+  const gearGroup = new THREE.Group();
+  root.add(gearGroup);
+
+  const initialFace = parts.head.material[4];
+  assert.equal(initialFace, mats.face, 'Cara base inicial debe ser mats.face');
+
+  const avatarStub = {
+    mesh: root,
+    gear: gearGroup,
+    parts,
+  };
+  const added = [];
+  const add = (obj, parent) => {
+    parent.add(obj);
+    added.push({ obj, parent });
+  };
+
+  const gearMats = GEAR_BUILDERS.guardian(avatarStub, geos, add);
+  assert.ok(gearMats.length >= 8, 'Debe devolver materiales de gear más la cara custom');
+  assert.notEqual(parts.head.material[4], initialFace, 'La cara frontal (+Z) debe reemplazarse con el material del Guardián');
+
+  // 5. Verificación de _clearGear en AvatarRenderer para restauración de cara
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(99, '#fbbf24');
+  ar.setHeroGear(a, 'guardian');
+  assert.notEqual(a.parts.head.material[4], ar._sharedMats.face, 'AvatarRenderer debe aplicar cara del guardián');
+
+  // Al retirar el gear debe volver a _sharedMats.face
+  ar._clearGear(a);
+  assert.equal(a.parts.head.material[4], ar._sharedMats.face, '_clearGear debe restaurar _sharedMats.face');
+
+  ar.dispose();
+});
+
+test('Héroes Sumi-e: Hechicero integra retratos Pixel Art en UI (Icons, PLAYER_HEROES) y texturas 3D de cabeza y pecho', () => {
+  // 1. Verificación del catálogo de retratos
+  assert.ok(HERO_PORTRAITS.wizard, 'HERO_PORTRAITS debe definir al hechicero');
+  assert.equal(HERO_PORTRAITS.wizard.icon, 'avatar_wizard');
+  assert.ok(HERO_PORTRAITS.wizard.svg.includes('shape-rendering="crispEdges"'));
+  assert.ok(HERO_PORTRAITS.wizard.body.includes('fill="#581c87"'), 'Debe incluir runa amatista en el entrecejo');
+  assert.ok(HERO_PORTRAITS.wizard.chestBody.includes('fill="#581c87"'), 'Debe incluir túnica arcana morada en el pecho');
+
+  // 2. Verificación de Icons.js
+  assert.ok(ICONS.avatar_wizard, 'ICONS debe incluir avatar_wizard');
+  const rendered = renderIcon('avatar_wizard', { size: 36 });
+  assert.ok(rendered.includes('shape-rendering="crispEdges"'), 'renderIcon debe incluir shape-rendering');
+  assert.ok(rendered.includes('width="36"'));
+  const aliasRendered = renderIcon('hero_wizard');
+  assert.ok(aliasRendered.includes('viewBox="0 0 32 32"'));
+
+  // 3. Verificación de definición en constants / heroes.json
+  const wizardHero = PLAYER_HEROES.find(h => h.id === 'wizard');
+  assert.ok(wizardHero, 'PLAYER_HEROES debe incluir al hechicero');
+  assert.equal(wizardHero.avatar, 'avatar_wizard', 'Hechicero debe tener avatar_wizard asignado');
+
+  // 4. Verificación del modelo 3D y asignación de cara frontal (+Z) y pecho (+Z)
+  const geos = buildSharedGeometries();
+  const mats = buildSharedMaterials();
+  const { root, parts } = buildBaseAvatarMesh('#a855f7', geos, mats);
+  const gearGroup = new THREE.Group();
+  root.add(gearGroup);
+
+  const initialFace = parts.head.material[4];
+  const initialTorso = parts.torso.material;
+
+  const avatarStub = {
+    mesh: root,
+    gear: gearGroup,
+    parts,
+  };
+  const added = [];
+  const add = (obj, parent) => {
+    parent.add(obj);
+    added.push({ obj, parent });
+  };
+
+  const gearMats = GEAR_BUILDERS.wizard(avatarStub, geos, add);
+  assert.ok(gearMats.length >= 11, 'Debe devolver materiales de gear más cara y pecho');
+  assert.notEqual(parts.head.material[4], initialFace, 'La cara frontal (+Z) debe tener el material del Hechicero');
+  assert.ok(Array.isArray(parts.torso.material), 'El torso debe tener materiales por cara');
+  assert.notEqual(parts.torso.material[4], initialTorso, 'El pecho frontal (+Z) debe tener el material de túnica con barba');
+
+  // 5. Verificación de _clearGear en AvatarRenderer para restauración de cara y torso
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(88, '#a855f7');
+  ar.setHeroGear(a, 'wizard');
+  assert.notEqual(a.parts.head.material[4], ar._sharedMats.face, 'AvatarRenderer debe aplicar cara del hechicero');
+  assert.ok(Array.isArray(a.parts.torso.material), 'El torso en AvatarRenderer debe tener material por caras');
+
+  // Al retirar el gear debe volver a _sharedMats.face y túnica original
+  ar._clearGear(a);
+  assert.equal(a.parts.head.material[4], ar._sharedMats.face, '_clearGear debe restaurar _sharedMats.face');
+  assert.equal(Array.isArray(a.parts.torso.material), false, '_clearGear debe restaurar material único del torso');
+
+  ar.dispose();
+});
+
+test('Héroes Sumi-e: Explorador integra retrato Pixel Art en UI (Icons, PLAYER_HEROES) y textura facial 3D', () => {
+  // 1. Verificación del catálogo de retratos
+  assert.ok(HERO_PORTRAITS.ranger, 'HERO_PORTRAITS debe definir al explorador');
+  assert.equal(HERO_PORTRAITS.ranger.icon, 'avatar_ranger');
+  assert.ok(HERO_PORTRAITS.ranger.svg.includes('shape-rendering="crispEdges"'));
+  assert.ok(HERO_PORTRAITS.ranger.body.includes('fill="#d6cfc2"'), 'Debe incluir fondo pergamino Washi');
+  assert.ok(HERO_PORTRAITS.ranger.body.includes('fill="#047857"'), 'Debe incluir ojos esmeralda');
+  assert.ok(HERO_PORTRAITS.ranger.body.includes('fill="#dc2626"'), 'Debe incluir pluma de aventurero roja');
+
+  // 2. Verificación de Icons.js
+  assert.ok(ICONS.avatar_ranger, 'ICONS debe incluir avatar_ranger');
+  const rendered = renderIcon('avatar_ranger', { size: 36 });
+  assert.ok(rendered.includes('shape-rendering="crispEdges"'), 'renderIcon debe incluir shape-rendering');
+  assert.ok(rendered.includes('width="36"'));
+  const aliasRendered = renderIcon('hero_ranger');
+  assert.ok(aliasRendered.includes('viewBox="0 0 32 32"'));
+
+  // 3. Verificación de definición en constants / heroes.json
+  const rangerHero = PLAYER_HEROES.find(h => h.id === 'ranger');
+  assert.ok(rangerHero, 'PLAYER_HEROES debe incluir al explorador');
+  assert.equal(rangerHero.avatar, 'avatar_ranger', 'Explorador debe tener avatar_ranger asignado');
+
+  // 4. Verificación del modelo 3D y asignación de cara frontal (+Z)
+  const geos = buildSharedGeometries();
+  const mats = buildSharedMaterials();
+  const { root, parts } = buildBaseAvatarMesh('#10b981', geos, mats);
+  const gearGroup = new THREE.Group();
+  root.add(gearGroup);
+
+  const initialFace = parts.head.material[4];
+  assert.equal(initialFace, mats.face, 'Cara base inicial debe ser mats.face');
+
+  const avatarStub = {
+    mesh: root,
+    gear: gearGroup,
+    parts,
+  };
+  const added = [];
+  const add = (obj, parent) => {
+    parent.add(obj);
+    added.push({ obj, parent });
+  };
+
+  const gearMats = GEAR_BUILDERS.ranger(avatarStub, geos, add);
+  assert.ok(gearMats.length >= 10, 'Debe devolver materiales de gear más la cara custom');
+  assert.notEqual(parts.head.material[4], initialFace, 'La cara frontal (+Z) debe tener el material del Explorador');
+
+  // 5. Verificación de _clearGear en AvatarRenderer para restauración de cara
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(77, '#10b981');
+  ar.setHeroGear(a, 'ranger');
+  assert.notEqual(a.parts.head.material[4], ar._sharedMats.face, 'AvatarRenderer debe aplicar cara del explorador');
+
+  // Al retirar el gear debe volver a _sharedMats.face
+  ar._clearGear(a);
+  assert.equal(a.parts.head.material[4], ar._sharedMats.face, '_clearGear debe restaurar _sharedMats.face');
+
+  ar.dispose();
+});
+
+test('Héroes Sumi-e: Paladín integra retrato Pixel Art en UI (Icons, PLAYER_HEROES) y textura facial 3D', () => {
+  // 1. Verificación del catálogo de retratos
+  assert.ok(HERO_PORTRAITS.paladin, 'HERO_PORTRAITS debe definir al paladín');
+  assert.equal(HERO_PORTRAITS.paladin.icon, 'avatar_paladin');
+  assert.ok(HERO_PORTRAITS.paladin.svg.includes('shape-rendering="crispEdges"'));
+  assert.ok(HERO_PORTRAITS.paladin.body.includes('fill="#d6cfc2"'), 'Debe incluir fondo pergamino Washi');
+  assert.ok(HERO_PORTRAITS.paladin.body.includes('fill="#1d4ed8"'), 'Debe incluir ojos azul templario');
+  assert.ok(HERO_PORTRAITS.paladin.body.includes('fill="#d97706"'), 'Debe incluir filo dorado en el yelmo');
+
+  // 2. Verificación de Icons.js
+  assert.ok(ICONS.avatar_paladin, 'ICONS debe incluir avatar_paladin');
+  const rendered = renderIcon('avatar_paladin', { size: 36 });
+  assert.ok(rendered.includes('shape-rendering="crispEdges"'), 'renderIcon debe incluir shape-rendering');
+  assert.ok(rendered.includes('width="36"'));
+  const aliasRendered = renderIcon('hero_paladin');
+  assert.ok(aliasRendered.includes('viewBox="0 0 32 32"'));
+
+  // 3. Verificación de definición en constants / heroes.json
+  const paladinHero = PLAYER_HEROES.find(h => h.id === 'paladin');
+  assert.ok(paladinHero, 'PLAYER_HEROES debe incluir al paladín');
+  assert.equal(paladinHero.avatar, 'avatar_paladin', 'Paladín debe tener avatar_paladin asignado');
+
+  // 4. Verificación del modelo 3D y asignación de cara frontal (+Z)
+  const geos = buildSharedGeometries();
+  const mats = buildSharedMaterials();
+  const { root, parts } = buildBaseAvatarMesh('#f43f5e', geos, mats);
+  const gearGroup = new THREE.Group();
+  root.add(gearGroup);
+
+  const initialFace = parts.head.material[4];
+  assert.equal(initialFace, mats.face, 'Cara base inicial debe ser mats.face');
+
+  const avatarStub = {
+    mesh: root,
+    gear: gearGroup,
+    parts,
+  };
+  const added = [];
+  const add = (obj, parent) => {
+    parent.add(obj);
+    added.push({ obj, parent });
+  };
+
+  const gearMats = GEAR_BUILDERS.paladin(avatarStub, geos, add);
+  assert.ok(gearMats.length >= 5, 'Debe devolver materiales de gear más la cara custom');
+  assert.notEqual(parts.head.material[4], initialFace, 'La cara frontal (+Z) debe tener el material del Paladín');
+
+  // 5. Verificación de _clearGear en AvatarRenderer para restauración de cara
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(66, '#f43f5e');
+  ar.setHeroGear(a, 'paladin');
+  assert.notEqual(a.parts.head.material[4], ar._sharedMats.face, 'AvatarRenderer debe aplicar cara del paladín');
+
+  // Al retirar el gear debe volver a _sharedMats.face
+  ar._clearGear(a);
+  assert.equal(a.parts.head.material[4], ar._sharedMats.face, '_clearGear debe restaurar _sharedMats.face');
+
+  ar.dispose();
+});
+
+test('Héroes Sumi-e: Aventurero integra retrato Pixel Art en UI (Icons, PLAYER_HEROES) y textura facial 3D', () => {
+  // 1. Verificación del catálogo de retratos
+  assert.ok(HERO_PORTRAITS.adventurer, 'HERO_PORTRAITS debe definir al aventurero');
+  assert.equal(HERO_PORTRAITS.adventurer.icon, 'avatar_adventurer');
+  assert.ok(HERO_PORTRAITS.adventurer.svg.includes('shape-rendering="crispEdges"'));
+  assert.ok(HERO_PORTRAITS.adventurer.body.includes('fill="#d6cfc2"'), 'Debe incluir fondo pergamino Washi');
+  assert.ok(HERO_PORTRAITS.adventurer.body.includes('fill="#0369a1"'), 'Debe incluir ojos azul cian');
+  assert.ok(HERO_PORTRAITS.adventurer.body.includes('fill="#e7ded0"'), 'Debe incluir tirita en la mejilla');
+
+  // 2. Verificación de Icons.js
+  assert.ok(ICONS.avatar_adventurer, 'ICONS debe incluir avatar_adventurer');
+  const rendered = renderIcon('avatar_adventurer', { size: 36 });
+  assert.ok(rendered.includes('shape-rendering="crispEdges"'), 'renderIcon debe incluir shape-rendering');
+  assert.ok(rendered.includes('width="36"'));
+  const aliasRendered = renderIcon('hero_adventurer');
+  assert.ok(aliasRendered.includes('viewBox="0 0 32 32"'));
+
+  // 3. Verificación de definición en constants / heroes.json
+  const adventurerHero = PLAYER_HEROES.find(h => h.id === 'adventurer');
+  assert.ok(adventurerHero, 'PLAYER_HEROES debe incluir al aventurero');
+  assert.equal(adventurerHero.avatar, 'avatar_adventurer', 'Aventurero debe tener avatar_adventurer asignado');
+
+  // 4. Verificación del modelo 3D y asignación de cara frontal (+Z)
+  const geos = buildSharedGeometries();
+  const mats = buildSharedMaterials();
+  const { root, parts } = buildBaseAvatarMesh('#38bdf8', geos, mats);
+  const gearGroup = new THREE.Group();
+  root.add(gearGroup);
+
+  const initialFace = parts.head.material[4];
+  assert.equal(initialFace, mats.face, 'Cara base inicial debe ser mats.face');
+
+  const avatarStub = {
+    mesh: root,
+    gear: gearGroup,
+    parts,
+  };
+  const added = [];
+  const add = (obj, parent) => {
+    parent.add(obj);
+    added.push({ obj, parent });
+  };
+
+  const gearMats = GEAR_BUILDERS.adventurer(avatarStub, geos, add);
+  assert.ok(gearMats.length >= 7, 'Debe devolver materiales de gear más la cara custom');
+  assert.notEqual(parts.head.material[4], initialFace, 'La cara frontal (+Z) debe tener el material del Aventurero');
+
+  // 5. Verificación de _clearGear en AvatarRenderer para restauración de cara
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(55, '#38bdf8');
+  ar.setHeroGear(a, 'adventurer');
+  assert.notEqual(a.parts.head.material[4], ar._sharedMats.face, 'AvatarRenderer debe aplicar cara del aventurero');
+
+  // Al retirar el gear debe volver a _sharedMats.face
+  ar._clearGear(a);
+  assert.equal(a.parts.head.material[4], ar._sharedMats.face, '_clearGear debe restaurar _sharedMats.face');
+
+  ar.dispose();
+});
+
+test('Héroes Sumi-e: Todos los 5 héroes canónicos cuentan con retrato Pixel Art, icono UI y textura 3D', () => {
+  const heroIds = ['adventurer', 'paladin', 'ranger', 'wizard', 'guardian'];
+  for (const id of heroIds) {
+    const heroDef = PLAYER_HEROES.find(h => h.id === id);
+    assert.ok(heroDef, `Héroe ${id} debe existir en PLAYER_HEROES`);
+    assert.ok(heroDef.avatar, `Héroe ${id} debe tener propiedad avatar`);
+    assert.ok(ICONS[heroDef.avatar], `ICONS debe tener entrada para ${heroDef.avatar}`);
+
+    const portrait = HERO_PORTRAITS[id];
+    assert.ok(portrait, `HERO_PORTRAITS debe tener entrada para ${id}`);
+    assert.ok(portrait.svg, `HERO_PORTRAITS.${id} debe tener svg definido`);
+    assert.ok(portrait.body, `HERO_PORTRAITS.${id} debe tener body definido`);
+    assert.equal(typeof portrait.drawToCanvas, 'function', `HERO_PORTRAITS.${id} debe tener drawToCanvas`);
+  }
+});
+
+
+
+
 

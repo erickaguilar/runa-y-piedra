@@ -1,5 +1,6 @@
 // src/render/models/heroes/wizardGear.js
 import * as THREE from 'three';
+import { createHeroFaceMaterial, createHeroChestMaterial } from '../../../heroes/heroPortraits.js';
 
 /**
  * Kit del Hechicero (wizard): arquetipo de taumaturgo arcano.
@@ -92,40 +93,32 @@ export function buildWizardGear(a, G, add) {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 2. BARBA Y BIGOTE — Cuelgan del mentón hacia el pecho
-  //    Anclados a a.parts.head
+  // 2. ROSTRO Y PECHO SUMI-E — Texturas continuas cabeza (+Z) y torso (+Z)
+  //    La barba larga conecta directamente del mentón hacia el pecho
   // ═══════════════════════════════════════════════════════════
-  const beardGroup = new THREE.Group();
+  let faceMat = null;
+  if (a.parts?.head && Array.isArray(a.parts.head.material)) {
+    faceMat = createHeroFaceMaterial('wizard');
+    if (faceMat) {
+      a.parts.head.material[4] = faceMat;
+    }
+  }
 
-  // Bloque principal de barba
-  const beard = new THREE.Mesh(
-    new THREE.BoxGeometry(0.30, 0.34, 0.12),
-    beardMat
-  );
-  beard.position.set(0, -0.38, 0.16);
-  beardGroup.add(beard);
-
-  // Bigote (más ancho sobre la comisura)
-  const mustache = new THREE.Mesh(
-    new THREE.BoxGeometry(0.24, 0.05, 0.04),
-    beardMat
-  );
-  mustache.position.set(0, -0.22, 0.21);
-  beardGroup.add(mustache);
-
-  // Pico de la barba (remate cónico inferior hacia el esternón)
-  const beardTip = new THREE.Mesh(
-    new THREE.BoxGeometry(0.16, 0.14, 0.10),
-    beardMat
-  );
-  beardTip.position.set(0, -0.60, 0.16);
-  beardGroup.add(beardTip);
-
-  if (a.parts?.head) {
-    add(beardGroup, a.parts.head);
-  } else {
-    beardGroup.position.set(0, 1.63, 0);
-    add(beardGroup, a.gear);
+  let chestMat = null;
+  if (a.parts?.torso) {
+    if (!a._origTorsoMat) a._origTorsoMat = a.parts.torso.material;
+    const baseMat = a._origTorsoMat || a.parts.torso.material;
+    chestMat = createHeroChestMaterial('wizard');
+    if (chestMat) {
+      a.parts.torso.material = [
+        baseMat, // +X
+        baseMat, // -X
+        baseMat, // +Y
+        baseMat, // -Y
+        chestMat, // +Z (pecho con túnica y barba larga)
+        baseMat, // -Z
+      ];
+    }
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -218,12 +211,11 @@ export function buildWizardGear(a, G, add) {
 
   add(bookGroup, a.gear);
 
-  return [
+  const mats = [
     hatMat,
     hatDarkMat,
     hatBandMat,
     pomMat,
-    beardMat,
     woodMat,
     woodHiMat,
     crystalMat,
@@ -231,6 +223,9 @@ export function buildWizardGear(a, G, add) {
     bookCoverMat,
     bookPagesMat,
   ];
+  if (faceMat) mats.push(faceMat);
+  if (chestMat) mats.push(chestMat);
+  return mats;
 }
 
 export { buildWizardGear as wizardGear };

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">
+  <!-- Contorno general de tinta negra -->
+  <rect width="32" height="32" fill="#0c0a09"/>
+
+  <!-- Túnica arcana morada con sombras de pliegues Sumi-e -->
+  <rect x="1" y="1" width="30" height="25" fill="#581c87"/>
+  <rect x="2" y="1" width="28" height="24" fill="#6b21a8"/>
+  <!-- Pliegues iluminados en los hombros -->
+  <path d="M2,1 H8 V3 H4 V24 H2 Z" fill="#7e22ce"/>
+  <path d="M24,1 H30 V24 H28 V3 H24 Z" fill="#4c1d95"/>
+
+  <!-- Estola / Bordado rúnico dorado en la túnica -->
+  <rect x="5" y="1" width="2" height="25" fill="#b45309"/>
+  <rect x="25" y="1" width="2" height="25" fill="#b45309"/>
+  <rect x="6" y="1" width="1" height="25" fill="#f59e0b"/>
+  <rect x="25" y="1" width="1" height="25" fill="#f59e0b"/>
+
+  <!-- Cinturón de cuero y grimorio (y=26 a 31) -->
+  <rect x="1" y="26" width="30" height="5" fill="#292524"/>
+  <rect x="1" y="26" width="30" height="1" fill="#0c0a09"/>
+  <rect x="12" y="26" width="8" height="5" fill="#78350f"/>
+  <rect x="13" y="27" width="6" height="3" fill="#a855f7"/>
+
+  <!-- CONTINUACIÓN DE LA BARBA LARGA EN EL PECHO (x=7 a 25) -->
+  <!-- Sombra exterior de tinta negra de la barba -->
+  <path d="M6,0 H26 V16 H23 V21 H19 V24 H13 V21 H9 V16 H6 Z" fill="#0c0a09"/>
+  <!-- Base gris piedra -->
+  <path d="M7,0 H25 V15 H22 V20 H18 V23 H14 V20 H10 V15 H7 Z" fill="#a8a29e"/>
+  <!-- Mechones iluminados que empatan con x=8, 13, 17, 22 de la cabeza -->
+  <g fill="#d6cfc2">
+    <rect x="8" y="0" width="2" height="14"/>
+    <rect x="13" y="0" width="2" height="19"/>
+    <rect x="17" y="0" width="2" height="19"/>
+    <rect x="22" y="0" width="2" height="14"/>
+    <rect x="15" y="18" width="2" height="4"/>
+  </g>
+  <!-- Surcos oscuros de pincel seco que empatan con x=11, 15, 20 de la cabeza -->
+  <g fill="#44403c">
+    <rect x="11" y="0" width="1" height="17"/>
+    <rect x="15" y="0" width="2" height="16"/>
+    <rect x="20" y="0" width="1" height="17"/>
+  </g>
+</svg>
