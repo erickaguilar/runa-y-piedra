@@ -785,11 +785,25 @@ export const HERO_PORTRAITS = {
   },
 };
 
+// Caché Singleton de texturas CanvasTexture por héroe y resolución (reutilización global)
+const _faceTextureCache = new Map();
+const _chestTextureCache = new Map();
+
+// Caché Singleton de materiales MeshLambertMaterial por héroe (reutilización global)
+const _faceMaterialCache = new Map();
+const _chestMaterialCache = new Map();
+
 /**
- * Genera la textura CanvasTexture de Three.js para la cara del héroe.
+ * Genera o recupera del caché la textura CanvasTexture de Three.js para la cara del héroe.
+ * Renderizado 100% síncrono píxel a píxel: cero parseo de XML/SVG, cero GC y 60 FPS estables.
  */
 export function createHeroFaceTexture(heroId, size = 64) {
   if (typeof document === 'undefined') return null;
+
+  const key = `${heroId}_${size}`;
+  if (_faceTextureCache.has(key)) {
+    return _faceTextureCache.get(key);
+  }
 
   const def = HERO_PORTRAITS[heroId];
   if (!def || !def.drawToCanvas) return null;
@@ -808,26 +822,26 @@ export function createHeroFaceTexture(heroId, size = 64) {
   texture.generateMipmaps = false;
   texture.colorSpace = THREE.SRGBColorSpace;
 
-  if (typeof Image !== 'undefined' && def.svg) {
-    const img = new Image();
-    img.onload = () => {
-      ctx.imageSmoothingEnabled = false;
-      ctx.clearRect(0, 0, size, size);
-      ctx.drawImage(img, 0, 0, size, size);
-      texture.needsUpdate = true;
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(def.svg);
-  }
-
+  _faceTextureCache.set(key, texture);
   return texture;
 }
 
 /**
- * Crea el material MeshLambertMaterial frontal para la cabeza 3D del héroe.
+ * Crea o recupera del caché el material MeshLambertMaterial frontal para la cabeza 3D del héroe.
  */
 export function createHeroFaceMaterial(heroId) {
   if (typeof document === 'undefined') {
-    return new THREE.MeshLambertMaterial({ color: 0xd6cfc2 });
+    if (_faceMaterialCache.has(heroId)) {
+      return _faceMaterialCache.get(heroId);
+    }
+    const mat = new THREE.MeshLambertMaterial({ color: 0xd6cfc2 });
+    mat.userData = { isShared: true, heroId };
+    _faceMaterialCache.set(heroId, mat);
+    return mat;
+  }
+
+  if (_faceMaterialCache.has(heroId)) {
+    return _faceMaterialCache.get(heroId);
   }
 
   const texture = createHeroFaceTexture(heroId, 64);
@@ -835,17 +849,26 @@ export function createHeroFaceMaterial(heroId) {
     return null;
   }
 
-  return new THREE.MeshLambertMaterial({
+  const mat = new THREE.MeshLambertMaterial({
     map: texture,
     color: 0xffffff,
   });
+  mat.userData = { isShared: true, heroId };
+  _faceMaterialCache.set(heroId, mat);
+  return mat;
 }
 
 /**
- * Genera la textura CanvasTexture de Three.js para el torso / pecho del héroe.
+ * Genera o recupera del caché la textura CanvasTexture de Three.js para el torso / pecho del héroe.
+ * Renderizado 100% síncrono píxel a píxel.
  */
 export function createHeroChestTexture(heroId, size = 64) {
   if (typeof document === 'undefined') return null;
+
+  const key = `${heroId}_${size}`;
+  if (_chestTextureCache.has(key)) {
+    return _chestTextureCache.get(key);
+  }
 
   const def = HERO_PORTRAITS[heroId];
   if (!def || !def.drawChestToCanvas) return null;
@@ -864,26 +887,26 @@ export function createHeroChestTexture(heroId, size = 64) {
   texture.generateMipmaps = false;
   texture.colorSpace = THREE.SRGBColorSpace;
 
-  if (typeof Image !== 'undefined' && def.chestSvg) {
-    const img = new Image();
-    img.onload = () => {
-      ctx.imageSmoothingEnabled = false;
-      ctx.clearRect(0, 0, size, size);
-      ctx.drawImage(img, 0, 0, size, size);
-      texture.needsUpdate = true;
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(def.chestSvg);
-  }
-
+  _chestTextureCache.set(key, texture);
   return texture;
 }
 
 /**
- * Crea el material MeshLambertMaterial frontal para el torso / pecho 3D del héroe.
+ * Crea o recupera del caché el material MeshLambertMaterial frontal para el torso / pecho 3D del héroe.
  */
 export function createHeroChestMaterial(heroId) {
   if (typeof document === 'undefined') {
-    return new THREE.MeshLambertMaterial({ color: 0x581c87 });
+    if (_chestMaterialCache.has(heroId)) {
+      return _chestMaterialCache.get(heroId);
+    }
+    const mat = new THREE.MeshLambertMaterial({ color: 0x581c87 });
+    mat.userData = { isShared: true, heroId };
+    _chestMaterialCache.set(heroId, mat);
+    return mat;
+  }
+
+  if (_chestMaterialCache.has(heroId)) {
+    return _chestMaterialCache.get(heroId);
   }
 
   const texture = createHeroChestTexture(heroId, 64);
@@ -891,8 +914,39 @@ export function createHeroChestMaterial(heroId) {
     return null;
   }
 
-  return new THREE.MeshLambertMaterial({
+  const mat = new THREE.MeshLambertMaterial({
     map: texture,
     color: 0xffffff,
   });
+  mat.userData = { isShared: true, heroId };
+  _chestMaterialCache.set(heroId, mat);
+  return mat;
 }
+
+/**
+ * Libera de forma explícita todos los materiales y texturas cacheados en memoria de GPU.
+ */
+export function disposeHeroPortraitsCache() {
+  for (const mat of _faceMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _faceMaterialCache.clear();
+
+  for (const tex of _faceTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _faceTextureCache.clear();
+
+  for (const mat of _chestMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _chestMaterialCache.clear();
+
+  for (const tex of _chestTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _chestTextureCache.clear();
+}
+

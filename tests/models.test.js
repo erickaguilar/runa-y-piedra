@@ -10,7 +10,12 @@ import {
   GEAR_BUILDERS,
   createNameSprite,
 } from '../src/render/models/heroes/index.js';
-import { HERO_PORTRAITS, createHeroFaceMaterial } from '../src/heroes/heroPortraits.js';
+import {
+  HERO_PORTRAITS,
+  createHeroFaceMaterial,
+  createHeroChestMaterial,
+  disposeHeroPortraitsCache,
+} from '../src/heroes/heroPortraits.js';
 import { renderIcon, ICONS } from '../src/ui/Icons.js';
 import { PLAYER_HEROES } from '../src/config/constants.js';
 import { AvatarRenderer } from '../src/render/AvatarRenderer.js';
@@ -820,6 +825,42 @@ test('Héroes Sumi-e: Todos los 5 héroes canónicos cuentan con retrato Pixel A
     assert.ok(portrait.body, `HERO_PORTRAITS.${id} debe tener body definido`);
     assert.equal(typeof portrait.drawToCanvas, 'function', `HERO_PORTRAITS.${id} debe tener drawToCanvas`);
   }
+});
+
+test('Héroes Sumi-e: Caché Singleton reutiliza materiales y texturas faciales/torso con cero GC', () => {
+  disposeHeroPortraitsCache();
+
+  // 1. Invocar varias veces para el mismo héroe debe retornar exactamente la misma instancia (Singleton)
+  const faceMat1 = createHeroFaceMaterial('guardian');
+  const faceMat2 = createHeroFaceMaterial('guardian');
+  assert.equal(faceMat1, faceMat2, 'createHeroFaceMaterial debe devolver la misma instancia cacheada');
+  assert.ok(faceMat1.userData?.isShared, 'El material cacheado debe estar marcado como isShared');
+
+  const chestMat1 = createHeroChestMaterial('wizard');
+  const chestMat2 = createHeroChestMaterial('wizard');
+  assert.equal(chestMat1, chestMat2, 'createHeroChestMaterial debe devolver la misma instancia cacheada');
+  assert.ok(chestMat1.userData?.isShared, 'El material de pecho debe estar marcado como isShared');
+
+  // 2. Comprobar que _clearGear en AvatarRenderer no destruye el material singleton
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(101, '#fbbf24');
+  ar.setHeroGear(a, 'guardian');
+
+  // Guardar referencia al material del rostro
+  const appliedFaceMat = a.parts.head.material[4];
+  assert.equal(appliedFaceMat, faceMat1, 'El material aplicado debe ser el singleton cacheado');
+
+  // Limpiar gear del avatar
+  ar._clearGear(a);
+  assert.equal(a.parts.head.material[4], ar._sharedMats.face, 'Cara debe restaurarse al default');
+
+  // Volver a consultar material para el guardián
+  const faceMatAfter = createHeroFaceMaterial('guardian');
+  assert.equal(faceMatAfter, faceMat1, 'El material singleton sigue vivo y utilizable tras _clearGear');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
 });
 
 

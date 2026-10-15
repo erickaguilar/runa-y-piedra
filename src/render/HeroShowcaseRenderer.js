@@ -92,7 +92,12 @@ export class HeroShowcaseRenderer {
     for (const s of this.showcases) {
       this.group.remove(s.root);
       for (const m of s.mats || []) m.dispose?.();
-      for (const m of s.gearMats || []) m.dispose?.();
+      for (const m of s.gearMats || []) {
+        if (!m) continue;
+        if (m.userData?.isShared) continue;
+        m.map?.dispose?.();
+        m.dispose?.();
+      }
       if (s.sprite) {
         s.sprite.material?.map?.dispose?.();
         s.sprite.material?.dispose?.();

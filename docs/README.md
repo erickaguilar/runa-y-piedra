@@ -153,6 +153,14 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Modularización atómica de componentes gráficos en `src/render/textures/` (sprites SVG por familia, incluyendo `ceilings.js`) y `src/render/models/` (constructores paramétricos de héroes y props).
     - Matriz cuantitativa de geometrías, algoritmos deterministas de selección de tiles y presupuestos de Draw Calls (20-35 DC).
 
+24. [**24. Persistencia Avanzada con IndexedDB y Cómputo Intensivo con Rust / WebAssembly**](./24-almacenamiento-indexeddb-y-computo-rust-wasm.md)
+    - Evaluación técnica y operativa de IndexedDB frente a `localStorage` para almacenamiento asíncrono y masivo de bloques binarios.
+    - Arquitectura de integración de Rust compilado a WebAssembly (Wasm) para cómputo intensivo respetando el presupuesto de bundle (< 500 KB) y los 60 FPS estables.
+
+25. [**25. Hojas de Personaje Oficiales: Las 5 Clases de Héroes de Runa y Piedra**](./25-hojas-de-personaje-heroes.md)
+    - Guía canónica de hojas de personaje para los 5 héroes: Aventurero, Paladín, Explorador, Hechicero y Guardián.
+    - Especificación de trasfondo narrativo, parámetros numéricos de físicas (velocidad, salto, defensa), modelos vóxel y roles tácticos cooperativos.
+
 26. [**26. Arquitectura de Altares por Capítulo y Separación Mecánica de Escalinatas**](./26-altares-por-capitulo-y-escalinatas.md)
     - Desacoplamiento conceptual y jugable neto entre la losa de escalinata (avance entre mazmorras) y los altares (clímax de capítulo y utilidades de campamento).
     - Funcionamiento autoritativo de `stairs` con fosa dinámica a $y=-8$ y cuenta atrás de descenso.
@@ -178,4 +186,5 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Tipografía retro legible: `Silkscreen` para títulos y sellos, y `Pixelify Sans` para descripciones e inputs.
     - Rediseño de componentes y modales: Menú principal, selector de héroes como sellos octogonales, ranuras de guardado en tablillas de piedra, HUD de vidas, inventario/botín, Atlas de 10 capítulos y Bazar Rúnico del Mercader.
     - Unificación de la notificación superior y el botón de descenso por escalinata en una sola placa interactiva con temporizador integrado.
+    - Retratos canónicos Sumi-e Pixel Art (32x32) con renderizado `crispEdges` en UI 2D y texturizado facial/torso sobre mallas 3D para los 5 héroes.
 

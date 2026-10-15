@@ -40,7 +40,12 @@ export class AvatarRenderer {
       parent.remove(obj);
       obj.traverse((o) => { if (o.isMesh) o.geometry.dispose?.(); });
     }
-    for (const m of a.gearMats || []) m.dispose?.();
+    for (const m of a.gearMats || []) {
+      if (!m) continue;
+      if (m.userData?.isShared) continue;
+      m.map?.dispose?.();
+      m.dispose?.();
+    }
     a.gearNodes = [];
     a.gearMats = [];
     if (a.gear) {
