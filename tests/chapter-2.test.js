@@ -301,31 +301,52 @@ test('Capítulo 2 - shadow_sanctum: incorpora Sala 2 extendida (sizeZ: 64) con v
   assert.equal(world.get(5, -1, 21), 7, 'Debe haber lava en y=-1 en ala oeste');
   assert.equal(world.get(18, -1, 21), 7, 'Debe haber lava en y=-1 en ala este');
 
-  // Ala Oeste - Fase 1: Alturas variables (y=0, y=1, y=2)
+  // Ala Oeste - Fase 1: Alturas variables (y=0, y=1, y=2) y bloques separados
   assert.notEqual(world.get(5, 0, 16), 0, 'Plataforma base oeste en y=0');
+  assert.equal(world.get(5, 0, 17), 0, 'Separación de lava en z=17 (bloque de aire/lava)');
+  assert.equal(world.get(5, 0, 18), 0, 'Separación de lava en z=18 (bloque de aire/lava)');
   assert.equal(world.get(5, 0, 19), 4, 'Soporte pilar bajo plataforma elevada y=1 oeste');
   assert.notEqual(world.get(5, 1, 19), 0, 'Plataforma elevada oeste en y=1');
+  assert.equal(world.get(5, 0, 20), 0, 'Separación de lava en z=20');
+  assert.equal(world.get(5, 0, 21), 0, 'Separación de lava en z=21');
   assert.equal(world.get(5, 1, 22), 4, 'Soporte pilar bajo plataforma cumbre y=2 oeste');
   assert.notEqual(world.get(5, 2, 22), 0, 'Plataforma cúspide oeste en y=2');
-  assert.equal(world.get(5, 1, 25), 6, 'JUMP_PAD escalonado en y=1 oeste');
+  assert.equal(world.get(5, 0, 23), 0, 'Separación de lava en z=23');
+  assert.equal(world.get(5, 0, 24), 0, 'Separación de lava en z=24');
+  assert.equal(world.get(5, 0, 25), 4, 'Soporte pilar bajo plataforma separada y=1 oeste');
+  assert.equal(world.get(5, 1, 25), 1, 'Plataforma de piedra sólida en y=1 oeste (JUMP_PAD eliminado)');
+  assert.equal(world.get(5, 0, 26), 0, 'Separación de lava en z=26');
+  assert.equal(world.get(5, 0, 27), 0, 'Separación de lava en z=27');
 
   // Ala Oeste - Fase 2: Alturas variables tras cruzar la reja 4
   assert.notEqual(world.get(5, 1, 36), 0, 'Plataforma elevada y=1 oeste fase 2');
-  assert.equal(world.get(5, 2, 39), 6, 'JUMP_PAD cúspide y=2 oeste fase 2');
+  assert.equal(world.get(5, 2, 39), 1, 'Plataforma cúspide de piedra y=2 oeste fase 2 (JUMP_PAD eliminado)');
   assert.notEqual(world.get(5, 1, 43), 0, 'Plataforma y=1 oeste fase 2');
 
-  // Ala Este - Fase 1: Alturas variables (y=0, y=1, y=2)
+  // Ala Este - Fase 1: Alturas variables (y=0, y=1, y=2) y bloques separados
   assert.notEqual(world.get(18, 0, 16), 0, 'Plataforma base este en y=0');
+  assert.equal(world.get(18, 0, 17), 0, 'Separación de lava en z=17 este');
+  assert.equal(world.get(18, 0, 18), 0, 'Separación de lava en z=18 este');
   assert.equal(world.get(18, 0, 19), 4, 'Soporte pilar bajo plataforma elevada y=1 este');
   assert.notEqual(world.get(18, 1, 19), 0, 'Plataforma elevada este en y=1');
   assert.equal(world.get(18, 1, 22), 4, 'Soporte pilar bajo plataforma cumbre y=2 este');
   assert.notEqual(world.get(18, 2, 22), 0, 'Plataforma cúspide este en y=2');
-  assert.equal(world.get(18, 1, 25), 6, 'JUMP_PAD escalonado en y=1 este');
+  assert.equal(world.get(18, 0, 25), 4, 'Soporte pilar bajo plataforma separada y=1 este');
+  assert.equal(world.get(18, 1, 25), 1, 'Plataforma de piedra sólida en y=1 este (JUMP_PAD eliminado)');
 
   // Ala Este - Fase 2: Alturas variables tras cruzar la reja 3
   assert.notEqual(world.get(18, 1, 38), 0, 'Plataforma elevada y=1 este fase 2');
-  assert.equal(world.get(18, 2, 41), 6, 'JUMP_PAD cúspide y=2 este fase 2');
+  assert.equal(world.get(18, 2, 41), 1, 'Plataforma cúspide de piedra y=2 este fase 2 (JUMP_PAD eliminado)');
   assert.notEqual(world.get(18, 1, 44), 0, 'Plataforma y=1 este fase 2');
+
+  // Comprobar que no queda ningún JUMP_PAD (tipo 6) en la fosa de la Sala 2 (z: 16..48)
+  for (let z = 16; z <= 48; z++) {
+    for (let x = 1; x <= 22; x++) {
+      for (let y = 0; y <= 4; y++) {
+        assert.notEqual(world.get(x, y, z), 6, `No debe haber JUMP_PAD en Sala 2 (x=${x}, y=${y}, z=${z})`);
+      }
+    }
+  }
 
   // Confluencia y umbral de la antesala en z=49..52
   assert.notEqual(world.get(11, 0, 50), 0, 'Antesala unificada frente a Puerta 2 en z=50');

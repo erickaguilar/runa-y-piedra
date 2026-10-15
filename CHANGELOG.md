@@ -35,7 +35,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Al consagrar el altar supremo que culmina un capítulo (ej. `abyss_throne` en el Capítulo 1 o `shadow_sanctum` en el Capítulo 2), el flujo de juego avanza fluidamente hacia la primera mazmorra del siguiente capítulo desbloqueado (`shadow_vault`, `falls_aqueduct`) en lugar de forzar un retorno abrupto al Campamento Tutorial.
   - La pantalla de victoria (`#level-transition`) ahora adapta el botón primario con la acción contextual `Avanzar al Capítulo X: [Nombre]` y añade la opción opcional `#btn-return-lobby` (`Volver al Campamento`) si los jugadores prefieren regresar al hub.
   - Orquestación y sincronización P2P autoritativa por parte del anfitrión mediante `serializeChapterSelect` y `serializeLevelChange`.
-  - Estilo Sumi-e integrado para la pantalla de transición y botones de victoria.
+- **Optimización de Parkour en Santuario Crepuscular (`shadow_sanctum`, `src/levels/data/shadow_sanctum.json`)**:
+  - En la Sala 2 (Gran Salón Crepuscular), se eliminaron todos los pads de salto (`JUMP_PAD`), reemplazándolos por sólidas plataformas de piedra (`STONE_FLOOR`) soportadas por pilares monolíticos (`PILLAR`).
+  - Se rediseñó la separación de bloques a lo largo de las alas Oeste y Este, introduciendo fosas de lava continuas de 2 metros de separación entre pedestales para un ritmo de salto orgánico, claro y satisfactorio en lugar de bloques hacinados.
 - **Cobertura de Pruebas Unitarias (`tests/`)**:
   - 290 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
 
