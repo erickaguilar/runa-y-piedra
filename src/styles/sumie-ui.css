@@ -3390,6 +3390,97 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
   box-shadow: 1px 1px 0px var(--ink-black) !important;
 }
 
+/* ==========================================================================
+   29. Velo y Pantalla de Transición / Victoria de Mazmorra (#level-transition)
+   ========================================================================== */
+#level-transition {
+  border-radius: 0 !important;
+  background-color: rgba(12, 10, 9, 0.94) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  image-rendering: pixelated;
+}
+
+#level-transition.victory {
+  background: radial-gradient(ellipse at center, rgba(24, 22, 21, 0.96) 0%, rgba(12, 10, 9, 0.98) 100%) !important;
+}
+
+#level-transition .portal-title {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 24px !important;
+  color: var(--gold-bright, #fbbf24) !important;
+  letter-spacing: 1.5px !important;
+  text-shadow: 2px 2px 0px var(--ink-black) !important;
+}
+
+#level-transition .portal-sub {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 15px !important;
+  color: var(--washi-paper, #d6cfc2) !important;
+  line-height: 1.6 !important;
+  max-width: 440px !important;
+  text-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+#btn-close-victory {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border-radius: 0 !important;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%, 100% 6px,
+    100% calc(100% - 6px), calc(100% - 6px) 100%,
+    6px 100%, 0% calc(100% - 6px), 0% 6px
+  ) !important;
+  background: linear-gradient(180deg, var(--gold-bright, #fbbf24) 0%, var(--gold-dim, #d97706) 100%) !important;
+  color: var(--ink-black, #0c0a09) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    3px 3px 0px var(--ink-black),
+    0 0 20px rgba(251, 191, 36, 0.4) !important;
+  transition: transform 0.05s steps(2), filter 0.1s !important;
+}
+
+#btn-close-victory:hover {
+  filter: brightness(1.12) !important;
+}
+
+#btn-close-victory:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+#btn-return-lobby {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border-radius: 0 !important;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%, 100% 6px,
+    100% calc(100% - 6px), calc(100% - 6px) 100%,
+    6px 100%, 0% calc(100% - 6px), 0% 6px
+  ) !important;
+  background: var(--stone-mid, #292524) !important;
+  color: var(--washi-paper, #d6cfc2) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    3px 3px 0px var(--ink-black) !important;
+  transition: transform 0.05s steps(2), filter 0.1s !important;
+}
+
+#btn-return-lobby:hover {
+  background: var(--stone-light, #44403c) !important;
+  color: #ffffff !important;
+}
+
+#btn-return-lobby:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+
 
 
 

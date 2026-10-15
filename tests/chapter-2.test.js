@@ -389,3 +389,43 @@ test('Altares de Clímax: Capítulo 1 finaliza con Altar Dorado (Cáliz Sagrado)
   assert.equal(cap2Final.objectives[0].theme, 'abyss');
   assert.equal(cap2Final.objectives[0].name, 'Altar Crepuscular');
 });
+
+test('Altar de final de Capítulo 1 (abyss_throne) conduce al Capítulo 2 (shadow_vault) en lugar de forzar retorno al lobby', () => {
+  const world = new World();
+  const levelData = world.levelRegistry.getLevel('abyss_throne');
+  world.loadLevel(levelData);
+
+  const chapterRegistry = new ChapterRegistry();
+  chapterRegistry.setCurrentChapter('capitulo_1');
+
+  let transitionedTo = null;
+  let transitionTitle = null;
+  let transitionButtonText = null;
+
+  const fakeGame = {
+    mode: 'host',
+    world,
+    chapterRegistry,
+    pedestalRenderer: { activate: () => {} },
+    soundManager: { playPedestal: () => {} },
+    network: { broadcast: () => {} },
+    saveDungeonCompletion: () => {},
+    switchLevel: (lvlId) => { transitionedTo = lvlId; },
+    ui: {
+      showNarrativeMessage: () => {},
+      showLevelTransition: (title, sub, opts) => {
+        transitionTitle = title;
+        transitionButtonText = opts.buttonText;
+        opts.onClose();
+      },
+    },
+  };
+
+  const ic = new InteractionController(fakeGame);
+  ic.requestPedestal(0, { pos: { x: 12, z: 27 }, name: 'Hero' });
+
+  assert.match(transitionTitle, /El Descenso Ancestral Conquistado/);
+  assert.match(transitionButtonText, /Capítulo 2/);
+  assert.equal(transitionedTo, 'shadow_vault', 'El altar final del Capítulo 1 debe llevar a la primera mazmorra del Capítulo 2');
+});
+

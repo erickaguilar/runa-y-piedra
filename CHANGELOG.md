@@ -31,9 +31,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - **Modal Central de Game Over Accesible y Visible (`src/ui/HudManager.js`, `src/styles/sumie-ui.css`)**:
   - Notificación centralizada de derrota (`#game-over-overlay` y `#game-over-card`) sobre velo de tinta y losa de basalto biselada.
   - Sello Hanko bermellón con calavera rúnica, título en `Silkscreen`, pastilla de salud agotada y botón de cinabrio `#btn-game-over-continue`.
-  - Accesibilidad completa: rol semántico `alertdialog`, atajos de teclado (`Enter`, `Espacio`, `Escape`), autofoco en el botón de acción y descarte automático por temporizador.
+- **Progresión Directa al Siguiente Capítulo en Altares de Clímax (`src/controllers/InteractionController.js`, `src/ui/HudManager.js`, `src/styles/sumie-ui.css`)**:
+  - Al consagrar el altar supremo que culmina un capítulo (ej. `abyss_throne` en el Capítulo 1 o `shadow_sanctum` en el Capítulo 2), el flujo de juego avanza fluidamente hacia la primera mazmorra del siguiente capítulo desbloqueado (`shadow_vault`, `falls_aqueduct`) en lugar de forzar un retorno abrupto al Campamento Tutorial.
+  - La pantalla de victoria (`#level-transition`) ahora adapta el botón primario con la acción contextual `Avanzar al Capítulo X: [Nombre]` y añade la opción opcional `#btn-return-lobby` (`Volver al Campamento`) si los jugadores prefieren regresar al hub.
+  - Orquestación y sincronización P2P autoritativa por parte del anfitrión mediante `serializeChapterSelect` y `serializeLevelChange`.
+  - Estilo Sumi-e integrado para la pantalla de transición y botones de victoria.
 - **Cobertura de Pruebas Unitarias (`tests/`)**:
-  - 288 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
+  - 290 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
 
 ## [1.39.0] - 2026-10-04
 

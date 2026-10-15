@@ -376,7 +376,7 @@ export const HudMixin = {
   },
 
   /** Velo de transición entre mazmorras (fade negro estilo Dark Souls con nombre del destino). */
-  showLevelTransition(title = '', subtitle = '', { victory = false, autoHideMs = 0, onClose = null } = {}) {
+  showLevelTransition(title = '', subtitle = '', { victory = false, autoHideMs = 0, onClose = null, onReturnToLobby = null, buttonText = '' } = {}) {
     this.hideGameOver?.();
     if (!this.transitionEl) return;
     if (this._transitionTimer) { clearTimeout(this._transitionTimer); this._transitionTimer = null; }
@@ -390,10 +390,21 @@ export const HudMixin = {
       ${subtitle ? `<div class="portal-sub">${replaceEmojisWithSvg(subtitle, { className: 'narrative-icon' })}</div>` : ''}`;
 
     if (victory) {
+      const primaryLabel = buttonText || 'Continuar Explorando';
       html += `
-        <button id="btn-close-victory" class="btn-primary" style="margin-top:22px;padding:12px 28px;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:8px;cursor:pointer;pointer-events:auto;border-radius:12px;background:linear-gradient(135deg,#fbbf24,#d97706);color:#0f172a;border:none;box-shadow:0 0 20px rgba(251,191,36,0.35);">
-          ${renderIcon('check', { size: 16, color: '#0f172a' })} Continuar Explorando
-        </button>`;
+        <div class="victory-actions-sumie" style="margin-top:22px;display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;">
+          <button id="btn-close-victory" class="btn-primary" style="padding:12px 28px;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:8px;cursor:pointer;pointer-events:auto;border-radius:12px;background:linear-gradient(135deg,#fbbf24,#d97706);color:#0f172a;border:none;box-shadow:0 0 20px rgba(251,191,36,0.35);">
+            ${renderIcon('check', { size: 16, color: '#0f172a' })} ${primaryLabel}
+          </button>`;
+
+      if (onReturnToLobby) {
+        html += `
+          <button id="btn-return-lobby" class="btn-secondary" style="padding:12px 20px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer;pointer-events:auto;border-radius:12px;background:rgba(24,22,21,0.85);color:#d6cfc2;border:1px solid #78350f;box-shadow:0 0 10px rgba(0,0,0,0.5);">
+            ${renderIcon('castle', { size: 15, color: '#f59e0b' })} Volver al Campamento
+          </button>`;
+      }
+
+      html += `</div>`;
     }
 
     this.transitionEl.innerHTML = html;
@@ -405,6 +416,15 @@ export const HudMixin = {
           this.hideLevelTransition();
           if (onClose) onClose();
         };
+      }
+      if (onReturnToLobby) {
+        const returnBtn = document.getElementById('btn-return-lobby');
+        if (returnBtn) {
+          returnBtn.onclick = () => {
+            this.hideLevelTransition();
+            onReturnToLobby();
+          };
+        }
       }
     }
 

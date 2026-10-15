@@ -560,6 +560,16 @@ export class InteractionController {
         next = game.world.levelRegistry.getLevel(nextDungeon.id);
       } else if (game.chapterRegistry.isLastDungeonInChapter(curLevelId)) {
         isLast = true;
+        const curChapter = game.chapterRegistry.getChapterForLevel(curLevelId)
+          || game.chapterRegistry.getCurrentChapter();
+        const nextChapterNum = (curChapter?.number || 1) + 1;
+        const nextChapter = game.chapterRegistry.getChapter(nextChapterNum);
+        if (nextChapter && game.chapterRegistry.isChapterPlayable(nextChapter.id)) {
+          const nextDungeons = game.chapterRegistry.getDungeonsForChapter(nextChapter.id);
+          if (nextDungeons?.[0]) {
+            next = game.world.levelRegistry.getLevel(nextDungeons[0].id);
+          }
+        }
       }
     }
 
@@ -730,7 +740,7 @@ export class InteractionController {
   }
 
   /** Ceremonia local del portal: altar y (si no es el final) apertura de la escalinata. */
-  startPortalCeremony({ isLast = false } = {}) {
+  startPortalCeremony({ isLast = false, nextLevelId = '', nextName = '' } = {}) {
     const game = this.game;
     if (this.transitioning) return;
     this.transitioning = true;
@@ -743,11 +753,38 @@ export class InteractionController {
         || game.chapterRegistry?.getCurrentChapter();
 
       let unlockMsg = '';
-      if (curChapter && game.chapterRegistry && game.mode !== 'client') {
-        const result = game.chapterRegistry.completeChapter(curChapter.id);
-        if (result?.nextChapter) {
-          unlockMsg = ` :star: ¡Capítulo ${result.nextChapter.number} desbloqueado: ${result.nextChapter.name}!`;
+      let nextPlayableChapter = null;
+      let nextFirstDungeon = null;
+
+      if (curChapter && game.chapterRegistry) {
+        if (game.mode !== 'client') {
+          const result = game.chapterRegistry.completeChapter(curChapter.id);
+          if (result?.nextChapter) {
+            unlockMsg = ` :star: ¡Capítulo ${result.nextChapter.number} desbloqueado: ${result.nextChapter.name}!`;
+            if (game.chapterRegistry.isChapterPlayable(result.nextChapter.id)) {
+              nextPlayableChapter = result.nextChapter;
+              const dungeons = game.chapterRegistry.getDungeonsForChapter(result.nextChapter.id);
+              if (dungeons?.[0]) {
+                nextFirstDungeon = game.world.levelRegistry.getLevel(dungeons[0].id);
+              }
+            }
+          }
+        } else {
+          const nextNum = (curChapter.number || 1) + 1;
+          const candidate = game.chapterRegistry.getChapter(nextNum);
+          if (candidate && game.chapterRegistry.isChapterPlayable(candidate.id)) {
+            nextPlayableChapter = candidate;
+            unlockMsg = ` :star: ¡Capítulo ${candidate.number} desbloqueado: ${candidate.name}!`;
+            const dungeons = game.chapterRegistry.getDungeonsForChapter(candidate.id);
+            if (dungeons?.[0]) {
+              nextFirstDungeon = game.world.levelRegistry.getLevel(dungeons[0].id);
+            }
+          }
         }
+      }
+
+      if (!nextFirstDungeon && nextLevelId && game.world?.levelRegistry) {
+        nextFirstDungeon = game.world.levelRegistry.getLevel(nextLevelId);
       }
 
       if (curLevelId && curLevelId !== 'lobby_tutorial' && curLevelId !== 'dev_showroom') {
@@ -755,7 +792,13 @@ export class InteractionController {
       }
 
       const title = curChapter ? `:trophy: ¡${curChapter.name} Conquistado!` : ':trophy: ¡Mazmorras Conquistadas!';
-      const subtitle = `Habéis bendecido todos los altares.${unlockMsg} Regresando al Campamento...`;
+      const subtitle = (nextPlayableChapter && nextFirstDungeon)
+        ? `Habéis consagrado el altar supremo.${unlockMsg} Avanzando al siguiente capítulo...`
+        : `Habéis bendecido todos los altares.${unlockMsg} Regresando al Campamento...`;
+
+      const buttonText = (nextPlayableChapter && nextFirstDungeon)
+        ? `Avanzar al Capítulo ${nextPlayableChapter.number}: ${nextPlayableChapter.name}`
+        : 'Continuar Explorando';
 
       game.ui.showLevelTransition(
         title,
@@ -763,12 +806,27 @@ export class InteractionController {
         {
           victory: true,
           autoHideMs: 12000,
+          buttonText,
           onClose: () => {
+            this.transitioning = false;
+            if (game.mode === 'host') {
+              if (nextPlayableChapter && nextFirstDungeon) {
+                game.chapterRegistry?.setCurrentChapter(nextPlayableChapter.id);
+                if (game.network && (game.network.connections?.length > 0 || game.network.isHost)) {
+                  game.network.broadcast(Proto.serializeChapterSelect(nextPlayableChapter.id, nextFirstDungeon.id));
+                }
+                game.switchLevel(nextFirstDungeon.id, true);
+              } else {
+                game.switchLevel('lobby_tutorial', true);
+              }
+            }
+          },
+          onReturnToLobby: nextPlayableChapter ? () => {
             this.transitioning = false;
             if (game.mode === 'host') {
               game.switchLevel('lobby_tutorial', true);
             }
-          },
+          } : null,
         }
       );
       return;

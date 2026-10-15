@@ -714,6 +714,34 @@ describe('UIManager - Contratos de API de Configuración', () => {
       assert.equal(closed, true);
     });
 
+    it('showLevelTransition permite personalizar botón de victoria y ofrece retorno al campamento', () => {
+      const ui = new UIManager();
+      let advanced = false;
+      let returned = false;
+
+      ui.showLevelTransition(
+        '🏆 ¡El Descenso Ancestral Conquistado!',
+        'Avanzando al siguiente capítulo...',
+        {
+          victory: true,
+          autoHideMs: 0,
+          buttonText: 'Avanzar al Capítulo 2: Cripta de las Sombras',
+          onClose: () => { advanced = true; },
+          onReturnToLobby: () => { returned = true; },
+        }
+      );
+
+      assert.match(ui.transitionEl.innerHTML, /btn-close-victory/);
+      assert.match(ui.transitionEl.innerHTML, /Avanzar al Capítulo 2/);
+      assert.match(ui.transitionEl.innerHTML, /btn-return-lobby/);
+      assert.match(ui.transitionEl.innerHTML, /Volver al Campamento/);
+
+      const returnBtn = document.getElementById('btn-return-lobby');
+      assert.ok(returnBtn);
+      returnBtn.onclick();
+      assert.equal(returned, true);
+    });
+
     it('gestiona la guía de controles superpuesta, persistencia y toggle con botón (x) y tecla H', () => {
       const ui = new UIManager();
       assert.equal(ui.isControlsDismissed, false);

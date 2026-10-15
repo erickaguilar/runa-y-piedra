@@ -198,7 +198,23 @@ Ambas alertas se han fusionado en un **único componente interactivo centralizad
 
 ---
 
-## 6. Hoja de Estilos Centralizada (`src/styles/sumie-ui.css`)
+## 6. Transición de Victoria y Progresión Directa entre Capítulos (`#level-transition`)
 
-Para facilitar el mantenimiento y evitar regresiones, todas las reglas de transformación visual se consolidaron en la hoja modular `src/styles/sumie-ui.css`, importada al final de `src/style.css`. De esta manera, no se rompe la lógica interna ni los contratos de eventos de `UIManager`, asegurando compatibilidad del 100% con la suite automatizada de pruebas (288 pruebas pasando).
+### 6.1. Progresión sin Interrupciones en Altares Clímax
+Al consagrar el altar supremo que culmina un capítulo (ej. `abyss_throne` en el Capítulo 1 o `shadow_sanctum` en el Capítulo 2), la interfaz ya no obliga a un retorno abrupto al Campamento Tutorial:
+- **Avance Automático / Directo**: Si existe un siguiente capítulo jugable desbloqueado (ej. Capítulo 2: Cripta de las Sombras), el altar prepara el descenso directo a su primera mazmorra (`shadow_vault`).
+- **Botón Primario de Avance (`#btn-close-victory`)**: Muestra la acción contextual `Avanzar al Capítulo X: [Nombre]` con corte octogonal, fondo degradado oro rúnico y relieve Sumi-e.
+- **Opción de Retorno al Campamento (`#btn-return-lobby`)**: Si el grupo prefiere regresar al hub para comprar provisiones en el bazar o reorganizar su equipo, se proporciona un botón secundario de piedra tallada `Volver al Campamento`.
+- **Sincronización Multijugador P2P**: El Host orquesta el cambio de capítulo mediante `serializeChapterSelect` y `serializeLevelChange`, permitiendo que todos los aventureros conectados entren al nuevo capítulo juntos.
+- **Fin de Campaña**: Si se culmina el último capítulo jugable disponible, la transición agradece la bendición de todos los altares y conduce al Campamento Central.
+
+### 6.2. Estilo Visual Sumi-e de la Transición
+- **Velo de Tinta y Bruma**: Telón de fondo con oscurecimiento profundo y degradado radial de tinta china (`rgba(24,22,21,0.96)` a `rgba(12,10,9,0.98)`).
+- **Tipografía**: Título en `Silkscreen` con sombra dura y texto descriptivo en `Pixelify Sans`.
+
+---
+
+## 7. Hoja de Estilos Centralizada (`src/styles/sumie-ui.css`)
+
+Para facilitar el mantenimiento y evitar regresiones, todas las reglas de transformación visual se consolidaron en la hoja modular `src/styles/sumie-ui.css`, importada al final de `src/style.css`. De esta manera, no se rompe la lógica interna ni los contratos de eventos de `UIManager`, asegurando compatibilidad del 100% con la suite automatizada de pruebas (290 pruebas pasando).
 

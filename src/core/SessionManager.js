@@ -217,6 +217,7 @@ export const SessionMixin = {
       pl._standingPlates = new Set();
     }
     this.interaction.ensureStairsState();
+    if (this.interaction) this.interaction.transitioning = false;
     // Reset del descenso sincronizado al cambiar de mapa
     this.descent.reset();
 
