@@ -163,26 +163,7 @@ export class NetworkStats {
     }
     const el = document.createElement('div');
     el.id = 'net-debug-panel';
-    el.style.cssText = `
-      position: fixed;
-      top: calc(max(16px, env(safe-area-inset-top, 0px)) + 52px);
-      right: max(16px, env(safe-area-inset-right, 0px));
-      background: rgba(15, 23, 42, 0.90);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      color: #38bdf8;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 11px;
-      line-height: 1.4;
-      padding: 8px 12px;
-      border-radius: 10px;
-      z-index: 100;
-      pointer-events: none;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.65);
-      user-select: none;
-      max-width: 260px;
-    `;
+    el.className = 'sumie-net-debug-panel';
     document.body.appendChild(el);
     this.domElement = el;
     this.renderDom();
@@ -192,20 +173,20 @@ export class NetworkStats {
     if (!this.domElement || !this.enabled) return;
     const hasNetworkProblem = this.softCorrectionsPerSec > 2 && this.predError > 0.3;
     const isModerateJitter = this.predError > 0.09 || this.softCorrectionsPerSec > 0;
-    const rttColor = this.rttMs > 150 ? '#ef4444' : (this.rttMs > 80 ? '#f59e0b' : '#38bdf8');
-    const fpsColor = this.fps >= 55 ? '#4ade80' : (this.fps >= 30 ? '#f59e0b' : '#ef4444');
+    const rttColor = this.rttMs > 150 ? 'var(--cinnabar-light, #ef4444)' : (this.rttMs > 80 ? 'var(--rune-gold, #f59e0b)' : 'var(--rune-cyan, #38bdf8)');
+    const fpsColor = this.fps >= 55 ? 'var(--rune-jade, #4ade80)' : (this.fps >= 30 ? 'var(--rune-gold, #f59e0b)' : 'var(--cinnabar-light, #ef4444)');
     const calls = this.renderer?.info?.render?.calls;
-    const callsColor = calls == null ? '#94a3b8' : (calls <= 25 ? '#4ade80' : (calls <= 50 ? '#f59e0b' : '#ef4444'));
-    const predErrColor = hasNetworkProblem ? '#ef4444' : (isModerateJitter ? '#f59e0b' : '#38bdf8');
-    const softColor = this.softCorrectionsPerSec > 2 ? '#ef4444' : (this.softCorrectionsPerSec > 0 ? '#f59e0b' : '#94a3b8');
-    const teleColor = this.teleportsPerSec > 0 ? '#ef4444' : '#94a3b8';
+    const callsColor = calls == null ? 'var(--washi-muted, #94a3b8)' : (calls <= 25 ? 'var(--rune-jade, #4ade80)' : (calls <= 50 ? 'var(--rune-gold, #f59e0b)' : 'var(--cinnabar-light, #ef4444)'));
+    const predErrColor = hasNetworkProblem ? 'var(--cinnabar-light, #ef4444)' : (isModerateJitter ? 'var(--rune-gold, #f59e0b)' : 'var(--rune-cyan, #38bdf8)');
+    const softColor = this.softCorrectionsPerSec > 2 ? 'var(--cinnabar-light, #ef4444)' : (this.softCorrectionsPerSec > 0 ? 'var(--rune-gold, #f59e0b)' : 'var(--washi-muted, #94a3b8)');
+    const teleColor = this.teleportsPerSec > 0 ? 'var(--cinnabar-light, #ef4444)' : 'var(--washi-muted, #94a3b8)';
 
     const audit = (typeof window !== 'undefined' && window.__netEventCounts) ? window.__netEventCounts : null;
 
     this.domElement.innerHTML = `
-      <div style="font-weight:bold;color:#f8fafc;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:2px;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;">
+      <div class="sumie-net-debug-header">
         <span>NET DEBUG · P2P</span>
-        <span style="color:#fbbf24">v${this.protocolVersion}</span>
+        <span style="color:var(--rune-gold, #fbbf24);">v${this.protocolVersion}</span>
       </div>
       <div>Rol: <strong>${this.mode}</strong> | Peers: <strong>${this.peerCount}</strong></div>
       ${this.mode === 'CLIENT' ? `<div>RTT (Ping): <strong style="color:${rttColor}">${this.rttMs} ms</strong></div>` : ''}

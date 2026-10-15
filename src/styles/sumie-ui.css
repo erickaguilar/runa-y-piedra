@@ -2599,6 +2599,615 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
   }
 }
 
+/* ==========================================================================
+   25. Modal de Herramientas Dev (Slab de Calibración Rúnica)
+   ========================================================================== */
+#modal-dev.dev-modal {
+  max-width: 760px !important;
+  width: 95vw !important;
+  max-height: 90vh !important;
+  border-color: var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    0 0 0 3px var(--ink-black),
+    6px 6px 0px var(--ink-black) !important;
+}
+
+.dev-modal-content {
+  overflow-y: auto !important;
+  max-height: calc(90vh - 140px) !important;
+  padding-right: 4px !important;
+}
+
+.dev-grid-columns {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+
+@media (max-width: 680px) {
+  .dev-grid-columns {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.sumie-dev-card {
+  background-color: var(--stone-dark) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  padding: 10px 12px !important;
+  margin-bottom: 10px !important;
+  border-radius: 0 !important;
+  position: relative !important;
+}
+
+.sumie-dev-card.featured-card {
+  border-color: var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-jade),
+    3px 3px 0px var(--ink-black) !important;
+}
+
+.sumie-dev-sublabel {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--washi-paper) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 6px !important;
+  letter-spacing: 0.5px !important;
+}
+
+.sumie-dev-muted {
+  font-family: 'Pixelify Sans', monospace !important;
+  font-size: 10px !important;
+  color: var(--washi-muted) !important;
+  margin: 2px 0 6px !important;
+}
+
+/* Selector de Salas (Select Rúnico) */
+.dev-warp-row,
+.sumie-dev-warp-row {
+  display: flex !important;
+  gap: 6px !important;
+  margin-bottom: 8px !important;
+}
+
+.sumie-select,
+.dev-room-select,
+#dev-sel-room {
+  flex: 1 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    2px 2px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 7px 10px !important;
+  border-radius: 0 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  image-rendering: pixelated;
+}
+
+.sumie-select:focus,
+.dev-room-select:focus,
+#dev-sel-room:focus {
+  border-color: var(--rune-cyan) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    2px 2px 0px var(--ink-black) !important;
+}
+
+.sumie-select option,
+#dev-sel-room option {
+  background-color: var(--stone-dark) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace !important;
+  font-size: 11px !important;
+  padding: 6px !important;
+}
+
+/* Botón de Viajar (Teletransporte a Sala) */
+.sumie-btn-warp,
+#btn-dev-teleport-room {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    3px 3px 0px var(--ink-black) !important;
+  color: #ffffff !important;
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  padding: 7px 14px !important;
+  border-radius: 0 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  clip-path: polygon(
+    4px 0%, calc(100% - 4px) 0%, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 0% calc(100% - 4px), 0% 4px
+  ) !important;
+  transition: transform 0.05s steps(2), filter 0.1s !important;
+}
+
+.sumie-btn-warp:hover,
+#btn-dev-teleport-room:hover {
+  filter: brightness(1.15) !important;
+}
+
+.sumie-btn-warp:active,
+#btn-dev-teleport-room:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Botones secundarios (Spawn, Puertas, Mecanismos) */
+.sumie-dev-pill-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+  margin-bottom: 8px !important;
+}
+
+.sumie-btn-small,
+.btn-dev-door-warp,
+#btn-dev-teleport-spawn {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    2px 2px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 5px 8px !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.sumie-btn-small:hover,
+.btn-dev-door-warp:hover,
+#btn-dev-teleport-spawn:hover {
+  background-color: var(--stone-light) !important;
+  color: #ffffff !important;
+}
+
+.sumie-btn-small:active,
+.btn-dev-door-warp:active,
+#btn-dev-teleport-spawn:active {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Tarjetas de Héroes en Dev Modal */
+.btn-dev-hero-pick {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    2px 2px 0px var(--ink-black) !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  padding: 6px 8px !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.btn-dev-hero-pick:hover {
+  background-color: var(--stone-light) !important;
+}
+
+.btn-dev-hero-pick.active {
+  border-color: var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-jade),
+    2px 2px 0px var(--ink-black) !important;
+  background-color: #064e3b !important;
+}
+
+.btn-dev-hero-pick:active {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Botones de acción general (Showroom, Atlas, Mecanismos, etc.) */
+#btn-dev-enter-showroom {
+  border-radius: 0 !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-jade),
+    3px 3px 0px var(--ink-black) !important;
+  color: #ffffff !important;
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  clip-path: polygon(
+    4px 0%, calc(100% - 4px) 0%, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 0% calc(100% - 4px), 0% 4px
+  ) !important;
+}
+
+#btn-dev-open-atlas,
+#btn-dev-exit-showroom {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    2px 2px 0px var(--ink-black) !important;
+  color: var(--rune-cyan) !important;
+  font-family: 'Pixelify Sans', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+#btn-dev-close-footer {
+  border-radius: 0 !important;
+  background: linear-gradient(135deg, var(--cinnabar-base) 0%, var(--cinnabar-dark) 100%) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px rgba(255,255,255,0.3),
+    3px 3px 0px var(--ink-black) !important;
+  color: #ffffff !important;
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  clip-path: polygon(
+    4px 0%, calc(100% - 4px) 0%, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 0% calc(100% - 4px), 0% 4px
+  ) !important;
+}
+
+#btn-dev-close-footer:hover {
+  filter: brightness(1.15) !important;
+}
+
+#btn-dev-close-footer:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* ==========================================================================
+   26. Palanca de Vuelo Activo (Timón Rúnico y Sello Hanko)
+   ========================================================================== */
+.flight-stick-zone {
+  position: fixed !important;
+  right: max(20px, env(safe-area-inset-right)) !important;
+  bottom: calc(max(85px, env(safe-area-inset-bottom)) + 10px) !important;
+  width: 120px !important;
+  height: 120px !important;
+  z-index: 26 !important;
+  display: none;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  user-select: none !important;
+  touch-action: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  animation: flightFadeInSumiE 0.2s steps(4) !important;
+}
+
+@keyframes flightFadeInSumiE {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Sello Hanko de Estado de Vuelo */
+.flight-stick-badge {
+  position: absolute !important;
+  top: -24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: var(--cinnabar-base, #dc2626) !important;
+  border: 2px solid var(--ink-black) !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0px var(--ink-black) !important;
+  clip-path: polygon(
+    4px 0%, calc(100% - 4px) 0%, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 0% calc(100% - 4px), 0% 4px
+  ) !important;
+  padding: 2px 8px !important;
+  color: #ffffff !important;
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: transform 0.05s steps(2), filter 0.1s !important;
+}
+
+.flight-stick-badge:hover,
+.flight-stick-badge:active {
+  transform: translateX(-50%) translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+  filter: brightness(1.15) !important;
+}
+
+/* Medallón de Piedra Octagonal de Base */
+.flight-stick-base {
+  position: relative !important;
+  width: 110px !important;
+  height: 110px !important;
+  border-radius: 0 !important;
+  clip-path: polygon(
+    14px 0%, calc(100% - 14px) 0%, 100% 14px,
+    100% calc(100% - 14px), calc(100% - 14px) 100%,
+    14px 100%, 0% calc(100% - 14px), 0% 14px
+  ) !important;
+  background-color: var(--stone-dark) !important;
+  border: 3px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--stone-mid),
+    inset 0 0 0 3px var(--stone-light),
+    4px 4px 0px var(--ink-black) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+/* Flechas y Guías Rúnicas */
+.flight-arrow {
+  position: absolute !important;
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  color: var(--rune-gold) !important;
+  text-shadow: 1px 1px 0px var(--ink-black) !important;
+  letter-spacing: 0.5px !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.flight-arrow-up { top: 6px !important; left: 50% !important; transform: translateX(-50%) !important; }
+.flight-arrow-down { bottom: 6px !important; left: 50% !important; transform: translateX(-50%) !important; }
+.flight-arrow-left { left: 8px !important; top: 50% !important; transform: translateY(-50%) !important; font-size: 10px !important; }
+.flight-arrow-right { right: 8px !important; top: 50% !important; transform: translateY(-50%) !important; font-size: 10px !important; }
+
+.flight-crosshair-h {
+  position: absolute !important;
+  top: 50% !important;
+  left: 18px !important;
+  right: 18px !important;
+  height: 1px !important;
+  background: rgba(247, 244, 234, 0.15) !important;
+  box-shadow: 0 1px 0px var(--ink-black) !important;
+  pointer-events: none !important;
+}
+
+.flight-crosshair-v {
+  position: absolute !important;
+  left: 50% !important;
+  top: 18px !important;
+  bottom: 18px !important;
+  width: 1px !important;
+  background: rgba(247, 244, 234, 0.15) !important;
+  box-shadow: 1px 0 0px var(--ink-black) !important;
+  pointer-events: none !important;
+}
+
+/* Pomo de Navegación Rúnico (Hanko Knob) */
+.flight-stick-knob {
+  position: absolute !important;
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 0 !important;
+  clip-path: polygon(
+    6px 0%, calc(100% - 6px) 0%, 100% 6px,
+    100% calc(100% - 6px), calc(100% - 6px) 100%,
+    6px 100%, 0% calc(100% - 6px), 0% 6px
+  ) !important;
+  background: linear-gradient(135deg, var(--cinnabar-light) 0%, var(--cinnabar-base) 60%, var(--cinnabar-dark) 100%) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+    3px 3px 0px var(--ink-black) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: grab !important;
+  will-change: transform !important;
+  user-select: none !important;
+  touch-action: none !important;
+  z-index: 2 !important;
+  image-rendering: pixelated;
+  transition: filter 0.1s !important;
+}
+
+.flight-stick-knob:active,
+.flight-stick-knob.active {
+  cursor: grabbing !important;
+  filter: brightness(1.2) !important;
+  box-shadow: 
+    inset 0 0 0 1px #ffffff,
+    1px 1px 0px var(--ink-black) !important;
+}
+
+/* ==========================================================================
+   27. Overlays de Coordenadas y Telemetría WebRTC (Piedras de Diagnóstico)
+   ========================================================================== */
+#room-coords-overlay,
+.sumie-coords-overlay {
+  position: fixed !important;
+  top: calc(max(12px, env(safe-area-inset-top, 0px)) + 46px) !important;
+  left: max(12px, env(safe-area-inset-left, 0px)) !important;
+  background-color: var(--stone-dark) !important;
+  border: 2px solid var(--ink-black) !important;
+  border-radius: 0 !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    4px 4px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+  padding: 10px 12px !important;
+  z-index: 90 !important;
+  pointer-events: auto !important;
+  user-select: none !important;
+  width: min(calc(100vw - 28px), 320px) !important;
+  max-width: 320px !important;
+  box-sizing: border-box !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  image-rendering: pixelated;
+}
+
+.sumie-coords-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-bottom: 2px solid var(--ink-black) !important;
+  padding-bottom: 5px !important;
+  margin-bottom: 6px !important;
+  gap: 6px !important;
+}
+
+.sumie-coords-room {
+  font-family: 'Silkscreen', monospace !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  color: var(--rune-jade) !important;
+  letter-spacing: 0.3px !important;
+}
+
+.sumie-coords-level {
+  font-size: 9px !important;
+  color: var(--washi-muted) !important;
+  background: var(--ink-dark) !important;
+  border: 1px solid var(--ink-black) !important;
+  padding: 1px 5px !important;
+  font-family: 'Pixelify Sans', monospace !important;
+}
+
+.sumie-coords-copy-btn,
+#btn-overlay-copy-coords {
+  background-color: var(--cinnabar-base) !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 2px 2px 0px var(--ink-black) !important;
+  color: #ffffff !important;
+  font-size: 9px !important;
+  font-family: 'Silkscreen', monospace !important;
+  font-weight: 700 !important;
+  padding: 3px 8px !important;
+  border-radius: 0 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  transition: transform 0.05s steps(2) !important;
+  flex-shrink: 0 !important;
+}
+
+.sumie-coords-copy-btn:hover,
+#btn-overlay-copy-coords:hover {
+  filter: brightness(1.15) !important;
+}
+
+.sumie-coords-copy-btn:active,
+#btn-overlay-copy-coords:active {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.sumie-coords-label {
+  color: var(--washi-muted) !important;
+  font-weight: 700 !important;
+  margin-right: 4px !important;
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 9px !important;
+}
+
+.sumie-coords-val {
+  color: var(--washi-paper) !important;
+}
+
+.sumie-coords-hero {
+  color: var(--rune-cyan) !important;
+}
+
+.sumie-coords-sub {
+  color: var(--washi-muted) !important;
+  font-size: 10px !important;
+  margin-left: 4px !important;
+}
+
+.sumie-coords-target-row {
+  margin-top: 4px !important;
+  padding-top: 4px !important;
+  border-top: 1px dashed var(--stone-light) !important;
+  font-size: 10px !important;
+  color: var(--washi-card) !important;
+  word-break: break-word !important;
+}
+
+/* Panel de Telemetría WebRTC */
+#net-debug-panel,
+.sumie-net-debug-panel {
+  position: fixed !important;
+  top: calc(max(16px, env(safe-area-inset-top, 0px)) + 52px) !important;
+  right: max(16px, env(safe-area-inset-right, 0px)) !important;
+  background-color: var(--stone-dark) !important;
+  border: 2px solid var(--ink-black) !important;
+  border-radius: 0 !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    4px 4px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  padding: 8px 12px !important;
+  z-index: 100 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  max-width: 270px !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  image-rendering: pixelated;
+}
+
+.sumie-net-debug-header {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: var(--rune-cyan) !important;
+  border-bottom: 2px solid var(--ink-black) !important;
+  padding-bottom: 3px !important;
+  margin-bottom: 4px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+}
+
+
 
 
 

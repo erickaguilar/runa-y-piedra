@@ -55,59 +55,38 @@ export class RoomDebugOverlay {
 
     const el = document.createElement('div');
     el.id = 'room-coords-overlay';
-    el.style.cssText = `
-      position: fixed;
-      top: calc(max(12px, env(safe-area-inset-top, 0px)) + 46px);
-      left: max(12px, env(safe-area-inset-left, 0px));
-      background: rgba(15, 23, 42, 0.94);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(16, 185, 129, 0.45);
-      color: #34d399;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 11px;
-      line-height: 1.45;
-      padding: 10px 12px;
-      border-radius: 12px;
-      z-index: 90;
-      pointer-events: auto;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.75), 0 0 16px rgba(16, 185, 129, 0.22);
-      user-select: none;
-      width: min(calc(100vw - 28px), 320px);
-      max-width: 320px;
-      box-sizing: border-box;
-    `;
+    el.className = 'sumie-coords-overlay';
 
     el.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(52, 211, 153, 0.25);padding-bottom:5px;margin-bottom:6px;gap:6px;">
+      <div class="sumie-coords-header">
         <div style="display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-          <span id="dev-overlay-room" style="font-weight:700;color:#6ee7b7;letter-spacing:0.3px;">—</span>
-          <span id="dev-overlay-level" style="font-size:9px;color:#94a3b8;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;">—</span>
+          <span id="dev-overlay-room" class="sumie-coords-room">—</span>
+          <span id="dev-overlay-level" class="sumie-coords-level">—</span>
         </div>
-        <button id="btn-overlay-copy-coords" type="button" title="Copiar reporte y coordenadas (o pulsa C)" style="background:rgba(52, 211, 153, 0.18);border:1px solid rgba(52, 211, 153, 0.45);color:#a7f3d0;font-size:10px;font-family:inherit;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:all 0.15s;flex-shrink:0;">
+        <button id="btn-overlay-copy-coords" type="button" title="Copiar reporte y coordenadas (o pulsa C)" class="sumie-coords-copy-btn">
           📋 Copiar
         </button>
       </div>
       <div>
-        <span style="color:#94a3b8;">POS:</span>
-        <strong id="dev-overlay-pos" style="color:#f8fafc;">X: 0.00 | Y: 0.00 | Z: 0.00</strong>
+        <span class="sumie-coords-label">POS:</span>
+        <strong id="dev-overlay-pos" class="sumie-coords-val">X: 0.00 | Y: 0.00 | Z: 0.00</strong>
       </div>
       <div>
-        <span style="color:#94a3b8;">LOOK:</span>
-        <span id="dev-overlay-look" style="color:#cbd5e1;">Yaw: 0° | Pitch: 0°</span>
+        <span class="sumie-coords-label">LOOK:</span>
+        <span id="dev-overlay-look" class="sumie-coords-val">Yaw: 0° | Pitch: 0°</span>
       </div>
       <div>
-        <span style="color:#94a3b8;">HERO:</span>
-        <span id="dev-overlay-hero" style="color:#38bdf8;">Aventurero</span>
-        <span id="dev-overlay-jump" style="color:#94a3b8;font-size:10px;">(Salto: ×1.00)</span>
+        <span class="sumie-coords-label">HERO:</span>
+        <span id="dev-overlay-hero" class="sumie-coords-val sumie-coords-hero">Aventurero</span>
+        <span id="dev-overlay-jump" class="sumie-coords-sub">(Salto: ×1.00)</span>
       </div>
       <div>
-        <span style="color:#94a3b8;">ESTADO:</span>
-        <span id="dev-overlay-state" style="color:#cbd5e1;">Física Normal</span>
-        <span id="dev-overlay-lives" style="color:#94a3b8;margin-left:4px;">Vidas: 3</span>
+        <span class="sumie-coords-label">ESTADO:</span>
+        <span id="dev-overlay-state" class="sumie-coords-val">Física Normal</span>
+        <span id="dev-overlay-lives" class="sumie-coords-sub">Vidas: 3</span>
       </div>
-      <div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(255,255,255,0.12);font-size:10px;color:#e2e8f0;word-break:break-word;">
-        <span style="color:#94a3b8;">MIRA:</span> <span id="dev-overlay-target">Ninguno en rango</span>
+      <div class="sumie-coords-target-row">
+        <span class="sumie-coords-label">MIRA:</span> <span id="dev-overlay-target">Ninguno en rango</span>
       </div>
     `;
 

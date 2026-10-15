@@ -134,6 +134,22 @@ Presente como sello imperial en el Menú Principal, Diálogos de Confirmación, 
 - **Pestañas "Comprar" y "Vender"**: Sellos de transacción que alternan entre piedra y bermellón.
 - **Botón "Comprar" / "Vender"**: Sellos esmeralda `#065f46` y dorados `#92400e` con bisel de relieve.
 
+### 3.8. Modal de Herramientas Dev y Calibrador de Salas (`src/ui/modals/DevModal.js`)
+- **Losa de Calibración Rúnica (`#modal-dev.dev-modal`)**: Marco de tinta pesada con acentos de jade `#34d399` y pastillas de sello DEV.
+- **Select Rúnico de Salas (`#dev-sel-room`)**: Tablilla de piedra oscura con borde de tinta y relieve interior en `Pixelify Sans`.
+- **Botón "Viajar" (`#btn-dev-teleport-room`)**: Botón rúnico cian `#0284c7` biselado con icono de rayo vectorial y tipografía `Silkscreen`.
+- **Pulsadores de Mecanismos y Puertas**: Botones de piedra gris con relieve táctil (Spawn Entrada, Puertas 1-3, Mecanismos y Restauración).
+- **Selector Rápido de Héroe**: Muestrario de tablillas de héroes con conmutación de borde de jade activo en vivo.
+
+### 3.9. Timón de Vuelo Activo y Overlays de Diagnóstico (`#flight-stick-zone`, `#room-coords-overlay`, `#net-debug-panel`)
+- **Palanca de Vuelo Activo (`#flight-stick-zone`)**:
+  - *Base*: Medallón octogonal de piedra tallada (`#flight-stick-base`) con canales de mira grabados.
+  - *Pomo*: Sello Hanko de cinabrio tallado (`#flight-stick-knob`) con bisel de relieve y feedback táctil inmediato.
+  - *Sello Superior*: Pastilla octogonal bermellón (`#flight-stick-badge`) con texto `VUELO ACTIVO` en `Silkscreen`.
+  - *Guías*: Flechas en oro rúnico con sombra de tinta para control de altitud vertical.
+- **Overlay de Coordenadas (`#room-coords-overlay`)**: Tablilla de basalto con datos alfanuméricos en `Pixelify Sans` (POS, LOOK, HERO, ESTADO, MIRA) y botón de copia Hanko.
+- **Panel de Telemetría WebRTC (`#net-debug-panel`)**: Pizarra de diagnóstico en piedra y tinta con métricas de RTT, paquetes y fotogramas sin fondos difuminados modernos.
+
 ---
 
 ## 4. Unificación de la Notificación y Botón de Descenso por Escalinata
