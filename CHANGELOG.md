@@ -46,8 +46,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - En la Sala 2 (El Abismo), se expandió la zona segura de entrada un bloque adicional (`z: 11..13`) hacia el foso, proporcionando mayor margen y comodidad al cruzar la Puerta 1.
   - Se homogeneizó la separación entre todas las plataformas y zonas seguras a exactamente 2 bloques de lava continuos (fosas de 2 metros), manteniendo la geometría original de plataformas (`JUMP_PAD` en cotas $y=0$ e $y=1$) con cadencia rítmica limpia y holgada para todos los héroes.
   - Se expandió la longitud total de la mazmorra (`sizeZ: 42`), reubicando la Puerta 2 a `z = 30`, la zona segura de llegada a `z: 28..30`, el cofre oculto a `z = 33.5`, los pilares del Santuario a `z = 35` y la escalinata de descenso a `z: 37..39`.
+- **Rediseño de Parkour y Expansión en Cripta del Fuego (`crypt_inferno`, `src/levels/data/crypt_inferno.json`)**:
+  - En la Sala 2 (Río de Lava), se expandió la zona segura de entrada un bloque (`z: 11..13`) hacia el foso para mayor comodidad tras abrir la Puerta Ígnea 1.
+  - Se homogeneizó la separación de todas las plataformas flotantes y zonas seguras a exactamente 2 bloques de lava continuos (fosas de 2 metros), preservando el patrón zig-zag en cotas $y=0$ e $y=1$.
+  - Se expandió la longitud total de la mazmorra (`sizeZ: 42`), reubicando la Puerta Ígnea 2 a `z = 30`, la zona segura de llegada a `z: 28..30`, el Cofre Volcánico a `z = 37.5`, los pilares del Altar a `z = 33` y `z = 38` y la escalinata de descenso a `z: 37..39`.
 - **Cobertura de Pruebas Unitarias (`tests/`)**:
-  - 291 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
+  - 292 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
 
 ## [1.39.0] - 2026-10-04
 
