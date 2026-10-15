@@ -490,7 +490,7 @@ test('Altar de final de Capítulo 1 (abyss_throne) conduce al Capítulo 2 (shado
   };
 
   const ic = new InteractionController(fakeGame);
-  ic.requestPedestal(0, { pos: { x: 12, z: 27 }, name: 'Hero' });
+  ic.requestPedestal(0, { pos: { x: 12, z: 37 }, name: 'Hero' });
 
   assert.match(transitionTitle, /El Descenso Ancestral Conquistado/);
   assert.match(transitionButtonText, /Capítulo 2/);

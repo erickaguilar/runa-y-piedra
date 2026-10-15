@@ -7,7 +7,7 @@
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,
-    "sizeZ": 36
+    "sizeZ": 45
   },
   "spawn": {
     "x": 12.0,
@@ -40,13 +40,13 @@
       "x2": 13,
       "y1": 1,
       "y2": 3,
-      "z": 24,
+      "z": 33,
       "swingDir": 1,
       "coords": [
-        { "x": 11, "y": 1, "z": 24 },
-        { "x": 11, "y": 2, "z": 24 },
-        { "x": 12, "y": 1, "z": 24 },
-        { "x": 12, "y": 2, "z": 24 }
+        { "x": 11, "y": 1, "z": 33 },
+        { "x": 11, "y": 2, "z": 33 },
+        { "x": 12, "y": 1, "z": 33 },
+        { "x": 12, "y": 2, "z": 33 }
       ],
       "openMessage": ":door: ¡Puerta 2 abierta! ¡Has cruzado el Vacío! El Trono os espera.",
       "requiresKey": "llave_trono_vacio",
@@ -65,15 +65,15 @@
       "id": "sala_2",
       "name": "Sala 2 (El Vacío)",
       "minZ": 11.5,
-      "maxZ": 24.0,
+      "maxZ": 33.0,
       "respawn": { "x": 11.5, "y": 1.2, "z": 12.0 }
     },
     {
       "id": "sala_3",
       "name": "Sala 3 (Trono del Vacío)",
-      "minZ": 24.5,
-      "maxZ": 36.0,
-      "respawn": { "x": 11.5, "y": 1.2, "z": 25.0 }
+      "minZ": 33.5,
+      "maxZ": 45.0,
+      "respawn": { "x": 11.5, "y": 1.2, "z": 34.0 }
     }
   ],
   "pedestalTheme": "classic",
@@ -84,7 +84,7 @@
       "name": "Altar Dorado de los Primeros Reyes",
       "x": 12,
       "y": 1,
-      "z": 30,
+      "z": 39,
       "triggerRadius": 3.2,
       "completeMessage": ":crown: ¡Altar Dorado de los Primeros Reyes Consagrado! ¡Capítulo 1: El Descenso Ancestral Conquistado!"
     }
@@ -115,7 +115,7 @@
       "name": "Cofre del Trono",
       "x": 18.5,
       "y": 1.0,
-      "z": 26.5,
+      "z": 35.5,
       "facing": "west",
       "reward": ":crown: Corona del Vacío",
       "message": ":chest: ¡Has abierto el Cofre del Trono! Has obtenido: :crown: Corona del Vacío y :gem: 500 Gemas Eternas."
@@ -123,30 +123,29 @@
   ],
   "regions": [
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 24], "to": [22, 0, 34] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 33], "to": [22, 0, 43] },
     { "type": "perimeter", "height": 5, "block": "WALL" },
     { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
-    { "type": "divider", "z": 24, "height": 5, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
-    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
-    { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 23] },
+    { "type": "divider", "z": 33, "height": 5, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
+    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 43 },
+    { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 32] },
     { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 17, "z": 5, "height": 5, "block": "PILLAR" },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 11], "to": [13, 0, 12] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [8, 0, 14], "to": [10, 0, 14] },
-    { "type": "fill", "block": "PILLAR", "from": [12, 0, 16], "to": [13, 0, 16] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [12, 1, 16], "to": [13, 1, 16] },
-    { "type": "fill", "block": "PILLAR", "from": [10, 0, 18], "to": [11, 1, 18] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [10, 2, 18], "to": [11, 2, 18] },
-    { "type": "fill", "block": "PILLAR", "from": [13, 0, 20], "to": [14, 0, 20] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [13, 1, 20], "to": [14, 1, 20] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [10, 0, 22], "to": [11, 0, 22] },
-    { "type": "fill", "block": "PILLAR", "from": [1, 5, 19], "to": [22, 5, 19] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 23], "to": [13, 0, 24] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 11], "to": [13, 0, 13] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [8, 0, 16], "to": [10, 0, 16] },
+    { "type": "fill", "block": "PILLAR", "from": [12, 0, 19], "to": [13, 0, 19] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [12, 1, 19], "to": [13, 1, 19] },
+    { "type": "fill", "block": "PILLAR", "from": [10, 0, 22], "to": [11, 1, 22] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [10, 2, 22], "to": [11, 2, 22] },
+    { "type": "fill", "block": "PILLAR", "from": [13, 0, 25], "to": [14, 0, 25] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [13, 1, 25], "to": [14, 1, 25] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [10, 0, 28], "to": [11, 0, 28] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 31], "to": [13, 0, 33] },
 
-    { "type": "pillar", "x": 6, "z": 27, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 27, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 6, "z": 32, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 32, "height": 5, "block": "PILLAR" },
-    { "type": "block", "block": "PEDESTAL", "pos": [12, 1, 30] }
+    { "type": "pillar", "x": 6, "z": 36, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 36, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 6, "z": 41, "height": 5, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 41, "height": 5, "block": "PILLAR" },
+    { "type": "block", "block": "PEDESTAL", "pos": [12, 1, 39] }
   ]
 }

@@ -50,8 +50,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - En la Sala 2 (Río de Lava), se expandió la zona segura de entrada un bloque (`z: 11..13`) hacia el foso para mayor comodidad tras abrir la Puerta Ígnea 1.
   - Se homogeneizó la separación de todas las plataformas flotantes y zonas seguras a exactamente 2 bloques de lava continuos (fosas de 2 metros), preservando el patrón zig-zag en cotas $y=0$ e $y=1$.
   - Se expandió la longitud total de la mazmorra (`sizeZ: 42`), reubicando la Puerta Ígnea 2 a `z = 30`, la zona segura de llegada a `z: 28..30`, el Cofre Volcánico a `z = 37.5`, los pilares del Altar a `z = 33` y `z = 38` y la escalinata de descenso a `z: 37..39`.
+- **Rediseño de Parkour y Expansión en Trono del Vacío (`abyss_throne`, `src/levels/data/abyss_throne.json`)**:
+  - En la Sala 2 (El Vacío), se expandió la zona segura de entrada un bloque (`z: 11..13`) hacia el foso para un acceso holgado al cruzar la Puerta 1.
+  - Se homogeneizó la separación de todas las plataformas flotantes y zonas seguras a exactamente 2 bloques de lava continuos (fosas de 2 metros), manteniendo la distribución y verticalidad escalonada ($y=0 \to 1 \to 2 \to 1 \to 0$).
+  - Se eliminó el pilar/viga transversal del techo que atravesaba la sala en `y=5`.
+  - Se expandió la longitud total de la mazmorra (`sizeZ: 45`), reubicando la Puerta 2 a `z = 33`, la zona segura de llegada a `z: 31..33`, el Cofre del Trono a `z = 35.5`, el Altar Dorado de los Primeros Reyes a `z = 39` y los pilares del Santuario a `z = 36` y `z = 41`.
 - **Cobertura de Pruebas Unitarias (`tests/`)**:
-  - 292 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
+  - 293 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
 
 ## [1.39.0] - 2026-10-04
 

@@ -73,22 +73,22 @@ test('abyss_throne incorpora verticalidad escalonada (y=0, y=1, y=2) y pilares d
   assert.ok(abyssLevel, 'abyss_throne debe estar registrado');
   world.loadLevel(abyssLevel);
 
-  // Plataforma 1 (y=0, z=14)
-  assert.equal(world.get(8, 0, 14), BLOCK_TYPES.JUMP_PAD);
+  // Plataforma 1 (y=0, z=16)
+  assert.equal(world.get(8, 0, 16), BLOCK_TYPES.JUMP_PAD);
 
-  // Plataforma 2 elevada (pilar en y=0, jump pad en y=1, z=16)
-  assert.equal(world.get(12, 0, 16), BLOCK_TYPES.PILLAR);
-  assert.equal(world.get(12, 1, 16), BLOCK_TYPES.JUMP_PAD);
+  // Plataforma 2 elevada (pilar en y=0, jump pad en y=1, z=19)
+  assert.equal(world.get(12, 0, 19), BLOCK_TYPES.PILLAR);
+  assert.equal(world.get(12, 1, 19), BLOCK_TYPES.JUMP_PAD);
 
-  // Plataforma 3 cúspide (pilares en y=0 e y=1, jump pad en y=2, z=18)
-  assert.equal(world.get(10, 0, 18), BLOCK_TYPES.PILLAR);
-  assert.equal(world.get(10, 1, 18), BLOCK_TYPES.PILLAR);
-  assert.equal(world.get(10, 2, 18), BLOCK_TYPES.JUMP_PAD);
+  // Plataforma 3 cúspide (pilares en y=0 e y=1, jump pad en y=2, z=22)
+  assert.equal(world.get(10, 0, 22), BLOCK_TYPES.PILLAR);
+  assert.equal(world.get(10, 1, 22), BLOCK_TYPES.PILLAR);
+  assert.equal(world.get(10, 2, 22), BLOCK_TYPES.JUMP_PAD);
 
-  // Plataforma 4 elevada (pilar en y=0, jump pad en y=1, z=20)
-  assert.equal(world.get(13, 0, 20), BLOCK_TYPES.PILLAR);
-  assert.equal(world.get(13, 1, 20), BLOCK_TYPES.JUMP_PAD);
+  // Plataforma 4 elevada (pilar en y=0, jump pad en y=1, z=25)
+  assert.equal(world.get(13, 0, 25), BLOCK_TYPES.PILLAR);
+  assert.equal(world.get(13, 1, 25), BLOCK_TYPES.JUMP_PAD);
 
-  // Plataforma 5 (y=0, z=22)
-  assert.equal(world.get(10, 0, 22), BLOCK_TYPES.JUMP_PAD);
+  // Plataforma 5 (y=0, z=28)
+  assert.equal(world.get(10, 0, 28), BLOCK_TYPES.JUMP_PAD);
 });

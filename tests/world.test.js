@@ -139,6 +139,69 @@ test('abyss_throne no tiene escalinata (solo altar final)', () => {
   assert.equal(world.objectives.length, 1);
 });
 
+test('abyss_throne: Sala 2 expande la zona segura, separa plataformas en 2 bloques de lava y elimina pilar del techo', () => {
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('abyss_throne'));
+
+  // Zona segura de entrada expandida hasta z=13 (1 bloque más hacia el sur)
+  assert.notEqual(world.get(11, 0, 13), 0, 'Suelo seguro en z=13 (expandido 1 bloque)');
+  assert.notEqual(world.get(12, 0, 13), 0, 'Suelo seguro en z=13 (expandido 1 bloque)');
+
+  // 2 bloques de lava entre zona segura y Plataforma 1 (z=14, 15)
+  assert.equal(world.get(9, 0, 14), BLOCK_TYPES.AIR);
+  assert.equal(world.get(9, 0, 15), BLOCK_TYPES.AIR);
+
+  // Plataforma 1 en z=16
+  assert.equal(world.get(9, 0, 16), BLOCK_TYPES.JUMP_PAD);
+
+  // 2 bloques de lava entre Plataforma 1 y Plataforma 2 (z=17, 18)
+  assert.equal(world.get(12, 0, 17), BLOCK_TYPES.AIR);
+  assert.equal(world.get(12, 0, 18), BLOCK_TYPES.AIR);
+
+  // Plataforma 2 en z=19 (elevada y=1 con pilar y=0)
+  assert.equal(world.get(12, 1, 19), BLOCK_TYPES.JUMP_PAD);
+  assert.equal(world.get(12, 0, 19), BLOCK_TYPES.PILLAR);
+
+  // 2 bloques de lava entre Plataforma 2 y Plataforma 3 (z=20, 21)
+  assert.equal(world.get(10, 0, 20), BLOCK_TYPES.AIR);
+  assert.equal(world.get(10, 0, 21), BLOCK_TYPES.AIR);
+
+  // Plataforma 3 en z=22 (cúspide y=2 con pilares y=0,1)
+  assert.equal(world.get(10, 2, 22), BLOCK_TYPES.JUMP_PAD);
+  assert.equal(world.get(10, 1, 22), BLOCK_TYPES.PILLAR);
+  assert.equal(world.get(10, 0, 22), BLOCK_TYPES.PILLAR);
+
+  // 2 bloques de lava entre Plataforma 3 y Plataforma 4 (z=23, 24)
+  assert.equal(world.get(13, 0, 23), BLOCK_TYPES.AIR);
+  assert.equal(world.get(13, 0, 24), BLOCK_TYPES.AIR);
+
+  // Plataforma 4 en z=25 (elevada y=1 con pilar y=0)
+  assert.equal(world.get(13, 1, 25), BLOCK_TYPES.JUMP_PAD);
+  assert.equal(world.get(13, 0, 25), BLOCK_TYPES.PILLAR);
+
+  // 2 bloques de lava entre Plataforma 4 y Plataforma 5 (z=26, 27)
+  assert.equal(world.get(10, 0, 26), BLOCK_TYPES.AIR);
+  assert.equal(world.get(10, 0, 27), BLOCK_TYPES.AIR);
+
+  // Plataforma 5 en z=28 (y=0)
+  assert.equal(world.get(10, 0, 28), BLOCK_TYPES.JUMP_PAD);
+
+  // 2 bloques de lava entre Plataforma 5 y Zona segura de llegada (z=29, 30)
+  assert.equal(world.get(11, 0, 29), BLOCK_TYPES.AIR);
+  assert.equal(world.get(11, 0, 30), BLOCK_TYPES.AIR);
+
+  // Zona segura de llegada en z=31..33
+  assert.notEqual(world.get(11, 0, 31), 0);
+  assert.notEqual(world.get(11, 0, 32), 0);
+
+  // Pilar del techo eliminado en toda la fosa de la Sala 2 (y=5, z=12..32)
+  for (let z = 12; z <= 32; z++) {
+    for (let x = 1; x <= 22; x++) {
+      assert.notEqual(world.get(x, 5, z), BLOCK_TYPES.PILLAR, `Pilar del techo debe estar eliminado en (${x}, 5, ${z})`);
+    }
+  }
+});
+
 test('puerta 2 exige llave y cofre 1 la otorga (los 3 niveles con puerta 2)', () => {
   const world = new World();
   for (const id of ['dungeon_classic', 'crypt_inferno', 'abyss_throne']) {
