@@ -542,3 +542,41 @@ test('Ciclo interactivo completo: losa hold abre Puerta 3 al estar encima y la c
   plateRenderer.dispose();
 });
 
+test('Variantes 3D de placas de presión en estilo Sumi-e y exhibición completa en Showroom', () => {
+  const scene = new THREE.Scene();
+  const mats = createPressurePlateMaterials();
+  const geos = createPressurePlateGeometries();
+
+  assert.ok(mats.plateStone, 'plateStone debe existir');
+  assert.ok(mats.ironTrim, 'ironTrim debe existir');
+  assert.ok(mats.brassRivet, 'brassRivet debe existir');
+  assert.ok(geos.rivetGeo, 'rivetGeo debe existir');
+
+  // 1. Construir variante Trigger Apertura (Ámbar)
+  const plateOpen = buildPressurePlateMesh(geos, mats, { mode: 'trigger', action: 'open_door' });
+  assert.ok(plateOpen.root instanceof THREE.Group);
+  assert.equal(plateOpen.runeMesh.material, mats.runeInactive);
+
+  // 2. Construir variante Trigger Cierre (Rojo Carmesí)
+  const plateClose = buildPressurePlateMesh(geos, mats, { mode: 'trigger', action: 'close_door' });
+  assert.ok(plateClose.root instanceof THREE.Group);
+  assert.equal(plateClose.runeMesh.material, mats.runeCloseInactive);
+
+  // 3. Construir variante Hold Presencia Continua (Verde Esmeralda)
+  const plateHold = buildPressurePlateMesh(geos, mats, { mode: 'hold', action: 'open_door' });
+  assert.ok(plateHold.root instanceof THREE.Group);
+  assert.equal(plateHold.runeMesh.material, mats.runeHoldInactive);
+
+  // 4. Verificar presencia de las 3 variantes en dev_showroom.json (Sala 6 y Sala 1)
+  const showcaseTrigger = devShowroom.propShowcases.find(p => p.id === 'showcase_plate_trigger');
+  const showcaseHold = devShowroom.propShowcases.find(p => p.id === 'showcase_plate_hold');
+  const showcaseClose = devShowroom.propShowcases.find(p => p.id === 'showcase_plate_close');
+
+  assert.ok(showcaseTrigger, 'Debe existir showcase_plate_trigger');
+  assert.ok(showcaseHold, 'Debe existir showcase_plate_hold');
+  assert.ok(showcaseClose, 'Debe existir showcase_plate_close');
+  assert.equal(showcaseClose.x, 18.0);
+  assert.equal(showcaseClose.z, 86.0);
+});
+
+

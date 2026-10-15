@@ -161,7 +161,12 @@ export const ShopModalMixin = {
             <div class="shop-title-main">
               <span class="shop-badge-icon">${renderIcon('gem', { size: 24, color: '#10b981' })}</span>
               <div>
-                <h3 class="shop-heading">Bazar Rúnico del Mercader</h3>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <h3 class="shop-heading">Bazar Rúnico del Mercader</h3>
+                  <span title="Sello Hanko Imperial" style="display:inline-flex;align-items:center;filter:drop-shadow(1px 1px 0px var(--ink-black));">
+                    ${renderIcon('hanko', { size: 16 })}
+                  </span>
+                </div>
                 <p class="shop-subheading">Intercambia riquezas por suministros arcanos</p>
               </div>
             </div>
@@ -176,7 +181,7 @@ export const ShopModalMixin = {
               <span class="shop-balance-label">Tu Monedero</span>
               <div class="shop-balance-value">
                 ${renderIcon('gem', { size: 18, color: '#38bdf8' })}
-                <span id="shop-gems-counter">${currentGems}</span> <span style="font-size:12px;color:#94a3b8;font-weight:600;">Gemas</span>
+                <span id="shop-gems-counter">${currentGems}</span> <span style="font-size:12px;color:var(--washi-muted);font-weight:600;">Gemas</span>
               </div>
             </div>
             <div class="shop-pedestal-pill">

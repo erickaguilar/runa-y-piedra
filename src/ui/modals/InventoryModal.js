@@ -261,7 +261,7 @@ export const InventoryModalMixin = {
     if (activeFilter === 'keys') {
       return keysHtml || `
         <div class="inv-modal-empty" style="padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;">
-          <div class="inv-detail-icon key-bg" style="width:48px;height:48px;border-radius:50%;margin-bottom:2px;">
+          <div class="inv-detail-icon key-bg" style="width:48px;height:48px;margin-bottom:2px;">
             ${renderIcon('key', { size: 24, color: '#fbbf24' })}
           </div>
           <h4 style="margin:0;color:#fef08a;font-size:13px;font-weight:700;">Llavero de Expedición Vacío</h4>
@@ -374,6 +374,9 @@ export const InventoryModalMixin = {
               </h2>
               <span class="settings-version-pill" style="color:#fbbf24;background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.3);">
                 ${totalItems} ${totalItems === 1 ? 'tesoro' : 'tesoros'}
+              </span>
+              <span title="Sello Hanko Imperial" style="display:inline-flex;align-items:center;filter:drop-shadow(1px 1px 0px var(--ink-black));">
+                ${renderIcon('hanko', { size: 16 })}
               </span>
             </div>
             <div class="settings-subtitle" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#94a3b8;margin-top:4px;">

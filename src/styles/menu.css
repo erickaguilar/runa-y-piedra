@@ -66,6 +66,12 @@
       margin-bottom: 11px;
       text-align: left;
     }
+    .lobby-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
     .lobby-label {
       font-size: 10px;
       font-weight: 700;
@@ -74,6 +80,28 @@
       text-transform: uppercase;
       margin-bottom: 5px;
       display: block;
+    }
+    .lobby-header-row .lobby-label {
+      margin: 0;
+    }
+    .lobby-label-icon {
+      margin: 0 0 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .menu-adventurer-lock-badge {
+      font-size: 10px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .menu-hero-lock-badge {
+      font-size: 10px;
+    }
+    .menu-slot-actions-row {
+      margin-top: 6px;
     }
     .name-input {
       width: 100%;

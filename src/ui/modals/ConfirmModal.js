@@ -23,12 +23,15 @@ export const ConfirmModalMixin = {
     overlay.className = 'confirm-overlay';
     overlay.innerHTML = `
       <div class="confirm-modal" role="dialog" aria-modal="true">
+        <div class="hanko-corner-seal" title="Sello Imperial Hanko">
+          ${renderIcon('hanko', { size: 18 })}
+        </div>
         <div class="confirm-icon-box ${danger ? 'danger' : ''}">
-          ${renderIcon(icon, { size: 28, color: iconColor })}
+          ${renderIcon(icon, { size: 26, color: iconColor })}
         </div>
         <h3 class="confirm-title">${escapeHtml(title)}</h3>
-        <p class="confirm-message" style="display:flex;align-items:center;justify-content:center;gap:6px;">
-          ${renderIcon('compass', { size: 13, color: '#94a3b8' })}
+        <p class="confirm-message">
+          ${renderIcon(danger ? 'warning' : 'compass', { size: 14, color: danger ? '#f87171' : '#94a3b8' })}
           <span>${escapeHtml(message)}</span>
         </p>
         <div class="confirm-actions">

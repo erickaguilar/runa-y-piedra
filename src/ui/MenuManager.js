@@ -13,7 +13,7 @@ export const MenuMixin = {
     this.setSettingsButtonVisible(false);
 
     const heroesHtml = PLAYER_HEROES.map((h, i) => `
-      <div class="hero-chip ${i === this.selectedColorIndex ? 'selected' : ''}" 
+      <div class="hero-chip class-selector-btn ${i === this.selectedColorIndex ? 'selected' : ''}" 
            data-index="${i}" 
            style="background:${h.color}; --hero-color:${h.color}" 
            title="${h.name} (${h.title || ''})">
@@ -24,9 +24,12 @@ export const MenuMixin = {
     const currentHero = PLAYER_HEROES[this.selectedColorIndex];
 
     this.uiEl.innerHTML = `
-      <div class="menu">
+      <div class="menu menu-card">
+        <div class="hanko-corner-seal" title="Sello Imperial Hanko">
+          ${renderIcon('hanko', { size: 22 })}
+        </div>
         <div class="menu-header">
-          <h1>${renderIcon('raido', { size: 22, color: '#d97706' })} RUNA Y PIEDRA</h1>
+          <h1 class="menu-title">${renderIcon('raido', { size: 22, color: '#d97706' })} RUNA Y PIEDRA ${renderIcon('hanko', { size: 16 })}</h1>
           <div class="menu-subtitle">
             ${renderIcon('compass', { size: 12, color: '#94a3b8' })} <span>Mazmorra Cooperativa P2P</span>
           </div>
@@ -35,9 +38,9 @@ export const MenuMixin = {
         <div class="menu-body-grid">
           <div class="menu-col menu-col-left">
             <div class="lobby-section">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <label class="lobby-label" style="margin:0">Tu Aventurero</label>
-                <span id="menu-adventurer-lock-badge" class="menu-adventurer-lock-badge" style="font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;"></span>
+              <div class="lobby-header-row">
+                <label class="lobby-label">Tu Aventurero</label>
+                <span id="menu-adventurer-lock-badge" class="menu-adventurer-lock-badge"></span>
               </div>
               <input id="player-name-input" class="name-input" maxlength="12" 
                      placeholder="Nombre o Apodo" value="${escapeHtml(this.playerName)}" autocomplete="off"
@@ -45,9 +48,9 @@ export const MenuMixin = {
             </div>
 
             <div class="lobby-section">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <label class="lobby-label" style="margin:0">Clase de Héroe</label>
-                <span id="menu-hero-lock-badge" class="menu-hero-lock-badge" style="font-size:10px;"></span>
+              <div class="lobby-header-row">
+                <label class="lobby-label">Clase de Héroe</label>
+                <span id="menu-hero-lock-badge" class="menu-hero-lock-badge"></span>
               </div>
               <div class="heroes-row" id="heroes-row">
                 ${heroesHtml}
@@ -63,11 +66,11 @@ export const MenuMixin = {
 
           <div class="menu-col menu-col-right">
             <div class="menu-actions-group">
-              <button id="btn-host" class="btn-primary">${renderIcon('castle', { size: 18, color: '#fff' })} Crear Mazmorra</button>
+              <button id="btn-host" class="btn-primary btn-create-dungeon">${renderIcon('castle', { size: 18, color: '#fff' })} Crear Mazmorra</button>
               
               <div class="join-container">
-                <input id="pin-input" class="join-input" placeholder="PIN (4 dig.)" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" enterkeyhint="go" />
-                <button id="btn-join" class="btn-join">${renderIcon('door', { size: 15, color: '#fff' })} Unirse</button>
+                <input id="pin-input" class="join-input pin-input" placeholder="PIN (4 dig.)" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" enterkeyhint="go" />
+                <button id="btn-join" class="btn-join btn-join-dungeon">${renderIcon('door', { size: 15, color: '#fff' })} Unirse</button>
               </div>
             </div>
 
@@ -75,13 +78,13 @@ export const MenuMixin = {
 
             <!-- Ranuras de Guardado (3 ranuras directas) -->
             <div class="lobby-section">
-              <label class="lobby-label" style="margin:0 0 6px 0;display:flex;align-items:center;gap:6px;">
+              <label class="lobby-label lobby-label-icon">
                 ${renderIcon('save', { size: 14, color: '#38bdf8' })} Ranuras de Guardado
               </label>
               <div class="menu-slots-row" id="menu-slots-row">
                 ${this.renderMenuSlotsHtml()}
               </div>
-              <div class="menu-slot-actions-row" style="margin-top:6px;">
+              <div class="menu-slot-actions-row">
                 <button id="btn-menu-delete-active-slot" class="menu-delete-slot-btn" type="button" style="display:none;">
                   ${renderIcon('trash', { size: 12, color: '#f87171' })} Borrar Partida
                 </button>
@@ -105,7 +108,10 @@ export const MenuMixin = {
             return;
           }
           soundManager.playClick();
-          chips.forEach(c => c.classList.remove('selected'));
+          chips.forEach(c => {
+            c.classList.remove('selected');
+            c.classList.remove('active');
+          });
           chip.classList.add('selected');
           const idx = parseInt(chip.dataset.index, 10);
           this.selectedColorIndex = idx;
@@ -272,7 +278,7 @@ export const MenuMixin = {
       const hero = PLAYER_HEROES[s.heroIndex] || PLAYER_HEROES[0];
 
       return `
-        <div class="menu-slot-chip ${isActive ? 'active' : ''} ${isEmpty ? 'is-empty' : 'has-data'}" 
+        <div class="menu-slot-chip save-slot ${isActive ? 'active' : ''} ${isEmpty ? 'is-empty' : 'has-data'}" 
              data-slot-id="${s.slotId}" 
              role="button"
              tabindex="0"
@@ -335,6 +341,7 @@ export const MenuMixin = {
           heroChips.forEach(c => {
             const idx = parseInt(c.dataset.index, 10);
             c.classList.toggle('selected', idx === this.selectedColorIndex);
+            c.classList.remove('active');
           });
         }
         const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
@@ -375,6 +382,7 @@ export const MenuMixin = {
         heroChips.forEach(c => {
           const idx = parseInt(c.dataset.index, 10);
           c.classList.toggle('selected', idx === this.selectedColorIndex);
+          c.classList.remove('active');
         });
       }
       const hero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];

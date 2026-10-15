@@ -5,6 +5,29 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.40.0] - 2026-10-15
+
+### Added
+- **Sistema de Diseño Visual UI: Sumi-e Pixel Art & Washi (`src/styles/sumie-ui.css`, `docs/29-diseno-visual-sumi-e-pixel-art.md`)**:
+  - Transformación estética total de la interfaz desde el estilo moderno dashboard SaaS hacia la experiencia inmersiva *Dark Fantasy* de estilo Sumi-e Pixel Art: losas de basalto (`#181615`), pergamino Washi antiguo (`#d6cfc2`), marcos de tinta china negra (`#0c0a09`) y sellos imperiales bermellón Hanko (`#991b1b`).
+  - Eliminación sistemática de curvas y radios redondeados suaves (`border-radius: 0 !important`) en favor de esquinas vivas, biseles duros y recortes octogonales a 45° (`clip-path`).
+  - Incorporación de tipografías retro de Google Fonts: `Silkscreen` para títulos mayúsculos y sellos, y `Pixelify Sans` (pesos 400 a 700) para lectura fluida de descripciones, lore e inputs de texto.
+  - Microinteracciones con física escalonada (`steps(2)`) y desplazamientos de pulsación de exactamente 2 px.
+  - Registro del icono canónico vectorial `hanko` en `src/ui/Icons.js` presente en modales y sellos de cabecera.
+- **Rediseño Integral de Componentes y Modales (`src/ui/`, `src/styles/`)**:
+  - **Menú Principal (`MenuManager.js`, `HeroManager.js`)**: Losa de entrada de basalto, selector de clases como sellos octogonales respetando el color canónico de cada héroe (`#38bdf8`, `#10b981`, `#f59e0b`, `#a855f7`, `#ef4444`), caja de estadísticas con barra lateral rúnica y botón "Crear Mazmorra" como sello Hanko.
+  - **Ranuras de Guardado y Diálogo de Confirmación (`ConfirmModal.js`)**: Tablillas de piedra tallada, distintivo de ranura activa como lacre bermellón y modal de confirmación con sello imperial superior.
+  - **HUD en Partida y Controles Táctiles (`hud.css`, `HudManager.js`)**: Botones táctiles de acción (`#btn-jump`, `#btn-interact`) de 72×72 px con corte octogonal, herrajes superiores de hierro pixelado (`.settings-btn`, `.dev-btn`, `.mute-btn`, `#hud-inventory`) y corazones vectoriales que conservan su contorno de tinta al perder salud.
+  - **Modal de Ajustes y Ranuras (`modals.css`, `SaveSlotsModal.js`)**: Selectores de calidad y controles como pulsadores mecánicos de piedra biselada sin desbordamiento horizontal.
+  - **Modal de Botín de Expedición / Inventario (`InventoryModal.js`)**: Pestañas de filtro de piedra, tarjetas de botín con muescas octogonales para reliquias, llaves y gemas, y botones "Beber" en rojo cinabrio y "Usar" en cian espiritual.
+  - **Modal de Atlas de Expedición (`ChapterModal.js`)**: Cartografía monolítica para los 10 capítulos y el Campamento Central con sellos de estado de expedición y botones de "Viaje Rápido".
+  - **Modal del Bazar Rúnico del Mercader (`ShopModal.js`)**: Mostrador de cantería y jade, monedero de gemas rúnico, pestañas de comercio "Comprar" y "Vender" y botones de transacción esmeralda y oro.
+- **Unificación de Notificación y Botón de Descenso por Escalinata (`src/ui/HudManager.js`, `src/styles/hud.css`, `src/styles/sumie-ui.css`)**:
+  - Fusión de la alerta superior y el botón flotante en una única losa interactiva superior (`#descent-card` y `#btn-descend-now`).
+  - Incorpora emblema octogonal de escalinata en oro rúnico, título `¡${byName} desciende!`, sello Hanko imperial miniatura, subtítulo de ayuda contextual y pastilla táctil integrada `BAJAR YA` con badge cuadrado de cuenta regresiva en tiempo real (`<span class="descent-timer">5</span>s`).
+- **Cobertura de Pruebas Unitarias (`tests/`)**:
+  - 287 pruebas unitarias automatizadas y pasando al 100% en 23 suites.
+
 ## [1.39.0] - 2026-10-04
 
 ### Added

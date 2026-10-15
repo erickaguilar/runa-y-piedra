@@ -47,6 +47,15 @@ export const ICONS = {
     body: `<path d="M27 14 L27 50" stroke-linecap="square"/><path d="M27 14 L44 22 L27 32" stroke-linecap="square"/>`,
   },
 
+  hanko: {
+    name: 'hanko',
+    viewBox: '0 0 12 12',
+    fill: 'none',
+    stroke: 'none',
+    defaultColor: '#991b1b',
+    body: `<rect width="12" height="12" fill="#0c0a09"/><rect x="1" y="1" width="10" height="10" fill="#991b1b"/><path d="M2,2 h8 v1 h-8 z M2,4 h3 v1 h-3 z M7,4 h3 v1 h-3 z M5,3 h2 v6 h-2 z M2,7 h3 v2 h-3 z M7,7 h3 v1 h-3 z M2,9 h8 v1 h-8 z" fill="#d6cfc2"/>`,
+  },
+
   shield: {
     name: 'shield',
     viewBox: '0 0 24 24',

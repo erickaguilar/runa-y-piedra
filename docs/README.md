@@ -171,3 +171,11 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Modelo físico en `SimulationEngine`: empuje vectorial horizontal continuo, flotabilidad, amortiguación de caída libre terminal (-3.5 m/s) y salto acuático a 30 Hz determinista Zero-GC.
     - Cuatro nuevos sprites procedurales vectoriales en el Texture Atlas 4x8 (Tiles 28 a 31: agua cristalina, torrente Z, torrente X y cascada).
     - Síntesis de audio procedural `playWaterSplash()` en `SoundManager` e iluminación/materiales de caliza y zafiro para altares y escalinatas.
+
+29. [**29. Sistema de Diseño Visual UI: Sumi-e Pixel Art & Pergamino Washi**](./29-diseno-visual-sumi-e-pixel-art.md)
+    - Transformación completa de la interfaz desde el estilo dashboard SaaS hacia la estética Sumi-e Pixel Art (losas de basalto, pergamino Washi antiguo, tinta negra china y sellos imperiales Hanko).
+    - Supresión de radios redondeados suaves (`border-radius: 0 !important`) y adopción de bordes y sombras de tinta duros sin difuminado.
+    - Tipografía retro legible: `Silkscreen` para títulos y sellos, y `Pixelify Sans` para descripciones e inputs.
+    - Rediseño de componentes y modales: Menú principal, selector de héroes como sellos octogonales, ranuras de guardado en tablillas de piedra, HUD de vidas, inventario/botín, Atlas de 10 capítulos y Bazar Rúnico del Mercader.
+    - Unificación de la notificación superior y el botón de descenso por escalinata en una sola placa interactiva con temporizador integrado.
+

@@ -1,4 +1,4 @@
-import { renderIcon, replaceEmojisWithSvg } from './Icons.js';
+import { renderIcon, replaceEmojisWithSvg, escapeHtml } from './Icons.js';
 import { soundManager } from '../audio/SoundManager.js';
 import { saveManager } from '../storage/SaveManager.js';
 
@@ -331,7 +331,7 @@ export const HudMixin = {
   },
 
   /**
-   * Tarjeta de descenso sincronizado: cuenta atrás de 5s + botón BAJAR YA.
+   * Tarjeta de descenso sincronizado unificada: cuenta atrás de 5s + botón BAJAR YA integrado.
    * endsAtMs: timestamp (reloj del Host) del descenso automático.
    */
   showDescentCountdown({ byName = 'Un compañero', endsAtMs = 0, onNow = null } = {}) {
@@ -342,30 +342,56 @@ export const HudMixin = {
 
     const card = document.createElement('div');
     card.id = 'descent-card';
-    card.innerHTML = `
-      <div class="descent-title">${renderIcon('vortex', { size: 18, color: '#38bdf8' })} ¡${byName} desciende!</div>
-      <div class="descent-timer">5</div>
-      <div class="descent-sub">${isTouch ? 'Toca BAJAR YA o baja a la escalinata para ir ya' : 'Pulsa [E / CLICK] o baja a la escalinata para ir ya'}</div>`;
-    document.body.appendChild(card);
-    this.descentCard = card;
+    card.className = 'descent-card-unified';
 
     const bigBtn = document.createElement('button');
     bigBtn.id = 'btn-descend-now';
     bigBtn.type = 'button';
-    bigBtn.textContent = isTouch ? 'BAJAR YA' : '[E / CLICK] BAJAR YA';
-    document.body.appendChild(bigBtn);
+    bigBtn.className = 'btn-descend-now-unified';
+    bigBtn.title = 'Bajar ya a la siguiente mazmorra';
+
+    const contentHtml = `
+      <div class="descent-badge-seal">
+        ${renderIcon('temple', { size: 20, color: '#fbbf24' })}
+      </div>
+      <div class="descent-info-col">
+        <div class="descent-title">
+          <span>¡${escapeHtml(byName)} desciende!</span>
+          <span class="hanko-seal-mini" title="Sello Hanko Imperial" style="display:inline-flex;align-items:center;">${renderIcon('hanko', { size: 14 })}</span>
+        </div>
+        <div class="descent-sub">${isTouch ? 'Toca para bajar o baja a la escalinata' : 'Pulsa [E / Clic] o baja a la escalinata'}</div>
+      </div>
+      <div class="descent-action-pill">
+        <span class="descent-action-text">${isTouch ? 'BAJAR YA' : '[E] BAJAR YA'}</span>
+        <span class="descent-timer-badge"><span class="descent-timer">5</span>s</span>
+      </div>
+    `;
+
+    card.innerHTML = contentHtml;
+    bigBtn.innerHTML = contentHtml;
+    card.appendChild(bigBtn);
+    document.body.appendChild(card);
+    this.descentCard = card;
     this.descentBtn = bigBtn;
     this.descentOnNow = onNow;
 
-    bigBtn.onclick = () => {
+    const handleDescent = (e) => {
+      if (e) {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+      }
+      soundManager.playClick();
       if (this.descentOnNow) this.descentOnNow();
     };
+
+    bigBtn.onclick = handleDescent;
+    bigBtn.addEventListener('touchend', handleDescent, { passive: false });
 
     const tick = () => {
       if (!this.descentCard) return;
       const remain = Math.max(0, Math.ceil((endsAtMs - Date.now()) / 1000));
       const el = this.descentCard.querySelector('.descent-timer');
-      if (el) el.textContent = remain > 0 ? remain : '¡Ya!';
+      if (el) el.textContent = remain > 0 ? remain : '0';
     };
     tick();
     this._descentInterval = setInterval(tick, 250);
@@ -373,13 +399,13 @@ export const HudMixin = {
 
   hideDescent() {
     if (this._descentInterval) { clearInterval(this._descentInterval); this._descentInterval = null; }
-    if (this.descentCard) {
-      this.descentCard.remove();
-      this.descentCard = null;
-    }
     if (this.descentBtn) {
       this.descentBtn.remove();
       this.descentBtn = null;
+    }
+    if (this.descentCard) {
+      this.descentCard.remove();
+      this.descentCard = null;
     }
     this.descentOnNow = null;
   },

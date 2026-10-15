@@ -208,6 +208,7 @@ export class PropShowcaseRenderer {
       case 'cartography': return '#38bdf8';
       case 'pressure_plate_trigger': return '#f59e0b';
       case 'pressure_plate_hold': return '#10b981';
+      case 'pressure_plate_close': return '#ef4444';
       case 'stairs': return '#94a3b8';
       default: return '#38bdf8';
     }
@@ -307,6 +308,11 @@ export class PropShowcaseRenderer {
 
       case 'pressure_plate_hold': {
         const p = buildPressurePlateMesh(this._plateGeos, this._plateMats, { mode: 'hold' });
+        return { root: p.root, labelHeight: 1.4 };
+      }
+
+      case 'pressure_plate_close': {
+        const p = buildPressurePlateMesh(this._plateGeos, this._plateMats, { mode: 'trigger', action: 'close_door' });
         return { root: p.root, labelHeight: 1.4 };
       }
 

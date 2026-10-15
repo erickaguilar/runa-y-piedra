@@ -211,14 +211,19 @@ export const ChapterModalMixin = {
           <div class="modal-chapter-title-wrap">
             <div class="modal-chapter-icon">${renderIcon('compass', { size: 24, color: '#38bdf8' })}</div>
             <div>
-              <div class="modal-chapter-title">Atlas de Expedición</div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="modal-chapter-title">Atlas de Expedición</div>
+                <span title="Sello Hanko Imperial" style="display:inline-flex;align-items:center;filter:drop-shadow(1px 1px 0px var(--ink-black));">
+                  ${renderIcon('hanko', { size: 16 })}
+                </span>
+              </div>
               <div class="modal-chapter-subtitle" style="display:flex;align-items:center;gap:6px;">
                 ${renderIcon('map', { size: 12, color: '#94a3b8' })} <span>Campaña de los 10 Capítulos Primordiales</span>
               </div>
             </div>
           </div>
           <button class="modal-chapter-close" id="btn-close-chapter" aria-label="Cerrar">
-            ${renderIcon('x', { size: 20, color: '#94a3b8' })}
+            ${renderIcon('x', { size: 20, color: 'currentColor' })}
           </button>
         </div>
 

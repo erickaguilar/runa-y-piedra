@@ -285,7 +285,7 @@
     {
       "id": "showcase_plate_trigger",
       "type": "pressure_plate_trigger",
-      "name": "Losa de Presión (Trigger)",
+      "name": "Losa de Apertura (Trigger 3D)",
       "category": "PROP 3D",
       "x": 6.0,
       "y": 1.0,
@@ -295,9 +295,19 @@
     {
       "id": "showcase_plate_hold",
       "type": "pressure_plate_hold",
-      "name": "Losa de Presencia (Hold)",
+      "name": "Losa de Presencia Continua (Hold 3D)",
       "category": "PROP 3D",
       "x": 12.0,
+      "y": 1.0,
+      "z": 86.0,
+      "yaw": 0
+    },
+    {
+      "id": "showcase_plate_close",
+      "type": "pressure_plate_close",
+      "name": "Losa de Cierre / Trampa (Trigger 3D)",
+      "category": "PROP 3D",
+      "x": 18.0,
       "y": 1.0,
       "z": 86.0,
       "yaw": 0

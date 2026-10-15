@@ -336,10 +336,10 @@ test('PropShowcaseRenderer: carga todos los props de dev_showroom sin colisiones
   const renderer = new PropShowcaseRenderer(scene);
 
   assert.ok(Array.isArray(devShowroom.propShowcases), 'devShowroom debe tener propShowcases');
-  assert.equal(devShowroom.propShowcases.length, 11, 'Deben existir 11 props de exhibición');
+  assert.equal(devShowroom.propShowcases.length, 12, 'Deben existir 12 props de exhibición');
 
   renderer.loadShowcases(devShowroom.propShowcases);
-  assert.equal(renderer.showcases.length, 11);
+  assert.equal(renderer.showcases.length, 12);
 
   assert.ok(scene.children.includes(renderer.group));
 

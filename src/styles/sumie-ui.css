@@ -1,0 +1,2605 @@
+/* ==========================================================================
+   Runa y Piedra - Sumi-e Pixel Art UI Stylesheet (sumie-ui.css)
+   Inspirado en losas de basalto, pergamino Washi antiguo, tinta negra y sellos Hanko
+   Optimizado para máxima legibilidad, colores vivos de héroe y ajuste responsive
+   ========================================================================== */
+
+/* 1. Importar fuentes Pixel Art limpias y legibles */
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Silkscreen:wght@400;700&display=swap');
+
+:root {
+  --ink-black: #0c0a09;
+  --stone-dark: #181615;
+  --stone-mid: #292524;
+  --stone-light: #44403c;
+  --washi-paper: #d6cfc2;
+  --washi-muted: #a8a29e;
+  --hanko-red: #991b1b;
+  --hanko-bright: #dc2626;
+  --rune-cyan: #38bdf8;
+  --rune-gold: #f59e0b;
+}
+
+/* 2. Contenedor Principal del Menú (Losa de Altar Sumi-e) */
+.menu, .menu-card {
+  width: min(94vw, 380px) !important;
+  box-sizing: border-box !important;
+  background-color: var(--stone-dark) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  border-radius: 0 !important;
+  border: 4px solid var(--ink-black) !important;
+  /* Borde interior biselado estilo pixel art + sombra dura de tinta */
+  box-shadow: 
+    inset 0 0 0 2px var(--stone-light),
+    inset 0 0 0 4px var(--ink-black),
+    6px 6px 0px var(--ink-black) !important;
+  padding: 16px 14px 18px !important;
+  position: relative !important;
+  image-rendering: pixelated;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow-x: hidden !important;
+}
+
+/* 3. Título Principal "RUNA Y PIEDRA" */
+.menu h1, .menu-title {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  color: var(--washi-paper) !important;
+  font-size: 16px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+  text-shadow: 2px 2px 0px var(--ink-black), -1px -1px 0px var(--hanko-red) !important;
+}
+
+.menu-subtitle {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--washi-muted) !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* 4. Inputs de Texto (Nombre de Aventurero y PIN) - Fuente Pixelify Sans legible */
+input[type="text"], .name-input, .join-input, .pin-input {
+  background-color: var(--ink-black) !important;
+  color: #f8fafc !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--stone-light) !important;
+  box-shadow: inset 3px 3px 0px #000000 !important;
+  text-align: center !important;
+  padding: 8px 10px !important;
+  box-sizing: border-box !important;
+}
+
+input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus {
+  border-color: var(--rune-gold) !important;
+  box-shadow: inset 3px 3px 0px #000000, 0 0 0 2px var(--rune-gold) !important;
+  outline: none;
+}
+
+.lobby-label {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  color: var(--washi-paper) !important;
+  letter-spacing: 0.8px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+}
+
+/* 5. Selector de Héroes: SELLOS OCTOGONALES CON COLOR PROPIO DE CADA HÉROE */
+.heroes-row {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin: 6px 0 !important;
+}
+
+.hero-chip, .class-selector-btn {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 0 !important;
+  /* NO sobreescribir background-color: respeta el color propio de cada héroe (h.color) */
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3), 3px 3px 0px var(--ink-black) !important;
+  /* Recorte de esquinas de 4px para efecto octogonal pixel art */
+  clip-path: polygon(
+    4px 0%, calc(100% - 4px) 0%, 100% 4px, 
+    100% calc(100% - 4px), calc(100% - 4px) 100%, 
+    4px 100%, 0% calc(100% - 4px), 0% 4px
+  ) !important;
+  transition: transform 0.08s ease, box-shadow 0.08s ease !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Estado SELECCIONADO: Resaltado con marco blanco/dorado y elevación pixel art */
+.hero-chip.selected {
+  border-color: #ffffff !important;
+  box-shadow: inset 0 0 0 2px #ffffff, 0 0 0 2px var(--ink-black), 4px 4px 0px var(--ink-black) !important;
+  transform: translateY(-3px) scale(1.08) !important;
+}
+
+.hero-chip:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: inset 0 0 0 2px #ffffff, 1px 1px 0px var(--ink-black) !important;
+}
+
+.hero-chip.occupied {
+  opacity: 0.35 !important;
+  filter: grayscale(0.85) !important;
+  cursor: not-allowed !important;
+}
+
+.hero-badge {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 2px 2px 0px var(--ink-black);
+  margin-top: 2px;
+}
+
+/* 6. Caja de Descripción de Clase ("Explorador Versátil") */
+.hero-trait-box, .class-info-box {
+  background-color: var(--ink-black) !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--stone-light) !important;
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.7) !important;
+  font-family: 'Pixelify Sans', sans-serif !important;
+  padding: 8px 10px !important;
+  margin-top: 6px !important;
+}
+
+.hero-role {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.hero-trait {
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1.35 !important;
+  margin-bottom: 6px !important;
+}
+
+/* Badges de Stats (Vel 100%, Salto 100%, Def 3/5) */
+.hero-stat, .stat-pill {
+  background-color: var(--stone-mid) !important;
+  border: 1px solid var(--stone-light) !important;
+  border-radius: 0 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 6px !important;
+  color: var(--washi-paper) !important;
+}
+
+/* 7. Botón Principal "Crear Mazmorra" (Sello Hanko Bermellón) */
+.btn-primary, .btn-create-dungeon {
+  background-color: var(--hanko-red) !important;
+  background-image: none !important;
+  color: #f4efe4 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 2px 2px 0px #ef4444,
+    inset -2px -2px 0px #450a0a,
+    3px 3px 0px var(--ink-black) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+}
+
+.btn-primary:active, .btn-create-dungeon:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* 8. Botón "Unirse" (Piedra de Invocación Cian) */
+.btn-join, .btn-join-dungeon {
+  background-color: #075985 !important;
+  background-image: none !important;
+  color: #e0f2fe !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 2px 2px 0px var(--rune-cyan),
+    inset -2px -2px 0px #082f49,
+    3px 3px 0px var(--ink-black) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.btn-join:active, .btn-join-dungeon:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* 9. Ranuras de Guardado (Tablillas de Piedra) - AJUSTE RESPONSIVE SIN DESBORDAMIENTO */
+.menu-slots-row {
+  display: flex !important;
+  gap: 5px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 4px !important;
+}
+
+.menu-slot-chip, .save-slot {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  background-color: var(--stone-mid) !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--stone-light) !important;
+  box-shadow: 2px 2px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  padding: 5px 4px 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 50px !important;
+}
+
+.menu-slot-chip.active, .save-slot.active {
+  background-color: #1c1917 !important;
+  border-color: var(--rune-gold) !important;
+  box-shadow: inset 0 0 0 1px var(--rune-gold), 2px 2px 0px var(--ink-black) !important;
+}
+
+.menu-slot-chip.is-empty {
+  border-style: dashed !important;
+  opacity: 0.85 !important;
+}
+
+.menu-slot-chip-top {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 2px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin-bottom: 2px !important;
+}
+
+.menu-slot-num {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: var(--washi-paper) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  flex-shrink: 1 !important;
+}
+
+/* Etiqueta "ACTIVA" como Sello Hanko rojo */
+.badge-active {
+  background-color: var(--hanko-red) !important;
+  color: #f4efe4 !important;
+  border-radius: 0 !important;
+  border: 1px solid #fca5a5 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  padding: 1px 3px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.badge-saved {
+  background-color: #075985 !important;
+  color: #e0f2fe !important;
+  border-radius: 0 !important;
+  border: 1px solid var(--rune-cyan) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  padding: 1px 3px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.badge-empty {
+  background-color: var(--stone-dark) !important;
+  color: var(--washi-muted) !important;
+  border-radius: 0 !important;
+  border: 1px solid var(--stone-light) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 8px !important;
+  padding: 1px 3px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.menu-slot-chip-body {
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.menu-slot-hero-tag {
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.menu-slot-name-val {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+.menu-slot-meta-tag {
+  font-size: 9px !important;
+  color: var(--washi-muted) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.menu-slot-empty-text {
+  font-size: 9px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Sello Hanko decorativo en esquina */
+.hanko-corner-seal {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  filter: drop-shadow(2px 2px 0px var(--ink-black));
+  pointer-events: none;
+}
+
+/* 10. Botón de Borrar Partida (Tablilla de Advertencia / Lacre Roto) */
+.menu-delete-slot-btn {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background-color: #241414 !important;
+  color: #fca5a5 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px #7f1d1d,
+    3px 3px 0px var(--ink-black) !important;
+  padding: 6px 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+  image-rendering: pixelated;
+  margin-top: 4px !important;
+}
+
+.menu-delete-slot-btn:hover {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-color: var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px #ef4444,
+    3px 3px 0px var(--ink-black) !important;
+}
+
+.menu-delete-slot-btn:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* 11. Modal de Confirmación y Alerta (Losa de Juicio Sumi-e) */
+.confirm-overlay {
+  background: rgba(12, 10, 9, 0.85) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.confirm-modal {
+  background-color: var(--stone-dark) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  border-radius: 0 !important;
+  border: 4px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--stone-light),
+    inset 0 0 0 4px var(--ink-black),
+    6px 6px 0px var(--ink-black) !important;
+  padding: 22px 18px 20px !important;
+  width: min(92vw, 340px) !important;
+  position: relative !important;
+  image-rendering: pixelated;
+}
+
+/* Sello Octogonal de Advertencia / Juicio */
+.confirm-icon-box {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: inset 0 0 0 2px var(--stone-light), 3px 3px 0px var(--ink-black) !important;
+  clip-path: polygon(
+    4px 0%, calc(100% - 4px) 0%, 100% 4px, 
+    100% calc(100% - 4px), calc(100% - 4px) 100%, 
+    4px 100%, 0% calc(100% - 4px), 0% 4px
+  ) !important;
+  margin: 0 auto 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.confirm-icon-box.danger {
+  background-color: #241414 !important;
+  border-color: var(--ink-black) !important;
+  box-shadow: inset 0 0 0 2px #991b1b, 3px 3px 0px var(--ink-black) !important;
+}
+
+.confirm-title {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--washi-paper) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  text-shadow: 2px 2px 0px var(--ink-black), -1px -1px 0px var(--hanko-red) !important;
+  margin: 0 0 10px !important;
+}
+
+.confirm-message {
+  font-family: 'Pixelify Sans', sans-serif !important;
+  font-size: 12px !important;
+  color: var(--washi-paper) !important;
+  line-height: 1.45 !important;
+  margin: 0 0 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+.confirm-actions {
+  display: flex !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+/* Botón de Confirmación Peligrosa / Borrar (Sello Hanko Bermellón) */
+.btn-danger, #btn-confirm-accept {
+  flex: 1 !important;
+  background-color: var(--hanko-red) !important;
+  background-image: none !important;
+  color: #f4efe4 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 2px 2px 0px #ef4444,
+    inset -2px -2px 0px #450a0a,
+    3px 3px 0px var(--ink-black) !important;
+  padding: 9px 12px !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2) !important;
+}
+
+.btn-danger:active, #btn-confirm-accept:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Botón Secundario / Cancelar (Tablilla de Piedra Pizarra) */
+.btn-secondary, #btn-confirm-cancel {
+  flex: 1 !important;
+  background-color: var(--stone-mid) !important;
+  background-image: none !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  padding: 9px 12px !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.btn-secondary:hover, #btn-confirm-cancel:hover {
+  background-color: var(--stone-light) !important;
+  color: #ffffff !important;
+}
+
+.btn-secondary:active, #btn-confirm-cancel:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* ==========================================================================
+   12. Notificaciones y Alertas In-Game (Pergaminos de Tinta y Cinabrio)
+   ========================================================================== */
+#hud-message {
+  pointer-events: none;
+}
+
+.hud-alert-card {
+  background-color: var(--stone-dark) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  border-left: 5px solid var(--rune-gold) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    4px 4px 0px var(--ink-black) !important;
+  padding: 8px 12px !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  image-rendering: pixelated;
+}
+
+.hud-alert-card.fade-out {
+  animation: alertFadeOut 0.15s steps(3) forwards !important;
+}
+
+.hud-alert-header {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--rune-gold) !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 1px 1px 0px var(--ink-black);
+}
+
+.hud-alert-title {
+  color: var(--washi-paper) !important;
+}
+
+.hud-alert-list {
+  border-top: 1px solid var(--stone-light) !important;
+  margin-top: 5px !important;
+  padding-top: 4px !important;
+}
+
+.hud-alert-row {
+  font-family: 'Pixelify Sans', sans-serif !important;
+  font-size: 11px !important;
+  color: var(--washi-paper) !important;
+}
+
+.hud-alert-bullet {
+  color: var(--hanko-red) !important;
+  font-weight: 900;
+}
+
+/* ==========================================================================
+   13. Botones de Acción Táctil (Sellos y Talismanes de Piedra Octogonales)
+   ========================================================================== */
+.action-btn {
+  border-radius: 0 !important;
+  border: 3px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 2px rgba(255, 255, 255, 0.2),
+    4px 4px 0px var(--ink-black) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  /* Recorte octogonal estilo sello retro */
+  clip-path: polygon(
+    10px 0%, calc(100% - 10px) 0%, 100% 10px,
+    100% calc(100% - 10px), calc(100% - 10px) 100%,
+    10px 100%, 0% calc(100% - 10px), 0% 10px
+  ) !important;
+  transition: transform 0.05s steps(2), filter 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.action-btn:active {
+  transform: translate(3px, 3px) scale(0.95) !important;
+  box-shadow: 
+    inset 0 0 0 2px rgba(255, 255, 255, 0.3),
+    1px 1px 0px var(--ink-black) !important;
+  filter: brightness(1.15) !important;
+}
+
+.action-btn .ab-label {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  text-shadow: 2px 2px 0px var(--ink-black) !important;
+}
+
+/* Botón SALTAR: Sillar de Invocación Cian Espiritual */
+#btn-jump {
+  background: #0369a1 !important;
+  background-image: none !important;
+  color: #e0f2fe !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--rune-cyan),
+    inset 0 0 0 4px var(--ink-black),
+    4px 4px 0px var(--ink-black) !important;
+}
+
+/* Botón INTERACTUAR / USAR: Altar de Ámbar Rúnico / Sello Hanko */
+#btn-interact {
+  background: #92400e !important;
+  background-image: none !important;
+  color: #fef3c7 !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--rune-gold),
+    inset 0 0 0 4px var(--ink-black),
+    4px 4px 0px var(--ink-black) !important;
+}
+
+#btn-interact.ready {
+  background: var(--hanko-red) !important;
+  border-color: var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 2px #fde047,
+    inset 0 0 0 4px var(--ink-black),
+    4px 4px 0px var(--ink-black) !important;
+  animation: interactPixelPulse 0.8s steps(2) infinite !important;
+}
+
+@keyframes interactPixelPulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ==========================================================================
+   14. Botones Superiores del HUD (Herrajes de Hierro y Piedra)
+   ========================================================================== */
+.settings-btn,
+.dev-btn,
+.mute-btn,
+#hud-inventory,
+.hud-inventory-btn {
+  border-radius: 0 !important;
+  background-color: var(--stone-dark) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  clip-path: polygon(
+    4px 0%, calc(100% - 4px) 0%, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 0% calc(100% - 4px), 0% 4px
+  ) !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.settings-btn:hover,
+.dev-btn:hover,
+.mute-btn:hover,
+#hud-inventory:hover {
+  background-color: var(--stone-mid) !important;
+  border-color: var(--rune-cyan) !important;
+  color: #ffffff !important;
+}
+
+.settings-btn:active,
+.dev-btn:active,
+.mute-btn:active,
+#hud-inventory:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+#hud-inventory.has-loot {
+  border-color: var(--rune-gold) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-gold),
+    3px 3px 0px var(--ink-black) !important;
+}
+
+/* ==========================================================================
+   15. HUD de Vidas, Corazones y Gemas (Tablilla de Esencia Vital)
+   ========================================================================== */
+#hud-lives {
+  border-radius: 0 !important;
+  background-color: var(--stone-dark) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: var(--washi-paper) !important;
+  height: 38px !important;
+  padding: 5px 8px !important;
+  box-sizing: border-box !important;
+  image-rendering: pixelated;
+}
+
+/* Corazones Pixel Art */
+#hud-lives .heart {
+  filter: drop-shadow(1px 1px 0px var(--ink-black)) !important;
+  transition: transform 0.05s steps(2) !important;
+}
+
+#hud-lives .heart.lost {
+  opacity: 0.35 !important;
+  filter: grayscale(1) drop-shadow(1px 1px 0px var(--ink-black)) !important;
+}
+
+#hud-lives .heart.hurt {
+  animation: heartPixelShake 0.35s steps(3) !important;
+}
+
+@keyframes heartPixelShake {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-3px, -2px); }
+  50%  { transform: translate(3px, 1px); }
+  75%  { transform: translate(-2px, 2px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Insignia de Gemas */
+#hud-lives .gems-badge {
+  border-left: 2px solid var(--stone-light) !important;
+  padding-left: 6px !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--rune-cyan) !important;
+  text-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Insignia de Llave */
+#hud-lives .key-badge {
+  border-left: 2px solid var(--stone-light) !important;
+  padding-left: 6px !important;
+  filter: drop-shadow(1px 1px 0px var(--ink-black)) !important;
+}
+
+/* Invulnerabilidad */
+#hud-lives.invuln {
+  border-color: var(--rune-cyan) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    3px 3px 0px var(--ink-black) !important;
+}
+
+/* ==========================================================================
+   16. Tarjeta Guía de Controles Tutorial (.tutorial-controls-hud)
+   ========================================================================== */
+.tutorial-controls-hud {
+  border-radius: 0 !important;
+  background-color: var(--stone-dark) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  image-rendering: pixelated;
+}
+
+.hud-controls-title {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 10px !important;
+  color: var(--rune-cyan) !important;
+  letter-spacing: 0.5px !important;
+}
+
+.hud-controls-hint-kbd,
+.hud-kbd {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 1px solid var(--ink-black) !important;
+  border-bottom: 2px solid var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Silkscreen', monospace !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.hud-touch-pill {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 1px solid var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.hud-pill-action {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-color: var(--ink-black) !important;
+}
+
+.hud-controls-close-btn {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 1px solid var(--ink-black) !important;
+  color: var(--washi-muted) !important;
+}
+
+.hud-controls-close-btn:hover {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-color: var(--ink-black) !important;
+}
+
+/* ==========================================================================
+   17. Botones y Controles del Modal de Configuración (#modal-settings)
+   ========================================================================== */
+#modal-settings {
+  background-color: var(--stone-dark) !important;
+  border: 4px solid var(--ink-black) !important;
+  border-radius: 0 !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--stone-light),
+    inset 0 0 0 4px var(--ink-black),
+    6px 6px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  image-rendering: pixelated;
+}
+
+#modal-settings h2 {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 14px !important;
+  color: var(--washi-paper) !important;
+  letter-spacing: 1px !important;
+  text-shadow: 2px 2px 0px var(--ink-black) !important;
+}
+
+.settings-version-pill {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 1px solid var(--ink-black) !important;
+  color: var(--rune-cyan) !important;
+  font-family: 'Pixelify Sans', monospace !important;
+  font-size: 10px !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.close-x-btn {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  box-shadow: 2px 2px 0px var(--ink-black) !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.close-x-btn:hover {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-color: var(--ink-black) !important;
+}
+
+.close-x-btn:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Selectores de Calidad, Cámara, Sonido y Controles (Pulsadores de Piedra) */
+.quality-selector {
+  display: flex !important;
+  gap: 6px !important;
+  margin-top: 6px !important;
+}
+
+.quality-btn {
+  flex: 1 !important;
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    2px 2px 0px var(--ink-black) !important;
+  color: var(--washi-muted) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  padding: 8px 6px !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s, color 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.quality-btn:hover {
+  background-color: var(--stone-light) !important;
+  color: #ffffff !important;
+}
+
+.quality-btn.active {
+  background-color: #075985 !important;
+  border-color: var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    2px 2px 0px var(--ink-black) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+}
+
+.quality-btn:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Botón Administrar Ranuras en Ajustes */
+#btn-settings-save-slots {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    3px 3px 0px var(--ink-black) !important;
+  color: #e0f2fe !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+#btn-settings-save-slots:hover {
+  background-color: #075985 !important;
+  color: #ffffff !important;
+}
+
+#btn-settings-save-slots:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Botón Compartir y Copiar en Ajustes */
+.share-btn {
+  border-radius: 0 !important;
+  background: var(--hanko-red) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 2px 2px 0px #ef4444,
+    inset -2px -2px 0px #450a0a,
+    3px 3px 0px var(--ink-black) !important;
+  color: #ffffff !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  transition: transform 0.05s steps(2) !important;
+}
+
+.share-btn:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.copy-btn {
+  border-radius: 0 !important;
+  background: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.copy-btn:hover {
+  background: var(--stone-light) !important;
+  color: #ffffff !important;
+}
+
+.copy-btn:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Slider de Sensibilidad Sumi-e */
+#settings-sens-slider {
+  accent-color: var(--rune-cyan) !important;
+}
+
+/* ==========================================================================
+   18. Modal de Ranuras de Guardado y sus Botones (SaveSlotsModal)
+   ========================================================================== */
+.modal-save-slots-overlay {
+  background: rgba(12, 10, 9, 0.85) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.modal-slots-box {
+  background-color: var(--stone-dark) !important;
+  border: 4px solid var(--ink-black) !important;
+  border-radius: 0 !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--stone-light),
+    inset 0 0 0 4px var(--ink-black),
+    6px 6px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  image-rendering: pixelated;
+  padding: 18px !important;
+}
+
+.modal-slots-header {
+  border-bottom: 2px solid var(--stone-light) !important;
+  padding-bottom: 10px !important;
+  margin-bottom: 12px !important;
+}
+
+.modal-slots-title {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--washi-paper) !important;
+  letter-spacing: 1px !important;
+  text-shadow: 2px 2px 0px var(--ink-black) !important;
+}
+
+.modal-slots-subtitle {
+  font-family: 'Pixelify Sans', sans-serif !important;
+  color: var(--washi-muted) !important;
+  font-size: 12px !important;
+}
+
+.modal-slots-icon {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: inset 0 0 0 1px var(--rune-cyan), 2px 2px 0px var(--ink-black) !important;
+  clip-path: polygon(
+    4px 0%, calc(100% - 4px) 0%, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 0% calc(100% - 4px), 0% 4px
+  ) !important;
+}
+
+.modal-slots-close {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  box-shadow: 2px 2px 0px var(--ink-black) !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.modal-slots-close:hover {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-color: var(--ink-black) !important;
+}
+
+.modal-slots-close:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Banner de la Regla de la Mazmorra */
+.modal-slots-banner {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  border-left: 5px solid var(--rune-cyan) !important;
+  box-shadow: 3px 3px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', sans-serif !important;
+  font-size: 12px !important;
+  margin-bottom: 14px !important;
+}
+
+/* Tarjetas de Ranura (Tablillas de Piedra Tallada) */
+.slot-card {
+  border-radius: 0 !important;
+  background-color: var(--stone-dark) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  padding: 14px !important;
+  image-rendering: pixelated;
+  transition: transform 0.05s steps(2), border-color 0.1s !important;
+}
+
+.slot-card:hover {
+  border-color: var(--rune-cyan) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    4px 4px 0px var(--ink-black) !important;
+}
+
+.slot-card.is-active {
+  border-color: var(--rune-gold) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-gold),
+    4px 4px 0px var(--ink-black) !important;
+}
+
+.slot-card.empty {
+  border-style: dashed !important;
+  border-color: var(--stone-light) !important;
+  background-color: #141211 !important;
+}
+
+.slot-number {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 13px !important;
+  color: var(--washi-paper) !important;
+}
+
+/* Insignias de Ranura (Sellos de Lacre Cuadrados) */
+.slot-badge {
+  border-radius: 0 !important;
+  font-family: 'Pixelify Sans', monospace !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  padding: 2px 6px !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.slot-badge.active {
+  background-color: var(--hanko-red) !important;
+  color: #f4efe4 !important;
+  border-color: #ef4444 !important;
+}
+
+.slot-badge.ready {
+  background-color: #075985 !important;
+  color: #e0f2fe !important;
+  border-color: var(--rune-cyan) !important;
+}
+
+.slot-badge.empty {
+  background-color: var(--stone-mid) !important;
+  color: var(--washi-muted) !important;
+  border-color: var(--stone-light) !important;
+}
+
+/* Avatar de Héroe dentro de la Ranura */
+.slot-hero-info {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: inset 0 0 0 1px var(--stone-light) !important;
+}
+
+.slot-hero-avatar {
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  clip-path: polygon(
+    3px 0%, calc(100% - 3px) 0%, 100% 3px,
+    100% calc(100% - 3px), calc(100% - 3px) 100%,
+    3px 100%, 0% calc(100% - 3px), 0% 3px
+  ) !important;
+}
+
+.slot-player-name {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 13px !important;
+  color: var(--washi-paper) !important;
+}
+
+.slot-hero-name {
+  font-family: 'Pixelify Sans', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.slot-stat-row {
+  font-family: 'Pixelify Sans', sans-serif !important;
+  font-size: 11px !important;
+  color: var(--washi-paper) !important;
+}
+
+.slot-stat-val {
+  font-family: 'Pixelify Sans', monospace !important;
+  font-weight: 700 !important;
+}
+
+/* Botonera de Acción de la Ranura (Cargar, Nueva, Exportar, Borrar) */
+.btn-slot-load,
+.btn-slot-new {
+  border-radius: 0 !important;
+  background-color: #075985 !important;
+  background-image: none !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    2px 2px 0px var(--ink-black) !important;
+  color: #ffffff !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.btn-slot-new {
+  background-color: #92400e !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-gold),
+    2px 2px 0px var(--ink-black) !important;
+}
+
+.btn-slot-load:hover {
+  background-color: #0284c7 !important;
+}
+
+.btn-slot-new:hover {
+  background-color: #b45309 !important;
+}
+
+.btn-slot-load:active,
+.btn-slot-new:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.btn-slot-current {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: inset 0 0 0 1px #4ade80 !important;
+  color: #4ade80 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.btn-slot-export,
+.btn-slot-import {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    2px 2px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.btn-slot-export:hover,
+.btn-slot-import:hover {
+  background-color: var(--stone-light) !important;
+  color: #ffffff !important;
+}
+
+.btn-slot-export:active,
+.btn-slot-import:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.btn-slot-delete {
+  border-radius: 0 !important;
+  background-color: #241414 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px #7f1d1d,
+    2px 2px 0px var(--ink-black) !important;
+  color: #fca5a5 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.btn-slot-delete:hover {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-color: var(--ink-black) !important;
+}
+
+.btn-slot-delete:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* ==========================================================================
+   21. Modal de Botín de Expedición / Inventario (Losa Sagrada de Tesoros)
+   ========================================================================== */
+
+/* Contenedor Principal (Losa de basalto tallada con marcos de tinta) */
+.inventory-modal {
+  background-color: var(--stone-dark) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  border-radius: 0 !important;
+  border: 4px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--stone-light),
+    inset 0 0 0 4px var(--ink-black),
+    6px 6px 0px var(--ink-black) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  image-rendering: pixelated;
+  position: relative !important;
+}
+
+/* Título Principal "BOTÍN DE EXPEDICIÓN" */
+.inventory-modal h2 {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  color: var(--washi-paper) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+  text-shadow: 2px 2px 0px var(--ink-black), -1px -1px 0px var(--hanko-red) !important;
+}
+
+.inventory-modal .settings-subtitle {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  color: var(--washi-muted) !important;
+  font-size: 11px !important;
+}
+
+/* Insignia / Contador de Tesoros (Sello Hanko de Recuento) */
+.inventory-modal .settings-version-pill {
+  border-radius: 0 !important;
+  background-color: var(--hanko-red) !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: inset 1px 1px 0px #ef4444, inset -1px -1px 0px #450a0a, 1px 1px 0px var(--ink-black) !important;
+  color: #f4efe4 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  padding: 3px 8px !important;
+}
+
+/* Badge flotante del botón de inventario en el HUD (Sello Hanko rojo) */
+.inv-btn-badge {
+  border-radius: 0 !important;
+  background: var(--hanko-red) !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 9px !important;
+  color: #ffffff !important;
+}
+
+/* Barra de Filtros (Pestañas como Bloques de Piedra / Sellos) */
+.inv-filter-tags {
+  border-bottom: 2px solid var(--ink-black) !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 14px !important;
+}
+
+.inv-filter-tag {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    2px 2px 0px var(--ink-black) !important;
+  color: var(--washi-muted) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  padding: 6px 10px !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s, color 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.inv-filter-tag:hover {
+  background-color: var(--stone-light) !important;
+  color: #ffffff !important;
+}
+
+.inv-filter-tag.active {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-color: var(--ink-black) !important;
+  box-shadow: 
+    inset 1px 1px 0px #ef4444,
+    inset -1px -1px 0px #450a0a,
+    2px 2px 0px var(--ink-black) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Títulos de Sección (Encabezados Sumi-e) */
+.inv-section-title {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  color: var(--rune-gold) !important;
+  text-shadow: 1px 1px 0px var(--ink-black) !important;
+  margin-bottom: 8px !important;
+}
+
+.inv-quick-hint {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  color: var(--washi-muted) !important;
+  font-weight: 600 !important;
+}
+
+/* Tarjetas de Botín y Consumibles (Tablillas de Piedra Grabadas) */
+.inv-detail-card,
+.inv-consumable-card {
+  border-radius: 0 !important;
+  background: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  transition: transform 0.05s steps(2), border-color 0.1s, box-shadow 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.inv-detail-card:hover,
+.inv-consumable-card:hover {
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-gold),
+    3px 3px 0px var(--ink-black) !important;
+}
+
+/* Tarjetas específicas de Llaves y Pergaminos */
+.inv-key-card {
+  box-shadow: 
+    inset 0 0 0 1px #854d0e,
+    3px 3px 0px var(--ink-black) !important;
+}
+
+.inv-consumable-card.scroll-card {
+  box-shadow: 
+    inset 0 0 0 1px #0369a1,
+    3px 3px 0px var(--ink-black) !important;
+}
+
+.inv-consumable-card.scroll-card:hover {
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    3px 3px 0px var(--ink-black) !important;
+}
+
+/* Banner de Llavero (Aviso tallado en piedra de paso) */
+.inv-keychain-banner {
+  border-radius: 0 !important;
+  background-color: #1c1917 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px #854d0e,
+    2px 2px 0px var(--ink-black) !important;
+  color: #fde68a !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+/* Cuadrante / Marco de Iconos de Objetos (Muesca de Tinta) */
+.inv-detail-icon {
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15), 1px 1px 0px var(--ink-black) !important;
+  clip-path: polygon(
+    3px 0%, calc(100% - 3px) 0%, 100% 3px,
+    100% calc(100% - 3px), calc(100% - 3px) 100%,
+    3px 100%, 0% calc(100% - 3px), 0% 3px
+  ) !important;
+}
+
+.inv-detail-icon.key-bg {
+  background-color: #451a03 !important;
+  border-color: var(--ink-black) !important;
+}
+
+.inv-detail-icon.gem-bg {
+  background-color: #082f49 !important;
+  border-color: var(--ink-black) !important;
+}
+
+.inv-detail-icon.relic-bg {
+  background-color: #422006 !important;
+  border-color: var(--ink-black) !important;
+}
+
+.inv-detail-icon.potion-bg {
+  border-radius: 0 !important;
+  border-color: var(--ink-black) !important;
+}
+
+/* Textos informativos de cada ítem */
+.inv-detail-name {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.inv-detail-desc {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  color: var(--washi-muted) !important;
+  line-height: 1.3 !important;
+}
+
+.inv-key-rule-tag {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  color: var(--washi-muted) !important;
+}
+
+.inv-key-rule-tag span {
+  color: var(--washi-paper) !important;
+}
+
+/* Insignias de Estado (Sellos Rectangulares Pixel Art) */
+.inv-status-pill {
+  border-radius: 0 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.inv-status-pill.key {
+  background-color: #78350f !important;
+  color: #fef08a !important;
+}
+
+.inv-status-pill.gem {
+  background-color: #0369a1 !important;
+  color: #e0f2fe !important;
+}
+
+.inv-status-pill.relic {
+  background-color: #854d0e !important;
+  color: #fef08a !important;
+}
+
+/* Insignia de Efecto (+1 Corazón, +2 Corazones, Portal Lobby) */
+.inv-effect-badge {
+  border-radius: 0 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.inv-effect-badge.effect-heal {
+  background-color: #881337 !important;
+  color: #fecdd3 !important;
+}
+
+.inv-effect-badge.effect-scroll {
+  background-color: #0c4a6e !important;
+  color: #bae6fd !important;
+}
+
+/* Botones de Acción de Consumibles ("Beber" / "Usar") */
+.btn-quick-use {
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.btn-consumable-potion {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 1px 1px 0px #ef4444,
+    inset -1px -1px 0px #450a0a,
+    2px 2px 0px var(--ink-black) !important;
+}
+
+.btn-consumable-potion:hover {
+  background-color: var(--hanko-bright) !important;
+}
+
+.btn-consumable-scroll {
+  background-color: #0369a1 !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 1px 1px 0px var(--rune-cyan),
+    inset -1px -1px 0px #082f49,
+    2px 2px 0px var(--ink-black) !important;
+}
+
+.btn-consumable-scroll:hover {
+  background-color: #0284c7 !important;
+}
+
+.btn-consumable-potion:active,
+.btn-consumable-scroll:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Botón de Cierre al Pie del Modal */
+#btn-close-inv-modal {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s, color 0.1s !important;
+}
+
+#btn-close-inv-modal:hover {
+  background-color: var(--stone-light) !important;
+  color: #ffffff !important;
+}
+
+#btn-close-inv-modal:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Estado de Inventario / Categoría Vacía */
+.inv-modal-empty {
+  border-radius: 0 !important;
+  background-color: #12100f !important;
+  border: 2px dashed var(--stone-light) !important;
+  box-shadow: inset 2px 2px 0px #000000 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  color: var(--washi-muted) !important;
+}
+
+.inv-modal-empty h3,
+.inv-modal-empty h4 {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  color: var(--washi-paper) !important;
+}
+
+.inv-modal-empty p {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  color: var(--washi-muted) !important;
+}
+
+.inv-modal-empty-icon {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 2px 2px 0px var(--ink-black) !important;
+}
+
+/* ==========================================================================
+   22. Modal de Selección de Capítulos / Atlas de Expedición (Cartografía Sumi-e)
+   ========================================================================== */
+
+/* Contenedor Principal (Losa Monolítica de Cartografía) */
+.modal-chapter-box {
+  background-color: var(--stone-dark) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  border-radius: 0 !important;
+  border: 4px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--stone-light),
+    inset 0 0 0 4px var(--ink-black),
+    6px 6px 0px var(--ink-black) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  image-rendering: pixelated;
+  overflow: hidden !important;
+}
+
+/* Encabezado del Atlas (Marco de Hierro y Tinta) */
+.modal-chapter-header {
+  background-color: var(--stone-mid) !important;
+  border-bottom: 3px solid var(--ink-black) !important;
+  padding: 14px 18px !important;
+}
+
+.modal-chapter-icon {
+  border-radius: 0 !important;
+  background-color: var(--stone-dark) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    2px 2px 0px var(--ink-black) !important;
+  clip-path: polygon(
+    3px 0%, calc(100% - 3px) 0%, 100% 3px,
+    100% calc(100% - 3px), calc(100% - 3px) 100%,
+    3px 100%, 0% calc(100% - 3px), 0% 3px
+  ) !important;
+}
+
+.modal-chapter-title {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 16px !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  color: var(--washi-paper) !important;
+  text-shadow: 2px 2px 0px var(--ink-black), -1px -1px 0px var(--hanko-red) !important;
+}
+
+.modal-chapter-subtitle {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  color: var(--washi-muted) !important;
+  font-size: 11px !important;
+}
+
+/* Botón de Cierre del Atlas (Plaqueta de Piedra con Hover Rojo) */
+.modal-chapter-close {
+  border-radius: 0 !important;
+  background-color: var(--stone-dark) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 2px 2px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+.modal-chapter-close:hover {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-color: var(--ink-black) !important;
+}
+
+.modal-chapter-close:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+/* Banners Informativos de Rol (Anfitrión / Aventurero) */
+.modal-chapter-banner {
+  border-radius: 0 !important;
+  border-bottom: 2px solid var(--ink-black) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  padding: 8px 18px !important;
+}
+
+.modal-chapter-banner.host {
+  background-color: #291807 !important;
+  border-left: 4px solid var(--rune-gold) !important;
+  color: #fde68a !important;
+}
+
+.modal-chapter-banner.guest {
+  background-color: #0c2033 !important;
+  border-left: 4px solid var(--rune-cyan) !important;
+  color: #bae6fd !important;
+}
+
+/* Separadores de Sección en la Cuadrícula del Atlas */
+.modal-chapter-section-header {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  color: var(--rune-gold) !important;
+  text-shadow: 1px 1px 0px var(--ink-black) !important;
+  border-bottom: 2px solid var(--ink-black) !important;
+  padding-bottom: 6px !important;
+  margin-top: 4px !important;
+}
+
+/* Tarjetas de Capítulos (Tablillas de Piedra / Pergaminos Ofuda) */
+.chapter-card {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  transition: transform 0.05s steps(2), border-color 0.1s, box-shadow 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.chapter-card.unlocked:hover {
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-gold),
+    3px 3px 0px var(--ink-black) !important;
+}
+
+/* Tarjeta especial del Campamento Central (Lobby) */
+.chapter-card.lobby-card {
+  background: #151e2b !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-cyan),
+    3px 3px 0px var(--ink-black) !important;
+}
+
+.chapter-card.is-active {
+  background: #172a3a !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--rune-cyan),
+    3px 3px 0px var(--ink-black) !important;
+}
+
+.chapter-card.is-completed {
+  box-shadow: 
+    inset 0 0 0 1px #10b981,
+    3px 3px 0px var(--ink-black) !important;
+}
+
+.chapter-card.locked {
+  background-color: #141211 !important;
+  border: 2px dashed var(--stone-light) !important;
+  box-shadow: inset 1px 1px 0px #000000 !important;
+  opacity: 0.65 !important;
+}
+
+.chapter-card.locked.construction {
+  background-color: #1a150e !important;
+  border: 2px dashed #92400e !important;
+  box-shadow: inset 1px 1px 0px #000000 !important;
+  opacity: 0.88 !important;
+}
+
+/* Badges e Insignias de Capítulo */
+.chapter-num-badge {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 9px !important;
+  letter-spacing: 0.5px !important;
+  color: var(--washi-muted) !important;
+}
+
+.chapter-num-badge.lobby {
+  border-radius: 0 !important;
+  background-color: #0369a1 !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+  color: #e0f2fe !important;
+  padding: 2px 6px !important;
+}
+
+.chapter-status-badge {
+  border-radius: 0 !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.4px !important;
+  padding: 2px 6px !important;
+}
+
+.chapter-status-badge.completed {
+  background-color: #064e3b !important;
+  color: #a7f3d0 !important;
+}
+
+.chapter-status-badge.current {
+  background-color: #0c4a6e !important;
+  color: #bae6fd !important;
+}
+
+.chapter-status-badge.available {
+  background-color: #78350f !important;
+  color: #fef08a !important;
+}
+
+.chapter-lock-badge {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: var(--washi-muted) !important;
+}
+
+.chapter-lock-badge.construction {
+  border-radius: 0 !important;
+  background-color: #78350f !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+  color: #fef08a !important;
+  padding: 2px 6px !important;
+}
+
+/* Iconos de Capítulo (Muesca Cuadrada de Piedra) */
+.chapter-icon-wrap {
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  background-color: var(--stone-dark) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 2px 2px 0px var(--ink-black) !important;
+  clip-path: polygon(
+    3px 0%, calc(100% - 3px) 0%, 100% 3px,
+    100% calc(100% - 3px), calc(100% - 3px) 100%,
+    3px 100%, 0% calc(100% - 3px), 0% 3px
+  ) !important;
+}
+
+.chapter-icon-wrap.lobby {
+  background-color: #082f49 !important;
+  border-color: var(--ink-black) !important;
+}
+
+.chapter-icon-wrap.locked {
+  background-color: #141211 !important;
+  border-color: var(--ink-black) !important;
+}
+
+.chapter-icon-wrap.locked.construction {
+  background-color: #291807 !important;
+  border-color: var(--ink-black) !important;
+}
+
+/* Títulos y Descripciones de Cada Capítulo */
+.chapter-card-title {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--washi-paper) !important;
+  letter-spacing: 0.5px !important;
+}
+
+.chapter-card-desc {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  color: var(--washi-muted) !important;
+  line-height: 1.35 !important;
+}
+
+.chapter-dungeons-track {
+  border-radius: 0 !important;
+  background-color: #12100f !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: inset 1px 1px 0px #000000 !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  color: var(--washi-paper) !important;
+}
+
+.chapter-dungeons-track.construction {
+  background-color: #1c150c !important;
+  border-color: var(--ink-black) !important;
+  color: #fde68a !important;
+}
+
+.chapter-req-notice {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  color: var(--washi-muted) !important;
+}
+
+.chapter-req-notice.construction {
+  border-radius: 0 !important;
+  background-color: #1c160f !important;
+  border: 1px dashed #92400e !important;
+  color: #fde68a !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+}
+
+.chapter-record-row {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 10px !important;
+  color: var(--washi-muted) !important;
+}
+
+/* Botones de Despliegue y Viaje Rápido ("Viaje Rápido") */
+.chapter-launch-btn,
+.chapter-action-pill {
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.chapter-launch-btn.is-launch,
+.chapter-action-pill.is-launch {
+  background-color: #0369a1 !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 1px 1px 0px var(--rune-cyan),
+    inset -1px -1px 0px #082f49,
+    2px 2px 0px var(--ink-black) !important;
+}
+
+.chapter-card.unlocked:hover .chapter-action-pill.is-launch,
+.chapter-launch-btn.is-launch:hover {
+  background-color: #0284c7 !important;
+}
+
+.chapter-launch-btn.btn-lobby {
+  background-color: #0f766e !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 1px 1px 0px #2dd4bf,
+    inset -1px -1px 0px #134e4a,
+    2px 2px 0px var(--ink-black) !important;
+}
+
+.chapter-launch-btn.btn-lobby:hover {
+  background-color: #14b8a6 !important;
+}
+
+.chapter-launch-btn.btn-current,
+.chapter-action-pill.is-current {
+  background-color: #92400e !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 1px 1px 0px var(--rune-gold),
+    inset -1px -1px 0px #451a03,
+    2px 2px 0px var(--ink-black) !important;
+}
+
+.chapter-launch-btn:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.chapter-action-pill.is-construction {
+  border-radius: 0 !important;
+  background-color: #241c10 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px #92400e,
+    2px 2px 0px var(--ink-black) !important;
+  color: #fde68a !important;
+}
+
+.chapter-client-info {
+  border-radius: 0 !important;
+  background-color: #141211 !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+  color: var(--washi-muted) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+}
+
+/* ==========================================================================
+   23. Modal del Bazar Rúnico del Mercader (Mostrador de Cantería y Jade)
+   ========================================================================== */
+
+/* Contenedor Principal (Losa de Comercio y Ofrendas) */
+.shop-modal {
+  background-color: var(--stone-dark) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  border-radius: 0 !important;
+  border: 4px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--stone-light),
+    inset 0 0 0 4px var(--ink-black),
+    6px 6px 0px var(--ink-black) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  image-rendering: pixelated;
+  overflow: hidden !important;
+}
+
+/* Encabezado del Bazar */
+.shop-header {
+  border-bottom: 2px solid var(--ink-black) !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 14px !important;
+}
+
+.shop-heading {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 15px !important;
+  letter-spacing: 1.2px !important;
+  text-transform: uppercase !important;
+  color: var(--washi-paper) !important;
+  text-shadow: 2px 2px 0px var(--ink-black), -1px -1px 0px #047857 !important;
+}
+
+.shop-subheading {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  color: var(--washi-muted) !important;
+  font-size: 11px !important;
+}
+
+.shop-badge-icon {
+  border-radius: 0 !important;
+  background-color: #064e3b !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px #10b981,
+    2px 2px 0px var(--ink-black) !important;
+  clip-path: polygon(
+    3px 0%, calc(100% - 3px) 0%, 100% 3px,
+    100% calc(100% - 3px), calc(100% - 3px) 100%,
+    3px 100%, 0% calc(100% - 3px), 0% 3px
+  ) !important;
+}
+
+/* Tarjeta del Monedero de Gemas (Losa de Arcas) */
+.shop-balance-card {
+  border-radius: 0 !important;
+  background-color: #12100f !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px #0369a1,
+    2px 2px 0px var(--ink-black) !important;
+  padding: 10px 14px !important;
+}
+
+.shop-balance-label {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 9px !important;
+  letter-spacing: 0.5px !important;
+  color: var(--washi-muted) !important;
+}
+
+.shop-balance-value {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  color: var(--rune-cyan) !important;
+}
+
+.shop-pedestal-pill {
+  border-radius: 0 !important;
+  background-color: #064e3b !important;
+  border: 1px solid var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: #a7f3d0 !important;
+  padding: 3px 8px !important;
+}
+
+.shop-pedestal-dot {
+  border-radius: 0 !important;
+  background-color: #34d399 !important;
+  box-shadow: none !important;
+  width: 5px !important;
+  height: 5px !important;
+}
+
+/* Pestañas: Comprar vs Vender (Sellos de Selección) */
+.shop-tabs {
+  gap: 8px !important;
+  margin-top: 6px !important;
+}
+
+.shop-tab-btn {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    2px 2px 0px var(--ink-black) !important;
+  color: var(--washi-muted) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s, color 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.shop-tab-btn:hover {
+  background-color: var(--stone-light) !important;
+  color: #ffffff !important;
+}
+
+.shop-tab-btn.active {
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-color: var(--ink-black) !important;
+  box-shadow: 
+    inset 1px 1px 0px #ef4444,
+    inset -1px -1px 0px #450a0a,
+    2px 2px 0px var(--ink-black) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Tarjetas de Artículos en Venta / Compra (Tablillas de Piedra) */
+.shop-item-card {
+  border-radius: 0 !important;
+  background-color: var(--stone-mid) !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 1px var(--stone-light),
+    3px 3px 0px var(--ink-black) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  padding: 10px 12px !important;
+  transition: transform 0.05s steps(2), border-color 0.1s, box-shadow 0.1s !important;
+  image-rendering: pixelated;
+}
+
+.shop-item-card:hover {
+  box-shadow: 
+    inset 0 0 0 1px var(--rune-gold),
+    3px 3px 0px var(--ink-black) !important;
+}
+
+.shop-item-card.sell-card {
+  box-shadow: 
+    inset 0 0 0 1px #047857,
+    3px 3px 0px var(--ink-black) !important;
+}
+
+.shop-item-card.disabled {
+  background-color: #141211 !important;
+  opacity: 0.7 !important;
+  border-style: dashed !important;
+}
+
+.shop-item-icon-box {
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15), 1px 1px 0px var(--ink-black) !important;
+  clip-path: polygon(
+    3px 0%, calc(100% - 3px) 0%, 100% 3px,
+    100% calc(100% - 3px), calc(100% - 3px) 100%,
+    3px 100%, 0% calc(100% - 3px), 0% 3px
+  ) !important;
+}
+
+.shop-item-title {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--washi-paper) !important;
+  letter-spacing: 0.5px !important;
+}
+
+.shop-item-desc {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  color: var(--washi-muted) !important;
+  line-height: 1.3 !important;
+}
+
+.shop-item-price-tag {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--rune-cyan) !important;
+}
+
+.shop-item-price-tag.sell-tag {
+  color: #34d399 !important;
+}
+
+/* Botones de Comprar y Vender (Sellos de Transacción) */
+.btn-shop-buy,
+.btn-shop-sell {
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+  image-rendering: pixelated;
+  padding: 6px 14px !important;
+}
+
+.btn-shop-buy.ready {
+  background-color: #065f46 !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 1px 1px 0px #34d399,
+    inset -1px -1px 0px #064e3b,
+    2px 2px 0px var(--ink-black) !important;
+}
+
+.btn-shop-buy.ready:hover {
+  background-color: #059669 !important;
+}
+
+.btn-shop-sell.ready {
+  background-color: #92400e !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 1px 1px 0px var(--rune-gold),
+    inset -1px -1px 0px #451a03,
+    2px 2px 0px var(--ink-black) !important;
+}
+
+.btn-shop-sell.ready:hover {
+  background-color: #b45309 !important;
+}
+
+.btn-shop-buy.ready:active,
+.btn-shop-sell.ready:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+}
+
+.btn-shop-buy.locked {
+  background-color: #262320 !important;
+  border-color: var(--ink-black) !important;
+  box-shadow: 1px 1px 0px var(--ink-black) !important;
+  color: var(--washi-muted) !important;
+  cursor: not-allowed !important;
+}
+
+/* Estado de Bazar Vacío (Sin objetos para vender) */
+.shop-empty-state {
+  border-radius: 0 !important;
+  background-color: #12100f !important;
+  border: 2px dashed var(--stone-light) !important;
+  box-shadow: inset 2px 2px 0px #000000 !important;
+  padding: 24px 18px !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  color: var(--washi-muted) !important;
+}
+
+.shop-empty-title {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--washi-paper) !important;
+}
+
+.shop-empty-desc {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  color: var(--washi-muted) !important;
+  line-height: 1.4 !important;
+}
+
+/* ==========================================================================
+   24. Notificación y Botón Unificado de Descenso por Escalinata (Sello de Descenso)
+   ========================================================================== */
+
+#descent-card {
+  position: fixed !important;
+  top: max(16px, env(safe-area-inset-top)) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 9998 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  pointer-events: auto !important;
+}
+
+#btn-descend-now,
+.btn-descend-now-unified {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  min-width: min(92vw, 360px) !important;
+  max-width: 440px !important;
+  width: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  background-color: var(--stone-dark) !important;
+  color: var(--washi-paper) !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  border-radius: 0 !important;
+  border: 3px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--stone-light),
+    inset 0 0 0 3px var(--ink-black),
+    4px 4px 0px var(--ink-black) !important;
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  image-rendering: pixelated !important;
+  animation: descendPulseSumiE 1.2s steps(2) infinite !important;
+  transition: transform 0.05s steps(2), background 0.1s !important;
+}
+
+#btn-descend-now:hover,
+.btn-descend-now-unified:hover {
+  background-color: var(--stone-mid) !important;
+  box-shadow: 
+    inset 0 0 0 2px var(--rune-gold),
+    inset 0 0 0 3px var(--ink-black),
+    4px 4px 0px var(--ink-black) !important;
+}
+
+#btn-descend-now:active,
+.btn-descend-now-unified:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0px var(--ink-black) !important;
+  filter: none !important;
+}
+
+/* Emblema / Sello de la Escalinata */
+.descent-badge-seal {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 0 !important;
+  background-color: #291807 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: inset 0 0 0 1px var(--rune-gold), 1px 1px 0px var(--ink-black) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  clip-path: polygon(
+    3px 0%, calc(100% - 3px) 0%, 100% 3px,
+    100% calc(100% - 3px), calc(100% - 3px) 100%,
+    3px 100%, 0% calc(100% - 3px), 0% 3px
+  ) !important;
+}
+
+/* Columna de Información Central */
+.descent-info-col {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 2px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.descent-title {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 12px !important;
+  letter-spacing: 0.8px !important;
+  color: var(--rune-gold) !important;
+  text-shadow: 1px 1px 0px var(--ink-black) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.descent-sub {
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  color: var(--washi-muted) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Pastilla de Acción: "BAJAR YA" + Cuenta Regresiva como Sello Hanko */
+.descent-action-pill {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background-color: var(--hanko-red) !important;
+  color: #ffffff !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--ink-black) !important;
+  box-shadow: 
+    inset 1px 1px 0px #ef4444,
+    inset -1px -1px 0px #450a0a,
+    2px 2px 0px var(--ink-black) !important;
+  padding: 6px 10px !important;
+  flex-shrink: 0 !important;
+}
+
+.descent-action-text {
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  color: #ffffff !important;
+}
+
+.descent-timer-badge {
+  background-color: var(--ink-black) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #fde68a !important;
+  padding: 1px 5px !important;
+  font-family: 'Pixelify Sans', monospace, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  border-radius: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 1px !important;
+}
+
+.descent-timer {
+  font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #fde68a !important;
+  text-shadow: none !important;
+}
+
+@keyframes descendPulseSumiE {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+    box-shadow: 
+      inset 0 0 0 2px var(--rune-gold),
+      inset 0 0 0 3px var(--ink-black),
+      4px 6px 0px var(--ink-black) !important;
+  }
+}
+
+
+
+
+

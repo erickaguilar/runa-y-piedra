@@ -6,8 +6,8 @@
 
 > Mazmorra vóxel cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
-[![Version](https://img.shields.io/badge/version-1.37.0-blue.svg)](package.json)
-[![Tests](https://img.shields.io/badge/tests-199%20passed-brightgreen.svg)](tests/)
+[![Version](https://img.shields.io/badge/version-1.40.0-blue.svg)](package.json)
+[![Tests](https://img.shields.io/badge/tests-287%20passed-brightgreen.svg)](tests/)
 
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-Dual%20Channels-green.svg)](https://webrtc.org/)
@@ -29,6 +29,24 @@
 * **Cofres del Tesoro y Botín Dinámico**: Cofres interactivos con animación tridimensional que otorgan llaves de mazmorra, gemas y reliquias míticas compartidas.
 * **Fosa de Lava Ardiente y Checkpoints**: Peligros ambientales con penalización de vidas y reaparición inmediata en el punto de control seguro del equipo.
 * **Etiquetas 3D Flotantes (*Nametags*)**: Visualización en vivo de la clase, nombre y latencia P2P en tiempo real (< 5 ms en red local) sobre cada aventurero.
+
+---
+
+## 🖌️ Sistema de Diseño Visual UI: Sumi-e Pixel Art & Washi
+
+Toda la interfaz del juego ha sido transformada desde los patrones modernos de tipo dashboard SaaS hacia un **lenguaje visual artesanal Sumi-e Pixel Art**:
+
+* **Losas de Basalto y Marcos de Tinta (*Sumi*)**: Modales y tarjetas estructurados como tablillas de piedra tallada (`#181615`), con bordes duros de tinta de 2–4 px (`#0c0a09`), dobles biseles interiores y sombras proyectadas sólidas sin difuminado.
+* **Geometría Pixelada Dura (Cero `border-radius`)**: Eliminación completa de esquinas redondeadas en favor de esquinas vivas y cortes octogonales rúnicos a 45° (`clip-path`) para los sellos de clase y botones de acción.
+* **Sellos Imperiales Hanko Bermellón**: Botones de acción clave ("Crear Mazmorra", "Beber Poción", "Bajar Ya" y pestañas activas) sellados en rojo cinabrio (`#991b1b` con bisel `#dc2626`).
+* **Tipografía Retro Legible**: Encabezados y sellos en `Silkscreen` para un impacto pixelado imponente; textos descriptivos, inputs y estadísticas en `Pixelify Sans` para lectura óptima en pantallas de alta densidad.
+* **HUD y Modales Tematizados**:
+  * **Menú Principal**: Losa de altar con sellos de clase octogonales que respetan el color canónico de cada héroe.
+  * **3 Ranuras de Guardado y Alerta de Borrado**: Tablillas de piedra tallada con sellos de lacre y advertencia carmesí.
+  * **Botín e Inventario**: Llavero de misión, cofre de reliquias y botones de consumo rápido de pociones y pergaminos.
+  * **Atlas de 10 Capítulos**: Cartografía en piedra con indicadores de estado de expedición y botones de viaje rápido.
+  * **Bazar Rúnico**: Mostrador de cantería y jade para compra y venta de artefactos con monedero en tiempo real.
+  * **Descenso por Escalinata Unificado**: Fusión de la alerta superior y el botón flotante en una única losa interactiva superior con contador regresivo en vivo (`5s`).
 
 ---
 
