@@ -18,10 +18,18 @@ export class SoundManager {
   constructor() {
     this.ctx = null;
     this.masterGain = null;
+    this.sfxGain = null;
+    this.uiGain = null;
+    this.ambientGain = null;
+    this._gainNodePool = [];
     this._isMuted = false;
     this._volume = 0.6;
     this._noiseBuffer = null;
     this._brownNoiseBuffer = null;
+    this._clickBuffer = null;
+    this._jumpBuffer = null;
+    this._keyPickupBuffer = null;
+    this._caveImpulseBuffer = null;
     this._initialized = false;
 
     // Cargar preferencia de mute desde saveManager o fallback legacy
@@ -65,14 +73,116 @@ export class SoundManager {
 
     try {
       this.ctx = new AudioContextClass();
+
+      // Bus Maestro
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(this._isMuted ? 0 : this._volume, this.ctx.currentTime);
       this.masterGain.connect(this.ctx.destination);
 
+      // Buses de canal dedicados para pooling y mezcla limpia
+      this.sfxGain = this.ctx.createGain();
+      this.sfxGain.connect(this.masterGain);
+
+      this.uiGain = this.ctx.createGain();
+      this.uiGain.connect(this.masterGain);
+
+      this.ambientGain = this.ctx.createGain();
+      this.ambientGain.connect(this.masterGain);
+
       this._generateNoiseBuffers();
+      this._generateProceduralBuffers();
       this._initialized = true;
     } catch (e) {
       console.warn('[SoundManager] No se pudo inicializar Web Audio API:', e);
+    }
+  }
+
+  _acquireGainNode() {
+    if (this._gainNodePool && this._gainNodePool.length > 0) {
+      return this._gainNodePool.pop();
+    }
+    return this.ctx.createGain();
+  }
+
+  _releaseGainNode(node, delayMs = 1500) {
+    if (!node || !this._gainNodePool || this._gainNodePool.length >= 16) return;
+    setTimeout(() => {
+      try {
+        node.disconnect();
+        if (this._gainNodePool.length < 16) {
+          this._gainNodePool.push(node);
+        }
+      } catch {}
+    }, delayMs);
+  }
+
+  /**
+   * Sintetiza y almacena en caché PCM buffers para sonidos de alta repetición
+   * (salto, clics UI, llaves y reverb de cueva), garantizando Zero-GC y 0 ms de jank.
+   */
+  _generateProceduralBuffers() {
+    if (!this.ctx) return;
+    const sampleRate = this.ctx.sampleRate;
+
+    try {
+      // 1. Buffer para playClick() (40ms, 950Hz sine con decaimiento rápido)
+      const clickLen = Math.floor(sampleRate * 0.04);
+      this._clickBuffer = this.ctx.createBuffer(1, clickLen, sampleRate);
+      const clickData = this._clickBuffer.getChannelData(0);
+      for (let i = 0; i < clickLen; i++) {
+        const t = i / sampleRate;
+        const env = 0.12 * Math.exp(-t / 0.008);
+        clickData[i] = Math.sin(2 * Math.PI * 950 * t) * env;
+      }
+
+      // 2. Buffer para playJump() (130ms, barrido triangular 140Hz -> 260Hz)
+      const jumpLen = Math.floor(sampleRate * 0.13);
+      this._jumpBuffer = this.ctx.createBuffer(1, jumpLen, sampleRate);
+      const jumpData = this._jumpBuffer.getChannelData(0);
+      let phase = 0;
+      for (let i = 0; i < jumpLen; i++) {
+        const t = i / sampleRate;
+        const freq = t < 0.08 ? 140 * Math.pow(260 / 140, t / 0.08) : 260;
+        phase += (2 * Math.PI * freq) / sampleRate;
+        const tri = (2 / Math.PI) * Math.asin(Math.sin(phase));
+        const env = 0.2 * Math.exp(-t / 0.025);
+        jumpData[i] = tri * env;
+      }
+
+      // 3. Buffer para playKeyPickup() (450ms, campanillas duales 1318.5Hz y 1568.0Hz)
+      const keyLen = Math.floor(sampleRate * 0.45);
+      this._keyPickupBuffer = this.ctx.createBuffer(1, keyLen, sampleRate);
+      const keyData = this._keyPickupBuffer.getChannelData(0);
+      for (let i = 0; i < keyLen; i++) {
+        const t = i / sampleRate;
+        let sample = 0;
+        if (t <= 0.45) {
+          const t1 = t;
+          const attack1 = Math.min(1, t1 / 0.02);
+          const env1 = 0.24 * attack1 * Math.exp(-t1 / 0.08);
+          sample += Math.sin(2 * Math.PI * 1318.5 * t1) * env1;
+        }
+        if (t >= 0.09 && t <= 0.45) {
+          const t2 = t - 0.09;
+          const attack2 = Math.min(1, t2 / 0.02);
+          const env2 = 0.24 * attack2 * Math.exp(-t2 / 0.08);
+          sample += Math.sin(2 * Math.PI * 1568.0 * t2) * env2;
+        }
+        keyData[i] = sample;
+      }
+
+      // 4. Buffer de Impulso Reverb para playDescentEcho() (1.4s estéreo)
+      const dur = 1.4;
+      const len = Math.floor(sampleRate * dur);
+      this._caveImpulseBuffer = this.ctx.createBuffer(2, len, sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const data = this._caveImpulseBuffer.getChannelData(ch);
+        for (let i = 0; i < len; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+        }
+      }
+    } catch (e) {
+      console.warn('[SoundManager] Error pre-calculando buffers procedurales:', e);
     }
   }
 
@@ -146,8 +256,9 @@ export class SoundManager {
     if (dist > maxDistance) return { audible: false };
 
     const distanceGain = Math.max(0, 1 - (dist / maxDistance));
-    const gainNode = this.ctx.createGain();
+    const gainNode = this._acquireGainNode();
     gainNode.gain.setValueAtTime(distanceGain * distanceGain, this.ctx.currentTime);
+    this._releaseGainNode(gainNode, 1500);
 
     // Si el navegador soporta StereoPannerNode, calcular paneo L/R
     if (this.ctx.createStereoPanner) {
@@ -426,11 +537,19 @@ export class SoundManager {
   }
 
   /**
-   * Sonido sutil de salto: impulso aerodinámico.
+   * Sonido sutil de salto: impulso aerodinámico (utiliza AudioBuffer pre-calculado para Zero-GC).
    */
   playJump() {
     this._initContext();
     if (!this.ctx || this._isMuted) return;
+
+    if (this._jumpBuffer) {
+      const src = this.ctx.createBufferSource();
+      src.buffer = this._jumpBuffer;
+      src.connect(this.sfxGain || this.masterGain);
+      src.start();
+      return;
+    }
 
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -444,7 +563,7 @@ export class SoundManager {
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
 
     osc.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.sfxGain || this.masterGain);
     osc.start(t);
     osc.stop(t + 0.13);
   }
@@ -494,11 +613,19 @@ export class SoundManager {
   }
 
   /**
-   * Retroalimentación sonora al hacer clic en botones de la interfaz.
+   * Retroalimentación sonora al hacer clic en botones de la interfaz (Zero-GC con AudioBuffer).
    */
   playClick() {
     this._initContext();
     if (!this.ctx || this._isMuted) return;
+
+    if (this._clickBuffer) {
+      const src = this.ctx.createBufferSource();
+      src.buffer = this._clickBuffer;
+      src.connect(this.uiGain || this.masterGain);
+      src.start();
+      return;
+    }
 
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -511,7 +638,7 @@ export class SoundManager {
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
 
     osc.connect(gain);
-    gain.connect(this.masterGain);
+    gain.connect(this.uiGain || this.masterGain);
     osc.start(t);
     osc.stop(t + 0.04);
   }
@@ -561,7 +688,7 @@ export class SoundManager {
   }
 
   /**
-   * Llave conseguida: tintineo brillante de dos notas agudas.
+   * Llave conseguida: tintineo brillante de dos notas agudas (Zero-GC con AudioBuffer).
    */
   playKeyPickup() {
     this._initContext();
@@ -569,6 +696,15 @@ export class SoundManager {
     if (this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
+
+    if (this._keyPickupBuffer) {
+      const src = this.ctx.createBufferSource();
+      src.buffer = this._keyPickupBuffer;
+      src.connect(this.sfxGain || this.masterGain);
+      src.start();
+      return;
+    }
+
     const t = this.ctx.currentTime;
     [1318.5, 1568.0].forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
@@ -579,7 +715,7 @@ export class SoundManager {
       gain.gain.linearRampToValueAtTime(0.24, t + idx * 0.09 + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.09 + 0.4);
       osc.connect(gain);
-      gain.connect(this.masterGain);
+      gain.connect(this.sfxGain || this.masterGain);
       osc.start(t + idx * 0.09);
       osc.stop(t + idx * 0.09 + 0.45);
     });
@@ -765,16 +901,20 @@ export class SoundManager {
       this.ctx.resume().catch(() => {});
     }
     const t = this.ctx.currentTime;
-    // Impulso de cueva: ruido blanco con decaimiento exponencial (1.4s, estéreo)
-    const dur = 1.4;
-    const rate = this.ctx.sampleRate;
-    const len = Math.floor(rate * dur);
-    const impulse = this.ctx.createBuffer(2, len, rate);
-    for (let ch = 0; ch < 2; ch++) {
-      const data = impulse.getChannelData(ch);
-      for (let i = 0; i < len; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+    // Reutilizar impulso de cueva pre-calculado (Zero-GC, sin generar 134.400 floats en el loop)
+    let impulse = this._caveImpulseBuffer;
+    if (!impulse) {
+      const dur = 1.4;
+      const rate = this.ctx.sampleRate;
+      const len = Math.floor(rate * dur);
+      impulse = this.ctx.createBuffer(2, len, rate);
+      for (let ch = 0; ch < 2; ch++) {
+        const data = impulse.getChannelData(ch);
+        for (let i = 0; i < len; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+        }
       }
+      this._caveImpulseBuffer = impulse;
     }
     const conv = this.ctx.createConvolver();
     conv.buffer = impulse;

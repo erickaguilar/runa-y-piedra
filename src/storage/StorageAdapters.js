@@ -82,6 +82,26 @@ export class LocalStorageAdapter {
       return false;
     }
   }
+
+  async clear() {
+    const storage = this._getStorage();
+    if (!storage) return false;
+    try {
+      const toRemove = [];
+      for (let i = 0; i < storage.length; i++) {
+        const k = storage.key(i);
+        if (k && k.startsWith(this.prefix)) {
+          toRemove.push(k);
+        }
+      }
+      for (const k of toRemove) {
+        storage.removeItem(k);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
 
 export class IndexedDBAdapter {
@@ -144,9 +164,10 @@ export class IndexedDBAdapter {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
-      const req = store.put(val, key);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => reject(req.error);
+      store.put(val, key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error || new Error('Error al escribir en IndexedDB'));
+      tx.onabort = () => reject(tx.error || new Error('Transacción abortada en IndexedDB'));
     });
   }
 
@@ -155,16 +176,29 @@ export class IndexedDBAdapter {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.storeName, 'readwrite');
       const store = tx.objectStore(this.storeName);
-      const req = store.delete(key);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => reject(req.error);
+      store.delete(key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error || new Error('Error al eliminar en IndexedDB'));
+      tx.onabort = () => reject(tx.error || new Error('Transacción abortada en IndexedDB'));
+    });
+  }
+
+  async clear() {
+    const db = await this._open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.storeName, 'readwrite');
+      const store = tx.objectStore(this.storeName);
+      store.clear();
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error || new Error('Error al vaciar IndexedDB'));
+      tx.onabort = () => reject(tx.error || new Error('Transacción abortada en IndexedDB'));
     });
   }
 }
 
 /**
  * Adaptador híbrido con fallback transparente en cascada:
- * 1. IndexedDB (si está disponible y operativo)
+ * 1. IndexedDB (si está disponible y operativo, asíncrono y de cero impacto en 60 FPS)
  * 2. localStorage (fallback automático o espejo rápido)
  * 3. MemoryAdapter (para Node.js, tests o entornos sin storage)
  */
@@ -214,21 +248,25 @@ export class HybridStorageAdapter {
   }
 
   async set(key, val) {
-    // Espejo en memoria siempre
+    // 1. Espejo en memoria siempre (acceso O(1))
     await this.memory.set(key, val);
 
-    // Espejo en localStorage
-    await this.ls.set(key, val);
-
-    // Primario en IndexedDB si está disponible
+    // 2. Primario en IndexedDB si está disponible (asíncrono, estructurado, 0 jank)
     const canUseIdb = await this._checkIdb();
     if (canUseIdb) {
       try {
         await this.idb.set(key, val);
-      } catch {
+      } catch (err) {
+        console.warn('[HybridStorageAdapter] Error al escribir en IndexedDB:', err);
         this.hasIdb = false;
       }
     }
+
+    // 3. Espejo en localStorage tolerante a cuota
+    try {
+      await this.ls.set(key, val);
+    } catch { /* QuotaExceededError tolerado */ }
+
     return true;
   }
 
@@ -239,6 +277,20 @@ export class HybridStorageAdapter {
     if (canUseIdb) {
       try {
         await this.idb.delete(key);
+      } catch {
+        this.hasIdb = false;
+      }
+    }
+    return true;
+  }
+
+  async clear() {
+    await this.memory.clear();
+    await this.ls.clear();
+    const canUseIdb = await this._checkIdb();
+    if (canUseIdb) {
+      try {
+        await this.idb.clear();
       } catch {
         this.hasIdb = false;
       }
