@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+# Git pre-commit hook para Runa y Piedra
+# Ejecuta validación estática (sintaxis, ESLint 0 warnings, TypeScript) y suite de tests
+
+set -e
+
+echo "=========================================================="
+echo "🛡️  [pre-commit] Verificando calidad de Runa y Piedra..."
+echo "=========================================================="
+
+echo "🔍 1/2: Ejecutando linter y verificación de tipos (npm run lint)..."
+npm run lint
+
+echo "🧪 2/2: Ejecutando suite de pruebas automatizadas (npm test)..."
+npm test
+
+echo "✅ [pre-commit] Todas las verificaciones pasaron con éxito."

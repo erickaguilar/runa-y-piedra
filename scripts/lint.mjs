@@ -31,14 +31,14 @@ if (failed > 0) {
 }
 console.log(`[lint] OK: ${files.length} ficheros con sintaxis válida.`);
 
-console.log('[lint] 2/3: Ejecutando ESLint...');
+console.log('[lint] 2/3: Ejecutando ESLint (--max-warnings=0)...');
 try {
-  execFileSync(process.execPath, ['node_modules/eslint/bin/eslint.js', 'src/**/*.js', 'scripts/**/*.mjs', 'vite.config.js'], {
+  execFileSync(process.execPath, ['node_modules/eslint/bin/eslint.js', '--max-warnings=0', 'src/**/*.js', 'scripts/**/*.mjs', 'vite.config.js'], {
     stdio: 'inherit'
   });
-  console.log('[lint] OK: ESLint pasó sin errores.');
+  console.log('[lint] OK: ESLint pasó sin errores ni advertencias.');
 } catch {
-  console.error('[lint] ERROR: ESLint detectó problemas.');
+  console.error('[lint] ERROR: ESLint detectó errores o advertencias.');
   process.exit(1);
 }
 
