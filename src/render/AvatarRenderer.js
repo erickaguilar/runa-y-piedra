@@ -39,6 +39,14 @@ export class AvatarRenderer {
       a.parts.torso.material = a._origTorsoMat;
       a._origTorsoMat = null;
     }
+    if (a.parts?.armL && a._origArmLMat) {
+      a.parts.armL.material = a._origArmLMat;
+      a._origArmLMat = null;
+    }
+    if (a.parts?.armR && a._origArmRMat) {
+      a.parts.armR.material = a._origArmRMat;
+      a._origArmRMat = null;
+    }
     if (a._origTunicHex !== undefined && a.mats?.[0]) {
       a.mats[0].color.setHex(a._origTunicHex);
       a._origTunicHex = undefined;

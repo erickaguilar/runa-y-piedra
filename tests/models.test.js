@@ -17,6 +17,12 @@ import {
   createHeroHeadSideMaterial,
   createHeroHeadBackMaterial,
   createHeroChestMaterial,
+  createHeroTorsoSideMaterial,
+  createHeroTorsoBackMaterial,
+  createHeroArmFrontMaterial,
+  createHeroArmSideMaterial,
+  createHeroArmInnerMaterial,
+  createHeroArmBackMaterial,
   disposeHeroPortraitsCache,
 } from '../src/heroes/heroPortraits.js';
 import { renderIcon, ICONS } from '../src/ui/Icons.js';
@@ -937,7 +943,7 @@ test('Fases 1-5 Héroes 3D: Cachés Singleton de Gear, Texturas de Torso (Volume
   disposeHeroPortraitsCache();
 });
 
-test('Héroes Sumi-e 360°: Los 5 héroes integran texturas laterales (+X/-X) y trasera (-Z) en la cabeza 3D', () => {
+test('Héroes Sumi-e 360°: Los 5 héroes integran texturas laterales (+X/-X) y trasera (-Z) en cabeza y torso 3D', () => {
   disposeHeroPortraitsCache();
 
   const heroIds = ['guardian', 'wizard', 'ranger', 'paladin', 'adventurer'];
@@ -946,14 +952,18 @@ test('Héroes Sumi-e 360°: Los 5 héroes integran texturas laterales (+X/-X) y 
   const a = ar.ensure(303, '#fbbf24');
 
   for (const id of heroIds) {
-    // 1. Verificar definición en HERO_PORTRAITS[id]
+    // 1. Verificar definición en HERO_PORTRAITS[id] (cabeza y torso)
     const def = HERO_PORTRAITS[id];
     assert.ok(def.sideSvg && def.sideBody, `${id} debe definir sideSvg y sideBody`);
     assert.ok(def.backSvg && def.backBody, `${id} debe definir backSvg y backBody`);
     assert.equal(typeof def.drawSideToCanvas, 'function', `${id} debe definir drawSideToCanvas`);
     assert.equal(typeof def.drawBackToCanvas, 'function', `${id} debe definir drawBackToCanvas`);
+    assert.ok(def.torsoSideSvg && def.torsoSideBody, `${id} debe definir torsoSideSvg y torsoSideBody`);
+    assert.ok(def.torsoBackSvg && def.torsoBackBody, `${id} debe definir torsoBackSvg y torsoBackBody`);
+    assert.equal(typeof def.drawTorsoSideToCanvas, 'function', `${id} debe definir drawTorsoSideToCanvas`);
+    assert.equal(typeof def.drawTorsoBackToCanvas, 'function', `${id} debe definir drawTorsoBackToCanvas`);
 
-    // 2. Verificar factorías Singleton de materiales laterales ('R' y 'L') y trasero
+    // 2. Verificar factorías Singleton de materiales laterales ('R' y 'L') y trasero (cabeza + torso)
     const sideR1 = createHeroHeadSideMaterial(id, 'R');
     const sideR2 = createHeroHeadSideMaterial(id, 'R');
     const sideL1 = createHeroHeadSideMaterial(id, 'L');
@@ -961,27 +971,400 @@ test('Héroes Sumi-e 360°: Los 5 héroes integran texturas laterales (+X/-X) y 
     const back2 = createHeroHeadBackMaterial(id);
 
     assert.equal(sideR1, sideR2, `createHeroHeadSideMaterial(${id}, R) debe ser Singleton`);
-    assert.notEqual(sideR1, sideL1, `Lado derecho (+X) e izquierdo (-X) de ${id} deben tener instancias distintas (simetría invertida)`);
+    assert.notEqual(sideR1, sideL1, `Lado derecho (+X) e izquierdo (-X) de cabeza de ${id} deben tener instancias distintas`);
     assert.equal(back1, back2, `createHeroHeadBackMaterial(${id}) debe ser Singleton`);
     assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared && back1.userData?.isShared);
 
-    // 3. Verificar asignación en las caras del cubo de la cabeza [0:+X, 1:-X, 4:+Z, 5:-Z]
+    const torsoSideR1 = createHeroTorsoSideMaterial(id, 'R');
+    const torsoSideR2 = createHeroTorsoSideMaterial(id, 'R');
+    const torsoSideL1 = createHeroTorsoSideMaterial(id, 'L');
+    const torsoBack1 = createHeroTorsoBackMaterial(id);
+    const torsoBack2 = createHeroTorsoBackMaterial(id);
+
+    assert.equal(torsoSideR1, torsoSideR2, `createHeroTorsoSideMaterial(${id}, R) debe ser Singleton`);
+    assert.notEqual(torsoSideR1, torsoSideL1, `Lado derecho (+X) e izquierdo (-X) de torso de ${id} deben tener instancias distintas`);
+    assert.equal(torsoBack1, torsoBack2, `createHeroTorsoBackMaterial(${id}) debe ser Singleton`);
+    assert.ok(torsoSideR1.userData?.isShared && torsoSideL1.userData?.isShared && torsoBack1.userData?.isShared);
+
+    // 3. Verificar asignación en las caras del cubo de la cabeza y del torso [0:+X, 1:-X, 4:+Z, 5:-Z]
     ar.setHeroGear(a, id);
-    assert.equal(a.parts.head.material[0], sideR1, `Cara +X (índice 0) debe tener sideRightMat de ${id}`);
-    assert.equal(a.parts.head.material[1], sideL1, `Cara -X (índice 1) debe tener sideLeftMat de ${id}`);
-    assert.equal(a.parts.head.material[4], createHeroFaceMaterial(id), `Cara +Z (índice 4) debe tener faceMat de ${id}`);
-    assert.equal(a.parts.head.material[5], back1, `Cara -Z (índice 5) debe tener backMat de ${id}`);
+    assert.equal(a.parts.head.material[0], sideR1, `Cabeza +X (índice 0) debe tener sideRightMat de ${id}`);
+    assert.equal(a.parts.head.material[1], sideL1, `Cabeza -X (índice 1) debe tener sideLeftMat de ${id}`);
+    assert.equal(a.parts.head.material[4], createHeroFaceMaterial(id), `Cabeza +Z (índice 4) debe tener faceMat de ${id}`);
+    assert.equal(a.parts.head.material[5], back1, `Cabeza -Z (índice 5) debe tener backMat de ${id}`);
+
+    assert.equal(a.parts.torso.material[0], torsoSideR1, `Torso +X (índice 0) debe tener torsoSideRightMat de ${id}`);
+    assert.equal(a.parts.torso.material[1], torsoSideL1, `Torso -X (índice 1) debe tener torsoSideLeftMat de ${id}`);
+    assert.equal(a.parts.torso.material[4], createHeroChestMaterial(id), `Torso +Z (índice 4) debe tener chestMat de ${id}`);
+    assert.equal(a.parts.torso.material[5], torsoBack1, `Torso -Z (índice 5) debe tener torsoBackMat de ${id}`);
   }
 
   ar._clearGear(a);
-  assert.equal(a.parts.head.material[0], ar._sharedMats.skin, '_clearGear debe restaurar cara +X a skin');
-  assert.equal(a.parts.head.material[1], ar._sharedMats.skin, '_clearGear debe restaurar cara -X a skin');
-  assert.equal(a.parts.head.material[4], ar._sharedMats.face, '_clearGear debe restaurar cara +Z a face');
-  assert.equal(a.parts.head.material[5], ar._sharedMats.skin, '_clearGear debe restaurar cara -Z a skin');
+  assert.equal(a.parts.head.material[0], ar._sharedMats.skin, '_clearGear debe restaurar cabeza +X a skin');
+  assert.equal(a.parts.head.material[1], ar._sharedMats.skin, '_clearGear debe restaurar cabeza -X a skin');
+  assert.equal(a.parts.head.material[4], ar._sharedMats.face, '_clearGear debe restaurar cabeza +Z a face');
+  assert.equal(a.parts.head.material[5], ar._sharedMats.skin, '_clearGear debe restaurar cabeza -Z a skin');
+  assert.equal(a.parts.torso.material, a.mats[0], '_clearGear debe restaurar torso.material original');
 
   ar.dispose();
   disposeHeroPortraitsCache();
 });
+
+test('Héroes Sumi-e 360°: El Guardián integra texturas 360° en brazos 3D (frente +Z, exterior, interior, espalda -Z)', () => {
+  disposeHeroPortraitsCache();
+
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(404, '#10b981');
+
+  // 1. Verificar definición en HERO_PORTRAITS.guardian
+  const def = HERO_PORTRAITS.guardian;
+  assert.ok(def.armFrontSvg && def.armFrontBody, 'Guardián debe definir armFrontSvg y armFrontBody');
+  assert.ok(def.armSideSvg && def.armSideBody, 'Guardián debe definir armSideSvg y armSideBody');
+  assert.ok(def.armInnerSvg && def.armInnerBody, 'Guardián debe definir armInnerSvg y armInnerBody');
+  assert.ok(def.armBackSvg && def.armBackBody, 'Guardián debe definir armBackSvg y armBackBody');
+  assert.equal(typeof def.drawArmFrontToCanvas, 'function', 'Guardián debe definir drawArmFrontToCanvas');
+  assert.equal(typeof def.drawArmSideToCanvas, 'function', 'Guardián debe definir drawArmSideToCanvas');
+  assert.equal(typeof def.drawArmInnerToCanvas, 'function', 'Guardián debe definir drawArmInnerToCanvas');
+  assert.equal(typeof def.drawArmBackToCanvas, 'function', 'Guardián debe definir drawArmBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de brazo
+  const front1 = createHeroArmFrontMaterial('guardian');
+  const front2 = createHeroArmFrontMaterial('guardian');
+  assert.equal(front1, front2, 'createHeroArmFrontMaterial(guardian) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroArmSideMaterial('guardian', 'R');
+  const sideR2 = createHeroArmSideMaterial('guardian', 'R');
+  const sideL1 = createHeroArmSideMaterial('guardian', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroArmSideMaterial(guardian, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de armSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroArmInnerMaterial('guardian', 'R');
+  const innerR2 = createHeroArmInnerMaterial('guardian', 'R');
+  const innerL1 = createHeroArmInnerMaterial('guardian', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroArmInnerMaterial(guardian, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de armInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroArmBackMaterial('guardian');
+  const back2 = createHeroArmBackMaterial('guardian');
+  assert.equal(back1, back2, 'createHeroArmBackMaterial(guardian) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de armR y armL
+  ar.setHeroGear(a, 'guardian');
+
+  assert.ok(Array.isArray(a.parts.armR.material), 'armR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.armL.material), 'armL debe tener arreglo multimaterial');
+
+  // armR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armR.material[0], sideR1, 'Brazo derecho +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.armR.material[1], innerR1, 'Brazo derecho -X (interior) debe tener innerR1');
+  assert.equal(a.parts.armR.material[4], front1, 'Brazo derecho +Z (frente) debe tener front1');
+  assert.equal(a.parts.armR.material[5], back1, 'Brazo derecho -Z (espalda) debe tener back1');
+
+  // armL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armL.material[0], innerL1, 'Brazo izquierdo +X (interior) debe tener innerL1');
+  assert.equal(a.parts.armL.material[1], sideL1, 'Brazo izquierdo -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.armL.material[4], front1, 'Brazo izquierdo +Z (frente) debe tener front1');
+  assert.equal(a.parts.armL.material[5], back1, 'Brazo izquierdo -Z (espalda) debe tener back1');
+
+  // 4. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.armR.material, a.mats[1], '_clearGear debe restaurar armR al material de manga original');
+  assert.equal(a.parts.armL.material, a.mats[1], '_clearGear debe restaurar armL al material de manga original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Hechicero integra texturas 360° en brazos 3D (frente +Z, exterior, interior, espalda -Z)', () => {
+  disposeHeroPortraitsCache();
+
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(505, '#8b5cf6');
+
+  // 1. Verificar definición en HERO_PORTRAITS.wizard
+  const def = HERO_PORTRAITS.wizard;
+  assert.ok(def.armFrontSvg && def.armFrontBody, 'Hechicero debe definir armFrontSvg y armFrontBody');
+  assert.ok(def.armSideSvg && def.armSideBody, 'Hechicero debe definir armSideSvg y armSideBody');
+  assert.ok(def.armInnerSvg && def.armInnerBody, 'Hechicero debe definir armInnerSvg y armInnerBody');
+  assert.ok(def.armBackSvg && def.armBackBody, 'Hechicero debe definir armBackSvg y armBackBody');
+  assert.equal(typeof def.drawArmFrontToCanvas, 'function', 'Hechicero debe definir drawArmFrontToCanvas');
+  assert.equal(typeof def.drawArmSideToCanvas, 'function', 'Hechicero debe definir drawArmSideToCanvas');
+  assert.equal(typeof def.drawArmInnerToCanvas, 'function', 'Hechicero debe definir drawArmInnerToCanvas');
+  assert.equal(typeof def.drawArmBackToCanvas, 'function', 'Hechicero debe definir drawArmBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de brazo para el Hechicero
+  const front1 = createHeroArmFrontMaterial('wizard');
+  const front2 = createHeroArmFrontMaterial('wizard');
+  assert.equal(front1, front2, 'createHeroArmFrontMaterial(wizard) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroArmSideMaterial('wizard', 'R');
+  const sideR2 = createHeroArmSideMaterial('wizard', 'R');
+  const sideL1 = createHeroArmSideMaterial('wizard', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroArmSideMaterial(wizard, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de armSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroArmInnerMaterial('wizard', 'R');
+  const innerR2 = createHeroArmInnerMaterial('wizard', 'R');
+  const innerL1 = createHeroArmInnerMaterial('wizard', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroArmInnerMaterial(wizard, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de armInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroArmBackMaterial('wizard');
+  const back2 = createHeroArmBackMaterial('wizard');
+  assert.equal(back1, back2, 'createHeroArmBackMaterial(wizard) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de armR y armL
+  ar.setHeroGear(a, 'wizard');
+
+  assert.ok(Array.isArray(a.parts.armR.material), 'armR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.armL.material), 'armL debe tener arreglo multimaterial');
+
+  // armR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armR.material[0], sideR1, 'Brazo derecho +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.armR.material[1], innerR1, 'Brazo derecho -X (interior) debe tener innerR1');
+  assert.equal(a.parts.armR.material[4], front1, 'Brazo derecho +Z (frente) debe tener front1');
+  assert.equal(a.parts.armR.material[5], back1, 'Brazo derecho -Z (espalda) debe tener back1');
+
+  // armL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armL.material[0], innerL1, 'Brazo izquierdo +X (interior) debe tener innerL1');
+  assert.equal(a.parts.armL.material[1], sideL1, 'Brazo izquierdo -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.armL.material[4], front1, 'Brazo izquierdo +Z (frente) debe tener front1');
+  assert.equal(a.parts.armL.material[5], back1, 'Brazo izquierdo -Z (espalda) debe tener back1');
+
+  // 4. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.armR.material, a.mats[1], '_clearGear debe restaurar armR al material de manga original');
+  assert.equal(a.parts.armL.material, a.mats[1], '_clearGear debe restaurar armL al material de manga original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Explorador integra texturas 360° en brazos 3D (frente +Z, exterior, interior, espalda -Z)', () => {
+  disposeHeroPortraitsCache();
+
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(606, '#10b981');
+
+  // 1. Verificar definición en HERO_PORTRAITS.ranger
+  const def = HERO_PORTRAITS.ranger;
+  assert.ok(def.armFrontSvg && def.armFrontBody, 'Explorador debe definir armFrontSvg y armFrontBody');
+  assert.ok(def.armSideSvg && def.armSideBody, 'Explorador debe definir armSideSvg y armSideBody');
+  assert.ok(def.armInnerSvg && def.armInnerBody, 'Explorador debe definir armInnerSvg y armInnerBody');
+  assert.ok(def.armBackSvg && def.armBackBody, 'Explorador debe definir armBackSvg y armBackBody');
+  assert.equal(typeof def.drawArmFrontToCanvas, 'function', 'Explorador debe definir drawArmFrontToCanvas');
+  assert.equal(typeof def.drawArmSideToCanvas, 'function', 'Explorador debe definir drawArmSideToCanvas');
+  assert.equal(typeof def.drawArmInnerToCanvas, 'function', 'Explorador debe definir drawArmInnerToCanvas');
+  assert.equal(typeof def.drawArmBackToCanvas, 'function', 'Explorador debe definir drawArmBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de brazo para el Explorador
+  const front1 = createHeroArmFrontMaterial('ranger');
+  const front2 = createHeroArmFrontMaterial('ranger');
+  assert.equal(front1, front2, 'createHeroArmFrontMaterial(ranger) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroArmSideMaterial('ranger', 'R');
+  const sideR2 = createHeroArmSideMaterial('ranger', 'R');
+  const sideL1 = createHeroArmSideMaterial('ranger', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroArmSideMaterial(ranger, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de armSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroArmInnerMaterial('ranger', 'R');
+  const innerR2 = createHeroArmInnerMaterial('ranger', 'R');
+  const innerL1 = createHeroArmInnerMaterial('ranger', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroArmInnerMaterial(ranger, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de armInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroArmBackMaterial('ranger');
+  const back2 = createHeroArmBackMaterial('ranger');
+  assert.equal(back1, back2, 'createHeroArmBackMaterial(ranger) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de armR y armL
+  ar.setHeroGear(a, 'ranger');
+
+  assert.ok(Array.isArray(a.parts.armR.material), 'armR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.armL.material), 'armL debe tener arreglo multimaterial');
+
+  // armR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armR.material[0], sideR1, 'Brazo derecho +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.armR.material[1], innerR1, 'Brazo derecho -X (interior) debe tener innerR1');
+  assert.equal(a.parts.armR.material[4], front1, 'Brazo derecho +Z (frente) debe tener front1');
+  assert.equal(a.parts.armR.material[5], back1, 'Brazo derecho -Z (espalda) debe tener back1');
+
+  // armL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armL.material[0], innerL1, 'Brazo izquierdo +X (interior) debe tener innerL1');
+  assert.equal(a.parts.armL.material[1], sideL1, 'Brazo izquierdo -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.armL.material[4], front1, 'Brazo izquierdo +Z (frente) debe tener front1');
+  assert.equal(a.parts.armL.material[5], back1, 'Brazo izquierdo -Z (espalda) debe tener back1');
+
+  // 4. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.armR.material, a.mats[1], '_clearGear debe restaurar armR al material de manga original');
+  assert.equal(a.parts.armL.material, a.mats[1], '_clearGear debe restaurar armL al material de manga original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Paladín integra texturas 360° en brazos 3D (frente +Z, exterior, interior, espalda -Z)', () => {
+  disposeHeroPortraitsCache();
+
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(707, '#f59e0b');
+
+  // 1. Verificar definición en HERO_PORTRAITS.paladin
+  const def = HERO_PORTRAITS.paladin;
+  assert.ok(def.armFrontSvg && def.armFrontBody, 'Paladín debe definir armFrontSvg y armFrontBody');
+  assert.ok(def.armSideSvg && def.armSideBody, 'Paladín debe definir armSideSvg y armSideBody');
+  assert.ok(def.armInnerSvg && def.armInnerBody, 'Paladín debe definir armInnerSvg y armInnerBody');
+  assert.ok(def.armBackSvg && def.armBackBody, 'Paladín debe definir armBackSvg y armBackBody');
+  assert.equal(typeof def.drawArmFrontToCanvas, 'function', 'Paladín debe definir drawArmFrontToCanvas');
+  assert.equal(typeof def.drawArmSideToCanvas, 'function', 'Paladín debe definir drawArmSideToCanvas');
+  assert.equal(typeof def.drawArmInnerToCanvas, 'function', 'Paladín debe definir drawArmInnerToCanvas');
+  assert.equal(typeof def.drawArmBackToCanvas, 'function', 'Paladín debe definir drawArmBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de brazo para el Paladín
+  const front1 = createHeroArmFrontMaterial('paladin');
+  const front2 = createHeroArmFrontMaterial('paladin');
+  assert.equal(front1, front2, 'createHeroArmFrontMaterial(paladin) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroArmSideMaterial('paladin', 'R');
+  const sideR2 = createHeroArmSideMaterial('paladin', 'R');
+  const sideL1 = createHeroArmSideMaterial('paladin', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroArmSideMaterial(paladin, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de armSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroArmInnerMaterial('paladin', 'R');
+  const innerR2 = createHeroArmInnerMaterial('paladin', 'R');
+  const innerL1 = createHeroArmInnerMaterial('paladin', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroArmInnerMaterial(paladin, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de armInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroArmBackMaterial('paladin');
+  const back2 = createHeroArmBackMaterial('paladin');
+  assert.equal(back1, back2, 'createHeroArmBackMaterial(paladin) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de armR y armL
+  ar.setHeroGear(a, 'paladin');
+
+  assert.ok(Array.isArray(a.parts.armR.material), 'armR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.armL.material), 'armL debe tener arreglo multimaterial');
+
+  // armR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armR.material[0], sideR1, 'Brazo derecho +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.armR.material[1], innerR1, 'Brazo derecho -X (interior) debe tener innerR1');
+  assert.equal(a.parts.armR.material[4], front1, 'Brazo derecho +Z (frente) debe tener front1');
+  assert.equal(a.parts.armR.material[5], back1, 'Brazo derecho -Z (espalda) debe tener back1');
+
+  // armL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armL.material[0], innerL1, 'Brazo izquierdo +X (interior) debe tener innerL1');
+  assert.equal(a.parts.armL.material[1], sideL1, 'Brazo izquierdo -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.armL.material[4], front1, 'Brazo izquierdo +Z (frente) debe tener front1');
+  assert.equal(a.parts.armL.material[5], back1, 'Brazo izquierdo -Z (espalda) debe tener back1');
+
+  // 4. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.armR.material, a.mats[1], '_clearGear debe restaurar armR al material de manga original');
+  assert.equal(a.parts.armL.material, a.mats[1], '_clearGear debe restaurar armL al material de manga original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Aventurero integra texturas 360° en brazos 3D (frente +Z, exterior, interior, espalda -Z)', () => {
+  disposeHeroPortraitsCache();
+
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(808, '#3b82f6');
+
+  // 1. Verificar definición en HERO_PORTRAITS.adventurer
+  const def = HERO_PORTRAITS.adventurer;
+  assert.ok(def.armFrontSvg && def.armFrontBody, 'Aventurero debe definir armFrontSvg y armFrontBody');
+  assert.ok(def.armSideSvg && def.armSideBody, 'Aventurero debe definir armSideSvg y armSideBody');
+  assert.ok(def.armInnerSvg && def.armInnerBody, 'Aventurero debe definir armInnerSvg y armInnerBody');
+  assert.ok(def.armBackSvg && def.armBackBody, 'Aventurero debe definir armBackSvg y armBackBody');
+  assert.equal(typeof def.drawArmFrontToCanvas, 'function', 'Aventurero debe definir drawArmFrontToCanvas');
+  assert.equal(typeof def.drawArmSideToCanvas, 'function', 'Aventurero debe definir drawArmSideToCanvas');
+  assert.equal(typeof def.drawArmInnerToCanvas, 'function', 'Aventurero debe definir drawArmInnerToCanvas');
+  assert.equal(typeof def.drawArmBackToCanvas, 'function', 'Aventurero debe definir drawArmBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de brazo para el Aventurero
+  const front1 = createHeroArmFrontMaterial('adventurer');
+  const front2 = createHeroArmFrontMaterial('adventurer');
+  assert.equal(front1, front2, 'createHeroArmFrontMaterial(adventurer) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroArmSideMaterial('adventurer', 'R');
+  const sideR2 = createHeroArmSideMaterial('adventurer', 'R');
+  const sideL1 = createHeroArmSideMaterial('adventurer', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroArmSideMaterial(adventurer, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de armSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroArmInnerMaterial('adventurer', 'R');
+  const innerR2 = createHeroArmInnerMaterial('adventurer', 'R');
+  const innerL1 = createHeroArmInnerMaterial('adventurer', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroArmInnerMaterial(adventurer, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de armInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroArmBackMaterial('adventurer');
+  const back2 = createHeroArmBackMaterial('adventurer');
+  assert.equal(back1, back2, 'createHeroArmBackMaterial(adventurer) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de armR y armL
+  ar.setHeroGear(a, 'adventurer');
+
+  assert.ok(Array.isArray(a.parts.armR.material), 'armR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.armL.material), 'armL debe tener arreglo multimaterial');
+
+  // armR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armR.material[0], sideR1, 'Brazo derecho +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.armR.material[1], innerR1, 'Brazo derecho -X (interior) debe tener innerR1');
+  assert.equal(a.parts.armR.material[4], front1, 'Brazo derecho +Z (frente) debe tener front1');
+  assert.equal(a.parts.armR.material[5], back1, 'Brazo derecho -Z (espalda) debe tener back1');
+
+  // armL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.armL.material[0], innerL1, 'Brazo izquierdo +X (interior) debe tener innerL1');
+  assert.equal(a.parts.armL.material[1], sideL1, 'Brazo izquierdo -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.armL.material[4], front1, 'Brazo izquierdo +Z (frente) debe tener front1');
+  assert.equal(a.parts.armL.material[5], back1, 'Brazo izquierdo -Z (espalda) debe tener back1');
+
+  // 4. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.armR.material, a.mats[1], '_clearGear debe restaurar armR al material de manga original');
+  assert.equal(a.parts.armL.material, a.mats[1], '_clearGear debe restaurar armL al material de manga original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+
+
+
+
+
 
 
 

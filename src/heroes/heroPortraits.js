@@ -1654,6 +1654,1590 @@ export function drawAdventurerBackToCanvas(ctx, size = 32) {
 }
 
 /**
+ * SVG canónico del Costado Lateral del Torso del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Placas de basalto y bronce hacia el pecho (x=1..9) y hacia el espaldar (x=22..30).
+ * - Faja lateral de cuero/malla (#292524) cruzada por 3 correas tensoras con hebillas de oro (#b45309, #d97706, #fef08a) y cinturón pesado inferior.
+ */
+export const GUARDIAN_TORSO_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#292524"/><rect x="1" y="2" width="9" height="23" fill="#78350f"/><rect x="2" y="2" width="6" height="22" fill="#92400e"/><rect x="22" y="2" width="9" height="23" fill="#44403c"/><rect x="23" y="2" width="6" height="22" fill="#78350f"/><g fill="#0c0a09"><rect x="8" y="5" width="16" height="4"/><rect x="8" y="12" width="16" height="4"/><rect x="8" y="19" width="16" height="4"/></g><g fill="#b45309"><rect x="9" y="6" width="14" height="2"/><rect x="9" y="13" width="14" height="2"/><rect x="9" y="20" width="14" height="2"/></g><g fill="#fef08a"><rect x="14" y="6" width="4" height="2"/><rect x="14" y="13" width="4" height="2"/><rect x="14" y="20" width="4" height="2"/></g><rect x="1" y="26" width="30" height="5" fill="#1c1917"/><rect x="2" y="27" width="28" height="2" fill="#b45309"/>`;
+
+export const GUARDIAN_TORSO_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_TORSO_SIDE_BODY}</svg>`;
+
+export function drawGuardianTorsoSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#292524';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 25 * s);
+
+  // Borde del peto de bronce (frente) y espaldar (dorso)
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(1, 9), 2 * s, 9 * s, 23 * s);
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(rx(2, 6), 2 * s, 6 * s, 22 * s);
+  ctx.fillStyle = '#44403c';
+  ctx.fillRect(rx(22, 9), 2 * s, 9 * s, 23 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(23, 6), 2 * s, 6 * s, 22 * s);
+
+  // 3 correas laterales con hebillas doradas que unen peto y espaldar
+  for (const y of [5, 12, 19]) {
+    ctx.fillStyle = '#0c0a09';
+    ctx.fillRect(rx(8, 16), y * s, 16 * s, 4 * s);
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(rx(9, 14), (y + 1) * s, 14 * s, 2 * s);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(rx(14, 4), (y + 1) * s, 4 * s, 2 * s);
+  }
+
+  // Continuación lateral del cinturón pesado
+  ctx.fillStyle = '#1c1917';
+  ctx.fillRect(rx(1, 30), 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(rx(2, 28), 27 * s, 28 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda del Torso del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Espaldar monolítico de basalto y bronce (#44403c, #78350f, #92400e) con collarín áureo y columna vertebral acorazada en relieve (#b45309, #fef08a).
+ */
+export const GUARDIAN_TORSO_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#44403c"/><rect x="2" y="2" width="28" height="22" fill="#78350f"/><rect x="5" y="2" width="22" height="18" fill="#92400e"/><rect x="2" y="2" width="3" height="22" fill="#292524"/><rect x="27" y="2" width="3" height="22" fill="#292524"/><rect x="6" y="3" width="20" height="2" fill="#d97706"/><rect x="8" y="3" width="16" height="1" fill="#fef08a"/><rect x="12" y="5" width="8" height="20" fill="#0c0a09"/><rect x="13" y="6" width="6" height="18" fill="#b45309"/><g fill="#fef08a"><rect x="14" y="7" width="4" height="2"/><rect x="14" y="11" width="4" height="2"/><rect x="14" y="15" width="4" height="2"/><rect x="14" y="19" width="4" height="2"/></g><rect x="1" y="26" width="30" height="5" fill="#1c1917"/><rect x="12" y="26" width="8" height="5" fill="#b45309"/><rect x="14" y="27" width="4" height="3" fill="#dc2626"/>`;
+
+export const GUARDIAN_TORSO_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_TORSO_BACK_BODY}</svg>`;
+
+export function drawGuardianTorsoBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#44403c';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 25 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(2 * s, 2 * s, 28 * s, 22 * s);
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(5 * s, 2 * s, 22 * s, 18 * s);
+
+  ctx.fillStyle = '#292524';
+  ctx.fillRect(2 * s, 2 * s, 3 * s, 22 * s);
+  ctx.fillRect(27 * s, 2 * s, 3 * s, 22 * s);
+
+  // Collarín dorsal de oro
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(6 * s, 3 * s, 20 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(8 * s, 3 * s, 16 * s, 1 * s);
+
+  // Columna vertebral acorazada en el centro del espaldar
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(12 * s, 5 * s, 8 * s, 20 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(13 * s, 6 * s, 6 * s, 18 * s);
+  ctx.fillStyle = '#fef08a';
+  for (const y of [7, 11, 15, 19]) {
+    ctx.fillRect(14 * s, y * s, 4 * s, 2 * s);
+  }
+
+  // Cinturón pesado trasero
+  ctx.fillStyle = '#1c1917';
+  ctx.fillRect(1 * s, 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(12 * s, 26 * s, 8 * s, 5 * s);
+  ctx.fillStyle = '#dc2626';
+  ctx.fillRect(14 * s, 27 * s, 4 * s, 3 * s);
+}
+
+/**
+ * SVG canónico del Frente del Brazo del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Placa superior de bíceps en bronce acorazado (#5a3a18, #78350f, #92400e) con arista dorada central (#d97706, #fef08a).
+ * - Cota de malla y refuerzo vertical de acero (#1e293b, #3a3f48, #6b7078) con correa transversal y hebilla de oro.
+ */
+export const GUARDIAN_ARM_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="2" y="1" width="28" height="15" fill="#5a3a18"/><rect x="4" y="2" width="24" height="13" fill="#78350f"/><rect x="8" y="3" width="16" height="11" fill="#92400e"/><rect x="13" y="3" width="6" height="11" fill="#b45309"/><rect x="15" y="4" width="2" height="9" fill="#fef08a"/><rect x="5" y="4" width="2" height="2" fill="#fef08a"/><rect x="25" y="4" width="2" height="2" fill="#fef08a"/><rect x="5" y="11" width="2" height="2" fill="#fef08a"/><rect x="25" y="11" width="2" height="2" fill="#fef08a"/><rect x="2" y="16" width="28" height="2" fill="#0c0a09"/><rect x="3" y="18" width="26" height="13" fill="#1c1917"/><rect x="6" y="18" width="20" height="13" fill="#292524"/><rect x="10" y="18" width="12" height="13" fill="#3a3f48"/><rect x="12" y="18" width="8" height="13" fill="#6b7078"/><rect x="15" y="18" width="2" height="13" fill="#94a3b8"/><rect x="3" y="24" width="26" height="4" fill="#0c0a09"/><rect x="4" y="25" width="24" height="2" fill="#78350f"/><rect x="14" y="24" width="4" height="4" fill="#fef08a"/>`;
+
+export const GUARDIAN_ARM_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_ARM_FRONT_BODY}</svg>`;
+
+export function drawGuardianArmFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Placa de bíceps superior de bronce
+  ctx.fillStyle = '#5a3a18';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 15 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 13 * s);
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(8 * s, 3 * s, 16 * s, 11 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(13 * s, 3 * s, 6 * s, 11 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 4 * s, 2 * s, 9 * s);
+
+  // Remaches dorados de fijación
+  for (const y of [4, 11]) {
+    ctx.fillRect(5 * s, y * s, 2 * s, 2 * s);
+    ctx.fillRect(25 * s, y * s, 2 * s, 2 * s);
+  }
+
+  // Seam divisorio de articulación
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 16 * s, 28 * s, 2 * s);
+
+  // 2. Antebrazo inferior con cota de malla y riel de acero
+  ctx.fillStyle = '#1c1917';
+  ctx.fillRect(3 * s, 18 * s, 26 * s, 13 * s);
+  ctx.fillStyle = '#292524';
+  ctx.fillRect(6 * s, 18 * s, 20 * s, 13 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(10 * s, 18 * s, 12 * s, 13 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(12 * s, 18 * s, 8 * s, 13 * s);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(15 * s, 18 * s, 2 * s, 13 * s);
+
+  // Correa transversal de cuero con hebilla dorada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(3 * s, 24 * s, 26 * s, 4 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(4 * s, 25 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(14 * s, 24 * s, 4 * s, 4 * s);
+}
+
+/**
+ * SVG canónico del Costado Exterior del Brazo del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Placa exterior de blindaje pesado con blasón romboidal dorado en el bíceps y doble faja de acero inferior.
+ */
+export const GUARDIAN_ARM_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="2" y="1" width="28" height="15" fill="#78350f"/><rect x="4" y="2" width="24" height="13" fill="#92400e"/><rect x="13" y="4" width="6" height="8" fill="#0c0a09"/><rect x="14" y="5" width="4" height="6" fill="#d97706"/><rect x="15" y="6" width="2" height="4" fill="#fef08a"/><rect x="5" y="3" width="2" height="11" fill="#44403c"/><rect x="25" y="3" width="2" height="11" fill="#44403c"/><rect x="2" y="16" width="28" height="2" fill="#0c0a09"/><rect x="2" y="18" width="28" height="13" fill="#3a3f48"/><rect x="4" y="19" width="24" height="11" fill="#475569"/><rect x="7" y="19" width="18" height="11" fill="#6b7078"/><rect x="2" y="21" width="28" height="3" fill="#0c0a09"/><rect x="3" y="22" width="26" height="1" fill="#1c1917"/><rect x="15" y="21" width="2" height="3" fill="#fef08a"/><rect x="2" y="27" width="28" height="3" fill="#0c0a09"/><rect x="3" y="28" width="26" height="1" fill="#1c1917"/><rect x="15" y="27" width="2" height="3" fill="#fef08a"/>`;
+
+export const GUARDIAN_ARM_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_ARM_SIDE_BODY}</svg>`;
+
+export function drawGuardianArmSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Placa lateral exterior de bíceps
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 15 * s);
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(rx(4, 24), 2 * s, 24 * s, 13 * s);
+
+  // Blasón romboidal de oro
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(13, 6), 4 * s, 6 * s, 8 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(14, 4), 5 * s, 4 * s, 6 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(15, 2), 6 * s, 2 * s, 4 * s);
+
+  // Remaches laterales
+  ctx.fillStyle = '#44403c';
+  ctx.fillRect(rx(5, 2), 3 * s, 2 * s, 11 * s);
+  ctx.fillRect(rx(25, 2), 3 * s, 2 * s, 11 * s);
+
+  // Línea de articulación
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 16 * s, 28 * s, 2 * s);
+
+  // Placa lateral exterior inferior de acero
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(rx(2, 28), 18 * s, 28 * s, 13 * s);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(rx(4, 24), 19 * s, 24 * s, 11 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(rx(7, 18), 19 * s, 18 * s, 11 * s);
+
+  // Correas de acero con remache central
+  for (const y of [21, 27]) {
+    ctx.fillStyle = '#0c0a09';
+    ctx.fillRect(rx(2, 28), y * s, 28 * s, 3 * s);
+    ctx.fillStyle = '#1c1917';
+    ctx.fillRect(rx(3, 26), (y + 1) * s, 26 * s, 1 * s);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(rx(15, 2), y * s, 2 * s, 3 * s);
+  }
+}
+
+/**
+ * SVG canónico del Costado Interior del Brazo del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Vista orientada al torso: cuero acolchado (#1c1917, #292524) con correas de cuero y hebillas doradas.
+ */
+export const GUARDIAN_ARM_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="2" y="1" width="28" height="30" fill="#1c1917"/><rect x="4" y="2" width="24" height="28" fill="#292524"/><g fill="#0c0a09"><rect x="2" y="6" width="28" height="4"/><rect x="2" y="14" width="28" height="4"/><rect x="2" y="22" width="28" height="4"/></g><g fill="#451a03"><rect x="3" y="7" width="26" height="2"/><rect x="3" y="15" width="26" height="2"/><rect x="3" y="23" width="26" height="2"/></g><g fill="#fef08a"><rect x="14" y="6" width="4" height="4"/><rect x="14" y="14" width="4" height="4"/><rect x="14" y="22" width="4" height="4"/></g>`;
+
+export const GUARDIAN_ARM_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_ARM_INNER_BODY}</svg>`;
+
+export function drawGuardianArmInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Acolchado interior de cuero y lona oscura
+  ctx.fillStyle = '#1c1917';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 30 * s);
+  ctx.fillStyle = '#292524';
+  ctx.fillRect(rx(4, 24), 2 * s, 24 * s, 28 * s);
+
+  // 3 correas de ajuste con hebillas doradas
+  for (const y of [6, 14, 22]) {
+    ctx.fillStyle = '#0c0a09';
+    ctx.fillRect(rx(2, 28), y * s, 28 * s, 4 * s);
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(rx(3, 26), (y + 1) * s, 26 * s, 2 * s);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(rx(14, 4), y * s, 4 * s, 4 * s);
+  }
+}
+
+/**
+ * SVG canónico de la Espalda del Brazo del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Placa dorsal de tríceps en bronce (#5a3a18, #78350f) y codera protectora articulada en acero con remache central (#3a3f48, #6b7078, #fef08a).
+ */
+export const GUARDIAN_ARM_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="2" y="1" width="28" height="14" fill="#5a3a18"/><rect x="4" y="2" width="24" height="12" fill="#78350f"/><rect x="12" y="2" width="8" height="12" fill="#92400e"/><rect x="15" y="3" width="2" height="10" fill="#b45309"/><rect x="5" y="4" width="2" height="2" fill="#fef08a"/><rect x="25" y="4" width="2" height="2" fill="#fef08a"/><rect x="2" y="15" width="28" height="2" fill="#0c0a09"/><rect x="6" y="17" width="20" height="9" fill="#0c0a09"/><rect x="7" y="18" width="18" height="7" fill="#3a3f48"/><rect x="10" y="19" width="12" height="5" fill="#6b7078"/><rect x="14" y="20" width="4" height="3" fill="#fef08a"/><rect x="3" y="27" width="26" height="4" fill="#1c1917"/><rect x="6" y="27" width="20" height="4" fill="#475569"/>`;
+
+export const GUARDIAN_ARM_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_ARM_BACK_BODY}</svg>`;
+
+export function drawGuardianArmBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Placa dorsal de tríceps
+  ctx.fillStyle = '#5a3a18';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 14 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 12 * s);
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(12 * s, 2 * s, 8 * s, 12 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(15 * s, 3 * s, 2 * s, 10 * s);
+
+  // Remaches superiores
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(5 * s, 4 * s, 2 * s, 2 * s);
+  ctx.fillRect(25 * s, 4 * s, 2 * s, 2 * s);
+
+  // Seam horizontal
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 15 * s, 28 * s, 2 * s);
+
+  // Codera articulada central (couter)
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(6 * s, 17 * s, 20 * s, 9 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(7 * s, 18 * s, 18 * s, 7 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(10 * s, 19 * s, 12 * s, 5 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(14 * s, 20 * s, 4 * s, 3 * s);
+
+  // Base inferior del antebrazo
+  ctx.fillStyle = '#1c1917';
+  ctx.fillRect(3 * s, 27 * s, 26 * s, 4 * s);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(6 * s, 27 * s, 20 * s, 4 * s);
+}
+
+/**
+ * SVG canónico del Costado Lateral del Torso del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Pliegues laterales de la túnica arcana morada (#4c1d95, #581c87, #6b21a8, #7e22ce) con costura dorada (#b45309, #f59e0b) y cinturón con presilla del grimorio.
+ */
+export const WIZARD_TORSO_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#581c87"/><rect x="2" y="1" width="28" height="24" fill="#6b21a8"/><rect x="2" y="1" width="7" height="24" fill="#7e22ce"/><rect x="23" y="1" width="7" height="24" fill="#4c1d95"/><rect x="14" y="1" width="4" height="25" fill="#0c0a09"/><rect x="15" y="1" width="2" height="25" fill="#b45309"/><rect x="15" y="1" width="1" height="25" fill="#f59e0b"/><rect x="1" y="26" width="30" height="5" fill="#292524"/><rect x="12" y="26" width="8" height="5" fill="#78350f"/><rect x="14" y="27" width="4" height="3" fill="#a855f7"/>`;
+
+export const WIZARD_TORSO_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_TORSO_SIDE_BODY}</svg>`;
+
+export function drawWizardTorsoSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#581c87';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 25 * s);
+  ctx.fillStyle = '#6b21a8';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 24 * s);
+  ctx.fillStyle = '#7e22ce';
+  ctx.fillRect(rx(2, 7), 1 * s, 7 * s, 24 * s);
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(rx(23, 7), 1 * s, 7 * s, 24 * s);
+
+  // Costura rúnica dorada en el costado
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(14, 4), 1 * s, 4 * s, 25 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(rx(15, 2), 1 * s, 2 * s, 25 * s);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(rx(15, 1), 1 * s, 1 * s, 25 * s);
+
+  // Cinturón lateral y correa del grimorio
+  ctx.fillStyle = '#292524';
+  ctx.fillRect(rx(1, 30), 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(12, 8), 26 * s, 8 * s, 5 * s);
+  ctx.fillStyle = '#a855f7';
+  ctx.fillRect(rx(14, 4), 27 * s, 4 * s, 3 * s);
+}
+
+/**
+ * SVG canónico de la Espalda del Torso del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Túnica arcana morada con estola dorada dorsal y gran sello / círculo rúnico amatista (#a855f7, #f3e8ff) bordado en el centro.
+ */
+export const WIZARD_TORSO_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#581c87"/><rect x="2" y="1" width="28" height="24" fill="#6b21a8"/><rect x="2" y="1" width="5" height="24" fill="#4c1d95"/><rect x="25" y="1" width="5" height="24" fill="#4c1d95"/><rect x="6" y="1" width="2" height="25" fill="#b45309"/><rect x="24" y="1" width="2" height="25" fill="#b45309"/><rect x="7" y="1" width="1" height="25" fill="#f59e0b"/><rect x="24" y="1" width="1" height="25" fill="#f59e0b"/><rect x="10" y="6" width="12" height="12" fill="#0c0a09"/><rect x="11" y="7" width="10" height="10" fill="#b45309"/><rect x="12" y="8" width="8" height="8" fill="#581c87"/><rect x="13" y="9" width="6" height="6" fill="#a855f7"/><rect x="15" y="11" width="2" height="2" fill="#f3e8ff"/><rect x="1" y="26" width="30" height="5" fill="#292524"/><rect x="13" y="26" width="6" height="5" fill="#b45309"/>`;
+
+export const WIZARD_TORSO_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_TORSO_BACK_BODY}</svg>`;
+
+export function drawWizardTorsoBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#581c87';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 25 * s);
+  ctx.fillStyle = '#6b21a8';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 24 * s);
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(2 * s, 1 * s, 5 * s, 24 * s);
+  ctx.fillRect(25 * s, 1 * s, 5 * s, 24 * s);
+
+  // Estola rúnica dorada trasera
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(6 * s, 1 * s, 2 * s, 25 * s);
+  ctx.fillRect(24 * s, 1 * s, 2 * s, 25 * s);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(7 * s, 1 * s, 1 * s, 25 * s);
+  ctx.fillRect(24 * s, 1 * s, 1 * s, 25 * s);
+
+  // Gran sello arcano amatista bordado en la espalda
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(10 * s, 6 * s, 12 * s, 12 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(11 * s, 7 * s, 10 * s, 10 * s);
+  ctx.fillStyle = '#581c87';
+  ctx.fillRect(12 * s, 8 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#a855f7';
+  ctx.fillRect(13 * s, 9 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#f3e8ff';
+  ctx.fillRect(15 * s, 11 * s, 2 * s, 2 * s);
+
+  // Cinturón trasero
+  ctx.fillStyle = '#292524';
+  ctx.fillRect(1 * s, 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(13 * s, 26 * s, 6 * s, 5 * s);
+}
+
+/**
+ * SVG canónico del Frente del Brazo del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Manga amplia de túnica arcana violeta (#581c87, #6b21a8, #7e22ce) con estola rúnica dorada central (#b45309, #f59e0b, #fef08a) y bocamanga ancha con bordado de oro.
+ */
+export const WIZARD_ARM_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="24" fill="#581c87"/><rect x="2" y="1" width="28" height="23" fill="#6b21a8"/><rect x="2" y="2" width="4" height="22" fill="#4c1d95"/><rect x="26" y="2" width="4" height="22" fill="#4c1d95"/><rect x="5" y="2" width="3" height="22" fill="#7e22ce"/><rect x="24" y="2" width="3" height="22" fill="#7e22ce"/><rect x="12" y="1" width="8" height="24" fill="#0c0a09"/><rect x="13" y="2" width="6" height="23" fill="#b45309"/><rect x="14" y="2" width="4" height="23" fill="#f59e0b"/><rect x="15" y="4" width="2" height="3" fill="#fef08a"/><rect x="15" y="11" width="2" height="3" fill="#f3e8ff"/><rect x="15" y="18" width="2" height="3" fill="#fef08a"/><rect x="1" y="25" width="30" height="4" fill="#0c0a09"/><rect x="1" y="25" width="30" height="3" fill="#b45309"/><rect x="2" y="26" width="28" height="2" fill="#f59e0b"/><rect x="3" y="26" width="26" height="1" fill="#fef08a"/><rect x="2" y="28" width="28" height="3" fill="#2e1065"/><rect x="6" y="29" width="20" height="2" fill="#0c0a09"/>`;
+
+export const WIZARD_ARM_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_ARM_FRONT_BODY}</svg>`;
+
+export function drawWizardArmFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Cuerpo de la manga de la túnica violeta
+  ctx.fillStyle = '#581c87';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 24 * s);
+  ctx.fillStyle = '#6b21a8';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 23 * s);
+
+  // Pliegues de sombra y luz en los costados de la tela
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(2 * s, 2 * s, 4 * s, 22 * s);
+  ctx.fillRect(26 * s, 2 * s, 4 * s, 22 * s);
+  ctx.fillStyle = '#7e22ce';
+  ctx.fillRect(5 * s, 2 * s, 3 * s, 22 * s);
+  ctx.fillRect(24 * s, 2 * s, 3 * s, 22 * s);
+
+  // 2. Estola rúnica dorada central que desciende por la manga
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(12 * s, 1 * s, 8 * s, 24 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(13 * s, 2 * s, 6 * s, 23 * s);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(14 * s, 2 * s, 4 * s, 23 * s);
+
+  // Glifos / runas mágicas bordadas en oro y amatista
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 4 * s, 2 * s, 3 * s);
+  ctx.fillStyle = '#f3e8ff';
+  ctx.fillRect(15 * s, 11 * s, 2 * s, 3 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 18 * s, 2 * s, 3 * s);
+
+  // 3. Bocamanga ancha con ribete de oro y boca interior oscura
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(1 * s, 25 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(2 * s, 26 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(3 * s, 26 * s, 26 * s, 1 * s);
+
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(2 * s, 28 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(6 * s, 29 * s, 20 * s, 2 * s);
+}
+
+/**
+ * SVG canónico del Costado Exterior del Brazo del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Manga amplia con gran sello arcano bordado en el hombro (#a855f7, #f3e8ff), pliegues ondulantes y bocamanga acampanada.
+ */
+export const WIZARD_ARM_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="24" fill="#581c87"/><rect x="2" y="1" width="28" height="23" fill="#6b21a8"/><rect x="2" y="2" width="6" height="22" fill="#4c1d95"/><rect x="24" y="2" width="6" height="22" fill="#7e22ce"/><rect x="11" y="3" width="10" height="10" fill="#0c0a09"/><rect x="12" y="4" width="8" height="8" fill="#b45309"/><rect x="13" y="5" width="6" height="6" fill="#581c87"/><rect x="14" y="6" width="4" height="4" fill="#a855f7"/><rect x="15" y="7" width="2" height="2" fill="#f3e8ff"/><rect x="14" y="13" width="4" height="11" fill="#4c1d95"/><rect x="15" y="14" width="2" height="10" fill="#7e22ce"/><rect x="1" y="25" width="30" height="4" fill="#0c0a09"/><rect x="1" y="25" width="30" height="3" fill="#b45309"/><rect x="2" y="26" width="28" height="2" fill="#f59e0b"/><rect x="4" y="26" width="24" height="1" fill="#fef08a"/><rect x="2" y="28" width="28" height="3" fill="#2e1065"/>`;
+
+export const WIZARD_ARM_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_ARM_SIDE_BODY}</svg>`;
+
+export function drawWizardArmSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Manga amplia exterior
+  ctx.fillStyle = '#581c87';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 24 * s);
+  ctx.fillStyle = '#6b21a8';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 23 * s);
+
+  // Pliegues laterales
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(rx(2, 6), 2 * s, 6 * s, 22 * s);
+  ctx.fillStyle = '#7e22ce';
+  ctx.fillRect(rx(24, 6), 2 * s, 6 * s, 22 * s);
+
+  // Sello arcano de la escuela de magia en la parte superior del brazo
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 10), 3 * s, 10 * s, 10 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(rx(12, 8), 4 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#581c87';
+  ctx.fillRect(rx(13, 6), 5 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#a855f7';
+  ctx.fillRect(rx(14, 4), 6 * s, 4 * s, 4 * s);
+  ctx.fillStyle = '#f3e8ff';
+  ctx.fillRect(rx(15, 2), 7 * s, 2 * s, 2 * s);
+
+  // Caída vertical de pliegue bajo el sello
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(rx(14, 4), 13 * s, 4 * s, 11 * s);
+  ctx.fillStyle = '#7e22ce';
+  ctx.fillRect(rx(15, 2), 14 * s, 2 * s, 10 * s);
+
+  // Bocamanga acampanada con ribete dorado
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(rx(1, 30), 25 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(rx(2, 28), 26 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(4, 24), 26 * s, 24 * s, 1 * s);
+
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(rx(2, 28), 28 * s, 28 * s, 3 * s);
+}
+
+/**
+ * SVG canónico del Costado Interior del Brazo del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Vista orientada al torso: pliegues en penumbra índigo (#2e1065, #3b1078, #4c1d95) y ribete dorado en la bocamanga interior.
+ */
+export const WIZARD_ARM_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="24" fill="#3b1078"/><rect x="2" y="1" width="28" height="23" fill="#2e1065"/><rect x="4" y="2" width="8" height="22" fill="#4c1d95"/><rect x="20" y="2" width="8" height="22" fill="#1e1b4b"/><rect x="14" y="2" width="4" height="22" fill="#0c0a09"/><rect x="1" y="25" width="30" height="4" fill="#0c0a09"/><rect x="2" y="25" width="28" height="3" fill="#b45309"/><rect x="3" y="26" width="26" height="2" fill="#f59e0b"/><rect x="2" y="28" width="28" height="3" fill="#0c0a09"/>`;
+
+export const WIZARD_ARM_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_ARM_INNER_BODY}</svg>`;
+
+export function drawWizardArmInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Penumbra de la manga interior hacia el torso
+  ctx.fillStyle = '#3b1078';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 24 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 23 * s);
+
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(rx(4, 8), 2 * s, 8 * s, 22 * s);
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(rx(20, 8), 2 * s, 8 * s, 22 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(14, 4), 2 * s, 4 * s, 22 * s);
+
+  // Ribete dorado inferior
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(rx(2, 28), 25 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(rx(3, 26), 26 * s, 26 * s, 2 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 28 * s, 28 * s, 3 * s);
+}
+
+/**
+ * SVG canónico de la Espalda del Brazo del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Caída dorsal de la manga con pliegues pesados en el codo (#4c1d95, #6b21a8) y franja rúnica dorada en el puño.
+ */
+export const WIZARD_ARM_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="24" fill="#581c87"/><rect x="2" y="1" width="28" height="23" fill="#6b21a8"/><rect x="2" y="2" width="6" height="22" fill="#4c1d95"/><rect x="24" y="2" width="6" height="22" fill="#4c1d95"/><rect x="12" y="2" width="8" height="22" fill="#7e22ce"/><rect x="14" y="3" width="4" height="20" fill="#a855f7"/><rect x="10" y="14" width="12" height="4" fill="#0c0a09"/><rect x="11" y="15" width="10" height="2" fill="#4c1d95"/><rect x="1" y="25" width="30" height="4" fill="#0c0a09"/><rect x="1" y="25" width="30" height="3" fill="#b45309"/><rect x="2" y="26" width="28" height="2" fill="#f59e0b"/><rect x="5" y="26" width="22" height="1" fill="#fef08a"/><rect x="2" y="28" width="28" height="3" fill="#2e1065"/>`;
+
+export const WIZARD_ARM_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_ARM_BACK_BODY}</svg>`;
+
+export function drawWizardArmBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Tela dorsal de la manga
+  ctx.fillStyle = '#581c87';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 24 * s);
+  ctx.fillStyle = '#6b21a8';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 23 * s);
+
+  // Pliegues y sombras laterales
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(2 * s, 2 * s, 6 * s, 22 * s);
+  ctx.fillRect(24 * s, 2 * s, 6 * s, 22 * s);
+
+  // Nervadura de luz central
+  ctx.fillStyle = '#7e22ce';
+  ctx.fillRect(12 * s, 2 * s, 8 * s, 22 * s);
+  ctx.fillStyle = '#a855f7';
+  ctx.fillRect(14 * s, 3 * s, 4 * s, 20 * s);
+
+  // Pliegue transversal del codo
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(10 * s, 14 * s, 12 * s, 4 * s);
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(11 * s, 15 * s, 10 * s, 2 * s);
+
+  // Bocamanga dorsal con cinta dorada
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(1 * s, 25 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(2 * s, 26 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(5 * s, 26 * s, 22 * s, 1 * s);
+
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(2 * s, 28 * s, 28 * s, 3 * s);
+}
+
+/**
+ * SVG canónico del Costado Lateral del Torso del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Jubón verde bosque (#14532d, #166534, #15803d, #052e16) con costura lateral acordonada de cuero (#451a03, #78350f) y cinturón utilitario.
+ */
+export const RANGER_TORSO_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#14532d"/><rect x="2" y="1" width="28" height="24" fill="#166534"/><rect x="2" y="2" width="6" height="22" fill="#15803d"/><rect x="24" y="2" width="6" height="22" fill="#052e16"/><rect x="13" y="1" width="6" height="25" fill="#0c0a09"/><rect x="14" y="2" width="4" height="23" fill="#451a03"/><g fill="#78350f"><rect x="13" y="5" width="6" height="2"/><rect x="13" y="11" width="6" height="2"/><rect x="13" y="17" width="6" height="2"/><rect x="13" y="23" width="6" height="2"/></g><rect x="1" y="26" width="30" height="5" fill="#2e1909"/><rect x="12" y="26" width="8" height="5" fill="#78350f"/>`;
+
+export const RANGER_TORSO_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_TORSO_SIDE_BODY}</svg>`;
+
+export function drawRangerTorsoSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 25 * s);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 24 * s);
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(rx(2, 6), 2 * s, 6 * s, 22 * s);
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(rx(24, 6), 2 * s, 6 * s, 22 * s);
+
+  // Costura lateral de cuero con cordones horizontales
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(13, 6), 1 * s, 6 * s, 25 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(14, 4), 2 * s, 4 * s, 23 * s);
+  ctx.fillStyle = '#78350f';
+  for (const y of [5, 11, 17, 23]) {
+    ctx.fillRect(rx(13, 6), y * s, 6 * s, 2 * s);
+  }
+
+  // Cinturón lateral de montaraz
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(rx(1, 30), 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(12, 8), 26 * s, 8 * s, 5 * s);
+}
+
+/**
+ * SVG canónico de la Espalda del Torso del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Dorso del jubón verde bosque con pliegues bajo la capa, arnés dorsal de cuero y argolla de bronce (#b45309, #f59e0b) para el carcaj 3D.
+ */
+export const RANGER_TORSO_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#14532d"/><rect x="3" y="1" width="26" height="24" fill="#166534"/><g fill="#052e16"><rect x="6" y="2" width="3" height="22"/><rect x="23" y="2" width="3" height="22"/></g><path d="M5,24 L23,2 H28 L10,24 Z" fill="#0c0a09"/><path d="M6,24 L24,2 H27 L9,24 Z" fill="#451a03"/><rect x="13" y="2" width="6" height="23" fill="#0c0a09"/><rect x="14" y="2" width="4" height="23" fill="#451a03"/><rect x="12" y="10" width="8" height="8" fill="#0c0a09"/><rect x="13" y="11" width="6" height="6" fill="#b45309"/><rect x="14" y="12" width="4" height="4" fill="#f59e0b"/><rect x="1" y="26" width="30" height="5" fill="#2e1909"/><rect x="12" y="26" width="8" height="5" fill="#78350f"/>`;
+
+export const RANGER_TORSO_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_TORSO_BACK_BODY}</svg>`;
+
+export function drawRangerTorsoBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 25 * s);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(3 * s, 1 * s, 26 * s, 24 * s);
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(6 * s, 2 * s, 3 * s, 22 * s);
+  ctx.fillRect(23 * s, 2 * s, 3 * s, 22 * s);
+
+  // Correa diagonal + correa vertical del arnés del carcaj
+  for (let i = 0; i < 18; i++) {
+    const bx = (7 + Math.floor(i * 0.85)) * s;
+    const by = (22 - i) * s;
+    ctx.fillStyle = '#0c0a09';
+    ctx.fillRect(bx - s, by, 6 * s, 2 * s);
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(bx, by, 4 * s, 2 * s);
+  }
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(13 * s, 2 * s, 6 * s, 23 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(14 * s, 2 * s, 4 * s, 23 * s);
+
+  // Argolla maestra de bronce en el centro de la espalda
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(12 * s, 10 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(13 * s, 11 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(14 * s, 12 * s, 4 * s, 4 * s);
+
+  // Cinturón trasero
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(1 * s, 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(12 * s, 26 * s, 8 * s, 5 * s);
+}
+
+/**
+ * SVG canónico del Frente del Brazo del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Manga verde bosque (#14532d, #166534, #15803d) con brazallete protector de arquero en cuero endurecido (#451a03, #78350f) y ojetes de bronce con cordones cruzados (#d97706, #fef08a).
+ */
+export const RANGER_ARM_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="15" fill="#14532d"/><rect x="2" y="1" width="28" height="14" fill="#166534"/><rect x="4" y="2" width="6" height="12" fill="#15803d"/><rect x="22" y="2" width="6" height="12" fill="#052e16"/><rect x="14" y="2" width="4" height="12" fill="#15803d"/><rect x="1" y="15" width="30" height="2" fill="#0c0a09"/><rect x="3" y="17" width="26" height="13" fill="#2e1909"/><rect x="4" y="17" width="24" height="12" fill="#451a03"/><rect x="6" y="18" width="20" height="10" fill="#78350f"/><rect x="13" y="17" width="6" height="12" fill="#2e1909"/><rect x="14" y="18" width="4" height="10" fill="#b45309"/><g fill="#fef08a"><rect x="8" y="19" width="2" height="2"/><rect x="22" y="19" width="2" height="2"/><rect x="8" y="23" width="2" height="2"/><rect x="22" y="23" width="2" height="2"/><rect x="8" y="27" width="2" height="2"/><rect x="22" y="27" width="2" height="2"/></g><g fill="#0c0a09"><path d="M10,20 L22,24 L20,24 L10,21 Z"/><path d="M22,20 L10,24 L12,24 L22,21 Z"/><path d="M10,24 L22,28 L20,28 L10,25 Z"/><path d="M22,24 L10,28 L12,28 L22,25 Z"/></g><rect x="1" y="29" width="30" height="2" fill="#0c0a09"/>`;
+
+export const RANGER_ARM_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_ARM_FRONT_BODY}</svg>`;
+
+export function drawRangerArmFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Manga superior del jubón de montaraz en verde bosque
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 15 * s);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 14 * s);
+
+  // Pliegues y reflejos de luz forestal
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(4 * s, 2 * s, 6 * s, 12 * s);
+  ctx.fillRect(14 * s, 2 * s, 4 * s, 12 * s);
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(22 * s, 2 * s, 6 * s, 12 * s);
+
+  // Seam de unión entre bicep y brazal
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 15 * s, 30 * s, 2 * s);
+
+  // 2. Brazal protector de arquero en cuero endurecido
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(3 * s, 17 * s, 26 * s, 13 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(4 * s, 17 * s, 24 * s, 12 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(6 * s, 18 * s, 20 * s, 10 * s);
+
+  // Nervadura central de refuerzo contra el latigazo de la cuerda del arco
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(13 * s, 17 * s, 6 * s, 12 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(14 * s, 18 * s, 4 * s, 10 * s);
+
+  // Ojetes de bronce para cordones
+  ctx.fillStyle = '#fef08a';
+  for (const y of [19, 23, 27]) {
+    ctx.fillRect(8 * s, y * s, 2 * s, 2 * s);
+    ctx.fillRect(22 * s, y * s, 2 * s, 2 * s);
+  }
+
+  // Cordones cruzados de cuero negro
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(10 * s, 20 * s, 12 * s, 1 * s);
+  ctx.fillRect(10 * s, 24 * s, 12 * s, 1 * s);
+  ctx.fillRect(10 * s, 28 * s, 12 * s, 1 * s);
+
+  // Remate de la muñeca
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 29 * s, 30 * s, 2 * s);
+}
+
+/**
+ * SVG canónico del Costado Exterior del Brazo del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Emblema de montaraz en el hombro, cuero lateral con dos correas y hebillas de bronce (#78350f, #d97706, #fef08a).
+ */
+export const RANGER_ARM_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="15" fill="#14532d"/><rect x="2" y="1" width="28" height="14" fill="#166534"/><rect x="11" y="3" width="10" height="10" fill="#0c0a09"/><rect x="12" y="4" width="8" height="8" fill="#451a03"/><rect x="13" y="5" width="6" height="6" fill="#78350f"/><rect x="15" y="6" width="2" height="4" fill="#86efac"/><rect x="1" y="15" width="30" height="2" fill="#0c0a09"/><rect x="2" y="17" width="28" height="13" fill="#2e1909"/><rect x="4" y="18" width="24" height="11" fill="#451a03"/><rect x="6" y="18" width="20" height="11" fill="#78350f"/><g fill="#0c0a09"><rect x="2" y="20" width="28" height="3"/><rect x="2" y="26" width="28" height="3"/></g><g fill="#2e1909"><rect x="3" y="21" width="26" height="1"/><rect x="3" y="27" width="26" height="1"/></g><g fill="#d97706"><rect x="14" y="20" width="4" height="3"/><rect x="14" y="26" width="4" height="3"/></g><g fill="#fef08a"><rect x="15" y="21" width="2" height="1"/><rect x="15" y="27" width="2" height="1"/></g>`;
+
+export const RANGER_ARM_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_ARM_SIDE_BODY}</svg>`;
+
+export function drawRangerArmSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Manga exterior superior
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 15 * s);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 14 * s);
+
+  // Emblema de la orden de exploradores en el hombro (parche de cuero con hoja verde)
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 10), 3 * s, 10 * s, 10 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(12, 8), 4 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(13, 6), 5 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#86efac';
+  ctx.fillRect(rx(15, 2), 6 * s, 2 * s, 4 * s);
+
+  // Seam horizontal
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 15 * s, 30 * s, 2 * s);
+
+  // Placa lateral exterior del brazal
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(rx(2, 28), 17 * s, 28 * s, 13 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(4, 24), 18 * s, 24 * s, 11 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(6, 20), 18 * s, 20 * s, 11 * s);
+
+  // 2 correas de ajuste del brazal con hebillas de bronce
+  for (const y of [20, 26]) {
+    ctx.fillStyle = '#0c0a09';
+    ctx.fillRect(rx(2, 28), y * s, 28 * s, 3 * s);
+    ctx.fillStyle = '#2e1909';
+    ctx.fillRect(rx(3, 26), (y + 1) * s, 26 * s, 1 * s);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(rx(14, 4), y * s, 4 * s, 3 * s);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(rx(15, 2), (y + 1) * s, 2 * s, 1 * s);
+  }
+}
+
+/**
+ * SVG canónico del Costado Interior del Brazo del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Manga interior orientada al torso: pliegues en penumbra verde oscura (#052e16, #14532d) con costuras de cuero flexibles.
+ */
+export const RANGER_ARM_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="30" fill="#052e16"/><rect x="2" y="1" width="28" height="29" fill="#14532d"/><rect x="14" y="2" width="4" height="28" fill="#052e16"/><rect x="15" y="2" width="2" height="28" fill="#451a03"/><g fill="#78350f"><rect x="13" y="6" width="6" height="2"/><rect x="13" y="14" width="6" height="2"/><rect x="13" y="22" width="6" height="2"/></g><rect x="1" y="29" width="30" height="2" fill="#0c0a09"/>`;
+
+export const RANGER_ARM_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_ARM_INNER_BODY}</svg>`;
+
+export function drawRangerArmInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Penumbra interior verde
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 30 * s);
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 29 * s);
+
+  // Costura interior con puntadas de hilo grueso
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(rx(14, 4), 2 * s, 4 * s, 28 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(15, 2), 2 * s, 2 * s, 28 * s);
+
+  ctx.fillStyle = '#78350f';
+  for (const y of [6, 14, 22]) {
+    ctx.fillRect(rx(13, 6), y * s, 6 * s, 2 * s);
+  }
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 29 * s, 30 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda del Brazo del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Tríceps en verde bosque con codera de cuero reforzada (#451a03, #78350f) y remache de sujeción.
+ */
+export const RANGER_ARM_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="14" fill="#14532d"/><rect x="2" y="1" width="28" height="13" fill="#166534"/><rect x="5" y="2" width="4" height="11" fill="#15803d"/><rect x="23" y="2" width="4" height="11" fill="#052e16"/><rect x="1" y="14" width="30" height="2" fill="#0c0a09"/><rect x="6" y="15" width="20" height="9" fill="#0c0a09"/><rect x="7" y="16" width="18" height="7" fill="#451a03"/><rect x="10" y="17" width="12" height="5" fill="#78350f"/><rect x="15" y="18" width="2" height="3" fill="#d97706"/><rect x="2" y="24" width="28" height="6" fill="#2e1909"/><rect x="4" y="25" width="24" height="5" fill="#451a03"/><rect x="1" y="29" width="30" height="2" fill="#0c0a09"/>`;
+
+export const RANGER_ARM_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_ARM_BACK_BODY}</svg>`;
+
+export function drawRangerArmBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Manga dorsal superior
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 14 * s);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 13 * s);
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(5 * s, 2 * s, 4 * s, 11 * s);
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(23 * s, 2 * s, 4 * s, 11 * s);
+
+  // Codera de cuero reforzada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 14 * s, 30 * s, 2 * s);
+  ctx.fillRect(6 * s, 15 * s, 20 * s, 9 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(7 * s, 16 * s, 18 * s, 7 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(10 * s, 17 * s, 12 * s, 5 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(15 * s, 18 * s, 2 * s, 3 * s);
+
+  // Dorso del antebrazo
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(2 * s, 24 * s, 28 * s, 6 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(4 * s, 25 * s, 24 * s, 5 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 29 * s, 30 * s, 2 * s);
+}
+
+/**
+ * SVG canónico del Costado Lateral del Torso del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Placas de acero templado (#52525b, #71717a, #a1a1aa), cota de malla central (#27272a, #a1a1aa) y correas con hebillas doradas (#d97706, #fef08a).
+ */
+export const PALADIN_TORSO_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#27272a"/><rect x="1" y="2" width="9" height="23" fill="#71717a"/><rect x="2" y="2" width="6" height="22" fill="#a1a1aa"/><rect x="22" y="2" width="9" height="23" fill="#52525b"/><rect x="23" y="2" width="6" height="22" fill="#71717a"/><g fill="#a1a1aa"><rect x="12" y="4" width="2" height="2"/><rect x="17" y="4" width="2" height="2"/><rect x="12" y="13" width="2" height="2"/><rect x="17" y="13" width="2" height="2"/><rect x="12" y="22" width="2" height="2"/><rect x="17" y="22" width="2" height="2"/></g><g fill="#0c0a09"><rect x="8" y="7" width="16" height="4"/><rect x="8" y="16" width="16" height="4"/></g><g fill="#d97706"><rect x="9" y="8" width="14" height="2"/><rect x="9" y="17" width="14" height="2"/></g><g fill="#fef08a"><rect x="14" y="8" width="4" height="2"/><rect x="14" y="17" width="4" height="2"/></g><rect x="1" y="26" width="30" height="5" fill="#27272a"/><rect x="2" y="27" width="28" height="2" fill="#d97706"/>`;
+
+export const PALADIN_TORSO_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_TORSO_SIDE_BODY}</svg>`;
+
+export function drawPaladinTorsoSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#27272a';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 25 * s);
+
+  // Placas laterales del peto (frente) y espaldar (dorso)
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(rx(1, 9), 2 * s, 9 * s, 23 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(rx(2, 6), 2 * s, 6 * s, 22 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(rx(22, 9), 2 * s, 9 * s, 23 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(rx(23, 6), 2 * s, 6 * s, 22 * s);
+
+  // Eslabones de cota de malla en el costado
+  ctx.fillStyle = '#a1a1aa';
+  for (const y of [4, 13, 22]) {
+    ctx.fillRect(rx(12, 2), y * s, 2 * s, 2 * s);
+    ctx.fillRect(rx(17, 2), y * s, 2 * s, 2 * s);
+  }
+
+  // Correas templarias con hebillas doradas
+  for (const y of [7, 16]) {
+    ctx.fillStyle = '#0c0a09';
+    ctx.fillRect(rx(8, 16), y * s, 16 * s, 4 * s);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(rx(9, 14), (y + 1) * s, 14 * s, 2 * s);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(rx(14, 4), (y + 1) * s, 4 * s, 2 * s);
+  }
+
+  // Cinturón templario lateral
+  ctx.fillStyle = '#27272a';
+  ctx.fillRect(rx(1, 30), 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(2, 28), 27 * s, 28 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda del Torso del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Espaldar de acero bruñido (#52525b, #71717a, #a1a1aa) con tabardo dorsal carmesí (#991b1b, #7f1d1d) y gran cruz solar templaria en oro (#d97706, #fef08a).
+ */
+export const PALADIN_TORSO_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#52525b"/><rect x="2" y="2" width="28" height="22" fill="#71717a"/><rect x="3" y="2" width="26" height="5" fill="#a1a1aa"/><rect x="4" y="2" width="24" height="1" fill="#e4e4e7"/><rect x="10" y="2" width="12" height="23" fill="#0c0a09"/><rect x="11" y="2" width="10" height="23" fill="#991b1b"/><rect x="12" y="2" width="8" height="23" fill="#7f1d1d"/><rect x="11" y="2" width="1" height="23" fill="#d97706"/><rect x="20" y="2" width="1" height="23" fill="#d97706"/><rect x="14" y="5" width="4" height="14" fill="#d97706"/><rect x="10" y="9" width="12" height="4" fill="#d97706"/><rect x="15" y="6" width="2" height="12" fill="#fef08a"/><rect x="11" y="10" width="10" height="2" fill="#fef08a"/><rect x="1" y="26" width="30" height="5" fill="#27272a"/><rect x="12" y="26" width="8" height="5" fill="#d97706"/><rect x="13" y="27" width="6" height="3" fill="#fef08a"/>`;
+
+export const PALADIN_TORSO_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_TORSO_BACK_BODY}</svg>`;
+
+export function drawPaladinTorsoBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 25 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(2 * s, 2 * s, 28 * s, 22 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(3 * s, 2 * s, 26 * s, 5 * s);
+  ctx.fillStyle = '#e4e4e7';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 1 * s);
+
+  // Tabardo dorsal carmesí con ribete áureo
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(10 * s, 2 * s, 12 * s, 23 * s);
+  ctx.fillStyle = '#991b1b';
+  ctx.fillRect(11 * s, 2 * s, 10 * s, 23 * s);
+  ctx.fillStyle = '#7f1d1d';
+  ctx.fillRect(12 * s, 2 * s, 8 * s, 23 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(11 * s, 2 * s, 1 * s, 23 * s);
+  ctx.fillRect(20 * s, 2 * s, 1 * s, 23 * s);
+
+  // Gran cruz solar templaria en el dorso
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(14 * s, 5 * s, 4 * s, 14 * s);
+  ctx.fillRect(10 * s, 9 * s, 12 * s, 4 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 6 * s, 2 * s, 12 * s);
+  ctx.fillRect(11 * s, 10 * s, 10 * s, 2 * s);
+
+  // Cinturón templario trasero
+  ctx.fillStyle = '#27272a';
+  ctx.fillRect(1 * s, 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(12 * s, 26 * s, 8 * s, 5 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(13 * s, 27 * s, 6 * s, 3 * s);
+}
+
+/**
+ * SVG canónico del Frente del Brazo del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Bíceps con tela carmesí sagrada (#991b1b, #7f1d1d), placa de acero templado (#71717a, #a1a1aa, #e4e4e7) con ribete dorado, articulación del codo y gran brazal con la Cruz Solar templaria (#d97706, #fef08a).
+ */
+export const PALADIN_ARM_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="15" fill="#7f1d1d"/><rect x="2" y="1" width="28" height="14" fill="#991b1b"/><rect x="4" y="2" width="24" height="12" fill="#52525b"/><rect x="6" y="2" width="20" height="12" fill="#71717a"/><rect x="9" y="3" width="14" height="10" fill="#a1a1aa"/><rect x="13" y="3" width="6" height="10" fill="#e4e4e7"/><rect x="15" y="4" width="2" height="8" fill="#f8fafc"/><rect x="6" y="13" width="20" height="2" fill="#d97706"/><rect x="8" y="13" width="16" height="1" fill="#fef08a"/><rect x="7" y="4" width="2" height="2" fill="#fef08a"/><rect x="23" y="4" width="2" height="2" fill="#fef08a"/><rect x="1" y="15" width="30" height="2" fill="#0c0a09"/><rect x="4" y="15" width="24" height="2" fill="#27272a"/><rect x="2" y="17" width="28" height="13" fill="#0c0a09"/><rect x="3" y="17" width="26" height="12" fill="#52525b"/><rect x="5" y="18" width="22" height="10" fill="#71717a"/><rect x="7" y="19" width="18" height="8" fill="#a1a1aa"/><rect x="14" y="19" width="4" height="9" fill="#0c0a09"/><rect x="15" y="20" width="2" height="8" fill="#d97706"/><rect x="11" y="22" width="10" height="4" fill="#0c0a09"/><rect x="12" y="23" width="8" height="2" fill="#d97706"/><rect x="14" y="22" width="4" height="4" fill="#d97706"/><rect x="15" y="23" width="2" height="2" fill="#fef08a"/><rect x="6" y="19" width="2" height="2" fill="#f8fafc"/><rect x="24" y="19" width="2" height="2" fill="#f8fafc"/><rect x="6" y="26" width="2" height="2" fill="#f8fafc"/><rect x="24" y="26" width="2" height="2" fill="#f8fafc"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="3" y="30" width="26" height="2" fill="#d97706"/><rect x="5" y="30" width="22" height="1" fill="#fef08a"/>`;
+
+export const PALADIN_ARM_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_ARM_FRONT_BODY}</svg>`;
+
+export function drawPaladinArmFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Bíceps / brazo superior con tela carmesí sagrada y placa de acero
+  ctx.fillStyle = '#7f1d1d';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 15 * s);
+  ctx.fillStyle = '#991b1b';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 14 * s);
+
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 12 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(6 * s, 2 * s, 20 * s, 12 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(9 * s, 3 * s, 14 * s, 10 * s);
+  ctx.fillStyle = '#e4e4e7';
+  ctx.fillRect(13 * s, 3 * s, 6 * s, 10 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(15 * s, 4 * s, 2 * s, 8 * s);
+
+  // Filigrana y ribete dorado en el bíceps
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(6 * s, 13 * s, 20 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(8 * s, 13 * s, 16 * s, 1 * s);
+
+  // Remaches dorados del bíceps
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(7 * s, 4 * s, 2 * s, 2 * s);
+  ctx.fillRect(23 * s, 4 * s, 2 * s, 2 * s);
+
+  // 2. Articulación del codo
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 15 * s, 30 * s, 2 * s);
+  ctx.fillStyle = '#27272a';
+  ctx.fillRect(4 * s, 15 * s, 24 * s, 2 * s);
+
+  // 3. Antebrazo / brazalete de acero con Cruz Solar
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 17 * s, 28 * s, 13 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(3 * s, 17 * s, 26 * s, 12 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(5 * s, 18 * s, 22 * s, 10 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(7 * s, 19 * s, 18 * s, 8 * s);
+
+  // Cruz solar templaria dorada en relieve central
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 19 * s, 4 * s, 9 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(15 * s, 20 * s, 2 * s, 8 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(11 * s, 22 * s, 10 * s, 4 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(12 * s, 23 * s, 8 * s, 2 * s);
+
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(14 * s, 22 * s, 4 * s, 4 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 23 * s, 2 * s, 2 * s);
+
+  // Remaches plateados del brazal
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(6 * s, 19 * s, 2 * s, 2 * s);
+  ctx.fillRect(24 * s, 19 * s, 2 * s, 2 * s);
+  ctx.fillRect(6 * s, 26 * s, 2 * s, 2 * s);
+  ctx.fillRect(24 * s, 26 * s, 2 * s, 2 * s);
+
+  // Bocamanga de acero y oro en la muñeca
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(3 * s, 30 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(5 * s, 30 * s, 22 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Exterior del Brazo del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Placa lateral de acero bruñido con blasón solar en el hombro (#d97706, #fef08a), couter lateral y 2 correas de cuero con hebillas doradas.
+ */
+export const PALADIN_ARM_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="15" fill="#52525b"/><rect x="2" y="1" width="28" height="14" fill="#71717a"/><rect x="4" y="2" width="24" height="12" fill="#a1a1aa"/><rect x="6" y="2" width="20" height="12" fill="#cbd5e1"/><rect x="11" y="3" width="10" height="10" fill="#0c0a09"/><rect x="12" y="4" width="8" height="8" fill="#d97706"/><rect x="13" y="5" width="6" height="6" fill="#f59e0b"/><rect x="15" y="5" width="2" height="6" fill="#fef08a"/><rect x="13" y="7" width="6" height="2" fill="#fef08a"/><rect x="15" y="7" width="2" height="2" fill="#f8fafc"/><rect x="1" y="15" width="30" height="2" fill="#0c0a09"/><rect x="4" y="15" width="24" height="2" fill="#3f3f46"/><rect x="2" y="17" width="28" height="13" fill="#0c0a09"/><rect x="3" y="17" width="26" height="12" fill="#52525b"/><rect x="5" y="18" width="22" height="10" fill="#71717a"/><rect x="2" y="20" width="28" height="3" fill="#0c0a09"/><rect x="3" y="21" width="26" height="1" fill="#451a03"/><rect x="13" y="20" width="6" height="3" fill="#d97706"/><rect x="14" y="21" width="4" height="1" fill="#fef08a"/><rect x="2" y="26" width="28" height="3" fill="#0c0a09"/><rect x="3" y="27" width="26" height="1" fill="#451a03"/><rect x="13" y="26" width="6" height="3" fill="#d97706"/><rect x="14" y="27" width="4" height="1" fill="#fef08a"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="2" y="30" width="28" height="2" fill="#d97706"/>`;
+
+export const PALADIN_ARM_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_ARM_SIDE_BODY}</svg>`;
+
+export function drawPaladinArmSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Placa lateral superior
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 15 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 14 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(rx(4, 24), 2 * s, 24 * s, 12 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(rx(6, 20), 2 * s, 20 * s, 12 * s);
+
+  // Emblema heráldico solar en el hombro
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 10), 3 * s, 10 * s, 10 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(12, 8), 4 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(rx(13, 6), 5 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(15, 2), 5 * s, 2 * s, 6 * s);
+  ctx.fillRect(rx(13, 6), 7 * s, 6 * s, 2 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(rx(15, 2), 7 * s, 2 * s, 2 * s);
+
+  // Codera lateral articulada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 15 * s, 30 * s, 2 * s);
+  ctx.fillStyle = '#3f3f46';
+  ctx.fillRect(rx(4, 24), 15 * s, 24 * s, 2 * s);
+
+  // Brazal lateral inferior
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 17 * s, 28 * s, 13 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(rx(3, 26), 17 * s, 26 * s, 12 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(rx(5, 22), 18 * s, 22 * s, 10 * s);
+
+  // 2 Correas templarias de cuero con hebillas doradas
+  for (const y of [20, 26]) {
+    ctx.fillStyle = '#0c0a09';
+    ctx.fillRect(rx(2, 28), y * s, 28 * s, 3 * s);
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(rx(3, 26), (y + 1) * s, 26 * s, 1 * s);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(rx(13, 6), y * s, 6 * s, 3 * s);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(rx(14, 4), (y + 1) * s, 4 * s, 1 * s);
+  }
+
+  // Remate muñeca
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(2, 28), 30 * s, 28 * s, 2 * s);
+}
+
+/**
+ * SVG canónico del Costado Interior del Brazo del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Cota de malla oscura templaria (#27272a, #18181b), pliegues carmesí profundos (#7f1d1d, #450a0a) y costura interior de cuero.
+ */
+export const PALADIN_ARM_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="30" fill="#18181b"/><rect x="2" y="1" width="28" height="29" fill="#27272a"/><rect x="3" y="2" width="7" height="27" fill="#450a0a"/><rect x="4" y="3" width="5" height="25" fill="#7f1d1d"/><g fill="#52525b"><rect x="13" y="4" width="2" height="2"/><rect x="18" y="4" width="2" height="2"/><rect x="23" y="4" width="2" height="2"/><rect x="13" y="10" width="2" height="2"/><rect x="18" y="10" width="2" height="2"/><rect x="23" y="10" width="2" height="2"/><rect x="13" y="16" width="2" height="2"/><rect x="18" y="16" width="2" height="2"/><rect x="23" y="16" width="2" height="2"/><rect x="13" y="22" width="2" height="2"/><rect x="18" y="22" width="2" height="2"/><rect x="23" y="22" width="2" height="2"/></g><rect x="11" y="2" width="4" height="28" fill="#0c0a09"/><rect x="12" y="2" width="2" height="28" fill="#451a03"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="3" y="30" width="26" height="2" fill="#3f3f46"/>`;
+
+export const PALADIN_ARM_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_ARM_INNER_BODY}</svg>`;
+
+export function drawPaladinArmInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Fondo de cota de malla y penumbra
+  ctx.fillStyle = '#18181b';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 30 * s);
+  ctx.fillStyle = '#27272a';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 29 * s);
+
+  // Pliegues carmesí de la túnica interior
+  ctx.fillStyle = '#450a0a';
+  ctx.fillRect(rx(3, 7), 2 * s, 7 * s, 27 * s);
+  ctx.fillStyle = '#7f1d1d';
+  ctx.fillRect(rx(4, 5), 3 * s, 5 * s, 25 * s);
+
+  // Eslabones de cota de malla
+  ctx.fillStyle = '#52525b';
+  for (const y of [4, 10, 16, 22]) {
+    ctx.fillRect(rx(13, 2), y * s, 2 * s, 2 * s);
+    ctx.fillRect(rx(18, 2), y * s, 2 * s, 2 * s);
+    ctx.fillRect(rx(23, 2), y * s, 2 * s, 2 * s);
+  }
+
+  // Costura interior de unión
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 4), 2 * s, 4 * s, 28 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(12, 2), 2 * s, 2 * s, 28 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#3f3f46';
+  ctx.fillRect(rx(3, 26), 30 * s, 26 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda del Brazo del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Placa dorsal de tríceps en acero templado (#71717a, #a1a1aa, #f8fafc), gran couter puntiagudo en relieve con remache áureo (#fef08a) y bandas laminares del antebrazo.
+ */
+export const PALADIN_ARM_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="14" fill="#52525b"/><rect x="2" y="1" width="28" height="13" fill="#71717a"/><rect x="5" y="2" width="22" height="11" fill="#a1a1aa"/><rect x="9" y="3" width="14" height="9" fill="#cbd5e1"/><rect x="14" y="3" width="4" height="9" fill="#f8fafc"/><rect x="5" y="4" width="2" height="2" fill="#fef08a"/><rect x="25" y="4" width="2" height="2" fill="#fef08a"/><rect x="1" y="14" width="30" height="2" fill="#0c0a09"/><rect x="6" y="15" width="20" height="9" fill="#0c0a09"/><rect x="7" y="16" width="18" height="7" fill="#52525b"/><rect x="9" y="17" width="14" height="5" fill="#71717a"/><rect x="11" y="18" width="10" height="3" fill="#a1a1aa"/><rect x="13" y="18" width="6" height="3" fill="#e4e4e7"/><rect x="15" y="19" width="2" height="2" fill="#fef08a"/><rect x="2" y="24" width="28" height="6" fill="#0c0a09"/><rect x="3" y="24" width="26" height="5" fill="#52525b"/><rect x="5" y="25" width="22" height="4" fill="#71717a"/><rect x="8" y="25" width="16" height="3" fill="#a1a1aa"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="2" y="30" width="28" height="2" fill="#d97706"/>`;
+
+export const PALADIN_ARM_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_ARM_BACK_BODY}</svg>`;
+
+export function drawPaladinArmBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Placa dorsal de tríceps en acero
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 14 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 13 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(5 * s, 2 * s, 22 * s, 11 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(9 * s, 3 * s, 14 * s, 9 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(14 * s, 3 * s, 4 * s, 9 * s);
+
+  // Remaches dorados del tríceps
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(5 * s, 4 * s, 2 * s, 2 * s);
+  ctx.fillRect(25 * s, 4 * s, 2 * s, 2 * s);
+
+  // Seam horizontal
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 14 * s, 30 * s, 2 * s);
+
+  // Codera puntiaguda en relieve (Couter)
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(6 * s, 15 * s, 20 * s, 9 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(7 * s, 16 * s, 18 * s, 7 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(9 * s, 17 * s, 14 * s, 5 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(11 * s, 18 * s, 10 * s, 3 * s);
+  ctx.fillStyle = '#e4e4e7';
+  ctx.fillRect(13 * s, 18 * s, 6 * s, 3 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 19 * s, 2 * s, 2 * s);
+
+  // Dorso del antebrazo con bandas laminares de acero
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 24 * s, 28 * s, 6 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(3 * s, 24 * s, 26 * s, 5 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(5 * s, 25 * s, 22 * s, 4 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(8 * s, 25 * s, 16 * s, 3 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(2 * s, 30 * s, 28 * s, 2 * s);
+}
+
+
+/**
+ * SVG canónico del Costado Lateral del Torso del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Túnica azul expedición (#0c4a6e, #0369a1, #0284c7, #082f49), esclavina superior de cuero, correa lateral hacia la mochila 3D y cinturón con presilla.
+ */
+export const ADVENTURER_TORSO_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#0c4a6e"/><rect x="2" y="2" width="28" height="23" fill="#0369a1"/><rect x="2" y="2" width="6" height="22" fill="#0284c7"/><rect x="24" y="2" width="6" height="22" fill="#082f49"/><rect x="2" y="1" width="28" height="3" fill="#451a03"/><rect x="1" y="12" width="30" height="5" fill="#0c0a09"/><rect x="2" y="13" width="28" height="3" fill="#451a03"/><rect x="3" y="13" width="26" height="1" fill="#78350f"/><rect x="13" y="12" width="6" height="5" fill="#d97706"/><rect x="14" y="13" width="4" height="3" fill="#fef08a"/><rect x="1" y="26" width="30" height="5" fill="#451a03"/><rect x="12" y="26" width="8" height="5" fill="#d97706"/>`;
+
+export const ADVENTURER_TORSO_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_TORSO_SIDE_BODY}</svg>`;
+
+export function drawAdventurerTorsoSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#0c4a6e';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 25 * s);
+  ctx.fillStyle = '#0369a1';
+  ctx.fillRect(rx(2, 28), 2 * s, 28 * s, 23 * s);
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(rx(2, 6), 2 * s, 6 * s, 22 * s);
+  ctx.fillStyle = '#082f49';
+  ctx.fillRect(rx(24, 6), 2 * s, 6 * s, 22 * s);
+
+  // Sombra de esclavina / capucha de hombro superior
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 3 * s);
+
+  // Correa tensora lateral que conecta el arnés del pecho con la mochila 3D
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 12 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(2, 28), 13 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(3, 26), 13 * s, 26 * s, 1 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(13, 6), 12 * s, 6 * s, 5 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(14, 4), 13 * s, 4 * s, 3 * s);
+
+  // Cinturón utilitario lateral
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(1, 30), 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(12, 8), 26 * s, 8 * s, 5 * s);
+}
+
+/**
+ * SVG canónico de la Espalda del Torso del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Dorso de la túnica azul expedición (#0c4a6e, #0369a1), esclavina superior de cuero y bastidor con correas y argollas de latón bajo la mochila 3D.
+ */
+export const ADVENTURER_TORSO_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="25" fill="#0c4a6e"/><rect x="2" y="2" width="28" height="23" fill="#0369a1"/><rect x="2" y="2" width="4" height="22" fill="#082f49"/><rect x="26" y="2" width="4" height="22" fill="#082f49"/><rect x="2" y="1" width="28" height="4" fill="#451a03"/><rect x="6" y="4" width="4" height="21" fill="#0c0a09"/><rect x="22" y="4" width="4" height="21" fill="#0c0a09"/><rect x="7" y="4" width="2" height="21" fill="#451a03"/><rect x="23" y="4" width="2" height="21" fill="#451a03"/><rect x="6" y="12" width="20" height="4" fill="#0c0a09"/><rect x="7" y="13" width="18" height="2" fill="#78350f"/><rect x="13" y="11" width="6" height="6" fill="#f59e0b"/><rect x="14" y="12" width="4" height="4" fill="#fef08a"/><rect x="1" y="26" width="30" height="5" fill="#451a03"/><rect x="13" y="26" width="6" height="5" fill="#d97706"/>`;
+
+export const ADVENTURER_TORSO_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_TORSO_BACK_BODY}</svg>`;
+
+export function drawAdventurerTorsoBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#0c4a6e';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 25 * s);
+  ctx.fillStyle = '#0369a1';
+  ctx.fillRect(2 * s, 2 * s, 28 * s, 23 * s);
+  ctx.fillStyle = '#082f49';
+  ctx.fillRect(2 * s, 2 * s, 4 * s, 22 * s);
+  ctx.fillRect(26 * s, 2 * s, 4 * s, 22 * s);
+
+  // Esclavina superior y bastidor de correas de la mochila 3D
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 4 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(6 * s, 4 * s, 4 * s, 21 * s);
+  ctx.fillRect(22 * s, 4 * s, 4 * s, 21 * s);
+  ctx.fillRect(6 * s, 12 * s, 20 * s, 4 * s);
+
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(7 * s, 4 * s, 2 * s, 21 * s);
+  ctx.fillRect(23 * s, 4 * s, 2 * s, 21 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(7 * s, 13 * s, 18 * s, 2 * s);
+
+  // Herraje central de latón del bastidor
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(13 * s, 11 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(14 * s, 12 * s, 4 * s, 4 * s);
+
+  // Cinturón utilitario trasero
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(1 * s, 26 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(13 * s, 26 * s, 6 * s, 5 * s);
+}
+
+/**
+ * SVG canónico del Frente del Brazo del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Manga de la túnica de expedición azul zafiro (#0c4a6e, #0369a1, #0284c7), pliegues en codo, brazalete de cuero con tiras de lino cruzadas (#cbd5e1, #f8fafc) y hebillas de latón.
+ */
+export const ADVENTURER_ARM_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="15" fill="#0c4a6e"/><rect x="2" y="1" width="28" height="14" fill="#0369a1"/><rect x="4" y="2" width="6" height="12" fill="#0284c7"/><rect x="14" y="2" width="4" height="12" fill="#38bdf8"/><rect x="22" y="2" width="6" height="12" fill="#082f49"/><rect x="2" y="1" width="28" height="3" fill="#451a03"/><rect x="4" y="1" width="24" height="2" fill="#78350f"/><rect x="1" y="15" width="30" height="2" fill="#0c0a09"/><rect x="3" y="15" width="26" height="2" fill="#78350f"/><rect x="14" y="14" width="4" height="4" fill="#d97706"/><rect x="15" y="15" width="2" height="2" fill="#fef08a"/><rect x="2" y="17" width="28" height="13" fill="#0c0a09"/><rect x="3" y="17" width="26" height="12" fill="#451a03"/><rect x="5" y="18" width="22" height="10" fill="#78350f"/><rect x="7" y="18" width="18" height="10" fill="#b45309"/><g fill="#cbd5e1"><path d="M7,19 L25,27 H23 L5,19 Z"/><path d="M25,19 L7,27 H9 L27,19 Z"/></g><g fill="#f8fafc"><path d="M8,19 L24,27 H23 L7,19 Z"/><path d="M24,19 L8,27 H9 L25,19 Z"/></g><rect x="6" y="20" width="2" height="2" fill="#fef08a"/><rect x="24" y="20" width="2" height="2" fill="#fef08a"/><rect x="6" y="25" width="2" height="2" fill="#fef08a"/><rect x="24" y="25" width="2" height="2" fill="#fef08a"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="3" y="30" width="26" height="2" fill="#cbd5e1"/><rect x="5" y="30" width="22" height="1" fill="#f8fafc"/>`;
+
+export const ADVENTURER_ARM_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_ARM_FRONT_BODY}</svg>`;
+
+export function drawAdventurerArmFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Manga azul de expedición
+  ctx.fillStyle = '#0c4a6e';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 15 * s);
+  ctx.fillStyle = '#0369a1';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 14 * s);
+
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(4 * s, 2 * s, 6 * s, 12 * s);
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(14 * s, 2 * s, 4 * s, 12 * s);
+  ctx.fillStyle = '#082f49';
+  ctx.fillRect(22 * s, 2 * s, 6 * s, 12 * s);
+
+  // Parche de cuero en hombro
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(4 * s, 1 * s, 24 * s, 2 * s);
+
+  // Cinta de ajuste en el codo con hebilla
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 15 * s, 30 * s, 2 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(3 * s, 15 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(14 * s, 14 * s, 4 * s, 4 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 15 * s, 2 * s, 2 * s);
+
+  // Brazalete de cuero de viaje
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 17 * s, 28 * s, 13 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(3 * s, 17 * s, 26 * s, 12 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(5 * s, 18 * s, 22 * s, 10 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(7 * s, 18 * s, 18 * s, 10 * s);
+
+  // Vendas / cordajes de lino cruzados
+  for (let i = 0; i < 9; i++) {
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect((7 + 2 * i) * s, (19 + i) * s, 2 * s, 1 * s);
+    ctx.fillRect((23 - 2 * i) * s, (19 + i) * s, 2 * s, 1 * s);
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect((8 + 2 * i) * s, (19 + i) * s, 1 * s, 1 * s);
+    ctx.fillRect((24 - 2 * i) * s, (19 + i) * s, 1 * s, 1 * s);
+  }
+
+  // Remaches de latón
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(6 * s, 20 * s, 2 * s, 2 * s);
+  ctx.fillRect(24 * s, 20 * s, 2 * s, 2 * s);
+  ctx.fillRect(6 * s, 25 * s, 2 * s, 2 * s);
+  ctx.fillRect(24 * s, 25 * s, 2 * s, 2 * s);
+
+  // Muñequera de lino
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(3 * s, 30 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(5 * s, 30 * s, 22 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Exterior del Brazo del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Manga azul con emblema de la Rosa de los Vientos en el hombro (#d97706, #fef08a), codo acolchado y brazalete con 2 correas de cuero y hebillas de latón.
+ */
+export const ADVENTURER_ARM_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="15" fill="#0c4a6e"/><rect x="2" y="1" width="28" height="14" fill="#0369a1"/><rect x="4" y="2" width="24" height="12" fill="#0284c7"/><rect x="2" y="1" width="28" height="3" fill="#451a03"/><rect x="11" y="3" width="10" height="10" fill="#0c0a09"/><rect x="12" y="4" width="8" height="8" fill="#451a03"/><rect x="13" y="5" width="6" height="6" fill="#d97706"/><rect x="15" y="5" width="2" height="6" fill="#fef08a"/><rect x="13" y="7" width="6" height="2" fill="#fef08a"/><rect x="15" y="7" width="2" height="2" fill="#f8fafc"/><rect x="1" y="15" width="30" height="2" fill="#0c0a09"/><rect x="4" y="15" width="24" height="2" fill="#451a03"/><rect x="2" y="17" width="28" height="13" fill="#0c0a09"/><rect x="3" y="17" width="26" height="12" fill="#451a03"/><rect x="5" y="18" width="22" height="10" fill="#78350f"/><rect x="2" y="20" width="28" height="3" fill="#0c0a09"/><rect x="3" y="21" width="26" height="1" fill="#451a03"/><rect x="13" y="20" width="6" height="3" fill="#d97706"/><rect x="14" y="21" width="4" height="1" fill="#fef08a"/><rect x="2" y="26" width="28" height="3" fill="#0c0a09"/><rect x="3" y="27" width="26" height="1" fill="#451a03"/><rect x="13" y="26" width="6" height="3" fill="#d97706"/><rect x="14" y="27" width="4" height="1" fill="#fef08a"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="2" y="30" width="28" height="2" fill="#78350f"/>`;
+
+export const ADVENTURER_ARM_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_ARM_SIDE_BODY}</svg>`;
+
+export function drawAdventurerArmSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Manga lateral superior
+  ctx.fillStyle = '#0c4a6e';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 15 * s);
+  ctx.fillStyle = '#0369a1';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 14 * s);
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(rx(4, 24), 2 * s, 24 * s, 12 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 3 * s);
+
+  // Emblema de la Rosa de los Vientos / Brújula en el hombro
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 10), 3 * s, 10 * s, 10 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(12, 8), 4 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(13, 6), 5 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(15, 2), 5 * s, 2 * s, 6 * s);
+  ctx.fillRect(rx(13, 6), 7 * s, 6 * s, 2 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(rx(15, 2), 7 * s, 2 * s, 2 * s);
+
+  // Junta del codo
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 15 * s, 30 * s, 2 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(4, 24), 15 * s, 24 * s, 2 * s);
+
+  // Brazal lateral de cuero de explorador
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 17 * s, 28 * s, 13 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(3, 26), 17 * s, 26 * s, 12 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(5, 22), 18 * s, 22 * s, 10 * s);
+
+  // 2 correas utilitarias con hebillas de latón
+  for (const y of [20, 26]) {
+    ctx.fillStyle = '#0c0a09';
+    ctx.fillRect(rx(2, 28), y * s, 28 * s, 3 * s);
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(rx(3, 26), (y + 1) * s, 26 * s, 1 * s);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(rx(13, 6), y * s, 6 * s, 3 * s);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(rx(14, 4), (y + 1) * s, 4 * s, 1 * s);
+  }
+
+  // Remate muñeca
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(2, 28), 30 * s, 28 * s, 2 * s);
+}
+
+/**
+ * SVG canónico del Costado Interior del Brazo del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Manga interior en penumbra azul profundo (#082f49, #0c4a6e) con costuras de cuero y puntadas de cáñamo.
+ */
+export const ADVENTURER_ARM_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="30" fill="#082f49"/><rect x="2" y="1" width="28" height="29" fill="#0c4a6e"/><rect x="14" y="2" width="4" height="28" fill="#082f49"/><rect x="15" y="2" width="2" height="28" fill="#451a03"/><g fill="#78350f"><rect x="13" y="6" width="6" height="2"/><rect x="13" y="14" width="6" height="2"/><rect x="13" y="22" width="6" height="2"/></g><g fill="#d97706"><rect x="15" y="6" width="2" height="2"/><rect x="15" y="14" width="2" height="2"/><rect x="15" y="22" width="2" height="2"/></g><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="2" y="30" width="28" height="2" fill="#451a03"/>`;
+
+export const ADVENTURER_ARM_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_ARM_INNER_BODY}</svg>`;
+
+export function drawAdventurerArmInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Penumbra interior azul profunda
+  ctx.fillStyle = '#082f49';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 30 * s);
+  ctx.fillStyle = '#0c4a6e';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 29 * s);
+
+  // Costura interior con refuerzo de cuero
+  ctx.fillStyle = '#082f49';
+  ctx.fillRect(rx(14, 4), 2 * s, 4 * s, 28 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(15, 2), 2 * s, 2 * s, 28 * s);
+
+  // Puntadas de cáñamo
+  for (const y of [6, 14, 22]) {
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(rx(13, 6), y * s, 6 * s, 2 * s);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(rx(15, 2), y * s, 2 * s, 2 * s);
+  }
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(2, 28), 30 * s, 28 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda del Brazo del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Manga dorsal azul expedición (#0c4a6e, #0369a1), codera acolchada de cuero (#451a03, #78350f) con remache de latón (#fef08a) y muñequera de lino.
+ */
+export const ADVENTURER_ARM_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="14" fill="#0c4a6e"/><rect x="2" y="1" width="28" height="13" fill="#0369a1"/><rect x="5" y="2" width="4" height="11" fill="#0284c7"/><rect x="23" y="2" width="4" height="11" fill="#082f49"/><rect x="2" y="1" width="28" height="3" fill="#451a03"/><rect x="1" y="14" width="30" height="2" fill="#0c0a09"/><rect x="6" y="15" width="20" height="9" fill="#0c0a09"/><rect x="7" y="16" width="18" height="7" fill="#451a03"/><rect x="10" y="17" width="12" height="5" fill="#78350f"/><rect x="13" y="18" width="6" height="3" fill="#b45309"/><rect x="15" y="18" width="2" height="3" fill="#fef08a"/><rect x="2" y="24" width="28" height="6" fill="#0c0a09"/><rect x="3" y="24" width="26" height="5" fill="#451a03"/><rect x="5" y="25" width="22" height="4" fill="#78350f"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="2" y="30" width="28" height="2" fill="#cbd5e1"/>`;
+
+export const ADVENTURER_ARM_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_ARM_BACK_BODY}</svg>`;
+
+export function drawAdventurerArmBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Manga dorsal superior
+  ctx.fillStyle = '#0c4a6e';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 14 * s);
+  ctx.fillStyle = '#0369a1';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 13 * s);
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(5 * s, 2 * s, 4 * s, 11 * s);
+  ctx.fillStyle = '#082f49';
+  ctx.fillRect(23 * s, 2 * s, 4 * s, 11 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 3 * s);
+
+  // Seam horizontal
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 14 * s, 30 * s, 2 * s);
+
+  // Codera acolchada de cuero
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(6 * s, 15 * s, 20 * s, 9 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(7 * s, 16 * s, 18 * s, 7 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(10 * s, 17 * s, 12 * s, 5 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(13 * s, 18 * s, 6 * s, 3 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 18 * s, 2 * s, 3 * s);
+
+  // Dorso del antebrazo
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 24 * s, 28 * s, 6 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(3 * s, 24 * s, 26 * s, 5 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(5 * s, 25 * s, 22 * s, 4 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(2 * s, 30 * s, 28 * s, 2 * s);
+}
+
+
+/**
  * Catálogo canónico de retratos de héroes para la UI e integración 3D.
  */
 export const HERO_PORTRAITS = {
@@ -1669,10 +3253,28 @@ export const HERO_PORTRAITS = {
     backBody: GUARDIAN_BACK_BODY,
     chestSvg: GUARDIAN_CHEST_SVG,
     chestBody: GUARDIAN_CHEST_BODY,
+    torsoSideSvg: GUARDIAN_TORSO_SIDE_SVG,
+    torsoSideBody: GUARDIAN_TORSO_SIDE_BODY,
+    torsoBackSvg: GUARDIAN_TORSO_BACK_SVG,
+    torsoBackBody: GUARDIAN_TORSO_BACK_BODY,
+    armFrontSvg: GUARDIAN_ARM_FRONT_SVG,
+    armFrontBody: GUARDIAN_ARM_FRONT_BODY,
+    armSideSvg: GUARDIAN_ARM_SIDE_SVG,
+    armSideBody: GUARDIAN_ARM_SIDE_BODY,
+    armInnerSvg: GUARDIAN_ARM_INNER_SVG,
+    armInnerBody: GUARDIAN_ARM_INNER_BODY,
+    armBackSvg: GUARDIAN_ARM_BACK_SVG,
+    armBackBody: GUARDIAN_ARM_BACK_BODY,
     drawToCanvas: drawGuardianPortraitToCanvas,
     drawSideToCanvas: drawGuardianSideToCanvas,
     drawBackToCanvas: drawGuardianBackToCanvas,
     drawChestToCanvas: drawGuardianChestToCanvas,
+    drawTorsoSideToCanvas: drawGuardianTorsoSideToCanvas,
+    drawTorsoBackToCanvas: drawGuardianTorsoBackToCanvas,
+    drawArmFrontToCanvas: drawGuardianArmFrontToCanvas,
+    drawArmSideToCanvas: drawGuardianArmSideToCanvas,
+    drawArmInnerToCanvas: drawGuardianArmInnerToCanvas,
+    drawArmBackToCanvas: drawGuardianArmBackToCanvas,
   },
   wizard: {
     id: 'wizard',
@@ -1686,10 +3288,28 @@ export const HERO_PORTRAITS = {
     backBody: WIZARD_BACK_BODY,
     chestSvg: WIZARD_CHEST_SVG,
     chestBody: WIZARD_CHEST_BODY,
+    torsoSideSvg: WIZARD_TORSO_SIDE_SVG,
+    torsoSideBody: WIZARD_TORSO_SIDE_BODY,
+    torsoBackSvg: WIZARD_TORSO_BACK_SVG,
+    torsoBackBody: WIZARD_TORSO_BACK_BODY,
+    armFrontSvg: WIZARD_ARM_FRONT_SVG,
+    armFrontBody: WIZARD_ARM_FRONT_BODY,
+    armSideSvg: WIZARD_ARM_SIDE_SVG,
+    armSideBody: WIZARD_ARM_SIDE_BODY,
+    armInnerSvg: WIZARD_ARM_INNER_SVG,
+    armInnerBody: WIZARD_ARM_INNER_BODY,
+    armBackSvg: WIZARD_ARM_BACK_SVG,
+    armBackBody: WIZARD_ARM_BACK_BODY,
     drawToCanvas: drawWizardHeadToCanvas,
     drawSideToCanvas: drawWizardSideToCanvas,
     drawBackToCanvas: drawWizardBackToCanvas,
     drawChestToCanvas: drawWizardChestToCanvas,
+    drawTorsoSideToCanvas: drawWizardTorsoSideToCanvas,
+    drawTorsoBackToCanvas: drawWizardTorsoBackToCanvas,
+    drawArmFrontToCanvas: drawWizardArmFrontToCanvas,
+    drawArmSideToCanvas: drawWizardArmSideToCanvas,
+    drawArmInnerToCanvas: drawWizardArmInnerToCanvas,
+    drawArmBackToCanvas: drawWizardArmBackToCanvas,
   },
   ranger: {
     id: 'ranger',
@@ -1703,10 +3323,28 @@ export const HERO_PORTRAITS = {
     backBody: RANGER_BACK_BODY,
     chestSvg: RANGER_CHEST_SVG,
     chestBody: RANGER_CHEST_BODY,
+    torsoSideSvg: RANGER_TORSO_SIDE_SVG,
+    torsoSideBody: RANGER_TORSO_SIDE_BODY,
+    torsoBackSvg: RANGER_TORSO_BACK_SVG,
+    torsoBackBody: RANGER_TORSO_BACK_BODY,
+    armFrontSvg: RANGER_ARM_FRONT_SVG,
+    armFrontBody: RANGER_ARM_FRONT_BODY,
+    armSideSvg: RANGER_ARM_SIDE_SVG,
+    armSideBody: RANGER_ARM_SIDE_BODY,
+    armInnerSvg: RANGER_ARM_INNER_SVG,
+    armInnerBody: RANGER_ARM_INNER_BODY,
+    armBackSvg: RANGER_ARM_BACK_SVG,
+    armBackBody: RANGER_ARM_BACK_BODY,
     drawToCanvas: drawRangerPortraitToCanvas,
     drawSideToCanvas: drawRangerSideToCanvas,
     drawBackToCanvas: drawRangerBackToCanvas,
     drawChestToCanvas: drawRangerChestToCanvas,
+    drawTorsoSideToCanvas: drawRangerTorsoSideToCanvas,
+    drawTorsoBackToCanvas: drawRangerTorsoBackToCanvas,
+    drawArmFrontToCanvas: drawRangerArmFrontToCanvas,
+    drawArmSideToCanvas: drawRangerArmSideToCanvas,
+    drawArmInnerToCanvas: drawRangerArmInnerToCanvas,
+    drawArmBackToCanvas: drawRangerArmBackToCanvas,
   },
   paladin: {
     id: 'paladin',
@@ -1720,10 +3358,28 @@ export const HERO_PORTRAITS = {
     backBody: PALADIN_BACK_BODY,
     chestSvg: PALADIN_CHEST_SVG,
     chestBody: PALADIN_CHEST_BODY,
+    torsoSideSvg: PALADIN_TORSO_SIDE_SVG,
+    torsoSideBody: PALADIN_TORSO_SIDE_BODY,
+    torsoBackSvg: PALADIN_TORSO_BACK_SVG,
+    torsoBackBody: PALADIN_TORSO_BACK_BODY,
+    armFrontSvg: PALADIN_ARM_FRONT_SVG,
+    armFrontBody: PALADIN_ARM_FRONT_BODY,
+    armSideSvg: PALADIN_ARM_SIDE_SVG,
+    armSideBody: PALADIN_ARM_SIDE_BODY,
+    armInnerSvg: PALADIN_ARM_INNER_SVG,
+    armInnerBody: PALADIN_ARM_INNER_BODY,
+    armBackSvg: PALADIN_ARM_BACK_SVG,
+    armBackBody: PALADIN_ARM_BACK_BODY,
     drawToCanvas: drawPaladinPortraitToCanvas,
     drawSideToCanvas: drawPaladinSideToCanvas,
     drawBackToCanvas: drawPaladinBackToCanvas,
     drawChestToCanvas: drawPaladinChestToCanvas,
+    drawTorsoSideToCanvas: drawPaladinTorsoSideToCanvas,
+    drawTorsoBackToCanvas: drawPaladinTorsoBackToCanvas,
+    drawArmFrontToCanvas: drawPaladinArmFrontToCanvas,
+    drawArmSideToCanvas: drawPaladinArmSideToCanvas,
+    drawArmInnerToCanvas: drawPaladinArmInnerToCanvas,
+    drawArmBackToCanvas: drawPaladinArmBackToCanvas,
   },
   adventurer: {
     id: 'adventurer',
@@ -1737,10 +3393,28 @@ export const HERO_PORTRAITS = {
     backBody: ADVENTURER_BACK_BODY,
     chestSvg: ADVENTURER_CHEST_SVG,
     chestBody: ADVENTURER_CHEST_BODY,
+    torsoSideSvg: ADVENTURER_TORSO_SIDE_SVG,
+    torsoSideBody: ADVENTURER_TORSO_SIDE_BODY,
+    torsoBackSvg: ADVENTURER_TORSO_BACK_SVG,
+    torsoBackBody: ADVENTURER_TORSO_BACK_BODY,
+    armFrontSvg: ADVENTURER_ARM_FRONT_SVG,
+    armFrontBody: ADVENTURER_ARM_FRONT_BODY,
+    armSideSvg: ADVENTURER_ARM_SIDE_SVG,
+    armSideBody: ADVENTURER_ARM_SIDE_BODY,
+    armInnerSvg: ADVENTURER_ARM_INNER_SVG,
+    armInnerBody: ADVENTURER_ARM_INNER_BODY,
+    armBackSvg: ADVENTURER_ARM_BACK_SVG,
+    armBackBody: ADVENTURER_ARM_BACK_BODY,
     drawToCanvas: drawAdventurerPortraitToCanvas,
     drawSideToCanvas: drawAdventurerSideToCanvas,
     drawBackToCanvas: drawAdventurerBackToCanvas,
     drawChestToCanvas: drawAdventurerChestToCanvas,
+    drawTorsoSideToCanvas: drawAdventurerTorsoSideToCanvas,
+    drawTorsoBackToCanvas: drawAdventurerTorsoBackToCanvas,
+    drawArmFrontToCanvas: drawAdventurerArmFrontToCanvas,
+    drawArmSideToCanvas: drawAdventurerArmSideToCanvas,
+    drawArmInnerToCanvas: drawAdventurerArmInnerToCanvas,
+    drawArmBackToCanvas: drawAdventurerArmBackToCanvas,
   },
 };
 
@@ -1749,12 +3423,24 @@ const _faceTextureCache = new Map();
 const _headSideTextureCache = new Map();
 const _headBackTextureCache = new Map();
 const _chestTextureCache = new Map();
+const _torsoSideTextureCache = new Map();
+const _torsoBackTextureCache = new Map();
+const _armFrontTextureCache = new Map();
+const _armSideTextureCache = new Map();
+const _armInnerTextureCache = new Map();
+const _armBackTextureCache = new Map();
 
 // Caché Singleton de materiales MeshLambertMaterial por héroe (reutilización global)
 const _faceMaterialCache = new Map();
 const _headSideMaterialCache = new Map();
 const _headBackMaterialCache = new Map();
 const _chestMaterialCache = new Map();
+const _torsoSideMaterialCache = new Map();
+const _torsoBackMaterialCache = new Map();
+const _armFrontMaterialCache = new Map();
+const _armSideMaterialCache = new Map();
+const _armInnerMaterialCache = new Map();
+const _armBackMaterialCache = new Map();
 
 /**
  * Genera o recupera del caché la textura CanvasTexture de Three.js para la cara del héroe.
@@ -2024,6 +3710,421 @@ export function createHeroChestMaterial(heroId) {
 }
 
 /**
+ * Genera o recupera del caché la textura lateral (+X o -X) del torso del héroe.
+ * @param {string} heroId
+ * @param {'R'|'L'} side - 'R' para cara +X (índice 0, flipX=false), 'L' para cara -X (índice 1, flipX=true).
+ * @param {number} size
+ */
+export function createHeroTorsoSideTexture(heroId, side = 'R', size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const normSide = side === 'L' ? 'L' : 'R';
+  const key = `${heroId}_${normSide}_${size}`;
+  if (_torsoSideTextureCache.has(key)) {
+    return _torsoSideTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawTorsoSideToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawTorsoSideToCanvas(ctx, size, normSide === 'L');
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _torsoSideTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material lateral (+X o -X) para el torso 3D del héroe.
+ * @param {string} heroId
+ * @param {'R'|'L'} side - 'R' para cara +X (índice 0), 'L' para cara -X (índice 1).
+ */
+export function createHeroTorsoSideMaterial(heroId, side = 'R') {
+  const normSide = side === 'L' ? 'L' : 'R';
+  const cacheKey = `${heroId}_${normSide}`;
+
+  if (typeof document === 'undefined') {
+    if (_torsoSideMaterialCache.has(cacheKey)) {
+      return _torsoSideMaterialCache.get(cacheKey);
+    }
+    const mat = new THREE.MeshLambertMaterial({ color: 0x44403c });
+    mat.userData = { isShared: true, heroId, side: normSide };
+    _torsoSideMaterialCache.set(cacheKey, mat);
+    return mat;
+  }
+
+  if (_torsoSideMaterialCache.has(cacheKey)) {
+    return _torsoSideMaterialCache.get(cacheKey);
+  }
+
+  const texture = createHeroTorsoSideTexture(heroId, normSide, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId, side: normSide };
+  _torsoSideMaterialCache.set(cacheKey, mat);
+  return mat;
+}
+
+/**
+ * Genera o recupera del caché la textura trasera / espalda (-Z, índice 5) del torso del héroe.
+ */
+export function createHeroTorsoBackTexture(heroId, size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const key = `${heroId}_${size}`;
+  if (_torsoBackTextureCache.has(key)) {
+    return _torsoBackTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawTorsoBackToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawTorsoBackToCanvas(ctx, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _torsoBackTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material trasero / espalda (-Z, índice 5) para el torso 3D del héroe.
+ */
+export function createHeroTorsoBackMaterial(heroId) {
+  if (typeof document === 'undefined') {
+    if (_torsoBackMaterialCache.has(heroId)) {
+      return _torsoBackMaterialCache.get(heroId);
+    }
+    const mat = new THREE.MeshLambertMaterial({ color: 0x44403c });
+    mat.userData = { isShared: true, heroId };
+    _torsoBackMaterialCache.set(heroId, mat);
+    return mat;
+  }
+
+  if (_torsoBackMaterialCache.has(heroId)) {
+    return _torsoBackMaterialCache.get(heroId);
+  }
+
+  const texture = createHeroTorsoBackTexture(heroId, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId };
+  _torsoBackMaterialCache.set(heroId, mat);
+  return mat;
+}
+
+/**
+ * Genera o recupera del caché la textura frontal (+Z, índice 4) del brazo del héroe.
+ */
+export function createHeroArmFrontTexture(heroId, size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const key = `${heroId}_${size}`;
+  if (_armFrontTextureCache.has(key)) {
+    return _armFrontTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawArmFrontToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawArmFrontToCanvas(ctx, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _armFrontTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material frontal (+Z, índice 4) para el brazo 3D del héroe.
+ */
+export function createHeroArmFrontMaterial(heroId) {
+  if (typeof document === 'undefined') {
+    if (_armFrontMaterialCache.has(heroId)) {
+      return _armFrontMaterialCache.get(heroId);
+    }
+    const color = heroId === 'wizard' ? 0x581c87 : (heroId === 'ranger' ? 0x166534 : (heroId === 'paladin' ? 0x71717a : (heroId === 'adventurer' ? 0x0369a1 : 0x5a3a18)));
+    const mat = new THREE.MeshLambertMaterial({ color });
+    mat.userData = { isShared: true, heroId };
+    _armFrontMaterialCache.set(heroId, mat);
+    return mat;
+  }
+
+  if (_armFrontMaterialCache.has(heroId)) {
+    return _armFrontMaterialCache.get(heroId);
+  }
+
+  const texture = createHeroArmFrontTexture(heroId, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId };
+  _armFrontMaterialCache.set(heroId, mat);
+  return mat;
+}
+
+/**
+ * Genera o recupera del caché la textura lateral exterior del brazo del héroe.
+ * @param {string} heroId
+ * @param {'R'|'L'} side - 'R' para brazo derecho (cara +X, flipX=false), 'L' para brazo izquierdo (cara -X, flipX=true).
+ * @param {number} size
+ */
+export function createHeroArmSideTexture(heroId, side = 'R', size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const normSide = side === 'L' ? 'L' : 'R';
+  const key = `${heroId}_${normSide}_${size}`;
+  if (_armSideTextureCache.has(key)) {
+    return _armSideTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawArmSideToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawArmSideToCanvas(ctx, size, normSide === 'L');
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _armSideTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material lateral exterior para el brazo 3D del héroe.
+ * @param {string} heroId
+ * @param {'R'|'L'} side
+ */
+export function createHeroArmSideMaterial(heroId, side = 'R') {
+  const normSide = side === 'L' ? 'L' : 'R';
+  const cacheKey = `${heroId}_${normSide}`;
+
+  if (typeof document === 'undefined') {
+    if (_armSideMaterialCache.has(cacheKey)) {
+      return _armSideMaterialCache.get(cacheKey);
+    }
+    const color = heroId === 'wizard' ? 0x6b21a8 : (heroId === 'ranger' ? 0x14532d : (heroId === 'paladin' ? 0x52525b : (heroId === 'adventurer' ? 0x0c4a6e : 0x78350f)));
+    const mat = new THREE.MeshLambertMaterial({ color });
+    mat.userData = { isShared: true, heroId, side: normSide };
+    _armSideMaterialCache.set(cacheKey, mat);
+    return mat;
+  }
+
+  if (_armSideMaterialCache.has(cacheKey)) {
+    return _armSideMaterialCache.get(cacheKey);
+  }
+
+  const texture = createHeroArmSideTexture(heroId, normSide, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId, side: normSide };
+  _armSideMaterialCache.set(cacheKey, mat);
+  return mat;
+}
+
+/**
+ * Genera o recupera del caché la textura lateral interior del brazo del héroe (orientada hacia el torso).
+ * @param {string} heroId
+ * @param {'R'|'L'} side - 'R' para brazo derecho (cara -X, flipX=false), 'L' para brazo izquierdo (cara +X, flipX=true).
+ * @param {number} size
+ */
+export function createHeroArmInnerTexture(heroId, side = 'R', size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const normSide = side === 'L' ? 'L' : 'R';
+  const key = `${heroId}_${normSide}_${size}`;
+  if (_armInnerTextureCache.has(key)) {
+    return _armInnerTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawArmInnerToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawArmInnerToCanvas(ctx, size, normSide === 'L');
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _armInnerTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material lateral interior para el brazo 3D del héroe.
+ * @param {string} heroId
+ * @param {'R'|'L'} side
+ */
+export function createHeroArmInnerMaterial(heroId, side = 'R') {
+  const normSide = side === 'L' ? 'L' : 'R';
+  const cacheKey = `${heroId}_${normSide}`;
+
+  if (typeof document === 'undefined') {
+    if (_armInnerMaterialCache.has(cacheKey)) {
+      return _armInnerMaterialCache.get(cacheKey);
+    }
+    const color = heroId === 'wizard' ? 0x2e1065 : (heroId === 'ranger' ? 0x052e16 : (heroId === 'paladin' ? 0x27272a : (heroId === 'adventurer' ? 0x082f49 : 0x292524)));
+    const mat = new THREE.MeshLambertMaterial({ color });
+    mat.userData = { isShared: true, heroId, side: normSide };
+    _armInnerMaterialCache.set(cacheKey, mat);
+    return mat;
+  }
+
+  if (_armInnerMaterialCache.has(cacheKey)) {
+    return _armInnerMaterialCache.get(cacheKey);
+  }
+
+  const texture = createHeroArmInnerTexture(heroId, normSide, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId, side: normSide };
+  _armInnerMaterialCache.set(cacheKey, mat);
+  return mat;
+}
+
+/**
+ * Genera o recupera del caché la textura trasera (-Z, índice 5) del brazo del héroe (tríceps y codo).
+ */
+export function createHeroArmBackTexture(heroId, size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const key = `${heroId}_${size}`;
+  if (_armBackTextureCache.has(key)) {
+    return _armBackTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawArmBackToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawArmBackToCanvas(ctx, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _armBackTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material trasero (-Z, índice 5) para el brazo 3D del héroe.
+ */
+export function createHeroArmBackMaterial(heroId) {
+  if (typeof document === 'undefined') {
+    if (_armBackMaterialCache.has(heroId)) {
+      return _armBackMaterialCache.get(heroId);
+    }
+    const color = heroId === 'wizard' ? 0x4c1d95 : (heroId === 'ranger' ? 0x166534 : (heroId === 'paladin' ? 0x52525b : (heroId === 'adventurer' ? 0x0369a1 : 0x5a3a18)));
+    const mat = new THREE.MeshLambertMaterial({ color });
+    mat.userData = { isShared: true, heroId };
+    _armBackMaterialCache.set(heroId, mat);
+    return mat;
+  }
+
+  if (_armBackMaterialCache.has(heroId)) {
+    return _armBackMaterialCache.get(heroId);
+  }
+
+  const texture = createHeroArmBackTexture(heroId, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId };
+  _armBackMaterialCache.set(heroId, mat);
+  return mat;
+}
+
+/**
  * Libera de forma explícita todos los materiales y texturas cacheados en memoria de GPU.
  */
 export function disposeHeroPortraitsCache() {
@@ -2070,6 +4171,74 @@ export function disposeHeroPortraitsCache() {
     tex.dispose?.();
   }
   _chestTextureCache.clear();
+
+  for (const mat of _torsoSideMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _torsoSideMaterialCache.clear();
+
+  for (const tex of _torsoSideTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _torsoSideTextureCache.clear();
+
+  for (const mat of _torsoBackMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _torsoBackMaterialCache.clear();
+
+  for (const tex of _torsoBackTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _torsoBackTextureCache.clear();
+
+  for (const mat of _armFrontMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _armFrontMaterialCache.clear();
+
+  for (const tex of _armFrontTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _armFrontTextureCache.clear();
+
+  for (const mat of _armSideMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _armSideMaterialCache.clear();
+
+  for (const tex of _armSideTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _armSideTextureCache.clear();
+
+  for (const mat of _armInnerMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _armInnerMaterialCache.clear();
+
+  for (const tex of _armInnerTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _armInnerTextureCache.clear();
+
+  for (const mat of _armBackMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _armBackMaterialCache.clear();
+
+  for (const tex of _armBackTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _armBackTextureCache.clear();
 }
+
+
 
 

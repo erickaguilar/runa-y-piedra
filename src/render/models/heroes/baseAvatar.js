@@ -330,6 +330,10 @@ export function buildBaseAvatarMesh(color, G, M) {
     parts: {
       armLPivot,
       armRPivot,
+      armL: sleeveL,
+      armR: sleeveR,
+      handL,
+      handR,
       legLPivot,
       legRPivot,
       head: headMesh,

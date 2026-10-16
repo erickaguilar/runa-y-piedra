@@ -6,6 +6,12 @@ import {
   createHeroHeadSideMaterial,
   createHeroHeadBackMaterial,
   createHeroChestMaterial,
+  createHeroTorsoSideMaterial,
+  createHeroTorsoBackMaterial,
+  createHeroArmFrontMaterial,
+  createHeroArmSideMaterial,
+  createHeroArmInnerMaterial,
+  createHeroArmBackMaterial,
 } from '../../../heroes/heroPortraits.js';
 
 let _wizGeoCache = null;
@@ -153,18 +159,69 @@ export function buildWizardGear(a, G, add) {
   }
 
   let chestMat = null;
+  let torsoSideRightMat = null;
+  let torsoSideLeftMat = null;
+  let torsoBackMat = null;
   if (a.parts?.torso) {
     if (!a._origTorsoMat) a._origTorsoMat = a.parts.torso.material;
-    const baseMat = a._origTorsoMat || a.parts.torso.material;
+    const baseMat = Array.isArray(a._origTorsoMat) ? a._origTorsoMat[0] : (a._origTorsoMat || a.parts.torso.material);
     chestMat = createHeroChestMaterial('wizard');
+    torsoSideRightMat = createHeroTorsoSideMaterial('wizard', 'R');
+    torsoSideLeftMat = createHeroTorsoSideMaterial('wizard', 'L');
+    torsoBackMat = createHeroTorsoBackMaterial('wizard');
     if (chestMat) {
       a.parts.torso.material = [
-        baseMat, // +X
-        baseMat, // -X
+        torsoSideRightMat || baseMat, // +X
+        torsoSideLeftMat || baseMat, // -X
         baseMat, // +Y
         baseMat, // -Y
         chestMat, // +Z (pecho con túnica y barba larga)
-        baseMat, // -Z
+        torsoBackMat || baseMat, // -Z (espalda con pliegues y runas)
+      ];
+    }
+  }
+
+  // Aplicar texturas Sumi-e de brazos 360° del Hechicero (frente +Z, exterior, interior, espalda -Z)
+  let armFrontMat = null;
+  let armSideRMat = null;
+  let armSideLMat = null;
+  let armInnerRMat = null;
+  let armInnerLMat = null;
+  let armBackMat = null;
+  const armL = a.parts?.armL || (a.parts?.armLPivot?.children?.find((c) => c.geometry === G?.arm));
+  const armR = a.parts?.armR || (a.parts?.armRPivot?.children?.find((c) => c.geometry === G?.arm));
+
+  if (armL || armR) {
+    armFrontMat = createHeroArmFrontMaterial('wizard');
+    armSideRMat = createHeroArmSideMaterial('wizard', 'R');
+    armSideLMat = createHeroArmSideMaterial('wizard', 'L');
+    armInnerRMat = createHeroArmInnerMaterial('wizard', 'R');
+    armInnerLMat = createHeroArmInnerMaterial('wizard', 'L');
+    armBackMat = createHeroArmBackMaterial('wizard');
+
+    if (armR) {
+      if (!a._origArmRMat) a._origArmRMat = armR.material;
+      const baseArmR = Array.isArray(a._origArmRMat) ? a._origArmRMat[0] : (a._origArmRMat || armR.material);
+      armR.material = [
+        armSideRMat || baseArmR,   // +X (exterior derecho)
+        armInnerRMat || baseArmR,  // -X (interior derecho)
+        baseArmR,                  // +Y (hombro)
+        baseArmR,                  // -Y (muñeca)
+        armFrontMat || baseArmR,   // +Z (frente / manga ancha con runas doradas)
+        armBackMat || baseArmR,    // -Z (espalda / caída de túnica)
+      ];
+    }
+
+    if (armL) {
+      if (!a._origArmLMat) a._origArmLMat = armL.material;
+      const baseArmL = Array.isArray(a._origArmLMat) ? a._origArmLMat[0] : (a._origArmLMat || armL.material);
+      armL.material = [
+        armInnerLMat || baseArmL,  // +X (interior izquierdo)
+        armSideLMat || baseArmL,   // -X (exterior izquierdo)
+        baseArmL,                  // +Y (hombro)
+        baseArmL,                  // -Y (muñeca)
+        armFrontMat || baseArmL,   // +Z (frente / manga ancha con runas doradas)
+        armBackMat || baseArmL,    // -Z (espalda / caída de túnica)
       ];
     }
   }
@@ -251,6 +308,15 @@ export function buildWizardGear(a, G, add) {
   if (sideLeftMat) mats.push(sideLeftMat);
   if (backMat) mats.push(backMat);
   if (chestMat) mats.push(chestMat);
+  if (torsoSideRightMat) mats.push(torsoSideRightMat);
+  if (torsoSideLeftMat) mats.push(torsoSideLeftMat);
+  if (torsoBackMat) mats.push(torsoBackMat);
+  if (armFrontMat) mats.push(armFrontMat);
+  if (armSideRMat) mats.push(armSideRMat);
+  if (armSideLMat) mats.push(armSideLMat);
+  if (armInnerRMat) mats.push(armInnerRMat);
+  if (armInnerLMat) mats.push(armInnerLMat);
+  if (armBackMat) mats.push(armBackMat);
   return mats;
 }
 

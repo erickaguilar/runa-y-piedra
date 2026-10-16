@@ -6,6 +6,12 @@ import {
   createHeroHeadSideMaterial,
   createHeroHeadBackMaterial,
   createHeroChestMaterial,
+  createHeroTorsoSideMaterial,
+  createHeroTorsoBackMaterial,
+  createHeroArmFrontMaterial,
+  createHeroArmSideMaterial,
+  createHeroArmInnerMaterial,
+  createHeroArmBackMaterial,
 } from '../../../heroes/heroPortraits.js';
 
 let _advGeoCache = null;
@@ -158,12 +164,70 @@ export function buildAdventurerGear(a, G, add) {
   }
 
   let chestMat = null;
+  let torsoSideRightMat = null;
+  let torsoSideLeftMat = null;
+  let torsoBackMat = null;
   if (a.parts?.torso) {
     if (!a._origTorsoMat) a._origTorsoMat = a.parts.torso.material;
     const baseMat = Array.isArray(a._origTorsoMat) ? a._origTorsoMat[0] : (a._origTorsoMat || a.parts.torso.material);
     chestMat = createHeroChestMaterial('adventurer');
+    torsoSideRightMat = createHeroTorsoSideMaterial('adventurer', 'R');
+    torsoSideLeftMat = createHeroTorsoSideMaterial('adventurer', 'L');
+    torsoBackMat = createHeroTorsoBackMaterial('adventurer');
     if (chestMat) {
-      a.parts.torso.material = [baseMat, baseMat, baseMat, baseMat, chestMat, baseMat];
+      a.parts.torso.material = [
+        torsoSideRightMat || baseMat,
+        torsoSideLeftMat || baseMat,
+        baseMat,
+        baseMat,
+        chestMat,
+        torsoBackMat || baseMat,
+      ];
+    }
+  }
+
+  // Aplicar texturas Sumi-e de brazos 360° del Aventurero (frente +Z, exterior, interior, espalda -Z)
+  let armFrontMat = null;
+  let armSideRMat = null;
+  let armSideLMat = null;
+  let armInnerRMat = null;
+  let armInnerLMat = null;
+  let armBackMat = null;
+  const armL = a.parts?.armL || (a.parts?.armLPivot?.children?.find((c) => c.geometry === G?.arm));
+  const armR = a.parts?.armR || (a.parts?.armRPivot?.children?.find((c) => c.geometry === G?.arm));
+
+  if (armL || armR) {
+    armFrontMat = createHeroArmFrontMaterial('adventurer');
+    armSideRMat = createHeroArmSideMaterial('adventurer', 'R');
+    armSideLMat = createHeroArmSideMaterial('adventurer', 'L');
+    armInnerRMat = createHeroArmInnerMaterial('adventurer', 'R');
+    armInnerLMat = createHeroArmInnerMaterial('adventurer', 'L');
+    armBackMat = createHeroArmBackMaterial('adventurer');
+
+    if (armR) {
+      if (!a._origArmRMat) a._origArmRMat = armR.material;
+      const baseArmR = Array.isArray(a._origArmRMat) ? a._origArmRMat[0] : (a._origArmRMat || armR.material);
+      armR.material = [
+        armSideRMat || baseArmR,   // +X (exterior derecho)
+        armInnerRMat || baseArmR,  // -X (interior derecho)
+        baseArmR,                  // +Y (hombro)
+        baseArmR,                  // -Y (muñeca)
+        armFrontMat || baseArmR,   // +Z (frente / brazal de cuero con vendas de lino)
+        armBackMat || baseArmR,    // -Z (espalda / codera acolchada)
+      ];
+    }
+
+    if (armL) {
+      if (!a._origArmLMat) a._origArmLMat = armL.material;
+      const baseArmL = Array.isArray(a._origArmLMat) ? a._origArmLMat[0] : (a._origArmLMat || armL.material);
+      armL.material = [
+        armInnerLMat || baseArmL,  // +X (interior izquierdo)
+        armSideLMat || baseArmL,   // -X (exterior izquierdo)
+        baseArmL,                  // +Y (hombro)
+        baseArmL,                  // -Y (muñeca)
+        armFrontMat || baseArmL,   // +Z (frente / brazal de cuero con vendas de lino)
+        armBackMat || baseArmL,    // -Z (espalda / codera acolchada)
+      ];
     }
   }
 
@@ -177,5 +241,14 @@ export function buildAdventurerGear(a, G, add) {
   if (sideLeftMat) mats.push(sideLeftMat);
   if (backMat) mats.push(backMat);
   if (chestMat) mats.push(chestMat);
+  if (torsoSideRightMat) mats.push(torsoSideRightMat);
+  if (torsoSideLeftMat) mats.push(torsoSideLeftMat);
+  if (torsoBackMat) mats.push(torsoBackMat);
+  if (armFrontMat) mats.push(armFrontMat);
+  if (armSideRMat) mats.push(armSideRMat);
+  if (armSideLMat) mats.push(armSideLMat);
+  if (armInnerRMat) mats.push(armInnerRMat);
+  if (armInnerLMat) mats.push(armInnerLMat);
+  if (armBackMat) mats.push(armBackMat);
   return mats;
 }
