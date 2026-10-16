@@ -29,16 +29,29 @@ export class AvatarRenderer {
 
   /** Retira el equipo anterior del avatar (nodos + materiales). */
   _clearGear(a) {
-    if (a.parts?.head && Array.isArray(a.parts.head.material) && a.parts.head.material[4] !== this._sharedMats.face) {
+    if (a.parts?.head && Array.isArray(a.parts.head.material)) {
+      a.parts.head.material[0] = this._sharedMats.skin;
+      a.parts.head.material[1] = this._sharedMats.skin;
       a.parts.head.material[4] = this._sharedMats.face;
+      a.parts.head.material[5] = this._sharedMats.skin;
     }
     if (a.parts?.torso && a._origTorsoMat) {
       a.parts.torso.material = a._origTorsoMat;
       a._origTorsoMat = null;
     }
+    if (a._origTunicHex !== undefined && a.mats?.[0]) {
+      a.mats[0].color.setHex(a._origTunicHex);
+      a._origTunicHex = undefined;
+    }
+    const disposedGeos = new Set();
     for (const { obj, parent } of a.gearNodes || []) {
       parent.remove(obj);
-      obj.traverse((o) => { if (o.isMesh) o.geometry.dispose?.(); });
+      obj.traverse((o) => {
+        if (o.isMesh && o.geometry && !o.geometry.userData?.isShared && !disposedGeos.has(o.geometry)) {
+          disposedGeos.add(o.geometry);
+          o.geometry.dispose?.();
+        }
+      });
     }
     for (const m of a.gearMats || []) {
       if (!m) continue;
@@ -48,6 +61,13 @@ export class AvatarRenderer {
     }
     a.gearNodes = [];
     a.gearMats = [];
+    if (a.parts) {
+      a.parts.cloak = null;
+      a.parts.skirt = null;
+      a.parts.crystal = null;
+      a.parts.crystalInner = null;
+      a.parts.emissiveMats = null;
+    }
     if (a.gear) {
       a.mesh.remove(a.gear);
       a.gear = null;
@@ -102,6 +122,7 @@ export class AvatarRenderer {
       target:  { x: 0, y: 1, z: 0, yaw: 0 },
       current: { x: 0, y: 1, z: 0, yaw: 0 },
       speed: 0,
+      vy: 0,
       walkPhase: Math.random() * Math.PI * 2,
       isLocal: false,
     };
@@ -169,7 +190,10 @@ export class AvatarRenderer {
   dispose() {
     this.clear();
     for (const g of Object.values(this._geoCache || {})) g?.dispose?.();
-    for (const m of Object.values(this._sharedMats || {})) m?.dispose?.();
+    for (const m of Object.values(this._sharedMats || {})) {
+      m?.map?.dispose?.();
+      m?.dispose?.();
+    }
     this._geoCache = null;
     this._sharedMats = null;
   }
@@ -220,6 +244,8 @@ export class AvatarRenderer {
     if (dt > 1e-4) {
       const inst = Math.hypot(x - a.current.x, z - a.current.z) / dt;
       a.speed += (Math.min(inst, 8) - a.speed) * 0.35;
+      const instVy = (y - a.current.y) / dt;
+      a.vy = (a.vy || 0) + (Math.max(-12, Math.min(12, instVy)) - (a.vy || 0)) * 0.45;
     }
     a.mesh.visible = true;
     a.target.x = x;
@@ -245,6 +271,7 @@ export class AvatarRenderer {
     for (const a of this.avatars.values()) {
       if (!a.isLocal) {
         const px = a.current.x;
+        const py = a.current.y;
         const pz = a.current.z;
         a.current.x += (a.target.x - a.current.x) * t;
         a.current.y += (a.target.y - a.current.y) * t;
@@ -255,23 +282,82 @@ export class AvatarRenderer {
         while (dy < -Math.PI) dy += Math.PI * 2;
         a.current.yaw += dy * t;
 
-        // Velocidad horizontal para la animación de marcha
-        const inst = Math.hypot(a.current.x - px, a.current.z - pz) / Math.max(dt, 1e-4);
+        // Velocidad horizontal y vertical para la animación
+        const safeDt = Math.max(dt, 1e-4);
+        const inst = Math.hypot(a.current.x - px, a.current.z - pz) / safeDt;
         a.speed += (Math.min(inst, 8) - a.speed) * Math.min(1, dt * 6);
+        const instVy = (a.current.y - py) / safeDt;
+        a.vy = (a.vy || 0) + (Math.max(-12, Math.min(12, instVy)) - (a.vy || 0)) * Math.min(1, dt * 8);
 
         // El grupo tiene origen en los pies (las piezas usan altura absoluta)
         a.mesh.position.set(a.current.x, a.current.y, a.current.z);
         a.mesh.rotation.y = a.current.yaw + Math.PI; // cara (+z) hacia el avance
       }
 
+      if (!a.mesh.visible) continue;
+
       // Marcha: brazos y piernas opuestos; balanceo sutil en reposo
       const amp = 0.06 + Math.min(0.65, a.speed * 0.14);
       a.walkPhase += dt * (2.5 + a.speed * 2.0);
       const s = Math.sin(a.walkPhase) * amp;
-      a.parts.armLPivot.rotation.x = s;
-      a.parts.armRPivot.rotation.x = -s;
-      a.parts.legLPivot.rotation.x = -s;
-      a.parts.legRPivot.rotation.x = s;
+      const c = Math.cos(a.walkPhase) * amp;
+
+      const isAirborne = Math.abs(a.vy || 0) > 0.65;
+      if (isAirborne) {
+        // Postura aérea de salto / caída
+        a.parts.armLPivot.rotation.x = s * 0.45 - 0.28;
+        a.parts.armRPivot.rotation.x = -s * 0.45 - 0.28;
+        a.parts.armLPivot.rotation.z = -0.16;
+        a.parts.armRPivot.rotation.z = 0.16;
+        a.parts.legLPivot.rotation.x = -0.25;
+        a.parts.legRPivot.rotation.x = 0.32;
+        if (a.parts.shadow) {
+          const shScale = Math.max(0.55, 1.0 - Math.min(0.45, Math.abs(a.vy) * 0.05));
+          a.parts.shadow.scale.setScalar(shScale);
+        }
+      } else {
+        a.parts.armLPivot.rotation.x = s;
+        a.parts.armRPivot.rotation.x = -s;
+        a.parts.armLPivot.rotation.z = 0;
+        a.parts.armRPivot.rotation.z = 0;
+        a.parts.legLPivot.rotation.x = -s;
+        a.parts.legRPivot.rotation.x = s;
+
+        // Walk bobbing vertical y torsión de hombros en marcha, o respiración en reposo
+        const bob = a.speed > 0.15
+          ? Math.abs(Math.sin(a.walkPhase)) * Math.min(0.026, a.speed * 0.0045)
+          : Math.sin(a.walkPhase * 0.8) * 0.007;
+        if (a.parts.torso) {
+          a.parts.torso.position.y = 1.13 + bob;
+          a.parts.torso.rotation.y = a.speed > 0.15 ? c * 0.08 : 0;
+        }
+        if (a.parts.head) {
+          a.parts.head.position.y = 1.63 + bob * 1.1;
+        }
+        if (a.parts.shadow) {
+          a.parts.shadow.scale.setScalar(1.0);
+        }
+      }
+
+      // Cinemática secundaria de accesorios por clase
+      if (a.parts.cloak) {
+        a.parts.cloak.rotation.x = Math.min(0.42, a.speed * 0.065) + Math.abs(s) * 0.08;
+      }
+      if (a.parts.skirt) {
+        a.parts.skirt.rotation.x = Math.min(0.12, a.speed * 0.02);
+      }
+      if (a.parts.crystal) {
+        a.parts.crystal.rotation.y += dt * 1.2;
+      }
+      if (a.parts.crystalInner) {
+        a.parts.crystalInner.rotation.y -= dt * 1.8;
+      }
+      if (a.parts.emissiveMats) {
+        const pulse = Math.sin(a.walkPhase * 1.2);
+        for (const em of a.parts.emissiveMats) {
+          if (em.mat) em.mat.emissiveIntensity = em.base + pulse * em.amp;
+        }
+      }
     }
   }
 }

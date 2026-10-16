@@ -1,6 +1,105 @@
 // src/render/models/heroes/rangerGear.js
 import * as THREE from 'three';
-import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  createHeroFaceMaterial,
+  createHeroHeadSideMaterial,
+  createHeroHeadBackMaterial,
+  createHeroChestMaterial,
+} from '../../../heroes/heroPortraits.js';
+
+let _rngGeoCache = null;
+let _rngMatCache = null;
+
+function getRangerGeoCache() {
+  if (_rngGeoCache) return _rngGeoCache;
+
+  const hTop = new THREE.BoxGeometry(0.44, 0.16, 0.44).translate(0, 0.22, 0);
+  const hSideBase = new THREE.BoxGeometry(0.06, 0.24, 0.44);
+  const hSideL = hSideBase.clone().translate(-0.20, 0.08, 0);
+  const hSideR = hSideBase.clone().translate(0.20, 0.08, 0);
+  const hBack = new THREE.BoxGeometry(0.44, 0.34, 0.06).translate(0, 0.05, -0.20);
+  const hoodMainGeo = mergeGeometries([hTop, hSideL, hSideR, hBack], false);
+  hTop.dispose();
+  hSideBase.dispose();
+  hSideL.dispose();
+  hSideR.dispose();
+  hBack.dispose();
+
+  const qRingBase = new THREE.BoxGeometry(0.14, 0.03, 0.14);
+  const qRingTop = qRingBase.clone().translate(0, 0.14, 0);
+  const qRingBot = qRingBase.clone().translate(0, -0.14, 0);
+  const quiverRingsGeo = mergeGeometries([qRingTop, qRingBot], false);
+  qRingBase.dispose();
+  qRingTop.dispose();
+  qRingBot.dispose();
+
+  const shaftBase = new THREE.BoxGeometry(0.02, 0.28, 0.02);
+  const featherBase = new THREE.BoxGeometry(0.04, 0.08, 0.04);
+  const shafts = [];
+  const feathers = [];
+  for (let i = 0; i < 3; i++) {
+    const offsetX = (i - 1) * 0.035;
+    const offsetZ = (i === 1 ? 0.02 : -0.02);
+    shafts.push(shaftBase.clone().translate(offsetX, 0.28, offsetZ));
+    feathers.push(featherBase.clone().translate(offsetX, 0.38, offsetZ));
+  }
+  const arrowsShaftGeo = mergeGeometries(shafts, false);
+  const arrowsFeatherGeo = mergeGeometries(feathers, false);
+  shaftBase.dispose();
+  featherBase.dispose();
+  for (const s of shafts) s.dispose();
+  for (const f of feathers) f.dispose();
+
+  _rngGeoCache = {
+    hoodMainGeo,
+    hoodTail: new THREE.BoxGeometry(0.34, 0.28, 0.05),
+    cloak: new THREE.BoxGeometry(0.54, 0.68, 0.05),
+    cloakEdge: new THREE.BoxGeometry(0.56, 0.06, 0.06),
+    quiverBody: new THREE.BoxGeometry(0.12, 0.42, 0.12),
+    quiverRingsGeo,
+    arrowsShaftGeo,
+    arrowsFeatherGeo,
+    strap: new THREE.BoxGeometry(0.08, 0.60, 0.02),
+    strapBuckle: new THREE.BoxGeometry(0.09, 0.07, 0.03),
+    boot: new THREE.BoxGeometry(0.20, 0.32, 0.22),
+    glove: new THREE.BoxGeometry(0.21, 0.11, 0.21),
+  };
+  for (const g of Object.values(_rngGeoCache)) {
+    g.userData = { isShared: true, heroId: 'ranger' };
+  }
+  return _rngGeoCache;
+}
+
+function getRangerMatCache() {
+  if (_rngMatCache) return _rngMatCache;
+  _rngMatCache = {
+    hoodMat: new THREE.MeshLambertMaterial({ color: 0x2a5a3a }),
+    hoodDarkMat: new THREE.MeshLambertMaterial({ color: 0x1a3d26 }),
+    cloakMat: new THREE.MeshLambertMaterial({ color: 0x2f6b42 }),
+    leatherMat: new THREE.MeshLambertMaterial({ color: 0x4a2e18 }),
+    leatherHiMat: new THREE.MeshLambertMaterial({ color: 0x6b4423 }),
+    quiverMat: new THREE.MeshLambertMaterial({ color: 0x3a2410 }),
+    featherMat: new THREE.MeshLambertMaterial({ color: 0xc83226 }),
+    shaftMat: new THREE.MeshLambertMaterial({ color: 0xd9b48a }),
+    bootsMat: new THREE.MeshLambertMaterial({ color: 0x3d2817 }),
+  };
+  for (const m of Object.values(_rngMatCache)) {
+    m.userData = { isShared: true, heroId: 'ranger' };
+  }
+  return _rngMatCache;
+}
+
+export function disposeRangerGearCache() {
+  if (_rngGeoCache) {
+    for (const g of Object.values(_rngGeoCache)) g.dispose?.();
+    _rngGeoCache = null;
+  }
+  if (_rngMatCache) {
+    for (const m of Object.values(_rngMatCache)) m.dispose?.();
+    _rngMatCache = null;
+  }
+}
 
 /**
  * Kit del Explorador (ranger): arquetipo de rastreador ágil y arquero.
@@ -18,19 +117,24 @@ import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
  * @returns {THREE.Material[]} Materiales propios para disponer al cambiar de clase.
  */
 export function buildRangerGear(a, G, add) {
-  // Paleta de materiales de Explorador
-  const hoodMat      = new THREE.MeshLambertMaterial({ color: 0x2a5a3a }); // Verde bosque
-  const hoodDarkMat  = new THREE.MeshLambertMaterial({ color: 0x1a3d26 }); // Verde sombra profundo
-  const cloakMat     = new THREE.MeshLambertMaterial({ color: 0x2f6b42 }); // Verde medio de capa
-  const leatherMat   = new THREE.MeshLambertMaterial({ color: 0x4a2e18 }); // Cuero oscuro
-  const leatherHiMat = new THREE.MeshLambertMaterial({ color: 0x6b4423 }); // Cuero claro
-  const quiverMat    = new THREE.MeshLambertMaterial({ color: 0x3a2410 }); // Cuero reforzado
-  const featherMat   = new THREE.MeshLambertMaterial({ color: 0xc83226 }); // Rojo vivo de plumas
-  const shaftMat     = new THREE.MeshLambertMaterial({ color: 0xd9b48a }); // Madera de fresno
-  const bootsMat     = new THREE.MeshLambertMaterial({ color: 0x3d2817 }); // Cuero de bota curtido
+  const geo = getRangerGeoCache();
+  const {
+    hoodMat,
+    hoodDarkMat,
+    cloakMat,
+    leatherMat,
+    leatherHiMat,
+    quiverMat,
+    featherMat,
+    shaftMat,
+    bootsMat,
+  } = getRangerMatCache();
 
   // Suavizar ligeramente el tono de la túnica base para balance tonal
   if (a.mats?.[0]) {
+    if (a._origTunicHex === undefined) {
+      a._origTunicHex = a.mats[0].color.getHex();
+    }
     a.mats[0].color.multiplyScalar(0.90);
   }
 
@@ -40,48 +144,36 @@ export function buildRangerGear(a, G, add) {
   // ═══════════════════════════════════════════════════════════
   const hoodGroup = new THREE.Group();
 
-  // Casquete superior (cubre el techo de la cabeza)
-  const hoodTop = new THREE.Mesh(
-    new THREE.BoxGeometry(0.44, 0.16, 0.44),
-    hoodMat
-  );
-  hoodTop.position.set(0, 0.22, 0);
-  hoodGroup.add(hoodTop);
+  const hoodMain = new THREE.Mesh(geo.hoodMainGeo, hoodMat);
+  hoodGroup.add(hoodMain);
 
-  // Laterales (cubren sienes y orejas, dejando el frente libre)
-  const hoodSideL = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 0.24, 0.44),
-    hoodMat
-  );
-  hoodSideL.position.set(-0.20, 0.08, 0);
-  hoodGroup.add(hoodSideL);
-
-  const hoodSideR = hoodSideL.clone();
-  hoodSideR.position.x = 0.20;
-  hoodGroup.add(hoodSideR);
-
-  // Nuca (cubre la parte trasera de la cabeza)
-  const hoodBack = new THREE.Mesh(
-    new THREE.BoxGeometry(0.44, 0.34, 0.06),
-    hoodMat
-  );
-  hoodBack.position.set(0, 0.05, -0.20);
-  hoodGroup.add(hoodBack);
-
-  // Faldón trasero (cae por detrás hasta el cuello/espalda alta)
-  const hoodTail = new THREE.Mesh(
-    new THREE.BoxGeometry(0.34, 0.28, 0.05),
-    hoodDarkMat
-  );
+  const hoodTail = new THREE.Mesh(geo.hoodTail, hoodDarkMat);
   hoodTail.position.set(0, -0.26, -0.22);
   hoodGroup.add(hoodTail);
 
-  // Aplicar textura facial Sumi-e propia del Explorador a la cara frontal (+Z) de la cabeza
+  // Aplicar texturas Sumi-e de cabeza (360°) y torso propia del Explorador
   let faceMat = null;
+  let sideRightMat = null;
+  let sideLeftMat = null;
+  let backMat = null;
   if (a.parts?.head && Array.isArray(a.parts.head.material)) {
     faceMat = createHeroFaceMaterial('ranger');
-    if (faceMat) {
-      a.parts.head.material[4] = faceMat;
+    sideRightMat = createHeroHeadSideMaterial('ranger', 'R');
+    sideLeftMat = createHeroHeadSideMaterial('ranger', 'L');
+    backMat = createHeroHeadBackMaterial('ranger');
+    if (sideRightMat) a.parts.head.material[0] = sideRightMat;
+    if (sideLeftMat) a.parts.head.material[1] = sideLeftMat;
+    if (faceMat) a.parts.head.material[4] = faceMat;
+    if (backMat) a.parts.head.material[5] = backMat;
+  }
+
+  let chestMat = null;
+  if (a.parts?.torso) {
+    if (!a._origTorsoMat) a._origTorsoMat = a.parts.torso.material;
+    const baseMat = Array.isArray(a._origTorsoMat) ? a._origTorsoMat[0] : (a._origTorsoMat || a.parts.torso.material);
+    chestMat = createHeroChestMaterial('ranger');
+    if (chestMat) {
+      a.parts.torso.material = [baseMat, baseMat, baseMat, baseMat, chestMat, baseMat];
     }
   }
 
@@ -94,27 +186,25 @@ export function buildRangerGear(a, G, add) {
 
   // ═══════════════════════════════════════════════════════════
   // 2. CAPA CORTA — Cuelga de los hombros hacia atrás hasta la cadera
+  //    Pivote en los hombros (y = 1.32, z = -0.17) para ondeo dinámico
   // ═══════════════════════════════════════════════════════════
   const cloakGroup = new THREE.Group();
+  cloakGroup.position.set(0, 1.32, -0.17);
 
-  const cloak = new THREE.Mesh(
-    new THREE.BoxGeometry(0.54, 0.68, 0.05),
-    cloakMat
-  );
-  cloak.position.set(0, 0.98, -0.19);
-  cloak.rotation.x = 0.06; // Ligera caída natural hacia atrás
+  const cloak = new THREE.Mesh(geo.cloak, cloakMat);
+  cloak.position.set(0, -0.34, -0.02);
+  cloak.rotation.x = 0.06;
   cloakGroup.add(cloak);
 
-  // Borde inferior de la capa (más oscuro, da peso visual)
-  const cloakEdge = new THREE.Mesh(
-    new THREE.BoxGeometry(0.56, 0.06, 0.06),
-    hoodDarkMat
-  );
-  cloakEdge.position.set(0, 0.65, -0.17);
+  const cloakEdge = new THREE.Mesh(geo.cloakEdge, hoodDarkMat);
+  cloakEdge.position.set(0, -0.67, 0.00);
   cloakEdge.rotation.x = 0.06;
   cloakGroup.add(cloakEdge);
 
   add(cloakGroup, a.gear);
+  if (a.parts) {
+    a.parts.cloak = cloakGroup;
+  }
 
   // ═══════════════════════════════════════════════════════════
   // 3. CARCAJ CON FLECHAS — Sobre el hombro derecho
@@ -122,112 +212,70 @@ export function buildRangerGear(a, G, add) {
   // ═══════════════════════════════════════════════════════════
   const quiver = new THREE.Group();
   quiver.position.set(0.24, 1.38, -0.18);
-  quiver.rotation.z = -0.22; // Inclinado hacia afuera del hombro
-  quiver.rotation.x = -0.08; // Ligera inclinación hacia atrás
+  quiver.rotation.z = -0.22;
+  quiver.rotation.x = -0.08;
 
-  // Cuerpo cilíndrico prismático del carcaj
-  const quiverBody = new THREE.Mesh(
-    new THREE.BoxGeometry(0.12, 0.42, 0.12),
-    quiverMat
-  );
+  const quiverBody = new THREE.Mesh(geo.quiverBody, quiverMat);
   quiver.add(quiverBody);
 
-  // Anillos de refuerzo de cuero
-  const ringTop = new THREE.Mesh(
-    new THREE.BoxGeometry(0.14, 0.03, 0.14),
-    leatherHiMat
-  );
-  ringTop.position.set(0, 0.14, 0);
-  quiver.add(ringTop);
+  const rings = new THREE.Mesh(geo.quiverRingsGeo, leatherHiMat);
+  quiver.add(rings);
 
-  const ringBot = ringTop.clone();
-  ringBot.position.y = -0.14;
-  quiver.add(ringBot);
+  const shafts = new THREE.Mesh(geo.arrowsShaftGeo, shaftMat);
+  quiver.add(shafts);
 
-  // 3 flechas asomando por arriba con emplumado rojo vivo
-  for (let i = 0; i < 3; i++) {
-    const offsetX = (i - 1) * 0.035;
-    const offsetZ = (i === 1 ? 0.02 : -0.02);
-
-    // Vara de madera
-    const shaft = new THREE.Mesh(
-      new THREE.BoxGeometry(0.02, 0.28, 0.02),
-      shaftMat
-    );
-    shaft.position.set(offsetX, 0.28, offsetZ);
-    quiver.add(shaft);
-
-    // Emplumado rojo
-    const feather = new THREE.Mesh(
-      new THREE.BoxGeometry(0.04, 0.08, 0.04),
-      featherMat
-    );
-    feather.position.set(offsetX, 0.38, offsetZ);
-    quiver.add(feather);
-  }
+  const feathers = new THREE.Mesh(geo.arrowsFeatherGeo, featherMat);
+  quiver.add(feathers);
 
   add(quiver, a.gear);
 
   // ═══════════════════════════════════════════════════════════
-  // 4. CORREAS CRUZADAS EN EL PECHO (sujetan el carcaj)
+  // 4. CORREAS CRUZADAS EN EL PECHO (volumen mixto)
   // ═══════════════════════════════════════════════════════════
-  const strap = new THREE.Mesh(
-    new THREE.BoxGeometry(0.08, 0.60, 0.02),
-    leatherMat
-  );
+  const strap = new THREE.Mesh(geo.strap, leatherMat);
   strap.position.set(0.06, 1.15, 0.17);
   strap.rotation.z = 0.45;
   add(strap, a.gear);
 
-  // Hebilla central de la bandolera
-  const strapBuckle = new THREE.Mesh(
-    new THREE.BoxGeometry(0.09, 0.07, 0.03),
-    leatherHiMat
-  );
+  const strapBuckle = new THREE.Mesh(geo.strapBuckle, leatherHiMat);
   strapBuckle.position.set(0.06, 1.15, 0.18);
   strapBuckle.rotation.z = 0.45;
   add(strapBuckle, a.gear);
 
   // ═══════════════════════════════════════════════════════════
   // 5. BOTAS ALTAS DE CUERO — Articuladas en los pivotes de las piernas
-  //    legLPivot / legRPivot a y = 0.80. Centro de la bota a -0.64m
   // ═══════════════════════════════════════════════════════════
-  const bootGeo = new THREE.BoxGeometry(0.20, 0.32, 0.22);
-
   if (a.parts?.legLPivot) {
-    const bootL = new THREE.Mesh(bootGeo, bootsMat);
+    const bootL = new THREE.Mesh(geo.boot, bootsMat);
     bootL.position.set(0, -0.64, 0);
     add(bootL, a.parts.legLPivot);
   } else {
-    const bootL = new THREE.Mesh(bootGeo, bootsMat);
+    const bootL = new THREE.Mesh(geo.boot, bootsMat);
     bootL.position.set(-0.15, 0.16, 0);
     add(bootL, a.gear);
   }
 
   if (a.parts?.legRPivot) {
-    const bootR = new THREE.Mesh(bootGeo, bootsMat);
+    const bootR = new THREE.Mesh(geo.boot, bootsMat);
     bootR.position.set(0, -0.64, 0);
     add(bootR, a.parts.legRPivot);
   } else {
-    const bootR = new THREE.Mesh(bootGeo, bootsMat);
+    const bootR = new THREE.Mesh(geo.boot, bootsMat);
     bootR.position.set(0.15, 0.16, 0);
     add(bootR, a.gear);
   }
 
   // ═══════════════════════════════════════════════════════════
   // 6. GUANTES DE CUERO — Articulados en los pivotes de los brazos
-  //    Manos a y = -0.47 del pivote de hombro
   // ═══════════════════════════════════════════════════════════
-  const gloveGeo = new THREE.BoxGeometry(0.21, 0.11, 0.21);
-
   if (a.parts?.armLPivot) {
-    const gloveL = new THREE.Mesh(gloveGeo, leatherMat);
+    const gloveL = new THREE.Mesh(geo.glove, leatherMat);
     gloveL.position.set(0, -0.47, 0);
     add(gloveL, a.parts.armLPivot);
   }
 
   if (a.parts?.armRPivot) {
-    const gloveR = new THREE.Mesh(gloveGeo, leatherMat);
+    const gloveR = new THREE.Mesh(geo.glove, leatherMat);
     gloveR.position.set(0, -0.47, 0);
     add(gloveR, a.parts.armRPivot);
   }
@@ -244,6 +292,10 @@ export function buildRangerGear(a, G, add) {
     bootsMat,
   ];
   if (faceMat) mats.push(faceMat);
+  if (sideRightMat) mats.push(sideRightMat);
+  if (sideLeftMat) mats.push(sideLeftMat);
+  if (backMat) mats.push(backMat);
+  if (chestMat) mats.push(chestMat);
   return mats;
 }
 

@@ -1,6 +1,94 @@
 // src/render/models/heroes/paladinGear.js
 import * as THREE from 'three';
-import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  createHeroFaceMaterial,
+  createHeroHeadSideMaterial,
+  createHeroHeadBackMaterial,
+  createHeroChestMaterial,
+} from '../../../heroes/heroPortraits.js';
+
+let _palGeoCache = null;
+let _palMatCache = null;
+
+function getPaladinGeoCache() {
+  if (_palGeoCache) return _palGeoCache;
+
+  const hTop = new THREE.BoxGeometry(0.44, 0.10, 0.44).translate(0, 0.20, 0);
+  const hBack = new THREE.BoxGeometry(0.42, 0.34, 0.06).translate(0, 0.05, -0.19);
+  const hSideBase = new THREE.BoxGeometry(0.06, 0.30, 0.38);
+  const hSideL = hSideBase.clone().translate(-0.20, 0.06, 0);
+  const hSideR = hSideBase.clone().translate(0.20, 0.06, 0);
+  const helmSteelGeo = mergeGeometries([hTop, hBack, hSideL, hSideR], false);
+  hTop.dispose();
+  hBack.dispose();
+  hSideBase.dispose();
+  hSideL.dispose();
+  hSideR.dispose();
+
+  const fH = new THREE.BoxGeometry(0.34, 0.04, 0.07);
+  const fTop = fH.clone().translate(0, 0.20, 0);
+  const fBot = fH.clone().translate(0, -0.20, 0);
+  const fV = new THREE.BoxGeometry(0.04, 0.44, 0.07);
+  const fL = fV.clone().translate(-0.15, 0, 0);
+  const fR = fV.clone().translate(0.15, 0, 0);
+  const boss = new THREE.BoxGeometry(0.10, 0.10, 0.09).translate(0, 0, 0.01);
+  const cH = new THREE.BoxGeometry(0.14, 0.03, 0.02).translate(0, -0.08, 0.04);
+  const cV = new THREE.BoxGeometry(0.03, 0.14, 0.02).translate(0, -0.08, 0.04);
+  const shieldGoldGeo = mergeGeometries([fTop, fBot, fL, fR, boss, cH, cV], false);
+  fH.dispose();
+  fTop.dispose();
+  fBot.dispose();
+  fV.dispose();
+  fL.dispose();
+  fR.dispose();
+  boss.dispose();
+  cH.dispose();
+  cV.dispose();
+
+  _palGeoCache = {
+    helmSteelGeo,
+    crestBase: new THREE.BoxGeometry(0.08, 0.04, 0.34),
+    crest: new THREE.BoxGeometry(0.06, 0.16, 0.32),
+    pauldronBody: new THREE.BoxGeometry(0.20, 0.14, 0.26),
+    pauldronRim: new THREE.BoxGeometry(0.22, 0.03, 0.28),
+    pauldronCap: new THREE.BoxGeometry(0.22, 0.10, 0.28),
+    shieldBody: new THREE.BoxGeometry(0.32, 0.42, 0.06),
+    shieldGoldGeo,
+    chestCrossH: new THREE.BoxGeometry(0.16, 0.04, 0.02),
+    chestCrossV: new THREE.BoxGeometry(0.04, 0.16, 0.02),
+    buckle: new THREE.BoxGeometry(0.08, 0.06, 0.02),
+  };
+  for (const g of Object.values(_palGeoCache)) {
+    g.userData = { isShared: true, heroId: 'paladin' };
+  }
+  return _palGeoCache;
+}
+
+function getPaladinMatCache() {
+  if (_palMatCache) return _palMatCache;
+  _palMatCache = {
+    steelMat: new THREE.MeshLambertMaterial({ color: 0xb8bcc4 }),
+    steelDarkMat: new THREE.MeshLambertMaterial({ color: 0x7a7f88 }),
+    goldMat: new THREE.MeshLambertMaterial({ color: 0xd4af37, emissive: 0x473b13, emissiveIntensity: 0.25 }),
+    redMat: new THREE.MeshLambertMaterial({ color: 0xa01828 }),
+  };
+  for (const m of Object.values(_palMatCache)) {
+    m.userData = { isShared: true, heroId: 'paladin' };
+  }
+  return _palMatCache;
+}
+
+export function disposePaladinGearCache() {
+  if (_palGeoCache) {
+    for (const g of Object.values(_palGeoCache)) g.dispose?.();
+    _palGeoCache = null;
+  }
+  if (_palMatCache) {
+    for (const m of Object.values(_palMatCache)) m.dispose?.();
+    _palMatCache = null;
+  }
+}
 
 /**
  * Kit del Paladín (paladin): arquetipo de caballero sagrado y vanguardia.
@@ -14,10 +102,8 @@ import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
  * @returns {THREE.Material[]} Materiales propios para disponer al cambiar de clase.
  */
 export function buildPaladinGear(a, G, add) {
-  const steelMat     = new THREE.MeshLambertMaterial({ color: 0xb8bcc4 });
-  const steelDarkMat = new THREE.MeshLambertMaterial({ color: 0x7a7f88 });
-  const goldMat      = new THREE.MeshLambertMaterial({ color: 0xd4af37, emissive: 0x473b13, emissiveIntensity: 0.25 });
-  const redMat       = new THREE.MeshLambertMaterial({ color: 0xa01828 });
+  const geo = getPaladinGeoCache();
+  const { steelMat, steelDarkMat, goldMat, redMat } = getPaladinMatCache();
 
   // ═══════════════════════════════════════════════════════════
   // 1. YELMO — Casco envolvente anclado a la cabeza
@@ -25,59 +111,40 @@ export function buildPaladinGear(a, G, add) {
   // ═══════════════════════════════════════════════════════════
   const helm = new THREE.Group();
 
-  // Corona superior (cubre el techo de la cabeza)
-  const helmTop = new THREE.Mesh(
-    new THREE.BoxGeometry(0.44, 0.10, 0.44),
-    steelMat
-  );
-  helmTop.position.set(0, 0.20, 0);
-  helm.add(helmTop);
+  const helmSteel = new THREE.Mesh(geo.helmSteelGeo, steelMat);
+  helm.add(helmSteel);
 
-  // Nuca (cubre la parte trasera)
-  const helmBack = new THREE.Mesh(
-    new THREE.BoxGeometry(0.42, 0.34, 0.06),
-    steelMat
-  );
-  helmBack.position.set(0, 0.05, -0.19);
-  helm.add(helmBack);
-
-  // Laterales (cubren orejas y sienes)
-  const helmSideL = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 0.30, 0.38),
-    steelMat
-  );
-  helmSideL.position.set(-0.20, 0.06, 0);
-  helm.add(helmSideL);
-
-  const helmSideR = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 0.30, 0.38),
-    steelMat
-  );
-  helmSideR.position.set(0.20, 0.06, 0);
-  helm.add(helmSideR);
-
-  // Base de la cresta (soporte dorado)
-  const crestBase = new THREE.Mesh(
-    new THREE.BoxGeometry(0.08, 0.04, 0.34),
-    goldMat
-  );
+  const crestBase = new THREE.Mesh(geo.crestBase, goldMat);
   crestBase.position.set(0, 0.24, -0.02);
   helm.add(crestBase);
 
-  // Cresta de pluma roja — baja y ancha
-  const crest = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 0.16, 0.32),
-    redMat
-  );
+  const crest = new THREE.Mesh(geo.crest, redMat);
   crest.position.set(0, 0.32, -0.02);
   helm.add(crest);
 
-  // Aplicar textura facial Sumi-e propia del Paladín a la cara frontal (+Z) de la cabeza
+  // Aplicar texturas Sumi-e de cabeza (360°) y torso propia del Paladín
   let faceMat = null;
+  let sideRightMat = null;
+  let sideLeftMat = null;
+  let backMat = null;
   if (a.parts?.head && Array.isArray(a.parts.head.material)) {
     faceMat = createHeroFaceMaterial('paladin');
-    if (faceMat) {
-      a.parts.head.material[4] = faceMat;
+    sideRightMat = createHeroHeadSideMaterial('paladin', 'R');
+    sideLeftMat = createHeroHeadSideMaterial('paladin', 'L');
+    backMat = createHeroHeadBackMaterial('paladin');
+    if (sideRightMat) a.parts.head.material[0] = sideRightMat;
+    if (sideLeftMat) a.parts.head.material[1] = sideLeftMat;
+    if (faceMat) a.parts.head.material[4] = faceMat;
+    if (backMat) a.parts.head.material[5] = backMat;
+  }
+
+  let chestMat = null;
+  if (a.parts?.torso) {
+    if (!a._origTorsoMat) a._origTorsoMat = a.parts.torso.material;
+    const baseMat = Array.isArray(a._origTorsoMat) ? a._origTorsoMat[0] : (a._origTorsoMat || a.parts.torso.material);
+    chestMat = createHeroChestMaterial('paladin');
+    if (chestMat) {
+      a.parts.torso.material = [baseMat, baseMat, baseMat, baseMat, chestMat, baseMat];
     }
   }
 
@@ -96,14 +163,14 @@ export function buildPaladinGear(a, G, add) {
     const pGroup = new THREE.Group();
     pGroup.position.set(isLeft ? -0.34 : 0.34, 1.40, 0);
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.14, 0.26), steelMat);
+    const body = new THREE.Mesh(geo.pauldronBody, steelMat);
     pGroup.add(body);
 
-    const rim = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.03, 0.28), goldMat);
+    const rim = new THREE.Mesh(geo.pauldronRim, goldMat);
     rim.position.set(0, -0.06, 0);
     pGroup.add(rim);
 
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.10, 0.28), steelDarkMat);
+    const cap = new THREE.Mesh(geo.pauldronCap, steelDarkMat);
     cap.position.set(isLeft ? -0.02 : 0.02, 0.10, 0);
     cap.rotation.z = isLeft ? 0.20 : -0.20;
     pGroup.add(cap);
@@ -124,46 +191,11 @@ export function buildPaladinGear(a, G, add) {
   const shieldGroup = new THREE.Group();
   shieldGroup.position.set(0, -0.28, 0.18);
 
-  // Tabla central
-  const shieldBody = new THREE.Mesh(
-    new THREE.BoxGeometry(0.32, 0.42, 0.06),
-    steelMat
-  );
+  const shieldBody = new THREE.Mesh(geo.shieldBody, steelMat);
   shieldGroup.add(shieldBody);
 
-  // Marco exterior dorado
-  const frameTop = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.04, 0.07), goldMat);
-  frameTop.position.set(0, 0.20, 0);
-  shieldGroup.add(frameTop);
-
-  const frameBot = frameTop.clone();
-  frameBot.position.y = -0.20;
-  shieldGroup.add(frameBot);
-
-  const frameL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.44, 0.07), goldMat);
-  frameL.position.set(-0.15, 0, 0);
-  shieldGroup.add(frameL);
-
-  const frameR = frameL.clone();
-  frameR.position.x = 0.15;
-  shieldGroup.add(frameR);
-
-  // Umbo central dorado
-  const boss = new THREE.Mesh(
-    new THREE.BoxGeometry(0.10, 0.10, 0.09),
-    goldMat
-  );
-  boss.position.set(0, 0, 0.01);
-  shieldGroup.add(boss);
-
-  // Emblema sagrado: cruz dorada sobre la cara del escudo
-  const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.03, 0.02), goldMat);
-  crossH.position.set(0, -0.08, 0.04);
-  shieldGroup.add(crossH);
-
-  const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.14, 0.02), goldMat);
-  crossV.position.set(0, -0.08, 0.04);
-  shieldGroup.add(crossV);
+  const shieldGold = new THREE.Mesh(geo.shieldGoldGeo, goldMat);
+  shieldGroup.add(shieldGold);
 
   if (a.parts?.armLPivot) {
     add(shieldGroup, a.parts.armLPivot);
@@ -173,34 +205,33 @@ export function buildPaladinGear(a, G, add) {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 4. PECHERA — Emblema de cruz dorada sobre el torso
+  // 4. PECHERA — Emblema de cruz dorada sobre el torso (volumen mixto)
   //    Torso centrado en y = 1.13, frente en z = +0.16
   // ═══════════════════════════════════════════════════════════
-  const chestCrossH = new THREE.Mesh(
-    new THREE.BoxGeometry(0.16, 0.04, 0.02),
-    goldMat
-  );
+  const chestCrossH = new THREE.Mesh(geo.chestCrossH, goldMat);
   chestCrossH.position.set(0, 1.20, 0.17);
   add(chestCrossH, a.gear);
 
-  const chestCrossV = new THREE.Mesh(
-    new THREE.BoxGeometry(0.04, 0.16, 0.02),
-    goldMat
-  );
+  const chestCrossV = new THREE.Mesh(geo.chestCrossV, goldMat);
   chestCrossV.position.set(0, 1.20, 0.17);
   add(chestCrossV, a.gear);
 
   // ═══════════════════════════════════════════════════════════
-  // 5. CINTURÓN — Hebilla dorada
+  // 5. CINTURÓN — Hebilla dorada (volumen mixto)
   // ═══════════════════════════════════════════════════════════
-  const buckle = new THREE.Mesh(
-    new THREE.BoxGeometry(0.08, 0.06, 0.02),
-    goldMat
-  );
+  const buckle = new THREE.Mesh(geo.buckle, goldMat);
   buckle.position.set(0, 0.84, 0.18);
   add(buckle, a.gear);
 
+  if (a.parts) {
+    a.parts.emissiveMats = [{ mat: goldMat, base: 0.25, amp: 0.10 }];
+  }
+
   const mats = [steelMat, steelDarkMat, goldMat, redMat];
   if (faceMat) mats.push(faceMat);
+  if (sideRightMat) mats.push(sideRightMat);
+  if (sideLeftMat) mats.push(sideLeftMat);
+  if (backMat) mats.push(backMat);
+  if (chestMat) mats.push(chestMat);
   return mats;
 }

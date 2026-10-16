@@ -9,10 +9,13 @@ import {
   buildBaseAvatarMesh,
   GEAR_BUILDERS,
   createNameSprite,
+  disposeHeroGearCaches,
 } from '../src/render/models/heroes/index.js';
 import {
   HERO_PORTRAITS,
   createHeroFaceMaterial,
+  createHeroHeadSideMaterial,
+  createHeroHeadBackMaterial,
   createHeroChestMaterial,
   disposeHeroPortraitsCache,
 } from '../src/heroes/heroPortraits.js';
@@ -862,6 +865,125 @@ test('Héroes Sumi-e: Caché Singleton reutiliza materiales y texturas faciales/
   ar.dispose();
   disposeHeroPortraitsCache();
 });
+
+test('Fases 1-5 Héroes 3D: Cachés Singleton de Gear, Texturas de Torso (Volumen Mixto), Sombra de Tinta y Cinemática Secundaria', () => {
+  disposeHeroGearCaches();
+  disposeHeroPortraitsCache();
+
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const heroIds = ['adventurer', 'paladin', 'ranger', 'wizard', 'guardian'];
+
+  // Fase 2: Todos los 5 héroes tienen chestSvg, chestBody y drawChestToCanvas + material de pecho cacheado
+  for (const id of heroIds) {
+    const p = HERO_PORTRAITS[id];
+    assert.ok(p.chestSvg, `${id} debe tener chestSvg definido`);
+    assert.ok(p.chestBody, `${id} debe tener chestBody definido`);
+    assert.equal(typeof p.drawChestToCanvas, 'function', `${id} debe tener drawChestToCanvas`);
+
+    const cMat1 = createHeroChestMaterial(id);
+    const cMat2 = createHeroChestMaterial(id);
+    assert.equal(cMat1, cMat2, `createHeroChestMaterial(${id}) debe ser Singleton`);
+    assert.ok(cMat1.userData?.isShared, `Material de pecho de ${id} debe tener isShared=true`);
+  }
+
+  // Fase 1 y 5: Reutilización de geometrías y materiales compartidos (isShared) y restauración de color de túnica
+  const a = ar.ensure(202, '#38bdf8');
+  const origTunicHex = a.mats[0].color.getHex();
+
+  // Fase 3: Sombra de contacto Sumi-e octogonal en la base del avatar
+  assert.ok(a.parts.shadow instanceof THREE.Mesh, 'El avatar debe incluir malla de sombra de contacto (parts.shadow)');
+  assert.equal(a.parts.shadow.name, 'AvatarBlobShadow');
+
+  for (const id of heroIds) {
+    ar.setHeroGear(a, id);
+    assert.ok(Array.isArray(a.parts.torso.material), `El torso de ${id} debe usar arreglo multimaterial con cara frontal texturizada`);
+    assert.ok(a.gearNodes.length > 0, `${id} debe registrar gearNodes para volumen mixto`);
+
+    // Verificar que todas las geometrías y materiales del gear están marcados como isShared
+    for (const { obj } of a.gearNodes) {
+      obj.traverse((child) => {
+        if (child.isMesh) {
+          assert.equal(child.geometry.userData?.isShared, true, `Geometría en ${id} debe ser compartida (Singleton)`);
+        }
+      });
+    }
+    for (const m of a.gearMats) {
+      assert.equal(m.userData?.isShared, true, `Material en ${id} debe ser compartido (Singleton)`);
+    }
+  }
+
+  // Al limpiar gear después de clases que oscurecen túnica (guardian/ranger), el color original debe restaurarse intacto
+  ar._clearGear(a);
+  assert.equal(a.mats[0].color.getHex(), origTunicHex, 'El color de la túnica debe restaurarse sin degradación acumulativa');
+
+  // Fase 4: Cinemática secundaria en AvatarRenderer.update(dt) (caminata, salto, capa, faldón, cristal y early-exit)
+  ar.setHeroGear(a, 'wizard');
+  ar.setTarget(202, 0, 1.0, 0, 0, true);
+  ar.setTarget(202, 2.0, 1.6, 2.0, 0.5, true); // movimiento horizontal + salto vertical
+  const prevCrystalRotY = a.parts.crystal.rotation.y;
+  ar.update(0.05);
+  assert.notEqual(a.parts.crystal.rotation.y, prevCrystalRotY, 'El cristal arcano del Hechicero debe rotar en update(dt)');
+  assert.ok(a.parts.shadow.scale.x < 1.0, 'La sombra de contacto debe encogerse dinámicamente al elevarse en un salto');
+
+  // Early-exit cuando el avatar está oculto
+  a.mesh.visible = false;
+  const frozenPhase = a.phase;
+  ar.update(0.05);
+  assert.equal(a.phase, frozenPhase, 'Un avatar oculto (visible=false) no debe consumir CPU en update(dt)');
+
+  ar.dispose();
+  disposeHeroGearCaches();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: Los 5 héroes integran texturas laterales (+X/-X) y trasera (-Z) en la cabeza 3D', () => {
+  disposeHeroPortraitsCache();
+
+  const heroIds = ['guardian', 'wizard', 'ranger', 'paladin', 'adventurer'];
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(303, '#fbbf24');
+
+  for (const id of heroIds) {
+    // 1. Verificar definición en HERO_PORTRAITS[id]
+    const def = HERO_PORTRAITS[id];
+    assert.ok(def.sideSvg && def.sideBody, `${id} debe definir sideSvg y sideBody`);
+    assert.ok(def.backSvg && def.backBody, `${id} debe definir backSvg y backBody`);
+    assert.equal(typeof def.drawSideToCanvas, 'function', `${id} debe definir drawSideToCanvas`);
+    assert.equal(typeof def.drawBackToCanvas, 'function', `${id} debe definir drawBackToCanvas`);
+
+    // 2. Verificar factorías Singleton de materiales laterales ('R' y 'L') y trasero
+    const sideR1 = createHeroHeadSideMaterial(id, 'R');
+    const sideR2 = createHeroHeadSideMaterial(id, 'R');
+    const sideL1 = createHeroHeadSideMaterial(id, 'L');
+    const back1 = createHeroHeadBackMaterial(id);
+    const back2 = createHeroHeadBackMaterial(id);
+
+    assert.equal(sideR1, sideR2, `createHeroHeadSideMaterial(${id}, R) debe ser Singleton`);
+    assert.notEqual(sideR1, sideL1, `Lado derecho (+X) e izquierdo (-X) de ${id} deben tener instancias distintas (simetría invertida)`);
+    assert.equal(back1, back2, `createHeroHeadBackMaterial(${id}) debe ser Singleton`);
+    assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared && back1.userData?.isShared);
+
+    // 3. Verificar asignación en las caras del cubo de la cabeza [0:+X, 1:-X, 4:+Z, 5:-Z]
+    ar.setHeroGear(a, id);
+    assert.equal(a.parts.head.material[0], sideR1, `Cara +X (índice 0) debe tener sideRightMat de ${id}`);
+    assert.equal(a.parts.head.material[1], sideL1, `Cara -X (índice 1) debe tener sideLeftMat de ${id}`);
+    assert.equal(a.parts.head.material[4], createHeroFaceMaterial(id), `Cara +Z (índice 4) debe tener faceMat de ${id}`);
+    assert.equal(a.parts.head.material[5], back1, `Cara -Z (índice 5) debe tener backMat de ${id}`);
+  }
+
+  ar._clearGear(a);
+  assert.equal(a.parts.head.material[0], ar._sharedMats.skin, '_clearGear debe restaurar cara +X a skin');
+  assert.equal(a.parts.head.material[1], ar._sharedMats.skin, '_clearGear debe restaurar cara -X a skin');
+  assert.equal(a.parts.head.material[4], ar._sharedMats.face, '_clearGear debe restaurar cara +Z a face');
+  assert.equal(a.parts.head.material[5], ar._sharedMats.skin, '_clearGear debe restaurar cara -Z a skin');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+
 
 
 

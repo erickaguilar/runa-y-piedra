@@ -1,6 +1,83 @@
 // src/render/models/heroes/adventurerGear.js
 import * as THREE from 'three';
-import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  createHeroFaceMaterial,
+  createHeroHeadSideMaterial,
+  createHeroHeadBackMaterial,
+  createHeroChestMaterial,
+} from '../../../heroes/heroPortraits.js';
+
+let _advGeoCache = null;
+let _advMatCache = null;
+
+function getAdventurerGeoCache() {
+  if (_advGeoCache) return _advGeoCache;
+
+  const strapBase = new THREE.BoxGeometry(0.04, 0.44, 0.04);
+  const sL = strapBase.clone().rotateX(0.15).translate(-0.14, 1.15, -0.18);
+  const sR = strapBase.clone().rotateX(0.15).translate(0.14, 1.15, -0.18);
+  const packStrapsGeo = mergeGeometries([sL, sR], false);
+  strapBase.dispose();
+  sL.dispose();
+  sR.dispose();
+
+  const pouchBase = new THREE.BoxGeometry(0.10, 0.12, 0.08);
+  const pL = pouchBase.clone().translate(-0.20, 0.76, 0.14);
+  const pR = pouchBase.clone().translate(0.20, 0.76, 0.14);
+  const pouchesGeo = mergeGeometries([pL, pR], false);
+  pouchBase.dispose();
+  pL.dispose();
+  pR.dispose();
+
+  const hairCap = new THREE.BoxGeometry(0.42, 0.14, 0.42).translate(0, 1.82, 0);
+  const hairTuft = new THREE.BoxGeometry(0.10, 0.06, 0.10).translate(0.06, 1.86, 0.18);
+  const hairGeo = mergeGeometries([hairCap, hairTuft], false);
+  hairCap.dispose();
+  hairTuft.dispose();
+
+  _advGeoCache = {
+    hood: new THREE.BoxGeometry(0.60, 0.14, 0.40),
+    scarf: new THREE.BoxGeometry(0.24, 0.10, 0.24),
+    packBody: new THREE.BoxGeometry(0.30, 0.34, 0.14),
+    packStrapsGeo,
+    pouchesGeo,
+    boot: new THREE.BoxGeometry(0.20, 0.22, 0.20),
+    compass: new THREE.BoxGeometry(0.07, 0.07, 0.02),
+    hairGeo,
+  };
+  for (const g of Object.values(_advGeoCache)) {
+    g.userData = { isShared: true, heroId: 'adventurer' };
+  }
+  return _advGeoCache;
+}
+
+function getAdventurerMatCache() {
+  if (_advMatCache) return _advMatCache;
+  _advMatCache = {
+    leatherMat: new THREE.MeshLambertMaterial({ color: 0x6b4423 }),
+    leatherDarkMat: new THREE.MeshLambertMaterial({ color: 0x4a2e18 }),
+    clothMat: new THREE.MeshLambertMaterial({ color: 0x8b5a2b }),
+    brassMat: new THREE.MeshLambertMaterial({ color: 0xc9a227, emissive: 0x3d2b05, emissiveIntensity: 0.35 }),
+    bootsMat: new THREE.MeshLambertMaterial({ color: 0x3d2817 }),
+    hairMat: new THREE.MeshLambertMaterial({ color: 0x4a2e18 }),
+  };
+  for (const m of Object.values(_advMatCache)) {
+    m.userData = { isShared: true, heroId: 'adventurer' };
+  }
+  return _advMatCache;
+}
+
+export function disposeAdventurerGearCache() {
+  if (_advGeoCache) {
+    for (const g of Object.values(_advGeoCache)) g.dispose?.();
+    _advGeoCache = null;
+  }
+  if (_advMatCache) {
+    for (const m of Object.values(_advMatCache)) m.dispose?.();
+    _advMatCache = null;
+  }
+}
 
 /**
  * Kit del Aventurero (adventurer): arquetipo de explorador versátil.
@@ -14,123 +91,91 @@ import { createHeroFaceMaterial } from '../../../heroes/heroPortraits.js';
  * @returns {THREE.Material[]} Materiales propios para disponer al cambiar de clase.
  */
 export function buildAdventurerGear(a, G, add) {
-  const leatherMat     = new THREE.MeshLambertMaterial({ color: 0x6b4423 });
-  const leatherDarkMat = new THREE.MeshLambertMaterial({ color: 0x4a2e18 });
-  const clothMat       = new THREE.MeshLambertMaterial({ color: 0x8b5a2b });
-  const brassMat       = new THREE.MeshLambertMaterial({ color: 0xc9a227, emissive: 0x3d2b05 });
-  const bootsMat       = new THREE.MeshLambertMaterial({ color: 0x3d2817 });
+  const geo = getAdventurerGeoCache();
+  const { leatherMat, leatherDarkMat, clothMat, brassMat, bootsMat, hairMat } = getAdventurerMatCache();
 
   // ───── 1. Capucha sobre los hombros ─────
-  const hood = new THREE.Mesh(
-    new THREE.BoxGeometry(0.60, 0.14, 0.40),
-    clothMat
-  );
+  const hood = new THREE.Mesh(geo.hood, clothMat);
   hood.position.set(0, 1.40, -0.02);
   add(hood, a.gear);
 
   // ───── 2. Bufanda/pañuelo al cuello ─────
-  const scarf = new THREE.Mesh(
-    new THREE.BoxGeometry(0.24, 0.10, 0.24),
-    leatherMat
-  );
+  const scarf = new THREE.Mesh(geo.scarf, leatherMat);
   scarf.position.set(0, 1.36, 0);
   add(scarf, a.gear);
 
   // ───── 3. Mochila pequeña (visible desde atrás) con correas al frente ─────
   const pack = new THREE.Group();
-  const packBody = new THREE.Mesh(
-    new THREE.BoxGeometry(0.30, 0.34, 0.14),
-    leatherMat
-  );
+  const packBody = new THREE.Mesh(geo.packBody, leatherMat);
   packBody.position.set(0, 1.15, -0.24);
   pack.add(packBody);
 
-  // Correas de la mochila cruzando los hombros hacia el pecho
-  const strapL = new THREE.Mesh(
-    new THREE.BoxGeometry(0.04, 0.44, 0.04),
-    leatherDarkMat
-  );
-  strapL.position.set(-0.14, 1.15, -0.18);
-  strapL.rotation.x = 0.15;
-  pack.add(strapL);
-
-  const strapR = new THREE.Mesh(
-    new THREE.BoxGeometry(0.04, 0.44, 0.04),
-    leatherDarkMat
-  );
-  strapR.position.set(0.14, 1.15, -0.18);
-  strapR.rotation.x = 0.15;
-  pack.add(strapR);
+  const straps = new THREE.Mesh(geo.packStrapsGeo, leatherDarkMat);
+  pack.add(straps);
 
   add(pack, a.gear);
 
-  // ───── 4. Bolsas en el cinturón ─────
-  const pouchL = new THREE.Mesh(
-    new THREE.BoxGeometry(0.10, 0.12, 0.08),
-    leatherMat
-  );
-  pouchL.position.set(-0.20, 0.76, 0.14);
-  add(pouchL, a.gear);
-
-  const pouchR = new THREE.Mesh(
-    new THREE.BoxGeometry(0.10, 0.12, 0.08),
-    leatherMat
-  );
-  pouchR.position.set(0.20, 0.76, 0.14);
-  add(pouchR, a.gear);
+  // ───── 4. Bolsas en el cinturón (fusionadas en una sola draw call) ─────
+  const pouches = new THREE.Mesh(geo.pouchesGeo, leatherMat);
+  add(pouches, a.gear);
 
   // ───── 5. Botas emparentadas a los pivotes de las piernas (animación de marcha sincronizada) ─────
-  const bootGeo = new THREE.BoxGeometry(0.20, 0.22, 0.20);
-
   if (a.parts?.legLPivot) {
-    const bootL = new THREE.Mesh(bootGeo, bootsMat);
+    const bootL = new THREE.Mesh(geo.boot, bootsMat);
     bootL.position.set(0, -0.69, 0);
     add(bootL, a.parts.legLPivot);
   }
 
   if (a.parts?.legRPivot) {
-    const bootR = new THREE.Mesh(bootGeo, bootsMat);
+    const bootR = new THREE.Mesh(geo.boot, bootsMat);
     bootR.position.set(0, -0.69, 0);
     add(bootR, a.parts.legRPivot);
   }
 
-  // ───── 6. Brújula dorada en el pecho ─────
-  const compass = new THREE.Mesh(
-    new THREE.BoxGeometry(0.07, 0.07, 0.02),
-    brassMat
-  );
+  // ───── 6. Brújula dorada en el pecho (micro-cubo en relieve) ─────
+  const compass = new THREE.Mesh(geo.compass, brassMat);
   compass.position.set(0, 1.20, 0.17);
   add(compass, a.gear);
 
-  // ───── 7. Cabello de Aventurero (casquete castaño + mechón despeinado) ─────
-  const hairMat = new THREE.MeshLambertMaterial({ color: 0x4a2e18 });
+  // ───── 7. Cabello de Aventurero (casquete castaño + mechón fusionados) ─────
+  const hair = new THREE.Mesh(geo.hairGeo, hairMat);
+  add(hair, a.gear);
 
-  // Casquete: 1cm más ancho que la cabeza (0.42 x 0.14 x 0.42) envolviendo el cráneo superior
-  const hairCap = new THREE.Mesh(
-    new THREE.BoxGeometry(0.42, 0.14, 0.42),
-    hairMat
-  );
-  hairCap.position.set(0, 1.82, 0);
-  add(hairCap, a.gear);
-
-  // Mechón frontal con aire despeinado de explorador
-  const hairTuft = new THREE.Mesh(
-    new THREE.BoxGeometry(0.10, 0.06, 0.10),
-    hairMat
-  );
-  hairTuft.position.set(0.06, 1.86, 0.18);
-  add(hairTuft, a.gear);
-
-  // Aplicar textura facial Sumi-e propia del Aventurero a la cara frontal (+Z) de la cabeza
+  // Aplicar texturas Sumi-e de cabeza (360°) y torso propia del Aventurero
   let faceMat = null;
+  let sideRightMat = null;
+  let sideLeftMat = null;
+  let backMat = null;
   if (a.parts?.head && Array.isArray(a.parts.head.material)) {
     faceMat = createHeroFaceMaterial('adventurer');
-    if (faceMat) {
-      a.parts.head.material[4] = faceMat;
+    sideRightMat = createHeroHeadSideMaterial('adventurer', 'R');
+    sideLeftMat = createHeroHeadSideMaterial('adventurer', 'L');
+    backMat = createHeroHeadBackMaterial('adventurer');
+    if (sideRightMat) a.parts.head.material[0] = sideRightMat;
+    if (sideLeftMat) a.parts.head.material[1] = sideLeftMat;
+    if (faceMat) a.parts.head.material[4] = faceMat;
+    if (backMat) a.parts.head.material[5] = backMat;
+  }
+
+  let chestMat = null;
+  if (a.parts?.torso) {
+    if (!a._origTorsoMat) a._origTorsoMat = a.parts.torso.material;
+    const baseMat = Array.isArray(a._origTorsoMat) ? a._origTorsoMat[0] : (a._origTorsoMat || a.parts.torso.material);
+    chestMat = createHeroChestMaterial('adventurer');
+    if (chestMat) {
+      a.parts.torso.material = [baseMat, baseMat, baseMat, baseMat, chestMat, baseMat];
     }
+  }
+
+  if (a.parts) {
+    a.parts.emissiveMats = [{ mat: brassMat, base: 0.35, amp: 0.18 }];
   }
 
   const mats = [leatherMat, leatherDarkMat, clothMat, brassMat, bootsMat, hairMat];
   if (faceMat) mats.push(faceMat);
+  if (sideRightMat) mats.push(sideRightMat);
+  if (sideLeftMat) mats.push(sideLeftMat);
+  if (backMat) mats.push(backMat);
+  if (chestMat) mats.push(chestMat);
   return mats;
 }

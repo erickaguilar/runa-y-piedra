@@ -6,11 +6,11 @@ export * from './rangerGear.js';
 export * from './wizardGear.js';
 export * from './guardianGear.js';
 
-import { buildAdventurerGear } from './adventurerGear.js';
-import { buildPaladinGear } from './paladinGear.js';
-import { buildRangerGear } from './rangerGear.js';
-import { buildWizardGear } from './wizardGear.js';
-import { buildGuardianGear } from './guardianGear.js';
+import { buildAdventurerGear, disposeAdventurerGearCache } from './adventurerGear.js';
+import { buildPaladinGear, disposePaladinGearCache } from './paladinGear.js';
+import { buildRangerGear, disposeRangerGearCache } from './rangerGear.js';
+import { buildWizardGear, disposeWizardGearCache } from './wizardGear.js';
+import { buildGuardianGear, disposeGuardianGearCache } from './guardianGear.js';
 
 /**
  * Mapeo de constructores de equipamiento por identificador de clase de héroe.
@@ -22,3 +22,14 @@ export const GEAR_BUILDERS = {
   wizard: (a, G, add) => buildWizardGear(a, G, add),
   guardian: (a, G, add) => buildGuardianGear(a, G, add),
 };
+
+/**
+ * Libera las cachés singleton de geometrías y materiales de equipamiento de todos los héroes.
+ */
+export function disposeHeroGearCaches() {
+  disposeAdventurerGearCache();
+  disposePaladinGearCache();
+  disposeRangerGearCache();
+  disposeWizardGearCache();
+  disposeGuardianGearCache();
+}

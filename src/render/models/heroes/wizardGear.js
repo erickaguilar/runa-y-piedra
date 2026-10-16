@@ -1,6 +1,81 @@
 // src/render/models/heroes/wizardGear.js
 import * as THREE from 'three';
-import { createHeroFaceMaterial, createHeroChestMaterial } from '../../../heroes/heroPortraits.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  createHeroFaceMaterial,
+  createHeroHeadSideMaterial,
+  createHeroHeadBackMaterial,
+  createHeroChestMaterial,
+} from '../../../heroes/heroPortraits.js';
+
+let _wizGeoCache = null;
+let _wizMatCache = null;
+
+function getWizardGeoCache() {
+  if (_wizGeoCache) return _wizGeoCache;
+
+  const c1 = new THREE.BoxGeometry(0.32, 0.12, 0.32).translate(0, 0.28, 0);
+  const c2 = new THREE.BoxGeometry(0.22, 0.12, 0.22).translate(0, 0.38, 0);
+  const c3 = new THREE.BoxGeometry(0.12, 0.12, 0.12).translate(0, 0.48, 0);
+  const hatConeGeo = mergeGeometries([c1, c2, c3], false);
+  c1.dispose();
+  c2.dispose();
+  c3.dispose();
+
+  _wizGeoCache = {
+    brim: new THREE.BoxGeometry(0.56, 0.04, 0.56),
+    band: new THREE.BoxGeometry(0.44, 0.05, 0.44),
+    hatConeGeo,
+    pom: new THREE.BoxGeometry(0.08, 0.08, 0.08),
+    shaft: new THREE.BoxGeometry(0.06, 1.60, 0.06),
+    knot: new THREE.BoxGeometry(0.09, 0.10, 0.09),
+    staffRing: new THREE.BoxGeometry(0.10, 0.06, 0.10),
+    crystal: new THREE.OctahedronGeometry(0.09, 0),
+    crystalInner: new THREE.OctahedronGeometry(0.05, 0),
+    book: new THREE.BoxGeometry(0.14, 0.18, 0.06),
+    pages: new THREE.BoxGeometry(0.12, 0.17, 0.02),
+    clasp: new THREE.BoxGeometry(0.03, 0.18, 0.02),
+  };
+  for (const g of Object.values(_wizGeoCache)) {
+    g.userData = { isShared: true, heroId: 'wizard' };
+  }
+  return _wizGeoCache;
+}
+
+function getWizardMatCache() {
+  if (_wizMatCache) return _wizMatCache;
+  _wizMatCache = {
+    hatMat: new THREE.MeshLambertMaterial({ color: 0x5b21b6 }),
+    hatDarkMat: new THREE.MeshLambertMaterial({ color: 0x3b1078 }),
+    hatBandMat: new THREE.MeshLambertMaterial({ color: 0x8b5cf6 }),
+    pomMat: new THREE.MeshLambertMaterial({ color: 0xf97316 }),
+    woodMat: new THREE.MeshLambertMaterial({ color: 0x4a2e18 }),
+    woodHiMat: new THREE.MeshLambertMaterial({ color: 0x6b4423 }),
+    crystalMat: new THREE.MeshLambertMaterial({
+      color: 0xd8b4fe,
+      emissive: 0x7c3aed,
+      emissiveIntensity: 0.8,
+    }),
+    ringMat: new THREE.MeshLambertMaterial({ color: 0xd4af37 }),
+    bookCoverMat: new THREE.MeshLambertMaterial({ color: 0x4a1818 }),
+    bookPagesMat: new THREE.MeshLambertMaterial({ color: 0xe8dcb8 }),
+  };
+  for (const m of Object.values(_wizMatCache)) {
+    m.userData = { isShared: true, heroId: 'wizard' };
+  }
+  return _wizMatCache;
+}
+
+export function disposeWizardGearCache() {
+  if (_wizGeoCache) {
+    for (const g of Object.values(_wizGeoCache)) g.dispose?.();
+    _wizGeoCache = null;
+  }
+  if (_wizMatCache) {
+    for (const m of Object.values(_wizMatCache)) m.dispose?.();
+    _wizMatCache = null;
+  }
+}
 
 /**
  * Kit del Hechicero (wizard): arquetipo de taumaturgo arcano.
@@ -16,21 +91,19 @@ import { createHeroFaceMaterial, createHeroChestMaterial } from '../../../heroes
  * @returns {THREE.Material[]} Materiales propios para disponer al cambiar de clase.
  */
 export function buildWizardGear(a, G, add) {
-  // Paleta de materiales de Hechicero
-  const hatMat       = new THREE.MeshLambertMaterial({ color: 0x5b21b6 }); // Violeta mago
-  const hatDarkMat   = new THREE.MeshLambertMaterial({ color: 0x3b1078 }); // Violeta oscuro para el ala
-  const hatBandMat   = new THREE.MeshLambertMaterial({ color: 0x8b5cf6 }); // Banda violeta luminosa
-  const pomMat       = new THREE.MeshLambertMaterial({ color: 0xf97316 }); // Pom-pom naranja cálido
-  const woodMat      = new THREE.MeshLambertMaterial({ color: 0x4a2e18 }); // Madera de roble oscuro
-  const woodHiMat    = new THREE.MeshLambertMaterial({ color: 0x6b4423 }); // Veta / nudo de madera clara
-  const crystalMat   = new THREE.MeshLambertMaterial({
-    color: 0xd8b4fe,
-    emissive: 0x7c3aed,
-    emissiveIntensity: 0.8,
-  }); // Cristal arcano radiante
-  const ringMat      = new THREE.MeshLambertMaterial({ color: 0xd4af37 }); // Oro arcano
-  const bookCoverMat = new THREE.MeshLambertMaterial({ color: 0x4a1818 }); // Cuero carmesí grimorio
-  const bookPagesMat = new THREE.MeshLambertMaterial({ color: 0xe8dcb8 }); // Filo de páginas pergamino
+  const geo = getWizardGeoCache();
+  const {
+    hatMat,
+    hatDarkMat,
+    hatBandMat,
+    pomMat,
+    woodMat,
+    woodHiMat,
+    crystalMat,
+    ringMat,
+    bookCoverMat,
+    bookPagesMat,
+  } = getWizardMatCache();
 
   // ═══════════════════════════════════════════════════════════
   // 1. SOMBRERO — Ala ancha + cono más bajo con pom-pom
@@ -38,49 +111,18 @@ export function buildWizardGear(a, G, add) {
   // ═══════════════════════════════════════════════════════════
   const hatGroup = new THREE.Group();
 
-  // Ala (plana, ancha — 0.56m cubre ampliamente la cabeza de 0.40m)
-  const brim = new THREE.Mesh(
-    new THREE.BoxGeometry(0.56, 0.04, 0.56),
-    hatDarkMat
-  );
+  const brim = new THREE.Mesh(geo.brim, hatDarkMat);
   brim.position.set(0, 0.16, 0);
   hatGroup.add(brim);
 
-  // Banda del sombrero (aro luminoso donde nace el cono)
-  const band = new THREE.Mesh(
-    new THREE.BoxGeometry(0.44, 0.05, 0.44),
-    hatBandMat
-  );
+  const band = new THREE.Mesh(geo.band, hatBandMat);
   band.position.set(0, 0.20, 0);
   hatGroup.add(band);
 
-  // Cono escalonado (~0.35m de altura total)
-  const cone = new THREE.Mesh(
-    new THREE.BoxGeometry(0.32, 0.12, 0.32),
-    hatMat
-  );
-  cone.position.set(0, 0.28, 0);
-  hatGroup.add(cone);
+  const hatCone = new THREE.Mesh(geo.hatConeGeo, hatMat);
+  hatGroup.add(hatCone);
 
-  const coneMid = new THREE.Mesh(
-    new THREE.BoxGeometry(0.22, 0.12, 0.22),
-    hatMat
-  );
-  coneMid.position.set(0, 0.38, 0);
-  hatGroup.add(coneMid);
-
-  const coneTip = new THREE.Mesh(
-    new THREE.BoxGeometry(0.12, 0.12, 0.12),
-    hatMat
-  );
-  coneTip.position.set(0, 0.48, 0);
-  hatGroup.add(coneTip);
-
-  // Pom-pom naranja en la cúspide
-  const pom = new THREE.Mesh(
-    new THREE.BoxGeometry(0.08, 0.08, 0.08),
-    pomMat
-  );
+  const pom = new THREE.Mesh(geo.pom, pomMat);
   pom.position.set(0, 0.58, 0);
   hatGroup.add(pom);
 
@@ -92,15 +134,22 @@ export function buildWizardGear(a, G, add) {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 2. ROSTRO Y PECHO SUMI-E — Texturas continuas cabeza (+Z) y torso (+Z)
+  // 2. ROSTRO, LATERALES, NUCA Y PECHO SUMI-E (360°)
   //    La barba larga conecta directamente del mentón hacia el pecho
   // ═══════════════════════════════════════════════════════════
   let faceMat = null;
+  let sideRightMat = null;
+  let sideLeftMat = null;
+  let backMat = null;
   if (a.parts?.head && Array.isArray(a.parts.head.material)) {
     faceMat = createHeroFaceMaterial('wizard');
-    if (faceMat) {
-      a.parts.head.material[4] = faceMat;
-    }
+    sideRightMat = createHeroHeadSideMaterial('wizard', 'R');
+    sideLeftMat = createHeroHeadSideMaterial('wizard', 'L');
+    backMat = createHeroHeadBackMaterial('wizard');
+    if (sideRightMat) a.parts.head.material[0] = sideRightMat;
+    if (sideLeftMat) a.parts.head.material[1] = sideLeftMat;
+    if (faceMat) a.parts.head.material[4] = faceMat;
+    if (backMat) a.parts.head.material[5] = backMat;
   }
 
   let chestMat = null;
@@ -125,46 +174,26 @@ export function buildWizardGear(a, G, add) {
   //    armRPivot está en y = 1.33. La mano está en y = -0.42 a -0.47.
   // ═══════════════════════════════════════════════════════════
   const staff = new THREE.Group();
-  staff.position.set(0, -0.42, 0.10); // Agarre en la mano
+  staff.position.set(0, -0.42, 0.10);
 
-  // Mango de madera de 1.60m: la base baja cerca del suelo y la punta corona el hombro
-  const shaft = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 1.60, 0.06),
-    woodMat
-  );
+  const shaft = new THREE.Mesh(geo.shaft, woodMat);
   shaft.position.set(0, 0.20, 0);
   staff.add(shaft);
 
-  // Nudo de madera / refuerzo de agarre
-  const knot = new THREE.Mesh(
-    new THREE.BoxGeometry(0.09, 0.10, 0.09),
-    woodHiMat
-  );
+  const knot = new THREE.Mesh(geo.knot, woodHiMat);
   knot.position.set(0, 0.10, 0);
   staff.add(knot);
 
-  // Anillo de oro que engarza el cristal
-  const staffRing = new THREE.Mesh(
-    new THREE.BoxGeometry(0.10, 0.06, 0.10),
-    ringMat
-  );
+  const staffRing = new THREE.Mesh(geo.staffRing, ringMat);
   staffRing.position.set(0, 0.98, 0);
   staff.add(staffRing);
 
-  // Cristal emisivo radiante (octaedro exterior de 0.16m de envergadura)
-  const crystal = new THREE.Mesh(
-    new THREE.OctahedronGeometry(0.09, 0),
-    crystalMat
-  );
+  const crystal = new THREE.Mesh(geo.crystal, crystalMat);
   crystal.position.set(0, 1.12, 0);
   crystal.rotation.y = Math.PI / 4;
   staff.add(crystal);
 
-  // Faceta interior del cristal (segunda capa reflectante)
-  const crystalInner = new THREE.Mesh(
-    new THREE.OctahedronGeometry(0.05, 0),
-    crystalMat
-  );
+  const crystalInner = new THREE.Mesh(geo.crystalInner, crystalMat);
   crystalInner.position.set(0, 1.12, 0);
   crystalInner.rotation.y = Math.PI / 4;
   crystalInner.rotation.x = Math.PI / 4;
@@ -178,37 +207,32 @@ export function buildWizardGear(a, G, add) {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 4. GRIMORIO EN EL CINTURÓN — Colgado a la cadera izquierda
+  // 4. GRIMORIO EN EL CINTURÓN — Colgado a la cadera izquierda (volumen mixto)
   // ═══════════════════════════════════════════════════════════
   const bookGroup = new THREE.Group();
 
-  const book = new THREE.Mesh(
-    new THREE.BoxGeometry(0.14, 0.18, 0.06),
-    bookCoverMat
-  );
+  const book = new THREE.Mesh(geo.book, bookCoverMat);
   book.position.set(-0.20, 0.82, 0.16);
   book.rotation.z = 0.15;
   bookGroup.add(book);
 
-  // Filo de páginas de pergamino
-  const pages = new THREE.Mesh(
-    new THREE.BoxGeometry(0.12, 0.17, 0.02),
-    bookPagesMat
-  );
+  const pages = new THREE.Mesh(geo.pages, bookPagesMat);
   pages.position.set(-0.20, 0.82, 0.185);
   pages.rotation.z = 0.15;
   bookGroup.add(pages);
 
-  // Broche de cierre dorado
-  const clasp = new THREE.Mesh(
-    new THREE.BoxGeometry(0.03, 0.18, 0.02),
-    ringMat
-  );
+  const clasp = new THREE.Mesh(geo.clasp, ringMat);
   clasp.position.set(-0.15, 0.82, 0.19);
   clasp.rotation.z = 0.15;
   bookGroup.add(clasp);
 
   add(bookGroup, a.gear);
+
+  if (a.parts) {
+    a.parts.crystal = crystal;
+    a.parts.crystalInner = crystalInner;
+    a.parts.emissiveMats = [{ mat: crystalMat, base: 0.75, amp: 0.25 }];
+  }
 
   const mats = [
     hatMat,
@@ -223,6 +247,9 @@ export function buildWizardGear(a, G, add) {
     bookPagesMat,
   ];
   if (faceMat) mats.push(faceMat);
+  if (sideRightMat) mats.push(sideRightMat);
+  if (sideLeftMat) mats.push(sideLeftMat);
+  if (backMat) mats.push(backMat);
   if (chestMat) mats.push(chestMat);
   return mats;
 }

@@ -77,11 +77,42 @@ export class HeroShowcaseRenderer {
       this.showcases.push({
         id: heroId,
         root,
+        parts,
         mats,
         gearMats,
         gearNodes,
         sprite,
+        phase: Math.random() * Math.PI * 2,
       });
+    }
+  }
+
+  /**
+   * Actualiza animaciones secundarias de exhibición (respiración, cristales, gemas emisivas).
+   * @param {number} dt - Delta time en segundos
+   */
+  update(dt = 0.016) {
+    for (const s of this.showcases) {
+      s.phase = (s.phase + dt * 2.2) % (Math.PI * 20);
+      const breath = Math.sin(s.phase);
+      if (s.parts?.torso) {
+        s.parts.torso.scale.set(1 + breath * 0.012, 1 + breath * 0.015, 1 + breath * 0.012);
+      }
+      if (s.parts?.crystal) {
+        s.parts.crystal.rotation.y += dt * 1.8;
+      }
+      if (s.parts?.crystalInner) {
+        s.parts.crystalInner.rotation.y -= dt * 2.6;
+        s.parts.crystalInner.rotation.x += dt * 1.4;
+      }
+      if (s.parts?.emissiveMats) {
+        const pulse = Math.sin(s.phase * 1.5);
+        for (const em of s.parts.emissiveMats) {
+          if (em.mat) {
+            em.mat.emissiveIntensity = em.base + pulse * em.amp;
+          }
+        }
+      }
     }
   }
 
@@ -89,8 +120,17 @@ export class HeroShowcaseRenderer {
    * Limpia los avatares activos y sus materiales individuales.
    */
   clear() {
+    const disposedGeos = new Set();
     for (const s of this.showcases) {
       this.group.remove(s.root);
+      for (const { obj } of s.gearNodes || []) {
+        obj.traverse((o) => {
+          if (o.isMesh && o.geometry && !o.geometry.userData?.isShared && !disposedGeos.has(o.geometry)) {
+            disposedGeos.add(o.geometry);
+            o.geometry.dispose?.();
+          }
+        });
+      }
       for (const m of s.mats || []) m.dispose?.();
       for (const m of s.gearMats || []) {
         if (!m) continue;
@@ -112,7 +152,10 @@ export class HeroShowcaseRenderer {
   dispose() {
     this.clear();
     for (const g of Object.values(this._geoCache || {})) g?.dispose?.();
-    for (const m of Object.values(this._sharedMats || {})) m?.dispose?.();
+    for (const m of Object.values(this._sharedMats || {})) {
+      m?.map?.dispose?.();
+      m?.dispose?.();
+    }
     if (this.group.parent) {
       this.group.parent.remove(this.group);
     }
