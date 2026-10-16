@@ -9,7 +9,7 @@ export default defineConfig({
   build: {
     target: 'es2020',
     minify: 'esbuild',
-    chunkSizeWarningLimit: 750,
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -21,6 +21,21 @@ export default defineConfig({
           }
           if (id.includes('node_modules/qrcode') || id.includes('node_modules/nipplejs')) {
             return 'vendor-ui';
+          }
+          if (id.includes('src/audio/')) {
+            return 'engine-audio';
+          }
+          if (id.includes('src/render/textures/') || id.includes('src/render/models/')) {
+            return 'engine-render';
+          }
+          if (id.includes('src/levels/data/dev_showroom')) {
+            return 'levels-showroom';
+          }
+          if (id.includes('src/levels/data/')) {
+            return 'levels-data';
+          }
+          if (id.includes('src/heroes/heroPortraits') || id.includes('src/ui/Icons')) {
+            return 'assets-art';
           }
         }
       }
