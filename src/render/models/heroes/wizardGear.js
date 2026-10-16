@@ -21,7 +21,6 @@ export function buildWizardGear(a, G, add) {
   const hatDarkMat   = new THREE.MeshLambertMaterial({ color: 0x3b1078 }); // Violeta oscuro para el ala
   const hatBandMat   = new THREE.MeshLambertMaterial({ color: 0x8b5cf6 }); // Banda violeta luminosa
   const pomMat       = new THREE.MeshLambertMaterial({ color: 0xf97316 }); // Pom-pom naranja cálido
-  const beardMat     = new THREE.MeshLambertMaterial({ color: 0xc8c4b8 }); // Barba ceniza/sabio
   const woodMat      = new THREE.MeshLambertMaterial({ color: 0x4a2e18 }); // Madera de roble oscuro
   const woodHiMat    = new THREE.MeshLambertMaterial({ color: 0x6b4423 }); // Veta / nudo de madera clara
   const crystalMat   = new THREE.MeshLambertMaterial({

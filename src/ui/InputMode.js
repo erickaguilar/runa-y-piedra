@@ -39,7 +39,7 @@ export class InputMode {
     }, { passive: true });
 
     // Toque táctil -> cambiar a modo táctil
-    window.addEventListener('touchstart', (e) => {
+    window.addEventListener('touchstart', (_e) => {
       const activeTag = document.activeElement?.tagName;
       if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
       if (Date.now() - this.lastKeyTime < 300) return;

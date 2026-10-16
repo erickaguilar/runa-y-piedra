@@ -203,7 +203,7 @@ export class LevelLoader {
    * - Coloca los bloques sólidos de dintel superior (y=y2..techo) con BLOCK_TYPES.WALL garantizados.
    * - Coloca las jambas laterales adyacentes para enmarcar el portal.
    */
-  static _installDoors(world, levelData, sizeX, sizeY, sizeZ) {
+  static _installDoors(world, levelData, sizeX, _sizeY, _sizeZ) {
     if (!Array.isArray(world.doors) || world.doors.length === 0) return;
 
     // Detectar altura de techo de la sala o usar 6 por defecto
@@ -350,7 +350,7 @@ export class LevelLoader {
     }
   }
 
-  static _placeRespawnPads(world, levelData) {
+  static _placeRespawnPads(world, _levelData) {
     // Spawn único principal por mazmorra (ubicado en la entrada)
     if (world.spawnPoint) {
       this._placeRespawnPad(world, world.spawnPoint);

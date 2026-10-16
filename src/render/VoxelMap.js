@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { WORLD_X, WORLD_Y, WORLD_Z, WORLD_MIN_Y, WORLD_Y_SIZE } from '../core/World.js';
+import { WORLD_X, WORLD_Z, WORLD_MIN_Y, WORLD_Y_SIZE } from '../core/World.js';
 import { BLOCK_COLORS, BLOCK_TYPES } from '../config/constants.js';
 import { TextureGenerator } from './TextureGenerator.js';
 

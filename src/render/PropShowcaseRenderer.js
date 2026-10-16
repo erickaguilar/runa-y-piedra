@@ -214,7 +214,7 @@ export class PropShowcaseRenderer {
     }
   }
 
-  _buildPropEntity(type, cfg) {
+  _buildPropEntity(type, _cfg) {
     switch (type) {
       case 'chest_closed': {
         const { chestGroup } = buildChestMesh(this._chestGeos, this._chestMats);

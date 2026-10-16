@@ -196,11 +196,8 @@ export class RoomDebugOverlay {
       } : null,
     };
 
-    let copySucceeded = false;
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(coordsText).then(() => {
-        copySucceeded = true;
-      }).catch(() => {
+      navigator.clipboard.writeText(coordsText).catch(() => {
         // Fallback síncrono por si navigator.clipboard fue bloqueado
         this._fallbackCopyText(coordsText);
       });

@@ -962,7 +962,7 @@ export class NetworkManager extends EventTarget {
    */
   stopAllVoice() {
     for (const call of this.mediaCalls.values()) {
-      try { call.close?.(); } catch (e) {}
+      try { call.close?.(); } catch {}
     }
     this.mediaCalls.clear();
     for (const audio of this.remoteAudios.values()) {
@@ -973,7 +973,7 @@ export class NetworkManager extends EventTarget {
     if (this.localStream) {
       try {
         this.localStream.getTracks?.().forEach(t => t.stop?.());
-      } catch (e) {}
+      } catch {}
       this.localStream = null;
     }
     this.voiceEnabled = false;

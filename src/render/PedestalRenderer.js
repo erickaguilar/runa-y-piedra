@@ -74,7 +74,6 @@ export class PedestalRenderer {
   loadPedestals(objectives = [], { theme = 'classic', monoliths = [] } = {}) {
     this.clear();
     this._applyTheme(theme);
-    const themeGeos = this._getGeometries(theme);
     const merchantGeos = this._getGeometries('merchant');
 
     if (Array.isArray(objectives) && objectives.length > 0) {

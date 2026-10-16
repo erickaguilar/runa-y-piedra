@@ -25,7 +25,7 @@ export const LEGACY_CAMPAIGN_KEY = 'runa_campaign_progress_v1';
  */
 export function calculateChecksum(data) {
   if (!data || typeof data !== 'object') return '00000000';
-  const { checksum, ...rest } = data;
+  const { checksum: _checksum, ...rest } = data;
 
   const serializeOrdered = (obj) => {
     if (obj === null || typeof obj !== 'object') return obj;
@@ -804,7 +804,7 @@ export class SaveManager {
    * Guarda de forma explícita y atómica la partida al terminar una mazmorra.
    * Regla de negocio: El progreso de campaña y el botín recolectado solo se persisten en disco al completar con éxito una mazmorra.
    */
-  async saveDungeonCompletion({ levelId, chapterId, isVictory = false, campaign = null, inventory = null } = {}) {
+  async saveDungeonCompletion({ _levelId, _chapterId, _isVictory = false, campaign = null, inventory = null } = {}) {
     if (this._isGuestMode) {
       return this.currentSave;
     }

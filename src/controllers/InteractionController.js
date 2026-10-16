@@ -188,7 +188,7 @@ export class InteractionController {
    * Extrae y añade al inventario del juego el botín del cofre:
    * llaves, gemas numéricas y reliquias míticas.
    */
-  collectChestLoot(chestData, opener = null) {
+  collectChestLoot(chestData, _opener = null) {
     if (!chestData) return;
     const game = this.game;
     const currentLevelId = game.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon';
@@ -341,7 +341,7 @@ export class InteractionController {
     return true;
   }
 
-  openDoor(doorId = 1, opener = null) {
+  openDoor(doorId = 1, _opener = null) {
     const game = this.game;
     const door = game.world.doors?.find(d => d.id === doorId);
     const isOpen = game.world?.isDoorOpenId ? game.world.isDoorOpenId(doorId) : (door?.isOpen ?? (doorId === 1 ? game.world.isDoor1Open : game.world.isDoor2Open));
@@ -384,7 +384,7 @@ export class InteractionController {
    * Cierra una puerta batiente:
    * Restaura la colisión en el mundo, devuelve las hojas batientes con resorte y reproduce el sonido de cerrojo.
    */
-  closeDoor(doorId = 1, closer = null) {
+  closeDoor(doorId = 1, _closer = null) {
     const game = this.game;
     const door = game.world.doors?.find(d => d.id === doorId);
     const isOpen = door?.isOpen ?? (game.world.isDoorOpenId ? game.world.isDoorOpenId(doorId) : (doorId === 1 ? game.world.isDoor1Open : game.world.isDoor2Open));
@@ -740,7 +740,7 @@ export class InteractionController {
   }
 
   /** Ceremonia local del portal: altar y (si no es el final) apertura de la escalinata. */
-  startPortalCeremony({ isLast = false, nextLevelId = '', nextName = '' } = {}) {
+  startPortalCeremony({ isLast = false, nextLevelId = '', _nextName = '' } = {}) {
     const game = this.game;
     if (this.transitioning) return;
     this.transitioning = true;
