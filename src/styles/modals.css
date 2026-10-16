@@ -9,11 +9,9 @@
       right: max(16px, env(safe-area-inset-right));
       width: 44px;
       height: 44px;
-      border-radius: 50%;
+      border-radius: 0;
       border: 1px solid rgba(255, 255, 255, 0.16);
       background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       color: #cbd5e1;
       display: flex;
       align-items: center;
@@ -42,11 +40,9 @@
       right: calc(max(16px, env(safe-area-inset-right)) + 52px);
       width: 44px;
       height: 44px;
-      border-radius: 50%;
+      border-radius: 0;
       border: 1px solid rgba(255, 255, 255, 0.16);
       background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       color: #10b981;
       display: none;
       align-items: center;
@@ -83,11 +79,9 @@
       right: calc(max(16px, env(safe-area-inset-right)) + 104px);
       width: 44px;
       height: 44px;
-      border-radius: 50%;
+      border-radius: 0;
       border: 1px solid rgba(16, 185, 129, 0.45);
       background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       color: #34d399;
       display: none;
       align-items: center;
@@ -135,7 +129,7 @@
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.12);
       border: 1px solid rgba(56, 189, 248, 0.28);
-      border-radius: 9999px;
+      border-radius: 0;
       padding: 1px 7px;
       display: inline-flex;
       align-items: center;
@@ -150,7 +144,7 @@
       cursor: pointer;
       width: 30px;
       height: 30px;
-      border-radius: 50%;
+      border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -183,7 +177,7 @@
       border: 1px solid #334155;
       background: #0b1120;
       color: #94a3b8;
-      border-radius: 8px;
+      border-radius: 0;
       cursor: pointer;
       transition: all 0.15s;
     }
@@ -211,7 +205,7 @@
       border: 1px solid #334155;
       background: #0b1120;
       color: #94a3b8;
-      border-radius: 8px;
+      border-radius: 0;
       cursor: pointer;
       transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
       touch-action: manipulation;
@@ -235,7 +229,7 @@
       font-size: 13px;
       font-weight: 700;
       border: 0;
-      border-radius: 10px;
+      border-radius: 0;
       background: #dc2626;
       color: #fff;
       cursor: pointer;
@@ -262,8 +256,6 @@
       position: fixed;
       inset: 0;
       background: rgba(5, 7, 13, 0.78);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -274,7 +266,7 @@
     .confirm-modal {
       background: rgba(15, 23, 42, 0.96);
       border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 18px;
+      border-radius: 0;
       padding: 22px 20px;
       width: 90vw;
       max-width: 320px;
@@ -286,7 +278,7 @@
     .confirm-icon-box {
       width: 52px;
       height: 52px;
-      border-radius: 50%;
+      border-radius: 0;
       background: rgba(245, 158, 11, 0.12);
       border: 1px solid rgba(245, 158, 11, 0.35);
       display: flex;
@@ -324,7 +316,7 @@
       font-size: 13px;
       font-weight: 700;
       border: 1px solid #334155;
-      border-radius: 10px;
+      border-radius: 0;
       background: #1e293b;
       color: #cbd5e1;
       cursor: pointer;
@@ -346,11 +338,9 @@
     .inventory-modal {
       position: relative;
       background: rgba(15, 23, 42, 0.96);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.14);
       color: #fff;
-      border-radius: 18px;
+      border-radius: 0;
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), 0 0 24px rgba(245, 158, 11, 0.12);
       box-sizing: border-box;
       overscroll-behavior: contain;
@@ -380,7 +370,7 @@
       gap: 12px;
       background: rgba(11, 17, 32, 0.75);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
+      border-radius: 0;
       padding: 10px 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       transition: border-color 0.15s;
@@ -391,7 +381,7 @@
     .inv-detail-icon {
       width: 40px;
       height: 40px;
-      border-radius: 10px;
+      border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -434,7 +424,7 @@
       letter-spacing: 0.5px;
       text-transform: uppercase;
       padding: 3px 8px;
-      border-radius: 9999px;
+      border-radius: 0;
       flex-shrink: 0;
     }
     .inv-status-pill.key {
@@ -456,14 +446,14 @@
     .inv-modal-empty {
       background: rgba(11, 17, 32, 0.6);
       border: 1px dashed rgba(255, 255, 255, 0.15);
-      border-radius: 14px;
+      border-radius: 0;
       padding: 24px 18px;
       text-align: center;
     }
     .inv-modal-empty-icon {
       width: 60px;
       height: 60px;
-      border-radius: 50%;
+      border-radius: 0;
       background: rgba(30, 41, 59, 0.5);
       border: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
@@ -496,7 +486,7 @@
       gap: 10px;
       background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.7));
       border: 1px solid rgba(244, 63, 94, 0.28);
-      border-radius: 13px;
+      border-radius: 0;
       padding: 10px 12px;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
       transition: border-color 0.15s, box-shadow 0.15s;
@@ -530,7 +520,7 @@
       font-size: 9px;
       font-weight: 800;
       padding: 2px 6px;
-      border-radius: 6px;
+      border-radius: 0;
       white-space: nowrap;
       letter-spacing: 0.3px;
       flex-shrink: 0;
@@ -547,7 +537,7 @@
     }
     .btn-quick-use {
       border: none;
-      border-radius: 8px;
+      border-radius: 0;
       padding: 8px 13px;
       font-size: 11px;
       font-weight: 800;
@@ -586,7 +576,7 @@
     .inv-keychain-banner {
       background: rgba(245, 158, 11, 0.08);
       border: 1px solid rgba(245, 158, 11, 0.25);
-      border-radius: 10px;
+      border-radius: 0;
       padding: 7px 10px;
       font-size: 11px;
       color: #fde68a;
@@ -622,8 +612,6 @@
   position: fixed;
   inset: 0;
   background: rgba(3, 7, 18, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -636,7 +624,7 @@
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(56, 189, 248, 0.3);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(56, 189, 248, 0.15);
-  border-radius: 18px;
+  border-radius: 0;
   width: 100%;
   max-width: 860px;
   max-height: 88vh;
@@ -668,7 +656,7 @@
 .modal-slots-icon {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 0;
   background: rgba(56, 189, 248, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.35);
   display: flex;
@@ -695,7 +683,7 @@
   border: none;
   cursor: pointer;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -711,7 +699,7 @@
 .modal-slots-banner {
   background: rgba(14, 165, 233, 0.1);
   border: 1px solid rgba(56, 189, 248, 0.25);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 10px 14px;
   font-size: 11px;
   color: #bae6fd;
@@ -732,7 +720,7 @@
 .slot-card {
   background: rgba(11, 17, 32, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  border-radius: 0;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -785,7 +773,7 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   padding: 2px 8px;
-  border-radius: 9999px;
+  border-radius: 0;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -819,7 +807,7 @@
   margin: 18px auto 8px;
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 0;
   background: rgba(30, 41, 59, 0.5);
   display: flex;
   align-items: center;
@@ -847,14 +835,14 @@
   margin-bottom: 12px;
   background: rgba(15, 23, 42, 0.6);
   padding: 8px 10px;
-  border-radius: 10px;
+  border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .slot-hero-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -932,7 +920,7 @@
   background: linear-gradient(135deg, #0284c7, #0369a1);
   border: 1px solid #38bdf8;
   color: #fff;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 8px 10px;
   font-size: 11px;
   font-weight: 700;
@@ -959,7 +947,7 @@
   background: rgba(34, 197, 94, 0.15);
   border: 1px solid rgba(34, 197, 94, 0.4);
   color: #4ade80;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 8px 10px;
   font-size: 11px;
   font-weight: 700;
@@ -975,7 +963,7 @@
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(56, 189, 248, 0.35);
   color: #38bdf8;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 8px 10px;
   font-size: 11px;
   font-weight: 600;
@@ -1000,7 +988,7 @@
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(239, 68, 68, 0.35);
   color: #f87171;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 8px 10px;
   font-size: 11px;
   font-weight: 600;
@@ -1021,7 +1009,7 @@
   background: rgba(15, 23, 42, 0.96);
   border: 1px solid rgba(56, 189, 248, 0.35);
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85), 0 0 24px rgba(56, 189, 248, 0.2);
-  border-radius: 18px;
+  border-radius: 0;
   width: 100%;
   max-width: 460px;
   padding: 18px 20px;
@@ -1049,7 +1037,7 @@
   right: -3px;
   background: #dc2626;
   border: 1.5px solid #0f172a;
-  border-radius: 50%;
+  border-radius: 0;
   width: 16px;
   height: 16px;
   display: flex;
@@ -1066,8 +1054,6 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1085,7 +1071,7 @@
   background: #1a1d24;
   color: #e8e4d8;
   padding: 24px 28px;
-  border-radius: 14px;
+  border-radius: 0;
   max-width: 320px;
   width: 100%;
   text-align: center;
@@ -1121,7 +1107,7 @@
 .voice-actions button {
   padding: 10px 18px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 0;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -1161,7 +1147,7 @@
   display: flex;
   flex-direction: column;
   text-align: left;
-  border-radius: 20px;
+  border-radius: 0;
   background: rgba(13, 20, 36, 0.95);
   border: 1px solid rgba(52, 211, 153, 0.35);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85), 0 0 32px rgba(16, 185, 129, 0.15);
@@ -1183,12 +1169,12 @@
 
 .dev-modal-content::-webkit-scrollbar-track {
   background: rgba(15, 23, 42, 0.5);
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .dev-modal-content::-webkit-scrollbar-thumb {
   background: rgba(52, 211, 153, 0.3);
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .dev-modal-content::-webkit-scrollbar-thumb:hover {
@@ -1238,10 +1224,8 @@
    ========================================================================== */
 .shop-modal {
   background: rgba(15, 23, 42, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(16, 185, 129, 0.4);
-  border-radius: 18px;
+  border-radius: 0;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 30px rgba(16, 185, 129, 0.15);
   color: #f8fafc;
   font-family: inherit;
@@ -1272,7 +1256,7 @@
 .shop-badge-icon {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 0;
   background: rgba(16, 185, 129, 0.16);
   border: 1px solid rgba(16, 185, 129, 0.45);
   display: flex;
@@ -1302,7 +1286,7 @@
   align-items: center;
   background: rgba(30, 41, 59, 0.65);
   border: 1px solid rgba(56, 189, 248, 0.25);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 10px 14px;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -1336,7 +1320,7 @@
   gap: 6px;
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.35);
-  border-radius: 9999px;
+  border-radius: 0;
   padding: 4px 10px;
   font-size: 10px;
   font-weight: 700;
@@ -1346,7 +1330,7 @@
 .shop-pedestal-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: 0;
   background: #10b981;
   box-shadow: 0 0 8px #10b981;
 }
@@ -1365,7 +1349,7 @@
   gap: 6px;
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  border-radius: 0;
   padding: 8px 12px;
   font-size: 12px;
   font-weight: 700;
@@ -1399,7 +1383,7 @@
   gap: 12px;
   background: rgba(30, 41, 59, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 10px 12px;
   transition: all 0.18s ease;
 }
@@ -1416,7 +1400,7 @@
 .shop-item-icon-box {
   width: 44px;
   height: 44px;
-  border-radius: 10px;
+  border-radius: 0;
   border: 1px solid;
   display: flex;
   align-items: center;
@@ -1466,7 +1450,7 @@
   border: 1px solid rgba(16, 185, 129, 0.45);
   color: #a7f3d0;
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -1497,7 +1481,7 @@
 .shop-empty-state {
   background: rgba(11, 17, 32, 0.55);
   border: 1px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
+  border-radius: 0;
   padding: 26px 18px;
   text-align: center;
 }

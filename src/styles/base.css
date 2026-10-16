@@ -2,36 +2,35 @@
    Base: Reset, Scrollbars, Viewport y Animaciones Globales
    ========================================================================== */
 *,*:before,*:after{box-sizing:border-box}
-    /* Scrollbars personalizados - Estética Dark Fantasy / Runa y Piedra */
+    /* Scrollbars personalizados - Estética Sumi-e / Piedra y Tinta */
     * {
       scrollbar-width: thin;
-      scrollbar-color: rgba(56, 189, 248, 0.35) rgba(15, 23, 42, 0.6);
+      scrollbar-color: #44403c #181615;
     }
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: rgba(11, 17, 32, 0.5);
-      border-radius: 9999px;
+      background: #181615;
+      border-radius: 0;
     }
     ::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, rgba(56, 189, 248, 0.35), rgba(99, 102, 241, 0.4));
-      border-radius: 9999px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: background 0.2s ease, border-color 0.2s ease;
+      background: #44403c;
+      border-radius: 0;
+      border: 1px solid #0c0a09;
+      transition: background 0.15s ease;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(180deg, rgba(56, 189, 248, 0.65), rgba(99, 102, 241, 0.7));
-      border-color: rgba(56, 189, 248, 0.4);
+      background: #57534e;
+      border-color: #292524;
     }
     ::-webkit-scrollbar-thumb:active {
-      background: linear-gradient(180deg, #f59e0b, #d97706);
-      border-color: #fbbf24;
-      box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+      background: #f59e0b;
+      border-color: #0c0a09;
     }
     ::-webkit-scrollbar-corner {
-      background: transparent;
+      background: #181615;
     }
 
     html,body{margin:0;padding:0;overflow:hidden;background:#05070d;touch-action:none;user-select:none;-webkit-user-select:none;font-family:system-ui,-apple-system,sans-serif}

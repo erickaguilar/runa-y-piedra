@@ -37,8 +37,6 @@
   padding: 16px 14px 18px !important;
   position: relative !important;
   image-rendering: pixelated;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   overflow-x: hidden !important;
 }
 
@@ -423,8 +421,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
 /* 11. Modal de Confirmación y Alerta (Losa de Juicio Sumi-e) */
 .confirm-overlay {
   background: rgba(12, 10, 9, 0.85) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
 }
 
 .confirm-modal {
@@ -573,8 +569,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
     inset 0 0 0 1px var(--stone-light),
     4px 4px 0px var(--ink-black) !important;
   padding: 8px 12px !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   image-rendering: pixelated;
 }
 
@@ -621,8 +615,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
   box-shadow: 
     inset 0 0 0 2px rgba(255, 255, 255, 0.2),
     4px 4px 0px var(--ink-black) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   font-family: 'Silkscreen', 'Pixelify Sans', monospace !important;
   /* Recorte octogonal estilo sello retro */
   clip-path: polygon(
@@ -702,8 +694,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
     inset 0 0 0 1px var(--stone-light),
     3px 3px 0px var(--ink-black) !important;
   color: var(--washi-paper) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   clip-path: polygon(
     4px 0%, calc(100% - 4px) 0%, 100% 4px,
     100% calc(100% - 4px), calc(100% - 4px) 100%,
@@ -747,8 +737,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
   box-shadow: 
     inset 0 0 0 1px var(--stone-light),
     3px 3px 0px var(--ink-black) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   color: var(--washi-paper) !important;
   height: 38px !important;
   padding: 5px 8px !important;
@@ -815,8 +803,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
   box-shadow: 
     inset 0 0 0 1px var(--stone-light),
     3px 3px 0px var(--ink-black) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   color: var(--washi-paper) !important;
   font-family: 'Pixelify Sans', monospace, sans-serif !important;
   image-rendering: pixelated;
@@ -1052,8 +1038,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
    ========================================================================== */
 .modal-save-slots-overlay {
   background: rgba(12, 10, 9, 0.85) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
 }
 
 .modal-slots-box {
@@ -1373,8 +1357,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
     inset 0 0 0 2px var(--stone-light),
     inset 0 0 0 4px var(--ink-black),
     6px 6px 0px var(--ink-black) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   image-rendering: pixelated;
   position: relative !important;
 }
@@ -1752,8 +1734,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
     inset 0 0 0 2px var(--stone-light),
     inset 0 0 0 4px var(--ink-black),
     6px 6px 0px var(--ink-black) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   image-rendering: pixelated;
   overflow: hidden !important;
 }
@@ -2139,8 +2119,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
     inset 0 0 0 2px var(--stone-light),
     inset 0 0 0 4px var(--ink-black),
     6px 6px 0px var(--ink-black) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   image-rendering: pixelated;
   overflow: hidden !important;
 }
@@ -2964,8 +2942,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
     inset 0 0 0 2px var(--stone-mid),
     inset 0 0 0 3px var(--stone-light),
     4px 4px 0px var(--ink-black) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -3075,8 +3051,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
   width: min(calc(100vw - 28px), 320px) !important;
   max-width: 320px !important;
   box-sizing: border-box !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   image-rendering: pixelated;
 }
 
@@ -3189,8 +3163,6 @@ input[type="text"]:focus, .name-input:focus, .join-input:focus, .pin-input:focus
   pointer-events: none !important;
   user-select: none !important;
   max-width: 270px !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   image-rendering: pixelated;
 }
 
