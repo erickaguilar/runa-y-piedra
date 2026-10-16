@@ -302,7 +302,28 @@ test('dev_showroom está registrado pero aislado de la campaña regular', () => 
     'shadow_sanctum',
     'falls_aqueduct',
     'falls_torrent',
-    'falls_reservoir'
+    'falls_reservoir',
+    'forge_hall',
+    'forge_slag',
+    'forge_crucible',
+    'frost_cavern',
+    'frost_glacier',
+    'frost_spire',
+    'poison_moss',
+    'poison_canal',
+    'poison_necropolis',
+    'arcane_vestibule',
+    'arcane_nexus',
+    'arcane_sanctuary',
+    'mines_shaft',
+    'mines_abyss',
+    'mines_heart',
+    'void_isles',
+    'void_bridge',
+    'void_citadel',
+    'titan_gate',
+    'titan_chamber',
+    'titan_heart'
   ]);
 
   // getAllLevels(true) debe incluir dev_showroom

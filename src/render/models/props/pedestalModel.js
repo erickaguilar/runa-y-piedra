@@ -15,6 +15,13 @@ export const THEMES = {
   merchant: { light: 0x10b981, rune: 0xa7f3d0, crystal: 0x059669, ember: 0x34d399 },
   falls: { light: 0x38bdf8, rune: 0x7dd3fc, crystal: 0x0284c7, ember: 0x38bdf8 },
   subterranean_falls: { light: 0x38bdf8, rune: 0x7dd3fc, crystal: 0x0284c7, ember: 0x38bdf8 },
+  dwarven_forge: { light: 0xf97316, rune: 0xfed7aa, crystal: 0xdc2626, ember: 0xfb923c },
+  frost_caves: { light: 0x67e8f9, rune: 0xcffafe, crystal: 0x06b6d4, ember: 0xa5f3fc },
+  poison_catacombs: { light: 0x4ade80, rune: 0xbbf7d0, crystal: 0x16a34a, ember: 0x86efac },
+  arcane_temple: { light: 0x38bdf8, rune: 0xe0f2fe, crystal: 0x6366f1, ember: 0x818cf8 },
+  coal_mines: { light: 0xfacc15, rune: 0xfef08a, crystal: 0xd97706, ember: 0xfde047 },
+  void_prison: { light: 0xc084fc, rune: 0xf3e8ff, crystal: 0x9333ea, ember: 0xd8b4fe },
+  titan_core: { light: 0xfde047, rune: 0xfef9c3, crystal: 0xf59e0b, ember: 0xfbbf24 },
 };
 
 /**
@@ -28,26 +35,31 @@ export function createPedestalMaterials(themeName = 'classic') {
   let accentColor = 0xf59e0b; // Dorado por defecto
   let emissiveAccent = 0x78350f;
 
-  if (themeName === 'abyss' || themeName === 'shadow') {
+  if (themeName === 'abyss' || themeName === 'shadow' || themeName === 'void_prison') {
     stoneColor = 0x334155; // Pizarra oscura abisal
     stoneDarkColor = 0x0f172a; // Obsidiana profunda
     accentColor = 0x8b5cf6; // Amatista espectral
     emissiveAccent = 0x4c1d95;
-  } else if (themeName === 'merchant') {
-    stoneColor = 0x52525b; // Cantería de bazar
-    stoneDarkColor = 0x27272a; // Basalto de tienda
-    accentColor = 0x10b981; // Malaquita / Jade comercial
+  } else if (themeName === 'merchant' || themeName === 'poison_catacombs') {
+    stoneColor = 0x3f4f46; // Cantería musgosa / esmeralda
+    stoneDarkColor = 0x1c2826;
+    accentColor = 0x10b981; // Malaquita / Esmeralda
     emissiveAccent = 0x064e3b;
-  } else if (themeName === 'inferno') {
+  } else if (themeName === 'inferno' || themeName === 'dwarven_forge') {
     stoneColor = 0x442c2c;
     stoneDarkColor = 0x1a0b0b;
     accentColor = 0xf97316;
     emissiveAccent = 0x7c2d12;
-  } else if (themeName === 'falls' || themeName === 'subterranean_falls') {
-    stoneColor = 0x64748b; // Caliza húmeda azulada
-    stoneDarkColor = 0x334155; // Pizarra húmeda profunda
-    accentColor = 0x0ea5e9; // Zafiro acuático radiante
+  } else if (themeName === 'falls' || themeName === 'subterranean_falls' || themeName === 'frost_caves' || themeName === 'arcane_temple') {
+    stoneColor = 0x64748b; // Caliza húmeda / mármol glacial
+    stoneDarkColor = 0x334155;
+    accentColor = 0x0ea5e9; // Zafiro / Éter cian
     emissiveAccent = 0x0369a1;
+  } else if (themeName === 'coal_mines' || themeName === 'titan_core') {
+    stoneColor = 0x27272a; // Carbón / Obsidiana pulida
+    stoneDarkColor = 0x09090b;
+    accentColor = 0xfbbf24; // Oro solar rúnico
+    emissiveAccent = 0x92400e;
   }
 
   return {
@@ -75,7 +87,7 @@ export function createPedestalMaterials(themeName = 'classic') {
  * - 'merchant': Mostrador de cambio de bazar con pedestal octogonal, platillo de ofrendas con balanza/copón y gema icosaédrica (diamante esmeralda).
  */
 export function createPedestalGeometries(themeName = 'classic') {
-  if (themeName === 'abyss' || themeName === 'shadow') {
+  if (themeName === 'abyss' || themeName === 'shadow' || themeName === 'void_prison') {
     return _createAbyssPedestalGeometries();
   }
   if (themeName === 'merchant') {

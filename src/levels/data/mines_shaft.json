@@ -1,0 +1,473 @@
+{
+  "id": "mines_shaft",
+  "name": "Pozo de Extracción: Nivel de Vetas",
+  "description": "Galerías apuntaladas con pilares pesados sobre bolsas de magma y filtraciones subterráneas. Encuentra la llave del capataz.",
+  "difficulty": "Normal",
+  "icon": "hammer",
+  "dimensions": {
+    "sizeX": 24,
+    "sizeY": 16,
+    "sizeZ": 48
+  },
+  "spawn": {
+    "x": 12,
+    "y": 1.2,
+    "z": 2.5,
+    "facing": "north"
+  },
+  "pressurePlates": [
+    {
+      "id": "losa_mines_shaft_1",
+      "name": "Losa del Malacate",
+      "x": 5,
+      "y": 1,
+      "z": 20,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 2,
+      "action": "open_door",
+      "reusable": true,
+      "message": ":door: ¡Click! Has activado Losa del Malacate. ¡La Puerta 2 hacia el santuario se ha abierto!"
+    }
+  ],
+  "doors": [
+    {
+      "id": 1,
+      "name": "Puerta 1 (Acceso a Sala 2 - Minas Profundas de Carbón)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 11,
+      "swingDir": 1,
+      "coords": [
+        {
+          "x": 11,
+          "y": 1,
+          "z": 11
+        },
+        {
+          "x": 11,
+          "y": 2,
+          "z": 11
+        },
+        {
+          "x": 12,
+          "y": 1,
+          "z": 11
+        },
+        {
+          "x": 12,
+          "y": 2,
+          "z": 11
+        }
+      ],
+      "openMessage": ":door: ¡Puerta 1 abierta! Te adentras en Pozo de Extracción: Nivel de Vetas.",
+      "lockedMessage": ":key: Puerta cerrada. Encuentra la Llave del Capataz en la Sala 1."
+    },
+    {
+      "id": 2,
+      "name": "Puerta 2 (Cámara del Altar - Minas Profundas de Carbón)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 28,
+      "swingDir": 1,
+      "coords": [
+        {
+          "x": 11,
+          "y": 1,
+          "z": 28
+        },
+        {
+          "x": 11,
+          "y": 2,
+          "z": 28
+        },
+        {
+          "x": 12,
+          "y": 1,
+          "z": 28
+        },
+        {
+          "x": 12,
+          "y": 2,
+          "z": 28
+        }
+      ],
+      "openMessage": ":door: ¡Puerta 2 abierta! El Altar del Pozo de Extracción está ante vosotros.",
+      "lockedMessage": ":lock: Compuerta bloqueada. Activa la Losa del Malacate en el ala oeste de la Sala 2."
+    }
+  ],
+  "keys": [
+    {
+      "id": "key_mines_shaft_1",
+      "doorId": 1,
+      "name": "Llave del Capataz",
+      "x": 18,
+      "y": 1.2,
+      "z": 6,
+      "triggerRadius": 1.5,
+      "message": ":key: ¡Has recogido la Llave del Capataz! Abre la Puerta 1 para avanzar."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "sala_1",
+      "name": "Sala 1 (Vestíbulo de Entrada)",
+      "minZ": 0,
+      "maxZ": 11,
+      "respawn": {
+        "x": 12,
+        "y": 1.2,
+        "z": 2.5
+      }
+    },
+    {
+      "id": "sala_2",
+      "name": "Sala 2 (Cámara de Pruebas)",
+      "minZ": 11.5,
+      "maxZ": 28,
+      "respawn": {
+        "x": 12,
+        "y": 1.2,
+        "z": 12.5
+      }
+    },
+    {
+      "id": "sala_3",
+      "name": "Sala 3 (Santuario del Altar)",
+      "minZ": 28.5,
+      "maxZ": 48,
+      "respawn": {
+        "x": 12,
+        "y": 1.2,
+        "z": 29.5
+      }
+    }
+  ],
+  "pedestalTheme": "coal_mines",
+  "objectives": [
+    {
+      "type": "pedestal",
+      "theme": "coal_mines",
+      "name": "Altar del Pozo de Extracción",
+      "x": 12,
+      "y": 1,
+      "z": 40,
+      "triggerRadius": 3.2,
+      "completeMessage": ":hammer: ¡El Altar del Pozo ha sido activado! El descenso a la Grieta Carbonífera está despejado."
+    }
+  ],
+  "stairs": {
+    "x1": 11,
+    "x2": 12,
+    "z1": 42,
+    "z2": 44,
+    "openFromStart": false
+  },
+  "chests": [
+    {
+      "id": 1,
+      "name": "Cofre de Suministros Mineros",
+      "x": 18.5,
+      "y": 1,
+      "z": 24,
+      "facing": "west",
+      "reward": ":potion: Poción de Vida y :gem: 480 Gemas",
+      "message": ":chest: ¡Has abierto Cofre de Suministros Mineros! Obtenidas :potion: Poción de Vida (+1 :heart:) y :gem: 480 Gemas.",
+      "potion": {
+        "id": "pocion_vida",
+        "name": "Poción de Vida",
+        "healAmount": 1,
+        "icon": "potion",
+        "color": "#f43f5e"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Cofre de Veta Rica",
+      "x": 6,
+      "y": 1,
+      "z": 38,
+      "facing": "east",
+      "reward": ":gem: 530 Gemas",
+      "message": ":chest: ¡Has abierto Cofre de Veta Rica! Obtenidas :gem: 530 Gemas."
+    }
+  ],
+  "regions": [
+    {
+      "type": "perimeter",
+      "height": 5,
+      "block": "WALL"
+    },
+    {
+      "type": "ceiling",
+      "y": 6,
+      "block": "CEILING"
+    },
+    {
+      "type": "fill",
+      "block": "WALL",
+      "from": [
+        1,
+        -1,
+        1
+      ],
+      "to": [
+        22,
+        -1,
+        46
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        22,
+        0,
+        10
+      ]
+    },
+    {
+      "type": "divider",
+      "z": 11,
+      "height": 5,
+      "block": "WALL",
+      "doorOpening": [
+        11,
+        12
+      ],
+      "openHeight": 2,
+      "doorId": 1
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        1,
+        0,
+        12
+      ],
+      "to": [
+        22,
+        0,
+        27
+      ]
+    },
+    {
+      "type": "divider",
+      "z": 28,
+      "height": 5,
+      "block": "WALL",
+      "doorOpening": [
+        11,
+        12
+      ],
+      "openHeight": 2,
+      "doorId": 2
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        1,
+        0,
+        29
+      ],
+      "to": [
+        22,
+        0,
+        46
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "LAVA",
+      "from": [
+        3,
+        0,
+        5
+      ],
+      "to": [
+        8,
+        0,
+        8
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "LAVA",
+      "from": [
+        15,
+        0,
+        5
+      ],
+      "to": [
+        20,
+        0,
+        8
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "LAVA",
+      "from": [
+        3,
+        0,
+        16
+      ],
+      "to": [
+        20,
+        0,
+        24
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        10,
+        0,
+        16
+      ],
+      "to": [
+        13,
+        0,
+        19
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "JUMP_PAD",
+      "from": [
+        11,
+        0,
+        18
+      ],
+      "to": [
+        12,
+        0,
+        18
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        9,
+        0,
+        21
+      ],
+      "to": [
+        14,
+        0,
+        24
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        3,
+        0,
+        18
+      ],
+      "to": [
+        9,
+        0,
+        22
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        14,
+        0,
+        22
+      ],
+      "to": [
+        20,
+        0,
+        26
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "LAVA",
+      "from": [
+        3,
+        0,
+        31
+      ],
+      "to": [
+        8,
+        0,
+        36
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "LAVA",
+      "from": [
+        15,
+        0,
+        31
+      ],
+      "to": [
+        20,
+        0,
+        36
+      ]
+    },
+    {
+      "type": "pillar",
+      "x": 6,
+      "z": 14,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 17,
+      "z": 14,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 6,
+      "z": 26,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 17,
+      "z": 26,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 8,
+      "z": 32,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 15,
+      "z": 32,
+      "height": 5,
+      "block": "PILLAR"
+    }
+  ]
+}

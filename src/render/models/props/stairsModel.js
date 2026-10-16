@@ -18,8 +18,10 @@ export const FOG_COUNT = 24;
  */
 export function createStairsMaterials(woodTexture = null, theme = 'classic') {
   const tex = woodTexture || createWoodPlankTexture(256, 512);
-  const isAbyss = theme === 'abyss' || theme === 'shadow';
-  const isFalls = theme === 'falls' || theme === 'subterranean_falls';
+  const isAbyss = theme === 'abyss' || theme === 'shadow' || theme === 'void_prison';
+  const isFalls = theme === 'falls' || theme === 'subterranean_falls' || theme === 'frost_caves' || theme === 'arcane_temple';
+  const isPoison = theme === 'poison_catacombs';
+  const isForgeOrTitan = theme === 'dwarven_forge' || theme === 'coal_mines' || theme === 'titan_core';
 
   let stoneColor = isAbyss ? 0x334155 : 0x475569;
   let stoneDarkColor = isAbyss ? 0x0f172a : 0x1e293b;
@@ -37,6 +39,22 @@ export function createStairsMaterials(woodTexture = null, theme = 'classic') {
     emissiveColor = 0x0369a1;
     fogColor = 0x7dd3fc;
     lightColor = 0x0284c7;
+  } else if (isPoison) {
+    stoneColor = 0x3f4f46;
+    stoneDarkColor = 0x1c2826;
+    ironColor = 0x18181b;
+    goldColor = 0x4ade80;
+    emissiveColor = 0x064e3b;
+    fogColor = 0x86efac;
+    lightColor = 0x16a34a;
+  } else if (isForgeOrTitan) {
+    stoneColor = 0x3f3f46;
+    stoneDarkColor = 0x18181b;
+    ironColor = 0x09090b;
+    goldColor = 0xfbbf24;
+    emissiveColor = 0x92400e;
+    fogColor = 0xfde047;
+    lightColor = 0xf97316;
   }
 
   return {

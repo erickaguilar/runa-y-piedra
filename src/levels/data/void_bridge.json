@@ -1,0 +1,459 @@
+{
+  "id": "void_bridge",
+  "name": "Puente Estelar: El Paso del Abismo",
+  "description": "Una sucesión de pilares flotantes a distintas alturas. Usa los propulsores del vacío para alcanzar el cerrojo dimensional.",
+  "difficulty": "Muy Difícil",
+  "icon": "orbit",
+  "dimensions": {
+    "sizeX": 24,
+    "sizeY": 16,
+    "sizeZ": 52
+  },
+  "spawn": {
+    "x": 12,
+    "y": 1.2,
+    "z": 2.5,
+    "facing": "north"
+  },
+  "pressurePlates": [
+    {
+      "id": "losa_void_bridge_1",
+      "name": "Losa del Púlsar",
+      "x": 5,
+      "y": 1,
+      "z": 20,
+      "radius": 0.85,
+      "triggerRadius": 2.4,
+      "targetDoorId": 2,
+      "action": "open_door",
+      "reusable": true,
+      "message": ":door: ¡Click! Has activado Losa del Púlsar. ¡La Puerta 2 hacia el santuario se ha abierto!"
+    }
+  ],
+  "doors": [
+    {
+      "id": 1,
+      "name": "Puerta 1 (Acceso a Sala 2 - Prisión Flotante del Vacío)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 11,
+      "swingDir": 1,
+      "coords": [
+        {
+          "x": 11,
+          "y": 1,
+          "z": 11
+        },
+        {
+          "x": 11,
+          "y": 2,
+          "z": 11
+        },
+        {
+          "x": 12,
+          "y": 1,
+          "z": 11
+        },
+        {
+          "x": 12,
+          "y": 2,
+          "z": 11
+        }
+      ],
+      "openMessage": ":door: ¡Puerta 1 abierta! Te adentras en Puente Estelar: El Paso del Abismo.",
+      "lockedMessage": ":key: Puerta cerrada. Encuentra la Llave del Horizonte en la Sala 1."
+    },
+    {
+      "id": 2,
+      "name": "Puerta 2 (Cámara del Altar - Prisión Flotante del Vacío)",
+      "x1": 11,
+      "x2": 13,
+      "y1": 1,
+      "y2": 3,
+      "z": 32,
+      "swingDir": 1,
+      "coords": [
+        {
+          "x": 11,
+          "y": 1,
+          "z": 32
+        },
+        {
+          "x": 11,
+          "y": 2,
+          "z": 32
+        },
+        {
+          "x": 12,
+          "y": 1,
+          "z": 32
+        },
+        {
+          "x": 12,
+          "y": 2,
+          "z": 32
+        }
+      ],
+      "openMessage": ":door: ¡Puerta 2 abierta! El Altar del Puente Estelar está ante vosotros.",
+      "lockedMessage": ":lock: Compuerta bloqueada. Activa la Losa del Púlsar en el ala oeste de la Sala 2."
+    }
+  ],
+  "keys": [
+    {
+      "id": "key_void_bridge_1",
+      "doorId": 1,
+      "name": "Llave del Horizonte",
+      "x": 18,
+      "y": 1.2,
+      "z": 6,
+      "triggerRadius": 1.5,
+      "message": ":key: ¡Has recogido la Llave del Horizonte! Abre la Puerta 1 para avanzar."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "sala_1",
+      "name": "Sala 1 (Vestíbulo de Entrada)",
+      "minZ": 0,
+      "maxZ": 11,
+      "respawn": {
+        "x": 12,
+        "y": 1.2,
+        "z": 2.5
+      }
+    },
+    {
+      "id": "sala_2",
+      "name": "Sala 2 (Cámara de Pruebas)",
+      "minZ": 11.5,
+      "maxZ": 32,
+      "respawn": {
+        "x": 12,
+        "y": 1.2,
+        "z": 12.5
+      }
+    },
+    {
+      "id": "sala_3",
+      "name": "Sala 3 (Santuario del Altar)",
+      "minZ": 32.5,
+      "maxZ": 52,
+      "respawn": {
+        "x": 12,
+        "y": 1.2,
+        "z": 33.5
+      }
+    }
+  ],
+  "pedestalTheme": "void_prison",
+  "objectives": [
+    {
+      "type": "pedestal",
+      "theme": "void_prison",
+      "name": "Altar del Puente Estelar",
+      "x": 12,
+      "y": 1,
+      "z": 44,
+      "triggerRadius": 3.2,
+      "completeMessage": ":orbit: ¡El Puente Estelar brilla en el cosmos! La Ciudadela del Vacío te aguarda."
+    }
+  ],
+  "stairs": {
+    "x1": 11,
+    "x2": 12,
+    "z1": 46,
+    "z2": 48,
+    "openFromStart": false
+  },
+  "chests": [
+    {
+      "id": 1,
+      "name": "Cofre del Horizonte de Sucesos",
+      "x": 18.5,
+      "y": 1,
+      "z": 24,
+      "facing": "west",
+      "reward": ":potion: Poción de Vida y :gem: 570 Gemas",
+      "message": ":chest: ¡Has abierto Cofre del Horizonte de Sucesos! Obtenidas :potion: Poción de Vida (+1 :heart:) y :gem: 570 Gemas.",
+      "potion": {
+        "id": "pocion_vida",
+        "name": "Poción de Vida",
+        "healAmount": 1,
+        "icon": "potion",
+        "color": "#f43f5e"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Cofre del Navegante Estelar",
+      "x": 6,
+      "y": 1,
+      "z": 42,
+      "facing": "east",
+      "reward": ":gem: 620 Gemas",
+      "message": ":chest: ¡Has abierto Cofre del Navegante Estelar! Obtenidas :gem: 620 Gemas."
+    }
+  ],
+  "regions": [
+    {
+      "type": "perimeter",
+      "height": 5,
+      "block": "WALL"
+    },
+    {
+      "type": "ceiling",
+      "y": 6,
+      "block": "CEILING"
+    },
+    {
+      "type": "fill",
+      "block": "WALL",
+      "from": [
+        1,
+        -1,
+        1
+      ],
+      "to": [
+        22,
+        -1,
+        50
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        22,
+        0,
+        10
+      ]
+    },
+    {
+      "type": "divider",
+      "z": 11,
+      "height": 5,
+      "block": "WALL",
+      "doorOpening": [
+        11,
+        12
+      ],
+      "openHeight": 2,
+      "doorId": 1
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        1,
+        0,
+        12
+      ],
+      "to": [
+        22,
+        0,
+        31
+      ]
+    },
+    {
+      "type": "divider",
+      "z": 32,
+      "height": 5,
+      "block": "WALL",
+      "doorOpening": [
+        11,
+        12
+      ],
+      "openHeight": 2,
+      "doorId": 2
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        1,
+        0,
+        33
+      ],
+      "to": [
+        22,
+        0,
+        50
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "LAVA",
+      "from": [
+        3,
+        0,
+        16
+      ],
+      "to": [
+        20,
+        0,
+        28
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        10,
+        0,
+        15
+      ],
+      "to": [
+        13,
+        0,
+        18
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "JUMP_PAD",
+      "from": [
+        11,
+        0,
+        17
+      ],
+      "to": [
+        12,
+        0,
+        17
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        10,
+        0,
+        21
+      ],
+      "to": [
+        13,
+        0,
+        29
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "JUMP_PAD",
+      "from": [
+        11,
+        0,
+        23
+      ],
+      "to": [
+        12,
+        0,
+        23
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        3,
+        0,
+        18
+      ],
+      "to": [
+        10,
+        0,
+        22
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "STONE_FLOOR",
+      "from": [
+        13,
+        0,
+        22
+      ],
+      "to": [
+        20,
+        0,
+        26
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "WATER",
+      "from": [
+        3,
+        0,
+        35
+      ],
+      "to": [
+        7,
+        0,
+        40
+      ]
+    },
+    {
+      "type": "fill",
+      "block": "WATER",
+      "from": [
+        16,
+        0,
+        35
+      ],
+      "to": [
+        20,
+        0,
+        40
+      ]
+    },
+    {
+      "type": "pillar",
+      "x": 6,
+      "z": 14,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 17,
+      "z": 14,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 6,
+      "z": 30,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 17,
+      "z": 30,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 8,
+      "z": 36,
+      "height": 5,
+      "block": "PILLAR"
+    },
+    {
+      "type": "pillar",
+      "x": 15,
+      "z": 36,
+      "height": 5,
+      "block": "PILLAR"
+    }
+  ]
+}
