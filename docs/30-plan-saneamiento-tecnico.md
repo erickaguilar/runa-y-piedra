@@ -7,7 +7,7 @@ pruebas existente como red de seguridad.
 
 - **Versión auditada:** `1.40.0` (rama `develop`)
 - **Fecha de auditoría:** 2026-10-17
-- **Estado:** En ejecución — **Fases 0, 1 y 2 completadas**
+- **Estado:** En ejecución — **Fases 0, 1, 2 y 3 completadas**
 
 ### Progreso
 
@@ -16,7 +16,7 @@ pruebas existente como red de seguridad.
 | 0. Infraestructura local | ✅ Completada |
 | 1. Coherencia documental | ✅ Completada |
 | 2. Type checking real | ✅ Completada |
-| 3. Higiene de logs | ⏳ Pendiente |
+| 3. Higiene de logs | ✅ Completada |
 | 4. God-objects | ⏳ Pendiente |
 | 5. CSS mantenible | ⏳ Pendiente |
 | 6. Extracción de arte | ⏳ Pendiente |
@@ -45,7 +45,7 @@ pruebas existente como red de seguridad.
 | `!important` en CSS | 1822 | ≤ 50 |
 | CSS compilado (gzip) | 20.41 KB | sin regresión / a la baja |
 | Archivo de lógica más grande | 912 líneas | ≤ 500 |
-| `console.log` en `src/` | 32 | 0 en rutas de producción |
+| `console.log` en `src/` | 32 | 0 en rutas de producción ✅ |
 | Enlaces rotos en README | 4 | 0 |
 | `checkJs` (type checking real) | `false` (no-op) | `true`, 0 errores ✅ |
 | Bundle principal | 373 KB (100 KB gzip) | sin regresión |
@@ -141,17 +141,31 @@ el paso 3 del lint deja de ser cosmético; el CI sigue verde. ✅
 ### Fase 3 — Higiene de logs y código muerto
 **Esfuerzo:** ~4 h · **Riesgo:** bajo · **Depende de:** Fase 0
 
-- [ ] Introducir un logger mínimo gateado por `?debug=1` / modo dev
+- [x] Introducir un logger mínimo gateado por `?debug=1` / modo dev
       (p. ej. `src/config/logger.js` con `debug/info/warn/error`).
-- [ ] Migrar los 32 `console.log` de `src/`:
+- [x] Migrar los 32 `console.log` de `src/`:
       - `network/NetworkManager.js` (16), `network/NetAudit.js` (7),
         `network/VoiceChatManager.js` (6) → `logger.debug`.
       - Los de `DevModal.js` / `RoomDebugOverlay.js` se mantienen (son de dev) pero vía logger.
-- [ ] Conservar `console.warn`/`console.error` reales.
-- [ ] Resolver los 2 `TODO/FIXME` en `src/` (implementar o convertir en *issue*).
-- [ ] Regla ESLint `no-console` con `allow: ['warn', 'error']` para prevenir regresiones.
+- [x] Conservar `console.warn`/`console.error` reales.
+- [x] Resolver los 2 `TODO/FIXME` en `src/` (implementar o convertir en *issue*).
+- [x] Regla ESLint `no-console` con `allow: ['warn', 'error']` para prevenir regresiones.
 
-**DoD:** 0 `console.log` en rutas de producción; `no-console` activo; tests y build en verde.
+**DoD:** 0 `console.log` en rutas de producción; `no-console` activo; tests y build en verde. ✅
+
+**Resultado:**
+- `src/config/logger.js`: pasarela única a `console` con `debug/info/warn/error`. Los mensajes
+  `debug`/`info` se emiten solo si la depuración está activa (`?debug=1`, `localStorage.runa_debug === '1'`
+  o `import.meta.env.DEV`); `warn`/`error` son incondicionales.
+- Migrados **32 `console.log` → `logger.debug`** en 6 archivos y **2 `console.info` → `logger.info`**
+  en `SaveManager.js`. No queda ningún `console.log`/`info` en `src/` fuera del propio logger.
+- Se conservan los `console.warn` (38) y `console.error` (17) reales.
+- Regla `no-console` (`error`, `allow: ['warn','error']`) acotada a `src/**/*.js`; `logger.js` la
+  desactiva a nivel de archivo. El linter corre con `--max-warnings=0`, así que la regla bloquea el CI.
+
+**Nota:** los "2 TODO/FIXME" del informe eran un **falso positivo**: la búsqueda original capturó
+marcadores de relleno `XXXX` (`VOXESALA-XXXX-M`, `?join=XXXX`) y la palabra castellana "todo".
+No existe ningún `TODO`/`FIXME` real en `src/`.
 
 ---
 

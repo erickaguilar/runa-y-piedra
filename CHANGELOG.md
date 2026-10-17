@@ -14,6 +14,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - `src/types/globals.d.ts`: declaraciones de los globales de diagnóstico (`window.__*`, `window.network`, `window.printNetAudit`) e integración de `vite/client` para `import.meta.env`.
 
 ### Fixed
+- **Higiene de logs (Fase 3)**: eliminados los `console.log` de las rutas de producción de `src/`. Se introduce `src/config/logger.js` (pasarela única a `console`) con `debug/info/warn/error`; `debug`/`info` solo se emiten con depuración activa (`?debug=1`, `localStorage.runa_debug === '1'` o `import.meta.env.DEV`), mientras que `warn`/`error` son incondicionales.
+  - Migrados **32 `console.log` → `logger.debug`** (`NetworkManager`, `NetAudit`, `VoiceChatManager`, `NetworkCoordinator`, `DevModal`, `RoomDebugOverlay`) y **2 `console.info` → `logger.info`** (`SaveManager`).
+  - Nueva regla ESLint `no-console` (`error`, `allow: ['warn', 'error']`) acotada a `src/**/*.js` para prevenir regresiones; `logger.js` es la única excepción.
 - **Dos bugs reales detectados por el tipado**:
   - `MenuManager`: la asignación a `soundManager.isMuted` (getter de solo lectura) lanzaría `TypeError` en módulos ES (modo estricto); ahora usa `soundManager.setMuted(...)`.
   - `GuestJoinModal`: la invocación de `soundManager.playError()` (método inexistente) no producía sonido al elegir un héroe ocupado; ahora usa `soundManager.playLocked()`.
