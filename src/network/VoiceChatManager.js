@@ -3,6 +3,8 @@
  * Desacoplado de NetworkManager para mantener la responsabilidad única (SRP).
  */
 
+import { logger } from '../config/logger.js';
+
 export class VoiceChatManager {
   /**
    * @param {Object} [options]
@@ -45,7 +47,7 @@ export class VoiceChatManager {
         video: false,
       });
       this.voiceEnabled = true;
-      console.log('[Voz] 🎤 Micrófono concedido');
+      logger.debug('[Voz] 🎤 Micrófono concedido');
       this._dispatchEvent('voice-stream-ready', { stream: this.localStream });
       return this.localStream;
     } catch (err) {
@@ -93,7 +95,7 @@ export class VoiceChatManager {
       console.warn('[Voz] Error reproduciendo audio:', e);
     }
 
-    console.log('[Voz] 🔊 Reproduciendo audio de:', peerId);
+    logger.debug('[Voz] 🔊 Reproduciendo audio de:', peerId);
   }
 
   /**
@@ -108,7 +110,7 @@ export class VoiceChatManager {
 
     if (this.mediaCalls.has(peerId)) return;
 
-    console.log('[Voz] 📞 Llamando a:', peerId);
+    logger.debug('[Voz] 📞 Llamando a:', peerId);
     const peer = this.getPeer();
     if (!peer || typeof peer.call !== 'function') {
       console.warn('[Voz] Peer no disponible o sin método call()');
@@ -128,7 +130,7 @@ export class VoiceChatManager {
   setupVoiceListener(peer = this.getPeer()) {
     if (!peer || typeof peer.on !== 'function') return;
     peer.on('call', async (call) => {
-      console.log('[Voz] 📞 Llamada entrante de:', call?.peer);
+      logger.debug('[Voz] 📞 Llamada entrante de:', call?.peer);
       try {
         const stream = await this.ensureLocalStream();
         if (stream) {
@@ -155,7 +157,7 @@ export class VoiceChatManager {
     });
 
     call.on('close', () => {
-      console.log('[Voz] 📞 Llamada cerrada con', peerId);
+      logger.debug('[Voz] 📞 Llamada cerrada con', peerId);
       this.cleanupMedia(peerId);
     });
 
@@ -191,7 +193,7 @@ export class VoiceChatManager {
     const track = this.localStream.getAudioTracks?.()?.[0];
     if (!track) return false;
     track.enabled = !track.enabled;
-    console.log('[Voz] Micrófono', track.enabled ? '🎤 activo' : '🔇 silenciado');
+    logger.debug('[Voz] Micrófono', track.enabled ? '🎤 activo' : '🔇 silenciado');
     this._dispatchEvent('voice-mute-change', { muted: !track.enabled, enabled: track.enabled });
     return track.enabled;
   }

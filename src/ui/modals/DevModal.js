@@ -4,6 +4,7 @@
 import { renderIcon } from '../Icons.js';
 import { soundManager } from '../../audio/SoundManager.js';
 import { APP_CONFIG, PLAYER_HEROES } from '../../config/constants.js';
+import { logger } from '../../config/logger.js';
 
 export const DevModalMixin = {
   bindDev(callbacks = {}) {
@@ -529,7 +530,7 @@ export const DevModalMixin = {
       } else if (typeof window !== 'undefined' && typeof window.printNetAudit === 'function') {
         window.printNetAudit();
       } else {
-        console.log('[Dev Tools] Estado actual:', state);
+        logger.debug('[Dev Tools] Estado actual:', state);
       }
       this.showHudMessage('Auditoría enviada a la consola (F12)');
     });

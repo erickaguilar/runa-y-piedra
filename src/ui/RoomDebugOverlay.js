@@ -1,5 +1,6 @@
 // src/ui/RoomDebugOverlay.js
 import { BLOCK_TYPES } from '../config/constants.js';
+import { logger } from '../config/logger.js';
 
 const BLOCK_NAMES = {
   [BLOCK_TYPES.AIR]: 'Aire',
@@ -207,7 +208,7 @@ export class RoomDebugOverlay {
 
     if (typeof window !== 'undefined') {
       window.__lastCoordsDebug = detailedPayload;
-      console.log('📋 [Dev Coords] Copiado exitosamente al portapapeles:', detailedPayload);
+      logger.debug('📋 [Dev Coords] Copiado exitosamente al portapapeles:', detailedPayload);
     }
 
     const copyBtn = /** @type {HTMLElement|null} */ (this.uiRefs?.copyBtn || document.getElementById('btn-overlay-copy-coords'));

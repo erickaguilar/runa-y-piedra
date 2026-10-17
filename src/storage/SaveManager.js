@@ -10,6 +10,7 @@
  */
 
 import { HybridStorageAdapter } from './StorageAdapters.js';
+import { logger } from '../config/logger.js';
 
 import {
   SAVE_SCHEMA_VERSION,
@@ -165,7 +166,7 @@ export class SaveManager {
       const backupData = await this.adapter.get(backupKey);
       if (backupData && validateSaveData(backupData)) {
         this._healCompletedChapterInventory(backupData);
-        console.info(`[SaveManager] Ranura ${slotId} restaurada exitosamente desde copia de seguridad (backup).`);
+        logger.info(`[SaveManager] Ranura ${slotId} restaurada exitosamente desde copia de seguridad (backup).`);
         await this.adapter.set(activeKey, backupData);
         this.currentSlotId = slotId;
         this.currentSave = backupData;
@@ -180,7 +181,7 @@ export class SaveManager {
     if (slotId === DEFAULT_SLOT_ID) {
       const legacyMigrated = migrateFromLegacy(slotId);
       if (legacyMigrated) {
-        console.info(`[SaveManager] Migración v1 -> v2 completada para ${slotId}.`);
+        logger.info(`[SaveManager] Migración v1 -> v2 completada para ${slotId}.`);
         await this.saveSlot(slotId, legacyMigrated);
         return legacyMigrated;
       }

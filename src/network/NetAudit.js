@@ -5,6 +5,8 @@
  * (snapshot, input, block-edit, init, door-open, etc.).
  */
 
+import { logger } from '../config/logger.js';
+
 export function initNetAudit() {
   if (typeof window === 'undefined') return;
 
@@ -28,22 +30,22 @@ export function initNetAudit() {
         if (ev.type === 'snapshot') {
           const count = window.__netEventCounts['snapshot'];
           if (count <= 3 || count % 20 === 0) {
-            console.log(`[MSG] [snapshot] (#${count} @ 20Hz)`, ev.detail);
+            logger.debug(`[MSG] [snapshot] (#${count} @ 20Hz)`, ev.detail);
           }
         } else {
-          console.log(`[MSG] [${ev.type}]`, ev.detail);
+          logger.debug(`[MSG] [${ev.type}]`, ev.detail);
         }
       }
       return origDispatch.call(this, ev);
     };
-    console.log('[OK] Interceptor de auditoría WebRTC instalado.');
+    logger.debug('[OK] Interceptor de auditoría WebRTC instalado.');
   }
 
   window.printNetAudit = () => {
-    console.log('===== AUDITORÍA DE MENSAJES RUNE =====');
-    console.log('Modo:', window.__game?.mode || 'menú');
-    console.log('Conteo de eventos:', window.__netEventCounts);
-    console.log('Últimos 10 eventos:', (window.__netAuditLogs || []).slice(-10));
+    logger.debug('===== AUDITORÍA DE MENSAJES RUNE =====');
+    logger.debug('Modo:', window.__game?.mode || 'menú');
+    logger.debug('Conteo de eventos:', window.__netEventCounts);
+    logger.debug('Últimos 10 eventos:', (window.__netAuditLogs || []).slice(-10));
     return window.__netEventCounts;
   };
 }

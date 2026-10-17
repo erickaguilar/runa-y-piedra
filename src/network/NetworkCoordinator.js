@@ -6,6 +6,7 @@
  * migración de anfitrión, asignación autoritativa de héroes únicos y censos de peers).
  */
 import * as Proto from './Protocol.js';
+import { logger } from '../config/logger.js';
 import { NET_CONFIG, PLAYER_HEROES, WORLD_CONFIG } from '../config/constants.js';
 import { escapeHtml } from '../ui/Icons.js';
 import { electLeader, deriveMigrationPin } from './LeaderElection.js';
@@ -236,7 +237,7 @@ export const NetworkCoordinatorMixin = {
           if (uniqueColor !== colorIndex) {
             const reqHero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
             const assignedHero = PLAYER_HEROES[uniqueColor] || PLAYER_HEROES[0];
-            console.log(`[Host] [INFO] Clase ${reqHero.name} duplicada. Reasignada a ${assignedHero.name} para ${name}.`);
+            logger.debug(`[Host] [INFO] Clase ${reqHero.name} duplicada. Reasignada a ${assignedHero.name} para ${name}.`);
           }
           player.name = name;
           player.colorIndex = uniqueColor;

@@ -68,6 +68,13 @@ export default [
     }
   },
   {
+    files: ['src/**/*.js'],
+    rules: {
+      // `console` solo se permite para señales reales; el resto pasa por `src/config/logger.js`.
+      'no-console': ['error', { allow: ['warn', 'error'] }]
+    }
+  },
+  {
     files: ['tests/**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
