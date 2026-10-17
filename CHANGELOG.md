@@ -9,8 +9,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Added
 - **Plan de Saneamiento Técnico por Fases (`docs/30-plan-saneamiento-tecnico.md`)**: plan de ejecución en 8 fases (0–7) para eliminar la deuda de mantenibilidad detectada en la auditoría de la versión 1.40.0, con métricas objetivo medibles y criterios de aceptación por fase.
+- **Verificación de tipos real (`npm run typecheck`, `jsconfig.json`)**: activación de `checkJs` con `strict: false` sobre `src/**/*` (Fase 2). El paso 3 del linter (`tsc`) deja de ser cosmético y ahora comprueba tipos de forma efectiva con **0 errores**.
+  - `src/types/mixins.d.ts`: augmentación de módulos para tipar la API pública aportada por los mixins compuestos vía `Object.assign(Clase.prototype, ...)` (`UIManager`, `VoxelSandboxGame`, `ClientReconciler`, `NetworkManager`).
+  - `src/types/globals.d.ts`: declaraciones de los globales de diagnóstico (`window.__*`, `window.network`, `window.printNetAudit`) e integración de `vite/client` para `import.meta.env`.
 
 ### Fixed
+- **Dos bugs reales detectados por el tipado**:
+  - `MenuManager`: la asignación a `soundManager.isMuted` (getter de solo lectura) lanzaría `TypeError` en módulos ES (modo estricto); ahora usa `soundManager.setMuted(...)`.
+  - `GuestJoinModal`: la invocación de `soundManager.playError()` (método inexistente) no producía sonido al elegir un héroe ocupado; ahora usa `soundManager.playLocked()`.
+- **Propiedades dinámicas no declaradas**: se inicializan `Player.maxAltitude/jumpCount/jumpPadCount` (estadísticas de verticalidad) y `World.currentLevel`; se tipan los callbacks de `SimulationEngine` y la configuración de orientación de `LevelLoader`.
+- **Estrechamiento de tipos DOM**: corrección de ~85 accesos a `.value`/`.style`/`.dataset`/`.onclick`/`.touches` mediante anotaciones JSDoc `HTMLElement`/`HTMLInputElement`/`TouchEvent` en los modales y managers de UI.
 - **Coherencia documental**:
   - Unificación del conteo de pruebas en `README.md` al valor real (`321` pruebas) en el badge y en las referencias de texto.
   - Reemplazo de 4 enlaces locales rotos `file:///data/data/com.termux/...` por rutas relativas del repositorio.

@@ -7,7 +7,7 @@ pruebas existente como red de seguridad.
 
 - **Versión auditada:** `1.40.0` (rama `develop`)
 - **Fecha de auditoría:** 2026-10-17
-- **Estado:** En ejecución — **Fases 0 y 1 completadas** (rama `chore/fase-0-1-infra-y-docs`)
+- **Estado:** En ejecución — **Fases 0, 1 y 2 completadas**
 
 ### Progreso
 
@@ -15,7 +15,7 @@ pruebas existente como red de seguridad.
 |---|---|
 | 0. Infraestructura local | ✅ Completada |
 | 1. Coherencia documental | ✅ Completada |
-| 2. Type checking real | ⏳ Pendiente |
+| 2. Type checking real | ✅ Completada |
 | 3. Higiene de logs | ⏳ Pendiente |
 | 4. God-objects | ⏳ Pendiente |
 | 5. CSS mantenible | ⏳ Pendiente |
@@ -47,7 +47,7 @@ pruebas existente como red de seguridad.
 | Archivo de lógica más grande | 912 líneas | ≤ 500 |
 | `console.log` en `src/` | 32 | 0 en rutas de producción |
 | Enlaces rotos en README | 4 | 0 |
-| `checkJs` (type checking real) | `false` (no-op) | `true`, 0 errores |
+| `checkJs` (type checking real) | `false` (no-op) | `true`, 0 errores ✅ |
 | Bundle principal | 373 KB (100 KB gzip) | sin regresión |
 
 ---
@@ -106,17 +106,35 @@ Hoy `scripts/lint.mjs` ejecuta `tsc` como "3/3 Verificando tipos", pero `checkJs
 que ese paso sea casi cosmético. Hay que convertirlo en verificación efectiva, de forma
 **incremental** para no bloquear el pipeline.
 
-- [ ] Crear rama y activar `checkJs: true` con `strict: false` en `jsconfig.json`.
-- [ ] Corregir los errores por capas, en este orden (de mayor a menor riesgo):
+- [x] Crear rama y activar `checkJs: true` con `strict: false` en `jsconfig.json`.
+- [x] Corregir los errores por capas, en este orden (de mayor a menor riesgo):
       1. `src/config/`, `src/entities/`, `src/core/` (lógica pura)
       2. `src/network/` (protocolo y reconciliación — el más valioso de tipar)
       3. `src/render/`, `src/ui/` (mucho DOM, tolerante)
-- [ ] Añadir JSDoc sólo donde el tipo sea ambiguo (`@param`/`@returns` en funciones del protocolo).
-- [ ] Endurecer de forma selectiva: `noImplicitAny`, `strictNullChecks` donde ya esté limpio.
-- [ ] Añadir el comando `npm run typecheck` para ejecutarlo aislado.
+- [x] Añadir JSDoc sólo donde el tipo sea ambiguo (`@param`/`@returns` en funciones del protocolo).
+- [x] Añadir el comando `npm run typecheck` para ejecutarlo aislado.
+- [ ] _Diferido:_ endurecer `noImplicitAny` / `strictNullChecks` (dejar `strict: false` por ahora).
+- [ ] _Diferido:_ tipado de `tests/` (requiere `@types/node` para `node:test`).
 
-**DoD:** `tsc -p jsconfig.json` con `checkJs: true` reporta **0 errores**; el paso 3 del lint
-deja de ser cosmético; el CI sigue verde.
+**Alcance efectivo:** `tsc` comprueba `src/**/*` + `vite.config.js`. Los tests quedan fuera del
+programa de `tsc` (se validan en tiempo de ejecución con `node:test`); incluirlos exigiría
+`@types/node` y dispararía ~380 errores adicionales, por lo que se pospone como saneamiento
+separado.
+
+**Solución adoptada para los mixins:** `src/types/mixins.d.ts` realiza *augmentación de módulos*
+(`declare module`) que declara la API pública aportada por los mixins que se componen vía
+`Object.assign(Clase.prototype, ...)`. Los globales de diagnóstico y `import.meta.env` se declaran
+en `src/types/globals.d.ts`. La comprobación de `node_modules` se evita con
+`maxNodeModuleJsDepth: 0` (three.js r160 no incluye tipos propios).
+
+**DoD:** `tsc -p jsconfig.json` con `checkJs: true` reporta **0 errores** (`npm run typecheck`);
+el paso 3 del lint deja de ser cosmético; el CI sigue verde. ✅
+
+**Bugs reales detectados y corregidos por el tipado:**
+- `MenuManager` asignaba a `soundManager.isMuted` (getter de solo lectura) → en módulos ES
+  (modo estricto) lanzaría `TypeError`; ahora usa `soundManager.setMuted()`.
+- `GuestJoinModal` invocaba `soundManager.playError()` (inexistente) al seleccionar un héroe
+  ocupado; ahora usa `playLocked()`.
 
 ---
 
