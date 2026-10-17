@@ -18,7 +18,7 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
    - Desglose y justificación técnica de cada capa:
      1. Gráficos: Three.js + `THREE.InstancedMesh`
      2. Red P2P: WebRTC + PeerJS / QR Code
-     3. Físicas: Custom AABB / Rapier3D WASM
+     3. Físicas: AABB propio (Zero-GC, sin dependencias WASM)
      4. Input Móvil: Nipple.js + Touch Events pasivos
      5. Serialización: TypedArrays nativos (13 bytes)
      6. Despliegue: Vite + Vercel (HTTPS obligatorio)
@@ -51,7 +51,7 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
    - Eliminación del antipatrón God-file y desacoplamiento de simulación, input, render, controladores y UI.
 
 8. [**08. Sistema de Mazmorras, Niveles y Progresión Cooperativa**](./08-sistema-mazmorras-niveles-y-progresion.md)
-   - Catálogo de 4 niveles (`lobby_tutorial`, `dungeon_classic`, `crypt_inferno`, `abyss_throne`).
+   - Catálogo de mazmorras en 10 capítulos (3 niveles cada uno) más el Campamento/Lobby de tutorial.
    - `LevelLoader` y `LevelRegistry` para conmutación de mapas y progresión.
    - Escalinatas de descenso cooperativo, llaves y puertas con cerradura, plataformas de salto rúnico (*Jump Pads*) y fosa de lava.
    - Puntos de control automáticos (Checkpoints por sala), ciclo de 3 vidas y cofres interactivos con animación 3D ($77^\circ$).
@@ -94,7 +94,7 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Motor de audio procedural sintetizado con Web Audio API (`SoundManager.js`) con cero descarga de ficheros pesados.
     - Ciclo de 3 vidas, peligros ambientales letales (lava y abismo), invulnerabilidad temporal (2.5 s) y Game Over cooperativo.
     - Oscilador armónico amortiguado (`Spring.js`) para animaciones elásticas reactivas de UI.
-    - Suite de 58 pruebas automatizadas nativas con `node:test` sin dependencias externas pesadas.
+    - Suite de 321 pruebas automatizadas nativas con `node:test` sin dependencias externas pesadas.
 
 15. [**15. Flujo de Trabajo Git y Creación de Nuevos Niveles de Mazmorra**](./15-flujo-de-trabajo-git-y-creacion-de-niveles.md)
     - Metodología de ramificación GitFlow (`main`, `develop`, `feature/*`, `hotfix/*`).
@@ -187,4 +187,10 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Rediseño de componentes y modales: Menú principal, selector de héroes como sellos octogonales, ranuras de guardado en tablillas de piedra, HUD de vidas, inventario/botín, Atlas de 10 capítulos y Bazar Rúnico del Mercader.
     - Unificación de la notificación superior y el botón de descenso por escalinata en una sola placa interactiva con temporizador integrado.
     - Retratos canónicos Sumi-e Pixel Art (32x32) con renderizado `crispEdges` en UI 2D y texturizado facial/torso sobre mallas 3D para los 5 héroes.
+
+30. [**30. Plan de Saneamiento Técnico por Fases**](./30-plan-saneamiento-tecnico.md)
+    - Plan de ejecución para eliminar la deuda de mantenibilidad detectada en la auditoría v1.40.0.
+    - 8 fases (0–7): infraestructura local, coherencia documental, type checking real, higiene de logs,
+      descomposición de god-objects, CSS con capas `@layer`, extracción de arte y guardarraíles de CI.
+    - Métricas objetivo medibles (tests, `!important`, tamaño máximo de archivo, bundle) y reglas de ejecución.
 

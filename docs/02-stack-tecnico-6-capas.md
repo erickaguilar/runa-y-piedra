@@ -10,7 +10,7 @@ Para construir el sandbox multijugador bajo la arquitectura Listen-Server en nav
 +-------------------------------------------------------------+
 | 1. Renderizado 3D (Three.js + InstancedMesh + DPR Clamping) |
 +-------------------------------------------------------------+
-| 3. Físicas y Lógica (Host AABB Propio / Rapier3D WASM)      |
+| 3. Físicas y Lógica (Host AABB Propio Zero-GC)              |
 +-------------------------------------------------------------+
 | 5. Serialización Binaria (TypedArrays Zero-GC / 13 bytes)    |
 +-------------------------------------------------------------+

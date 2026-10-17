@@ -5,6 +5,20 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Added
+- **Plan de Saneamiento Técnico por Fases (`docs/30-plan-saneamiento-tecnico.md`)**: plan de ejecución en 8 fases (0–7) para eliminar la deuda de mantenibilidad detectada en la auditoría de la versión 1.40.0, con métricas objetivo medibles y criterios de aceptación por fase.
+
+### Fixed
+- **Coherencia documental**:
+  - Unificación del conteo de pruebas en `README.md` al valor real (`321` pruebas) en el badge y en las referencias de texto.
+  - Reemplazo de 4 enlaces locales rotos `file:///data/data/com.termux/...` por rutas relativas del repositorio.
+  - Corrección del *drift* en `docs/README.md` y `docs/02-stack-tecnico-6-capas.md`: eliminación de la referencia inexistente a `Rapier3D WASM` (se usa AABB propio), actualización del catálogo de niveles a la arquitectura de 10 capítulos y corrección del conteo de pruebas en el doc 14.
+
+### Changed
+- **Infraestructura local (Fase 0)**: instalación completa de dependencias de desarrollo (`eslint`, `typescript`), activación del pre-commit (`core.hooksPath=.githooks`) y registro de la línea base del bundle y de la suite de pruebas en `docs/30-plan-saneamiento-tecnico.md`.
+
 ## [1.40.0] - 2026-10-15
 
 ### Added

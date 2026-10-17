@@ -7,7 +7,7 @@
 > Mazmorra vóxel cooperativa 3D multijugador en tiempo real para navegadores móviles y de escritorio, optimizada bajo un presupuesto de rendimiento móvil estricto (60 FPS estables) en smartphones estándar globales (3–4 GB RAM, WebGL 2.0).
 
 [![Version](https://img.shields.io/badge/version-1.40.0-blue.svg)](package.json)
-[![Tests](https://img.shields.io/badge/tests-287%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-321%20passed-brightgreen.svg)](tests/)
 
 [![Tech](https://img.shields.io/badge/WebGL-2.0-orange.svg)](https://threejs.org/)
 [![P2P](https://img.shields.io/badge/WebRTC-Dual%20Channels-green.svg)](https://webrtc.org/)
@@ -71,7 +71,7 @@ La interfaz móvil está calibrada para pantallas táctiles de 60–120 Hz sin n
 
 ## 🌟 Características Principales
 
-* **Progresión de Mazmorra por Niveles y Capítulos**: Sistema de niveles modular ([`src/levels/`](file:///data/data/com.termux/files/home/develop/game/src/levels/)) con transiciones fluidas y progresión lineal:
+* **Progresión de Mazmorra por Niveles y Capítulos**: Sistema de niveles modular ([`src/levels/`](src/levels/)) con transiciones fluidas y progresión lineal:
   * **Lobby / Campamento Central**: Hub seguro y zona de práctica con cofre, puerta sellada, monolito de cartografía y escalinata de descenso.
   * **Calabozo Clásico**: Salas de sillar, fosa de lava ardiente sobre el abismo, plataformas de salto rúnicas y laberinto de puertas.
   * **Trono del Abismo**: Desafío final con altar ancestral y ceremonia de victoria cooperativa.
@@ -104,8 +104,8 @@ La interfaz móvil está calibrada para pantallas táctiles de 60–120 Hz sin n
   * **Canal Seguro (`game-safe`, `reliable: true`)**: Transmisión garantizada de eventos críticos (`INIT`, `DOOR`, `CHEST`, `KEY`, `LEVEL_CHANGE`, `PLAYER_META`, `HOST_CLOSING`).
   * **Canal Caliente (`game-hot`, `reliable: false`)**: Tráfico de alta frecuencia tolerante a pérdida (`INPUT` a 30 Hz, `SNAPSHOT` a 20 Hz, `PING`/`PONG` a 1 Hz) para eliminar el *head-of-line blocking*.
   * Reintentos automáticos, timeouts robustos y fallback transparente a canal seguro.
-* **Predicción y Reconciliación del Cliente**: Movimiento local con cero latencia percibida, búfer circular de inputs no confirmados y reconciliación autoritativa en [`ClientReconciler`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js).
-* **Audio Procedural Sintetizado**: Motor de sonido basado en Web Audio API ([`SoundManager`](file:///data/data/com.termux/files/home/develop/game/src/audio/SoundManager.js)) que genera efectos de salto, apertura de puertas, llaves, daño y victoria sin descargar activos pesados.
+* **Predicción y Reconciliación del Cliente**: Movimiento local con cero latencia percibida, búfer circular de inputs no confirmados y reconciliación autoritativa en [`ClientReconciler`](src/network/ClientReconciler.js).
+* **Audio Procedural Sintetizado**: Motor de sonido basado en Web Audio API ([`SoundManager`](src/audio/SoundManager.js)) que genera efectos de salto, apertura de puertas, llaves, daño y victoria sin descargar activos pesados.
 * **Lobby de Configuración de Aventurero**: Personalización de nombre o apodo, selección de clase y color de héroe con persistencia en `localStorage`.
 * **Compartir Enlace por Mensajería (WhatsApp / Telegram)**: Botón integrado con Web Share API (`navigator.share`) para enviar enlaces de invitación directa (`?join=XXXX`) con un solo toque, además de botón de copiado al portapapeles.
 * **Conexión Instantánea por Código QR o PIN**: El Host genera una sala con PIN de 4 dígitos y un código QR dinámico que el invitado puede escanear con la cámara de su celular para unirse automáticamente sin escribir nada.
@@ -114,7 +114,7 @@ La interfaz móvil está calibrada para pantallas táctiles de 60–120 Hz sin n
   * **Límite DPR ($\le 1.5$)**: `renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))` para evitar estrangulamiento térmico de GPUs móviles (Mali-G52 / Adreno 610).
   * **Sin Garbage Collection (Zero-GC)**: Paquetes binarios fijos con `DataView` y `ArrayBuffer` reutilizados en el bucle principal.
   * **Físicas Desacopladas a 30 Hz**: Motor de colisiones AABB propio sin sobrecarga en la CPU del teléfono.
-* **Suite de Pruebas Unitarias Integrada**: 146 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas, inventario, niveles, verticalidad, elección determinista y contratos de UI.
+* **Suite de Pruebas Unitarias Integrada**: 321 pruebas automatizadas con el ejecutor nativo `node:test` cubriendo protocolo binario, colisiones, reconciliación, vidas, inventario, niveles, verticalidad, elección determinista y contratos de UI.
 
 ---
 
@@ -126,7 +126,7 @@ El código está estructurado bajo **Clean Architecture** y principios de **Resp
 runa-y-piedra/
 ├── docs/                     # Documentación técnica completa y guías de arquitectura
 │   └── assets/               # Diagramas vectoriales SVG de jugabilidad y HUD móvil
-├── tests/                    # Suite de 146 pruebas automatizadas (node:test)
+├── tests/                    # Suite de 321 pruebas automatizadas (node:test)
 ├── src/
 │   ├── audio/
 │   │   └── SoundManager.js   # Efectos de sonido procedurales con Web Audio API
@@ -205,7 +205,7 @@ runa-y-piedra/
 # 1. Instalar dependencias
 npm install
 
-# 2. Ejecutar suite de pruebas unitarias (146 tests)
+# 2. Ejecutar suite de pruebas unitarias (321 tests)
 npm test
 
 
@@ -268,7 +268,7 @@ Al ejecutarse 100% en el navegador mediante canales de datos WebRTC (`RTCDataCha
 ### Migración Automática de Host y Elección Determinista de Líder (v1.33.0)
 La arquitectura técnica ([`docs/06-arquitectura-listen-server-hosting.md`](docs/06-arquitectura-listen-server-hosting.md)) implementa un consenso distribuido sin dependencias externas:
 * **Sincronización de Peer Roster (`PEER_ROSTER 0x12`)**: El anfitrión propaga de forma fiable el censo de todos los aventureros en la sala por el canal `game-safe`.
-* **Elección Determinista de Líder ([`LeaderElection.js`](file:///data/data/com.termux/files/home/develop/game/src/network/LeaderElection.js))**: Al detectar la caída del anfitrión, todos los clientes supervivientes ejecutan el mismo algoritmo determinista (criterio: menor `playerId` / mayor antigüedad). El líder electo asume automáticamente el rol de Host sin votación en red.
+* **Elección Determinista de Líder ([`LeaderElection.js`](src/network/LeaderElection.js))**: Al detectar la caída del anfitrión, todos los clientes supervivientes ejecutan el mismo algoritmo determinista (criterio: menor `playerId` / mayor antigüedad). El líder electo asume automáticamente el rol de Host sin votación en red.
 * **Salas de Migración Derivadas (`VOXELSALA-XXXX-M`)**: El nuevo Host abre una sala derivada predecible y restaura el estado del mundo (`HostSnapshot` en `sessionStorage`); el resto de compañeros se reconecta automáticamente a dicha sala.
 
 
