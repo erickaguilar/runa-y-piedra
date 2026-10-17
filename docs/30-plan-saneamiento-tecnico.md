@@ -7,7 +7,20 @@ pruebas existente como red de seguridad.
 
 - **Versión auditada:** `1.40.0` (rama `develop`)
 - **Fecha de auditoría:** 2026-10-17
-- **Estado:** Propuesto
+- **Estado:** En ejecución — **Fases 0 y 1 completadas** (rama `chore/fase-0-1-infra-y-docs`)
+
+### Progreso
+
+| Fase | Estado |
+|---|---|
+| 0. Infraestructura local | ✅ Completada |
+| 1. Coherencia documental | ✅ Completada |
+| 2. Type checking real | ⏳ Pendiente |
+| 3. Higiene de logs | ⏳ Pendiente |
+| 4. God-objects | ⏳ Pendiente |
+| 5. CSS mantenible | ⏳ Pendiente |
+| 6. Extracción de arte | ⏳ Pendiente |
+| 7. Proceso y guardarraíles | ⏳ Pendiente |
 
 ---
 
@@ -58,10 +71,10 @@ pruebas existente como red de seguridad.
 ### Fase 0 — Infraestructura local y línea base
 **Esfuerzo:** ~2 h · **Riesgo:** nulo · **Depende de:** nada
 
-- [ ] `npm ci` para instalar `eslint@10.11.0` y `typescript@5.9.3` (faltan en `node_modules`).
-- [ ] Ejecutar `npm run ci` y confirmar `lint` + `321 tests` + `build` en verde.
-- [ ] Verificar el pre-commit de `.githooks/` (`npm run precommit`).
-- [ ] Registrar la línea base del bundle (`dist/assets/*` tamaños) como referencia.
+- [x] `npm ci` para instalar `eslint@10.11.0` y `typescript@5.9.3` (faltan en `node_modules`).
+- [x] Ejecutar `npm run ci` y confirmar `lint` + `321 tests` + `build` en verde.
+- [x] Verificar el pre-commit de `.githooks/` (`npm run precommit`).
+- [x] Registrar la línea base del bundle (`dist/assets/*` tamaños) como referencia (Anexo A).
 
 **DoD:** `npm run ci` pasa en local; el pre-commit bloquea correctamente un archivo con error.
 
@@ -70,16 +83,16 @@ pruebas existente como red de seguridad.
 ### Fase 1 — Coherencia documental (victoria rápida)
 **Esfuerzo:** ~3 h · **Riesgo:** nulo · **Depende de:** Fase 0
 
-- [ ] Unificar el conteo de tests en `README.md`: badge **287 → 321** y texto **146 → 321**
-      (líneas 10, 117 y 129).
-- [ ] Reemplazar los 4 enlaces `file:///data/data/com.termux/files/home/develop/game/...`
+- [x] Unificar el conteo de tests en `README.md`: badge **287 → 321** y texto **146 → 321**
+      (líneas 10, 117, 129 y 208).
+- [x] Reemplazar los 4 enlaces `file:///data/data/com.termux/files/home/develop/game/...`
       por rutas relativas del repo (`src/levels/`, `src/network/ClientReconciler.js`,
       `src/audio/SoundManager.js`, `src/network/LeaderElection.js`).
-- [ ] Corregir el *drift* de `docs/README.md`:
+- [x] Corregir el *drift* de `docs/README.md`:
   - doc 08: "Catálogo de 4 niveles" → arquitectura vigente de 10 capítulos.
   - doc 02: "Custom AABB **/ Rapier3D WASM**" → el proyecto usa AABB propio (no hay Rapier).
-  - doc 14: "Suite de **58** pruebas" → conteo actual (o quitar el número).
-- [ ] Registrar este plan (`30`) en el índice de `docs/README.md`.
+  - doc 14: "Suite de **58** pruebas" → conteo actual (`321`).
+- [x] Registrar este plan (`30`) en el índice de `docs/README.md`.
 
 **DoD:** `grep -rn "file:///data" README.md` devuelve 0; los conteos de tests coinciden con
 `npm test`; existe un único número de referencia.
