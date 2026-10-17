@@ -12,6 +12,10 @@ import {
   createHeroArmSideMaterial,
   createHeroArmInnerMaterial,
   createHeroArmBackMaterial,
+  createHeroLegFrontMaterial,
+  createHeroLegSideMaterial,
+  createHeroLegInnerMaterial,
+  createHeroLegBackMaterial,
 } from '../../../heroes/heroPortraits.js';
 
 let _grdGeoCache = null;
@@ -45,10 +49,6 @@ function getGuardianGeoCache() {
   _grdGeoCache = {
     crownGoldGeo,
     crownGem: new THREE.BoxGeometry(0.08, 0.08, 0.06),
-    pauldronLayer1: new THREE.BoxGeometry(0.22, 0.18, 0.30),
-    pauldronLayer2: new THREE.BoxGeometry(0.24, 0.10, 0.32),
-    pauldronRim: new THREE.BoxGeometry(0.24, 0.04, 0.32),
-    pauldronStud: new THREE.BoxGeometry(0.05, 0.05, 0.05),
     skirtBody: new THREE.BoxGeometry(0.16, 0.32, 0.06),
     skirtEdge: new THREE.BoxGeometry(0.18, 0.04, 0.07),
     skirtRivet: new THREE.BoxGeometry(0.04, 0.04, 0.02),
@@ -57,8 +57,6 @@ function getGuardianGeoCache() {
     gauntletFist: new THREE.BoxGeometry(0.22, 0.10, 0.14),
     chestPlate: new THREE.BoxGeometry(0.30, 0.24, 0.02),
     emblem: new THREE.BoxGeometry(0.10, 0.10, 0.03),
-    boot: new THREE.BoxGeometry(0.22, 0.30, 0.24),
-    bootRim: new THREE.BoxGeometry(0.24, 0.04, 0.26),
   };
   for (const g of Object.values(_grdGeoCache)) {
     g.userData = { isShared: true, heroId: 'guardian' };
@@ -238,36 +236,6 @@ export function buildGuardianGear(a, G, add) {
     add(crown, a.gear);
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 2. HOMBRERAS MACIZAS DE BRONCE CON RIBETES DORADOS
-  // ═══════════════════════════════════════════════════════════
-  const buildPauldron = (side) => {
-    const g = new THREE.Group();
-    const sign = side === 'L' ? -1 : 1;
-    g.position.set(sign * 0.36, 1.38, 0);
-
-    const layer1 = new THREE.Mesh(geo.pauldronLayer1, bronzeMat);
-    layer1.position.set(sign * 0.02, 0, 0);
-    g.add(layer1);
-
-    const layer2 = new THREE.Mesh(geo.pauldronLayer2, bronzeDkMat);
-    layer2.position.set(sign * 0.04, 0.12, 0);
-    layer2.rotation.z = sign * 0.25;
-    g.add(layer2);
-
-    const rim = new THREE.Mesh(geo.pauldronRim, goldMat);
-    rim.position.set(sign * 0.02, -0.10, 0);
-    g.add(rim);
-
-    const stud = new THREE.Mesh(geo.pauldronStud, goldMat);
-    stud.position.set(sign * 0.02, 0.02, 0.17);
-    g.add(stud);
-
-    add(g, a.gear);
-  };
-
-  buildPauldron('L');
-  buildPauldron('R');
 
   // ═══════════════════════════════════════════════════════════
   // 3. FALDÓN DE 5 PLACAS INDEPENDIENTES (3 frontales + 2 laterales)
@@ -343,47 +311,55 @@ export function buildGuardianGear(a, G, add) {
   emblem.rotation.z = Math.PI / 4;
   add(emblem, a.gear);
 
-  // ═══════════════════════════════════════════════════════════
-  // 6. BOTAS DE METAL CON RIBETE DORADO (articuladas a las piernas)
-  // ═══════════════════════════════════════════════════════════
-  if (a.parts?.legLPivot) {
-    const bootL = new THREE.Mesh(geo.boot, steelDkMat);
-    bootL.position.set(0, -0.65, 0);
-    add(bootL, a.parts.legLPivot);
-
-    const bootRimL = new THREE.Mesh(geo.bootRim, goldMat);
-    bootRimL.position.set(0, -0.52, 0);
-    add(bootRimL, a.parts.legLPivot);
-  } else {
-    const bootL = new THREE.Mesh(geo.boot, steelDkMat);
-    bootL.position.set(-0.15, 0.15, 0);
-    add(bootL, a.gear);
-
-    const bootRimL = new THREE.Mesh(geo.bootRim, goldMat);
-    bootRimL.position.set(-0.15, 0.28, 0);
-    add(bootRimL, a.gear);
-  }
-
-  if (a.parts?.legRPivot) {
-    const bootR = new THREE.Mesh(geo.boot, steelDkMat);
-    bootR.position.set(0, -0.65, 0);
-    add(bootR, a.parts.legRPivot);
-
-    const bootRimR = new THREE.Mesh(geo.bootRim, goldMat);
-    bootRimR.position.set(0, -0.52, 0);
-    add(bootRimR, a.parts.legRPivot);
-  } else {
-    const bootR = new THREE.Mesh(geo.boot, steelDkMat);
-    bootR.position.set(0.15, 0.15, 0);
-    add(bootR, a.gear);
-
-    const bootRimR = new THREE.Mesh(geo.bootRim, goldMat);
-    bootRimR.position.set(0.15, 0.28, 0);
-    add(bootRimR, a.gear);
-  }
-
   if (a.parts) {
     a.parts.emissiveMats = [{ mat: gemMat, base: 0.50, amp: 0.25 }];
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 6. PIERNAS — Texturas Sumi-e 360° (frente +Z, exterior, interior, espalda -Z)
+  // ═══════════════════════════════════════════════════════════
+  let legFrontMat = null;
+  let legSideRMat = null;
+  let legSideLMat = null;
+  let legInnerRMat = null;
+  let legInnerLMat = null;
+  let legBackMat = null;
+  const legL = a.parts?.legL || (a.parts?.legLPivot?.children?.find((c) => c.geometry === G?.leg));
+  const legR = a.parts?.legR || (a.parts?.legRPivot?.children?.find((c) => c.geometry === G?.leg));
+
+  if (legL || legR) {
+    legFrontMat = createHeroLegFrontMaterial('guardian');
+    legSideRMat = createHeroLegSideMaterial('guardian', 'R');
+    legSideLMat = createHeroLegSideMaterial('guardian', 'L');
+    legInnerRMat = createHeroLegInnerMaterial('guardian', 'R');
+    legInnerLMat = createHeroLegInnerMaterial('guardian', 'L');
+    legBackMat = createHeroLegBackMaterial('guardian');
+
+    if (legR) {
+      if (!a._origLegRMat) a._origLegRMat = legR.material;
+      const baseLegR = Array.isArray(a._origLegRMat) ? a._origLegRMat[0] : (a._origLegRMat || legR.material);
+      legR.material = [
+        legSideRMat || baseLegR,   // +X (exterior derecho)
+        legInnerRMat || baseLegR,  // -X (interior derecho)
+        baseLegR,                  // +Y (cadera)
+        baseLegR,                  // -Y (suela)
+        legFrontMat || baseLegR,   // +Z (frente / quijote y greba)
+        legBackMat || baseLegR,    // -Z (espalda / gemelo y talonera)
+      ];
+    }
+
+    if (legL) {
+      if (!a._origLegLMat) a._origLegLMat = legL.material;
+      const baseLegL = Array.isArray(a._origLegLMat) ? a._origLegLMat[0] : (a._origLegLMat || legL.material);
+      legL.material = [
+        legInnerLMat || baseLegL,  // +X (interior izquierdo)
+        legSideLMat || baseLegL,   // -X (exterior izquierdo)
+        baseLegL,                  // +Y (cadera)
+        baseLegL,                  // -Y (suela)
+        legFrontMat || baseLegL,   // +Z (frente / quijote y greba)
+        legBackMat || baseLegL,    // -Z (espalda / gemelo y talonera)
+      ];
+    }
   }
 
   const mats = [
@@ -409,6 +385,12 @@ export function buildGuardianGear(a, G, add) {
   if (armInnerRMat) mats.push(armInnerRMat);
   if (armInnerLMat) mats.push(armInnerLMat);
   if (armBackMat) mats.push(armBackMat);
+  if (legFrontMat) mats.push(legFrontMat);
+  if (legSideRMat) mats.push(legSideRMat);
+  if (legSideLMat) mats.push(legSideLMat);
+  if (legInnerRMat) mats.push(legInnerRMat);
+  if (legInnerLMat) mats.push(legInnerLMat);
+  if (legBackMat) mats.push(legBackMat);
   return mats;
 }
 

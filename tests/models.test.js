@@ -23,6 +23,10 @@ import {
   createHeroArmSideMaterial,
   createHeroArmInnerMaterial,
   createHeroArmBackMaterial,
+  createHeroLegFrontMaterial,
+  createHeroLegSideMaterial,
+  createHeroLegInnerMaterial,
+  createHeroLegBackMaterial,
   disposeHeroPortraitsCache,
 } from '../src/heroes/heroPortraits.js';
 import { renderIcon, ICONS } from '../src/ui/Icons.js';
@@ -1355,6 +1359,403 @@ test('Héroes Sumi-e 360°: El Aventurero integra texturas 360° en brazos 3D (f
   ar._clearGear(a);
   assert.equal(a.parts.armR.material, a.mats[1], '_clearGear debe restaurar armR al material de manga original');
   assert.equal(a.parts.armL.material, a.mats[1], '_clearGear debe restaurar armL al material de manga original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Aventurero integra texturas 360° en piernas 3D (frente +Z, exterior, interior, espalda -Z) y volumen mixto', () => {
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(77, '#0284c7');
+
+  // 1. Verificar definición en HERO_PORTRAITS.adventurer
+  const def = HERO_PORTRAITS.adventurer;
+  assert.ok(def.legFrontSvg && def.legFrontBody, 'Aventurero debe definir legFrontSvg y legFrontBody');
+  assert.ok(def.legSideSvg && def.legSideBody, 'Aventurero debe definir legSideSvg y legSideBody');
+  assert.ok(def.legInnerSvg && def.legInnerBody, 'Aventurero debe definir legInnerSvg y legInnerBody');
+  assert.ok(def.legBackSvg && def.legBackBody, 'Aventurero debe definir legBackSvg y legBackBody');
+  assert.equal(typeof def.drawLegFrontToCanvas, 'function', 'Aventurero debe definir drawLegFrontToCanvas');
+  assert.equal(typeof def.drawLegSideToCanvas, 'function', 'Aventurero debe definir drawLegSideToCanvas');
+  assert.equal(typeof def.drawLegInnerToCanvas, 'function', 'Aventurero debe definir drawLegInnerToCanvas');
+  assert.equal(typeof def.drawLegBackToCanvas, 'function', 'Aventurero debe definir drawLegBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de pierna para el Aventurero
+  const front1 = createHeroLegFrontMaterial('adventurer');
+  const front2 = createHeroLegFrontMaterial('adventurer');
+  assert.equal(front1, front2, 'createHeroLegFrontMaterial(adventurer) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroLegSideMaterial('adventurer', 'R');
+  const sideR2 = createHeroLegSideMaterial('adventurer', 'R');
+  const sideL1 = createHeroLegSideMaterial('adventurer', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroLegSideMaterial(adventurer, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de legSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroLegInnerMaterial('adventurer', 'R');
+  const innerR2 = createHeroLegInnerMaterial('adventurer', 'R');
+  const innerL1 = createHeroLegInnerMaterial('adventurer', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroLegInnerMaterial(adventurer, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de legInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroLegBackMaterial('adventurer');
+  const back2 = createHeroLegBackMaterial('adventurer');
+  assert.equal(back1, back2, 'createHeroLegBackMaterial(adventurer) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de legR y legL
+  ar.setHeroGear(a, 'adventurer');
+
+  assert.ok(Array.isArray(a.parts.legR.material), 'legR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.legL.material), 'legL debe tener arreglo multimaterial');
+
+  // legR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legR.material[0], sideR1, 'Pierna derecha +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.legR.material[1], innerR1, 'Pierna derecha -X (interior) debe tener innerR1');
+  assert.equal(a.parts.legR.material[4], front1, 'Pierna derecha +Z (frente) debe tener front1');
+  assert.equal(a.parts.legR.material[5], back1, 'Pierna derecha -Z (espalda) debe tener back1');
+
+  // legL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legL.material[0], innerL1, 'Pierna izquierda +X (interior) debe tener innerL1');
+  assert.equal(a.parts.legL.material[1], sideL1, 'Pierna izquierda -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.legL.material[4], front1, 'Pierna izquierda +Z (frente) debe tener front1');
+  assert.equal(a.parts.legL.material[5], back1, 'Pierna izquierda -Z (espalda) debe tener back1');
+
+  // 4. Verificar volumen mixto: botas de cuero en legLPivot y legRPivot
+  const bootsL = a.parts.legLPivot.children.filter(c => c !== a.parts.legL);
+  const bootsR = a.parts.legRPivot.children.filter(c => c !== a.parts.legR);
+  assert.ok(bootsL.length >= 1, 'legLPivot debe contener la bota 3D de viaje');
+  assert.ok(bootsR.length >= 1, 'legRPivot debe contener la bota 3D de viaje');
+
+  // 5. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.legR.material, a.mats[2], '_clearGear debe restaurar legR al material de pantalón original');
+  assert.equal(a.parts.legL.material, a.mats[2], '_clearGear debe restaurar legL al material de pantalón original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Paladín integra texturas 360° en piernas 3D (frente +Z, exterior, interior, espalda -Z)', () => {
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(78, '#f59e0b');
+
+  // 1. Verificar definición en HERO_PORTRAITS.paladin
+  const def = HERO_PORTRAITS.paladin;
+  assert.ok(def.legFrontSvg && def.legFrontBody, 'Paladín debe definir legFrontSvg y legFrontBody');
+  assert.ok(def.legSideSvg && def.legSideBody, 'Paladín debe definir legSideSvg y legSideBody');
+  assert.ok(def.legInnerSvg && def.legInnerBody, 'Paladín debe definir legInnerSvg y legInnerBody');
+  assert.ok(def.legBackSvg && def.legBackBody, 'Paladín debe definir legBackSvg y legBackBody');
+  assert.equal(typeof def.drawLegFrontToCanvas, 'function', 'Paladín debe definir drawLegFrontToCanvas');
+  assert.equal(typeof def.drawLegSideToCanvas, 'function', 'Paladín debe definir drawLegSideToCanvas');
+  assert.equal(typeof def.drawLegInnerToCanvas, 'function', 'Paladín debe definir drawLegInnerToCanvas');
+  assert.equal(typeof def.drawLegBackToCanvas, 'function', 'Paladín debe definir drawLegBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de pierna para el Paladín
+  const front1 = createHeroLegFrontMaterial('paladin');
+  const front2 = createHeroLegFrontMaterial('paladin');
+  assert.equal(front1, front2, 'createHeroLegFrontMaterial(paladin) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroLegSideMaterial('paladin', 'R');
+  const sideR2 = createHeroLegSideMaterial('paladin', 'R');
+  const sideL1 = createHeroLegSideMaterial('paladin', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroLegSideMaterial(paladin, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de legSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroLegInnerMaterial('paladin', 'R');
+  const innerR2 = createHeroLegInnerMaterial('paladin', 'R');
+  const innerL1 = createHeroLegInnerMaterial('paladin', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroLegInnerMaterial(paladin, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de legInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroLegBackMaterial('paladin');
+  const back2 = createHeroLegBackMaterial('paladin');
+  assert.equal(back1, back2, 'createHeroLegBackMaterial(paladin) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de legR y legL
+  ar.setHeroGear(a, 'paladin');
+
+  assert.ok(Array.isArray(a.parts.legR.material), 'legR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.legL.material), 'legL debe tener arreglo multimaterial');
+
+  // legR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legR.material[0], sideR1, 'Pierna derecha +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.legR.material[1], innerR1, 'Pierna derecha -X (interior) debe tener innerR1');
+  assert.equal(a.parts.legR.material[4], front1, 'Pierna derecha +Z (frente) debe tener front1');
+  assert.equal(a.parts.legR.material[5], back1, 'Pierna derecha -Z (espalda) debe tener back1');
+
+  // legL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legL.material[0], innerL1, 'Pierna izquierda +X (interior) debe tener innerL1');
+  assert.equal(a.parts.legL.material[1], sideL1, 'Pierna izquierda -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.legL.material[4], front1, 'Pierna izquierda +Z (frente) debe tener front1');
+  assert.equal(a.parts.legL.material[5], back1, 'Pierna izquierda -Z (espalda) debe tener back1');
+
+  // 4. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.legR.material, a.mats[2], '_clearGear debe restaurar legR al material de pantalón original');
+  assert.equal(a.parts.legL.material, a.mats[2], '_clearGear debe restaurar legL al material de pantalón original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Explorador integra texturas 360° en piernas 3D (frente +Z, exterior, interior, espalda -Z) y volumen mixto', () => {
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(79, '#10b981');
+
+  // 1. Verificar definición en HERO_PORTRAITS.ranger
+  const def = HERO_PORTRAITS.ranger;
+  assert.ok(def.legFrontSvg && def.legFrontBody, 'Explorador debe definir legFrontSvg y legFrontBody');
+  assert.ok(def.legSideSvg && def.legSideBody, 'Explorador debe definir legSideSvg y legSideBody');
+  assert.ok(def.legInnerSvg && def.legInnerBody, 'Explorador debe definir legInnerSvg y legInnerBody');
+  assert.ok(def.legBackSvg && def.legBackBody, 'Explorador debe definir legBackSvg y legBackBody');
+  assert.equal(typeof def.drawLegFrontToCanvas, 'function', 'Explorador debe definir drawLegFrontToCanvas');
+  assert.equal(typeof def.drawLegSideToCanvas, 'function', 'Explorador debe definir drawLegSideToCanvas');
+  assert.equal(typeof def.drawLegInnerToCanvas, 'function', 'Explorador debe definir drawLegInnerToCanvas');
+  assert.equal(typeof def.drawLegBackToCanvas, 'function', 'Explorador debe definir drawLegBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de pierna para el Explorador
+  const front1 = createHeroLegFrontMaterial('ranger');
+  const front2 = createHeroLegFrontMaterial('ranger');
+  assert.equal(front1, front2, 'createHeroLegFrontMaterial(ranger) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroLegSideMaterial('ranger', 'R');
+  const sideR2 = createHeroLegSideMaterial('ranger', 'R');
+  const sideL1 = createHeroLegSideMaterial('ranger', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroLegSideMaterial(ranger, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de legSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroLegInnerMaterial('ranger', 'R');
+  const innerR2 = createHeroLegInnerMaterial('ranger', 'R');
+  const innerL1 = createHeroLegInnerMaterial('ranger', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroLegInnerMaterial(ranger, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de legInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroLegBackMaterial('ranger');
+  const back2 = createHeroLegBackMaterial('ranger');
+  assert.equal(back1, back2, 'createHeroLegBackMaterial(ranger) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de legR y legL
+  ar.setHeroGear(a, 'ranger');
+
+  assert.ok(Array.isArray(a.parts.legR.material), 'legR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.legL.material), 'legL debe tener arreglo multimaterial');
+
+  // legR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legR.material[0], sideR1, 'Pierna derecha +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.legR.material[1], innerR1, 'Pierna derecha -X (interior) debe tener innerR1');
+  assert.equal(a.parts.legR.material[4], front1, 'Pierna derecha +Z (frente) debe tener front1');
+  assert.equal(a.parts.legR.material[5], back1, 'Pierna derecha -Z (espalda) debe tener back1');
+
+  // legL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legL.material[0], innerL1, 'Pierna izquierda +X (interior) debe tener innerL1');
+  assert.equal(a.parts.legL.material[1], sideL1, 'Pierna izquierda -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.legL.material[4], front1, 'Pierna izquierda +Z (frente) debe tener front1');
+  assert.equal(a.parts.legL.material[5], back1, 'Pierna izquierda -Z (espalda) debe tener back1');
+
+  // 4. Verificar volumen mixto: botas de cuero altas en legLPivot y legRPivot
+  const bootsL = a.parts.legLPivot.children.filter(c => c !== a.parts.legL);
+  const bootsR = a.parts.legRPivot.children.filter(c => c !== a.parts.legR);
+  assert.ok(bootsL.length >= 1, 'legLPivot debe contener la bota alta de cazador 3D');
+  assert.ok(bootsR.length >= 1, 'legRPivot debe contener la bota alta de cazador 3D');
+
+  // 5. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.legR.material, a.mats[2], '_clearGear debe restaurar legR al material de pantalón original');
+  assert.equal(a.parts.legL.material, a.mats[2], '_clearGear debe restaurar legL al material de pantalón original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Hechicero integra texturas 360° en piernas 3D (frente +Z, exterior, interior, espalda -Z)', () => {
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(80, '#a855f7');
+
+  // 1. Verificar definición en HERO_PORTRAITS.wizard
+  const def = HERO_PORTRAITS.wizard;
+  assert.ok(def.legFrontSvg && def.legFrontBody, 'Hechicero debe definir legFrontSvg y legFrontBody');
+  assert.ok(def.legSideSvg && def.legSideBody, 'Hechicero debe definir legSideSvg y legSideBody');
+  assert.ok(def.legInnerSvg && def.legInnerBody, 'Hechicero debe definir legInnerSvg y legInnerBody');
+  assert.ok(def.legBackSvg && def.legBackBody, 'Hechicero debe definir legBackSvg y legBackBody');
+  assert.equal(typeof def.drawLegFrontToCanvas, 'function', 'Hechicero debe definir drawLegFrontToCanvas');
+  assert.equal(typeof def.drawLegSideToCanvas, 'function', 'Hechicero debe definir drawLegSideToCanvas');
+  assert.equal(typeof def.drawLegInnerToCanvas, 'function', 'Hechicero debe definir drawLegInnerToCanvas');
+  assert.equal(typeof def.drawLegBackToCanvas, 'function', 'Hechicero debe definir drawLegBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de pierna para el Hechicero
+  const front1 = createHeroLegFrontMaterial('wizard');
+  const front2 = createHeroLegFrontMaterial('wizard');
+  assert.equal(front1, front2, 'createHeroLegFrontMaterial(wizard) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroLegSideMaterial('wizard', 'R');
+  const sideR2 = createHeroLegSideMaterial('wizard', 'R');
+  const sideL1 = createHeroLegSideMaterial('wizard', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroLegSideMaterial(wizard, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de legSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroLegInnerMaterial('wizard', 'R');
+  const innerR2 = createHeroLegInnerMaterial('wizard', 'R');
+  const innerL1 = createHeroLegInnerMaterial('wizard', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroLegInnerMaterial(wizard, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de legInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroLegBackMaterial('wizard');
+  const back2 = createHeroLegBackMaterial('wizard');
+  assert.equal(back1, back2, 'createHeroLegBackMaterial(wizard) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de legR y legL
+  ar.setHeroGear(a, 'wizard');
+
+  assert.ok(Array.isArray(a.parts.legR.material), 'legR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.legL.material), 'legL debe tener arreglo multimaterial');
+
+  // legR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legR.material[0], sideR1, 'Pierna derecha +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.legR.material[1], innerR1, 'Pierna derecha -X (interior) debe tener innerR1');
+  assert.equal(a.parts.legR.material[4], front1, 'Pierna derecha +Z (frente) debe tener front1');
+  assert.equal(a.parts.legR.material[5], back1, 'Pierna derecha -Z (espalda) debe tener back1');
+
+  // legL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legL.material[0], innerL1, 'Pierna izquierda +X (interior) debe tener innerL1');
+  assert.equal(a.parts.legL.material[1], sideL1, 'Pierna izquierda -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.legL.material[4], front1, 'Pierna izquierda +Z (frente) debe tener front1');
+  assert.equal(a.parts.legL.material[5], back1, 'Pierna izquierda -Z (espalda) debe tener back1');
+
+  // 4. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.legR.material, a.mats[2], '_clearGear debe restaurar legR al material de pantalón original');
+  assert.equal(a.parts.legL.material, a.mats[2], '_clearGear debe restaurar legL al material de pantalón original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Guardián integra texturas 360° en piernas 3D sin Z-fighting ni mallas 3D redundantes en botas', () => {
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(81, '#b45309');
+
+  // 1. Verificar definición en HERO_PORTRAITS.guardian
+  const def = HERO_PORTRAITS.guardian;
+  assert.ok(def.legFrontSvg && def.legFrontBody, 'Guardián debe definir legFrontSvg y legFrontBody');
+  assert.ok(def.legSideSvg && def.legSideBody, 'Guardián debe definir legSideSvg y legSideBody');
+  assert.ok(def.legInnerSvg && def.legInnerBody, 'Guardián debe definir legInnerSvg y legInnerBody');
+  assert.ok(def.legBackSvg && def.legBackBody, 'Guardián debe definir legBackSvg y legBackBody');
+  assert.equal(typeof def.drawLegFrontToCanvas, 'function', 'Guardián debe definir drawLegFrontToCanvas');
+  assert.equal(typeof def.drawLegSideToCanvas, 'function', 'Guardián debe definir drawLegSideToCanvas');
+  assert.equal(typeof def.drawLegInnerToCanvas, 'function', 'Guardián debe definir drawLegInnerToCanvas');
+  assert.equal(typeof def.drawLegBackToCanvas, 'function', 'Guardián debe definir drawLegBackToCanvas');
+
+  // 2. Factorías Singleton de materiales de pierna para el Guardián
+  const front1 = createHeroLegFrontMaterial('guardian');
+  const front2 = createHeroLegFrontMaterial('guardian');
+  assert.equal(front1, front2, 'createHeroLegFrontMaterial(guardian) debe ser Singleton');
+  assert.ok(front1.userData?.isShared);
+
+  const sideR1 = createHeroLegSideMaterial('guardian', 'R');
+  const sideR2 = createHeroLegSideMaterial('guardian', 'R');
+  const sideL1 = createHeroLegSideMaterial('guardian', 'L');
+  assert.equal(sideR1, sideR2, 'createHeroLegSideMaterial(guardian, R) debe ser Singleton');
+  assert.notEqual(sideR1, sideL1, 'Lados R y L de legSide deben ser instancias diferentes (flipX)');
+  assert.ok(sideR1.userData?.isShared && sideL1.userData?.isShared);
+
+  const innerR1 = createHeroLegInnerMaterial('guardian', 'R');
+  const innerR2 = createHeroLegInnerMaterial('guardian', 'R');
+  const innerL1 = createHeroLegInnerMaterial('guardian', 'L');
+  assert.equal(innerR1, innerR2, 'createHeroLegInnerMaterial(guardian, R) debe ser Singleton');
+  assert.notEqual(innerR1, innerL1, 'Lados R y L de legInner deben ser instancias diferentes (flipX)');
+  assert.ok(innerR1.userData?.isShared && innerL1.userData?.isShared);
+
+  const back1 = createHeroLegBackMaterial('guardian');
+  const back2 = createHeroLegBackMaterial('guardian');
+  assert.equal(back1, back2, 'createHeroLegBackMaterial(guardian) debe ser Singleton');
+  assert.ok(back1.userData?.isShared);
+
+  // 3. Verificar asignación en las caras de legR y legL y volumen mixto con botas
+  ar.setHeroGear(a, 'guardian');
+
+  assert.ok(Array.isArray(a.parts.legR.material), 'legR debe tener arreglo multimaterial');
+  assert.ok(Array.isArray(a.parts.legL.material), 'legL debe tener arreglo multimaterial');
+
+  // legR: [0:+X exterior, 1:-X interior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legR.material[0], sideR1, 'Pierna derecha +X (exterior) debe tener sideR1');
+  assert.equal(a.parts.legR.material[1], innerR1, 'Pierna derecha -X (interior) debe tener innerR1');
+  assert.equal(a.parts.legR.material[4], front1, 'Pierna derecha +Z (frente) debe tener front1');
+  assert.equal(a.parts.legR.material[5], back1, 'Pierna derecha -Z (espalda) debe tener back1');
+
+  // legL: [0:+X interior, 1:-X exterior, 4:+Z frente, 5:-Z espalda]
+  assert.equal(a.parts.legL.material[0], innerL1, 'Pierna izquierda +X (interior) debe tener innerL1');
+  assert.equal(a.parts.legL.material[1], sideL1, 'Pierna izquierda -X (exterior) debe tener sideL1');
+  assert.equal(a.parts.legL.material[4], front1, 'Pierna izquierda +Z (frente) debe tener front1');
+  assert.equal(a.parts.legL.material[5], back1, 'Pierna izquierda -Z (espalda) debe tener back1');
+
+  // 4. Restauración en _clearGear
+  ar._clearGear(a);
+  assert.equal(a.parts.legR.material, a.mats[2], '_clearGear debe restaurar legR al material de pantalón original');
+  assert.equal(a.parts.legL.material, a.mats[2], '_clearGear debe restaurar legL al material de pantalón original');
+
+  ar.dispose();
+  disposeHeroPortraitsCache();
+});
+
+test('Héroes Sumi-e 360°: El Guardián optimiza mallas sin hombreras 3D redundantes y el rostro proyecta sombra de corona sin duplicar la textura', () => {
+  const dummyScene = new THREE.Scene();
+  const ar = new AvatarRenderer(dummyScene);
+  const a = ar.ensure(92, '#b45309');
+
+  // 1. Verificar definición en HERO_PORTRAITS.guardian
+  const def = HERO_PORTRAITS.guardian;
+  assert.ok(def.svg && def.body, 'Guardián debe definir svg y body');
+  assert.ok(def.sideSvg && def.sideBody, 'Guardián debe definir sideSvg y sideBody');
+  assert.ok(def.backSvg && def.backBody, 'Guardián debe definir backSvg y backBody');
+
+  // 2. Verificar que las texturas ya no duplican la corona dorada ni la gema roja debajo de la corona 3D
+  // (Igual que el sombrero del hechicero, la corona es un objeto 3D volumétrico en la parte superior)
+  assert.ok(!def.body.includes('fill="#b45309"'), 'El rostro del Guardián no debe pintar almenas doradas debajo de la corona 3D');
+  assert.ok(!def.body.includes('fill="#991b1b"'), 'El rostro del Guardián no debe pintar la gema Hanko roja ya que existe crownGem en 3D');
+  assert.ok(def.body.includes('fill="#1c1917"'), 'El rostro del Guardián debe proyectar sombra oscura bajo la corona 3D');
+
+  assert.ok(!def.sideBody.includes('fill="#b45309" H6'), 'El lateral de la cabeza no debe pintar almenas doradas en la parte superior');
+  assert.ok(!def.backBody.includes('fill="#b45309" H6'), 'La nuca de la cabeza no debe pintar almenas doradas en la parte superior');
+
+  // 3. Montar gear del Guardián y comprobar ausencia total de hombreras 3D
+  ar.setHeroGear(a, 'guardian');
+
+  let pauldronMeshCount = 0;
+  a.gear.traverse((child) => {
+    if (child.isMesh && child.geometry?.parameters?.width === 0.22 && child.geometry?.parameters?.height === 0.18) {
+      pauldronMeshCount++;
+    }
+  });
+  assert.equal(pauldronMeshCount, 0, 'No deben existir mallas de hombreras (pauldronLayer) en el gear del Guardián');
+
+  // 4. Verificar presencia de la corona 3D volumétrica en la cabeza
+  let crownMeshCount = 0;
+  const headTarget = a.parts.head || a.gear;
+  headTarget.traverse((child) => {
+    if (child.isMesh && child.geometry?.userData?.heroId === 'guardian') {
+      crownMeshCount++;
+    }
+  });
+  assert.ok(crownMeshCount >= 2, 'El Guardián debe poseer la corona dorada y gema en 3D (crownGoldGeo y crownGem)');
 
   ar.dispose();
   disposeHeroPortraitsCache();

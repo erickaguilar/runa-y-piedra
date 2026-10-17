@@ -12,6 +12,10 @@ import {
   createHeroArmSideMaterial,
   createHeroArmInnerMaterial,
   createHeroArmBackMaterial,
+  createHeroLegFrontMaterial,
+  createHeroLegSideMaterial,
+  createHeroLegInnerMaterial,
+  createHeroLegBackMaterial,
 } from '../../../heroes/heroPortraits.js';
 
 let _advGeoCache = null;
@@ -231,6 +235,51 @@ export function buildAdventurerGear(a, G, add) {
     }
   }
 
+  // Aplicar texturas Sumi-e de piernas 360° del Aventurero (frente +Z, exterior, interior, espalda -Z)
+  let legFrontMat = null;
+  let legSideRMat = null;
+  let legSideLMat = null;
+  let legInnerRMat = null;
+  let legInnerLMat = null;
+  let legBackMat = null;
+  const legL = a.parts?.legL || (a.parts?.legLPivot?.children?.find((c) => c.geometry === G?.leg));
+  const legR = a.parts?.legR || (a.parts?.legRPivot?.children?.find((c) => c.geometry === G?.leg));
+
+  if (legL || legR) {
+    legFrontMat = createHeroLegFrontMaterial('adventurer');
+    legSideRMat = createHeroLegSideMaterial('adventurer', 'R');
+    legSideLMat = createHeroLegSideMaterial('adventurer', 'L');
+    legInnerRMat = createHeroLegInnerMaterial('adventurer', 'R');
+    legInnerLMat = createHeroLegInnerMaterial('adventurer', 'L');
+    legBackMat = createHeroLegBackMaterial('adventurer');
+
+    if (legR) {
+      if (!a._origLegRMat) a._origLegRMat = legR.material;
+      const baseLegR = Array.isArray(a._origLegRMat) ? a._origLegRMat[0] : (a._origLegRMat || legR.material);
+      legR.material = [
+        legSideRMat || baseLegR,   // +X (exterior derecho)
+        legInnerRMat || baseLegR,  // -X (interior derecho)
+        baseLegR,                  // +Y (cadera)
+        baseLegR,                  // -Y (suela)
+        legFrontMat || baseLegR,   // +Z (frente / rodillera y polaina)
+        legBackMat || baseLegR,    // -Z (espalda / gemelo y correa)
+      ];
+    }
+
+    if (legL) {
+      if (!a._origLegLMat) a._origLegLMat = legL.material;
+      const baseLegL = Array.isArray(a._origLegLMat) ? a._origLegLMat[0] : (a._origLegLMat || legL.material);
+      legL.material = [
+        legInnerLMat || baseLegL,  // +X (interior izquierdo)
+        legSideLMat || baseLegL,   // -X (exterior izquierdo)
+        baseLegL,                  // +Y (cadera)
+        baseLegL,                  // -Y (suela)
+        legFrontMat || baseLegL,   // +Z (frente / rodillera y polaina)
+        legBackMat || baseLegL,    // -Z (espalda / gemelo y correa)
+      ];
+    }
+  }
+
   if (a.parts) {
     a.parts.emissiveMats = [{ mat: brassMat, base: 0.35, amp: 0.18 }];
   }
@@ -250,5 +299,11 @@ export function buildAdventurerGear(a, G, add) {
   if (armInnerRMat) mats.push(armInnerRMat);
   if (armInnerLMat) mats.push(armInnerLMat);
   if (armBackMat) mats.push(armBackMat);
+  if (legFrontMat) mats.push(legFrontMat);
+  if (legSideRMat) mats.push(legSideRMat);
+  if (legSideLMat) mats.push(legSideLMat);
+  if (legInnerRMat) mats.push(legInnerRMat);
+  if (legInnerLMat) mats.push(legInnerLMat);
+  if (legBackMat) mats.push(legBackMat);
   return mats;
 }

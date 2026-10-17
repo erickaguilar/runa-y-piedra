@@ -12,6 +12,10 @@ import {
   createHeroArmSideMaterial,
   createHeroArmInnerMaterial,
   createHeroArmBackMaterial,
+  createHeroLegFrontMaterial,
+  createHeroLegSideMaterial,
+  createHeroLegInnerMaterial,
+  createHeroLegBackMaterial,
 } from '../../../heroes/heroPortraits.js';
 
 let _wizGeoCache = null;
@@ -291,6 +295,53 @@ export function buildWizardGear(a, G, add) {
     a.parts.emissiveMats = [{ mat: crystalMat, base: 0.75, amp: 0.25 }];
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // 5. PIERNAS — Texturas Sumi-e 360° (frente +Z, exterior, interior, espalda -Z)
+  // ═══════════════════════════════════════════════════════════
+  let legFrontMat = null;
+  let legSideRMat = null;
+  let legSideLMat = null;
+  let legInnerRMat = null;
+  let legInnerLMat = null;
+  let legBackMat = null;
+  const legL = a.parts?.legL || (a.parts?.legLPivot?.children?.find((c) => c.geometry === G?.leg));
+  const legR = a.parts?.legR || (a.parts?.legRPivot?.children?.find((c) => c.geometry === G?.leg));
+
+  if (legL || legR) {
+    legFrontMat = createHeroLegFrontMaterial('wizard');
+    legSideRMat = createHeroLegSideMaterial('wizard', 'R');
+    legSideLMat = createHeroLegSideMaterial('wizard', 'L');
+    legInnerRMat = createHeroLegInnerMaterial('wizard', 'R');
+    legInnerLMat = createHeroLegInnerMaterial('wizard', 'L');
+    legBackMat = createHeroLegBackMaterial('wizard');
+
+    if (legR) {
+      if (!a._origLegRMat) a._origLegRMat = legR.material;
+      const baseLegR = Array.isArray(a._origLegRMat) ? a._origLegRMat[0] : (a._origLegRMat || legR.material);
+      legR.material = [
+        legSideRMat || baseLegR,   // +X (exterior derecho)
+        legInnerRMat || baseLegR,  // -X (interior derecho)
+        baseLegR,                  // +Y (cadera)
+        baseLegR,                  // -Y (suela)
+        legFrontMat || baseLegR,   // +Z (frente / túnica y botines)
+        legBackMat || baseLegR,    // -Z (espalda / dobladillo y talón)
+      ];
+    }
+
+    if (legL) {
+      if (!a._origLegLMat) a._origLegLMat = legL.material;
+      const baseLegL = Array.isArray(a._origLegLMat) ? a._origLegLMat[0] : (a._origLegLMat || legL.material);
+      legL.material = [
+        legInnerLMat || baseLegL,  // +X (interior izquierdo)
+        legSideLMat || baseLegL,   // -X (exterior izquierdo)
+        baseLegL,                  // +Y (cadera)
+        baseLegL,                  // -Y (suela)
+        legFrontMat || baseLegL,   // +Z (frente / túnica y botines)
+        legBackMat || baseLegL,    // -Z (espalda / dobladillo y talón)
+      ];
+    }
+  }
+
   const mats = [
     hatMat,
     hatDarkMat,
@@ -317,6 +368,12 @@ export function buildWizardGear(a, G, add) {
   if (armInnerRMat) mats.push(armInnerRMat);
   if (armInnerLMat) mats.push(armInnerLMat);
   if (armBackMat) mats.push(armBackMat);
+  if (legFrontMat) mats.push(legFrontMat);
+  if (legSideRMat) mats.push(legSideRMat);
+  if (legSideLMat) mats.push(legSideLMat);
+  if (legInnerRMat) mats.push(legInnerRMat);
+  if (legInnerLMat) mats.push(legInnerLMat);
+  if (legBackMat) mats.push(legBackMat);
   return mats;
 }
 

@@ -336,6 +336,8 @@ export function buildBaseAvatarMesh(color, G, M) {
       handR,
       legLPivot,
       legRPivot,
+      legL,
+      legR,
       head: headMesh,
       torso: torsoMesh,
       belt: beltMesh,

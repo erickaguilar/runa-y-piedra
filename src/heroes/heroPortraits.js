@@ -4,11 +4,11 @@ import * as THREE from 'three';
 /**
  * SVG canónico del Guardián (32x32) en estilo Sumi-e Pixel Art:
  * - Papel pergamino Washi (#d6cfc2) y marco perimetral de tinta Sumi (#0c0a09).
- * - Corona real con almenas de oro viejo (#b45309, #d97706), filo áureo (#fef08a) y gema Hanko bermellón (#991b1b, #dc2626).
- * - Rostro caligráfico con cejas severas, esclerótica blanca con pupila azul espiritual (#0284c7),
+ * - Sombra proyectada por la corona 3D con degradado/dithering (#1c1917, #57534e, #78716c) y sienes canosas (#44403c, #57534e).
+ * - Rostro caligráfico de coloso veterano con ceño curtido, cejas severas, esclerótica blanca con pupila azul espiritual (#0284c7),
  *   boca firme y cicatriz de tinta (#78716c).
  */
-export const GUARDIAN_PORTRAIT_BODY = `<rect width="32" height="32" fill="#d6cfc2"/><path d="M0,0 H32 V32 H0 Z M1,1 V31 H31 V1 Z" fill="#0c0a09"/><rect x="1" y="26" width="30" height="5" fill="#a8a29e"/><rect x="1" y="13" width="3" height="18" fill="#bfb6a6"/><rect x="28" y="13" width="3" height="18" fill="#a8a29e"/><rect x="1" y="1" width="30" height="4" fill="#1c1917"/><path d="M1,1 H6 V5 H12 V1 H20 V5 H26 V1 H31 V12 H1 Z" fill="#b45309"/><path d="M2,2 H5 V6 H13 V2 H19 V6 H27 V2 H30 V10 H2 Z" fill="#d97706"/><g fill="#fef08a"><rect x="2" y="2" width="3" height="1"/><rect x="13" y="2" width="6" height="1"/><rect x="27" y="2" width="3" height="1"/><rect x="2" y="9" width="28" height="1"/></g><rect x="1" y="11" width="30" height="2" fill="#0c0a09"/><rect x="1" y="13" width="30" height="2" fill="#78716c"/><rect x="13" y="3" width="6" height="7" fill="#0c0a09"/><rect x="14" y="4" width="4" height="5" fill="#991b1b"/><rect x="14" y="4" width="3" height="3" fill="#dc2626"/><rect x="14" y="4" width="1" height="1" fill="#ffffff"/><rect x="6" y="16" width="6" height="2" fill="#0c0a09"/><rect x="20" y="16" width="6" height="2" fill="#0c0a09"/><rect x="7" y="18" width="4" height="4" fill="#0c0a09"/><rect x="21" y="18" width="4" height="4" fill="#0c0a09"/><rect x="7" y="18" width="2" height="2" fill="#ffffff"/><rect x="21" y="18" width="2" height="2" fill="#ffffff"/><rect x="9" y="20" width="2" height="2" fill="#0284c7"/><rect x="23" y="20" width="2" height="2" fill="#0284c7"/><rect x="12" y="25" width="8" height="2" fill="#450a0a"/><rect x="13" y="25" width="6" height="1" fill="#0c0a09"/><rect x="24" y="23" width="1" height="4" fill="#78716c"/>`;
+export const GUARDIAN_PORTRAIT_BODY = `<rect width="32" height="32" fill="#d6cfc2"/><path d="M0,0 H32 V32 H0 Z M1,1 V31 H31 V1 Z" fill="#0c0a09"/><rect x="1" y="26" width="30" height="5" fill="#a8a29e"/><rect x="1" y="13" width="3" height="18" fill="#bfb6a6"/><rect x="28" y="13" width="3" height="18" fill="#a8a29e"/><rect x="1" y="1" width="30" height="3" fill="#1c1917"/><rect x="1" y="4" width="30" height="2" fill="#57534e"/><g fill="#78716c"><rect x="2" y="6" width="28" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="10" y="7" width="2" height="1"/><rect x="20" y="7" width="2" height="1"/><rect x="26" y="7" width="2" height="1"/></g><g fill="#44403c"><rect x="1" y="6" width="3" height="8"/><rect x="28" y="6" width="3" height="8"/></g><g fill="#57534e"><rect x="2" y="7" width="2" height="7"/><rect x="28" y="7" width="2" height="7"/></g><rect x="8" y="11" width="16" height="1" fill="#a8a29e"/><rect x="11" y="13" width="10" height="1" fill="#78716c"/><rect x="15" y="12" width="2" height="3" fill="#78716c"/><rect x="6" y="16" width="6" height="2" fill="#0c0a09"/><rect x="20" y="16" width="6" height="2" fill="#0c0a09"/><rect x="7" y="18" width="4" height="4" fill="#0c0a09"/><rect x="21" y="18" width="4" height="4" fill="#0c0a09"/><rect x="7" y="18" width="2" height="2" fill="#ffffff"/><rect x="21" y="18" width="2" height="2" fill="#ffffff"/><rect x="9" y="20" width="2" height="2" fill="#0284c7"/><rect x="23" y="20" width="2" height="2" fill="#0284c7"/><rect x="12" y="25" width="8" height="2" fill="#450a0a"/><rect x="13" y="25" width="6" height="1" fill="#0c0a09"/><rect x="24" y="23" width="1" height="4" fill="#78716c"/>`;
 
 export const GUARDIAN_PORTRAIT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_PORTRAIT_BODY}</svg>`;
 
@@ -92,42 +92,34 @@ export function drawGuardianPortraitToCanvas(ctx, size = 32) {
   ctx.fillStyle = '#bfb6a6';
   ctx.fillRect(1 * s, 13 * s, 3 * s, 18 * s);
 
+  // Sombra proyectada por la corona 3D (y=1..6)
   ctx.fillStyle = '#1c1917';
-  ctx.fillRect(1 * s, 1 * s, 30 * s, 4 * s);
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#57534e';
+  ctx.fillRect(1 * s, 4 * s, 30 * s, 2 * s);
 
-  ctx.fillStyle = '#b45309';
-  ctx.fillRect(1 * s, 1 * s, 5 * s, 11 * s);
-  ctx.fillRect(6 * s, 5 * s, 6 * s, 7 * s);
-  ctx.fillRect(12 * s, 1 * s, 8 * s, 11 * s);
-  ctx.fillRect(20 * s, 5 * s, 6 * s, 7 * s);
-  ctx.fillRect(26 * s, 1 * s, 5 * s, 11 * s);
-
-  ctx.fillStyle = '#d97706';
-  ctx.fillRect(2 * s, 2 * s, 3 * s, 8 * s);
-  ctx.fillRect(5 * s, 6 * s, 8 * s, 4 * s);
-  ctx.fillRect(13 * s, 2 * s, 6 * s, 8 * s);
-  ctx.fillRect(19 * s, 6 * s, 8 * s, 4 * s);
-  ctx.fillRect(27 * s, 2 * s, 3 * s, 8 * s);
-
-  ctx.fillStyle = '#fef08a';
-  ctx.fillRect(2 * s, 2 * s, 3 * s, 1 * s);
-  ctx.fillRect(13 * s, 2 * s, 6 * s, 1 * s);
-  ctx.fillRect(27 * s, 2 * s, 3 * s, 1 * s);
-  ctx.fillRect(2 * s, 9 * s, 28 * s, 1 * s);
-
-  ctx.fillStyle = '#0c0a09';
-  ctx.fillRect(1 * s, 11 * s, 30 * s, 2 * s);
+  // Dithering de sombra en la frente
   ctx.fillStyle = '#78716c';
-  ctx.fillRect(1 * s, 13 * s, 30 * s, 2 * s);
+  ctx.fillRect(2 * s, 6 * s, 28 * s, 1 * s);
+  ctx.fillRect(4 * s, 7 * s, 2 * s, 1 * s);
+  ctx.fillRect(10 * s, 7 * s, 2 * s, 1 * s);
+  ctx.fillRect(20 * s, 7 * s, 2 * s, 1 * s);
+  ctx.fillRect(26 * s, 7 * s, 2 * s, 1 * s);
 
-  ctx.fillStyle = '#0c0a09';
-  ctx.fillRect(13 * s, 3 * s, 6 * s, 7 * s);
-  ctx.fillStyle = '#991b1b';
-  ctx.fillRect(14 * s, 4 * s, 4 * s, 5 * s);
-  ctx.fillStyle = '#dc2626';
-  ctx.fillRect(14 * s, 4 * s, 3 * s, 3 * s);
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(14 * s, 4 * s, 1 * s, 1 * s);
+  // Patillas y sienes de veterano (gris piedra canoso)
+  ctx.fillStyle = '#44403c';
+  ctx.fillRect(1 * s, 6 * s, 3 * s, 8 * s);
+  ctx.fillRect(28 * s, 6 * s, 3 * s, 8 * s);
+  ctx.fillStyle = '#57534e';
+  ctx.fillRect(2 * s, 7 * s, 2 * s, 7 * s);
+  ctx.fillRect(28 * s, 7 * s, 2 * s, 7 * s);
+
+  // Ceño curtido de coloso sobre las cejas
+  ctx.fillStyle = '#a8a29e';
+  ctx.fillRect(8 * s, 11 * s, 16 * s, 1 * s);
+  ctx.fillStyle = '#78716c';
+  ctx.fillRect(11 * s, 13 * s, 10 * s, 1 * s);
+  ctx.fillRect(15 * s, 12 * s, 2 * s, 3 * s);
 
   ctx.fillStyle = '#0c0a09';
   ctx.fillRect(6 * s, 16 * s, 6 * s, 2 * s);
@@ -954,12 +946,11 @@ export function drawAdventurerChestToCanvas(ctx, size = 32) {
 /**
  * SVG canónico del Perfil Lateral de la Cabeza del Guardián (32x32) en estilo Sumi-e Pixel Art:
  * - Orientación base (+X, lado derecho del cubo mirando desde +Z): frente a la izquierda (x=0), nuca a la derecha (x=31).
- * - Continuación exacta en y=1..12 del aro real de la corona dorada (#b45309, #d97706, #fef08a) con remaches y banda de tinta (#0c0a09).
- * - Sombra de ceño y sien (#78716c) en y=13..14 que empata con la cara frontal.
- * - Patilla y cabello corto gris piedra de coloso veterano (#292524, #44403c, #57534e, #78716c) con trazos Kasure.
+ * - Sombra proyectada por la corona 3D (#1c1917, #57534e, #78716c) en y=1..6.
+ * - Sien, patilla y cabello corto gris piedra de coloso veterano (#292524, #44403c, #57534e, #78716c) con trazos Kasure.
  * - Oreja estilizada Sumi-e en relieve pergamino (#d6cfc2, #a8a29e, #0c0a09) y carrillera/placa lateral acorazada (#44403c, #b45309, #d97706).
  */
-export const GUARDIAN_SIDE_BODY = `<rect width="32" height="32" fill="#d6cfc2"/><path d="M0,0 H32 V32 H0 Z M1,1 V31 H31 V1 Z" fill="#0c0a09"/><rect x="1" y="1" width="30" height="4" fill="#1c1917"/><path d="M1,1 H6 V5 H12 V1 H20 V5 H26 V1 H31 V12 H1 Z" fill="#b45309"/><path d="M2,2 H5 V6 H13 V2 H19 V6 H27 V2 H30 V10 H2 Z" fill="#d97706"/><g fill="#fef08a"><rect x="2" y="2" width="3" height="1"/><rect x="13" y="2" width="6" height="1"/><rect x="27" y="2" width="3" height="1"/><rect x="2" y="9" width="28" height="1"/></g><g fill="#0c0a09"><rect x="5" y="7" width="2" height="2"/><rect x="15" y="6" width="2" height="2"/><rect x="25" y="7" width="2" height="2"/></g><rect x="1" y="11" width="30" height="2" fill="#0c0a09"/><rect x="1" y="13" width="30" height="2" fill="#78716c"/><rect x="1" y="15" width="3" height="16" fill="#a8a29e"/><rect x="1" y="26" width="14" height="5" fill="#a8a29e"/><rect x="8" y="15" width="4" height="7" fill="#57534e"/><rect x="9" y="15" width="2" height="6" fill="#44403c"/><rect x="18" y="15" width="13" height="9" fill="#44403c"/><rect x="19" y="15" width="11" height="8" fill="#57534e"/><g fill="#292524"><rect x="20" y="15" width="2" height="8"/><rect x="24" y="15" width="2" height="8"/><rect x="28" y="15" width="2" height="8"/></g><g fill="#78716c"><rect x="22" y="16" width="2" height="6"/><rect x="26" y="16" width="2" height="6"/></g><rect x="12" y="16" width="6" height="8" fill="#0c0a09"/><rect x="13" y="17" width="4" height="6" fill="#d6cfc2"/><rect x="14" y="18" width="2" height="4" fill="#78716c"/><rect x="14" y="19" width="1" height="2" fill="#0c0a09"/><rect x="14" y="24" width="17" height="7" fill="#0c0a09"/><rect x="15" y="25" width="15" height="5" fill="#44403c"/><rect x="16" y="25" width="13" height="2" fill="#b45309"/><rect x="17" y="25" width="11" height="1" fill="#d97706"/><rect x="17" y="28" width="2" height="2" fill="#fef08a"/><rect x="25" y="28" width="2" height="2" fill="#fef08a"/>`;
+export const GUARDIAN_SIDE_BODY = `<rect width="32" height="32" fill="#d6cfc2"/><path d="M0,0 H32 V32 H0 Z M1,1 V31 H31 V1 Z" fill="#0c0a09"/><rect x="1" y="1" width="30" height="3" fill="#1c1917"/><rect x="1" y="4" width="30" height="2" fill="#57534e"/><rect x="1" y="6" width="30" height="1" fill="#78716c"/><rect x="1" y="7" width="3" height="24" fill="#a8a29e"/><rect x="1" y="26" width="14" height="5" fill="#a8a29e"/><rect x="8" y="7" width="4" height="15" fill="#57534e"/><rect x="9" y="7" width="2" height="14" fill="#44403c"/><rect x="18" y="7" width="13" height="17" fill="#44403c"/><rect x="19" y="7" width="11" height="16" fill="#57534e"/><g fill="#292524"><rect x="20" y="7" width="2" height="16"/><rect x="24" y="7" width="2" height="16"/><rect x="28" y="7" width="2" height="16"/></g><g fill="#78716c"><rect x="22" y="8" width="2" height="14"/><rect x="26" y="8" width="2" height="14"/></g><rect x="12" y="16" width="6" height="8" fill="#0c0a09"/><rect x="13" y="17" width="4" height="6" fill="#d6cfc2"/><rect x="14" y="18" width="2" height="4" fill="#78716c"/><rect x="14" y="19" width="1" height="2" fill="#0c0a09"/><rect x="14" y="24" width="17" height="7" fill="#0c0a09"/><rect x="15" y="25" width="15" height="5" fill="#44403c"/><rect x="16" y="25" width="13" height="2" fill="#b45309"/><rect x="17" y="25" width="11" height="1" fill="#d97706"/><rect x="17" y="28" width="2" height="2" fill="#fef08a"/><rect x="25" y="28" width="2" height="2" fill="#fef08a"/>`;
 
 export const GUARDIAN_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_SIDE_BODY}</svg>`;
 
@@ -984,67 +975,37 @@ export function drawGuardianSideToCanvas(ctx, size = 32, flipX = false) {
   ctx.fillRect(0, 0, s, size);
   ctx.fillRect(size - s, 0, s, size);
 
-  // Fondo oscuro interior de las almenas (y=1..4)
+  // Sombra proyectada por la corona 3D (y=1..6)
   ctx.fillStyle = '#1c1917';
-  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 4 * s);
-
-  // Corona real lateral con almenas que empatan con frente (x=1..5) y nuca (x=26..30)
-  ctx.fillStyle = '#b45309';
-  ctx.fillRect(rx(1, 5), 1 * s, 5 * s, 11 * s);
-  ctx.fillRect(rx(6, 6), 5 * s, 6 * s, 7 * s);
-  ctx.fillRect(rx(12, 8), 1 * s, 8 * s, 11 * s);
-  ctx.fillRect(rx(20, 6), 5 * s, 6 * s, 7 * s);
-  ctx.fillRect(rx(26, 5), 1 * s, 5 * s, 11 * s);
-
-  ctx.fillStyle = '#d97706';
-  ctx.fillRect(rx(2, 3), 2 * s, 3 * s, 8 * s);
-  ctx.fillRect(rx(5, 8), 6 * s, 8 * s, 4 * s);
-  ctx.fillRect(rx(13, 6), 2 * s, 6 * s, 8 * s);
-  ctx.fillRect(rx(19, 8), 6 * s, 8 * s, 4 * s);
-  ctx.fillRect(rx(27, 3), 2 * s, 3 * s, 8 * s);
-
-  // Filos áureos superiores e inferiores de la corona
-  ctx.fillStyle = '#fef08a';
-  ctx.fillRect(rx(2, 3), 2 * s, 3 * s, 1 * s);
-  ctx.fillRect(rx(13, 6), 2 * s, 6 * s, 1 * s);
-  ctx.fillRect(rx(27, 3), 2 * s, 3 * s, 1 * s);
-  ctx.fillRect(rx(2, 28), 9 * s, 28 * s, 1 * s);
-
-  // Remaches laterales en el aro de la corona
-  ctx.fillStyle = '#0c0a09';
-  ctx.fillRect(rx(5, 2), 7 * s, 2 * s, 2 * s);
-  ctx.fillRect(rx(15, 2), 6 * s, 2 * s, 2 * s);
-  ctx.fillRect(rx(25, 2), 7 * s, 2 * s, 2 * s);
-
-  // Banda de tinta Sumi (y=11..12) y sombra de ceño/sien (y=13..14) idénticas al frente
-  ctx.fillStyle = '#0c0a09';
-  ctx.fillRect(rx(1, 30), 11 * s, 30 * s, 2 * s);
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#57534e';
+  ctx.fillRect(rx(1, 30), 4 * s, 30 * s, 2 * s);
   ctx.fillStyle = '#78716c';
-  ctx.fillRect(rx(1, 30), 13 * s, 30 * s, 2 * s);
+  ctx.fillRect(rx(1, 30), 6 * s, 30 * s, 1 * s);
 
   // Sombra de transición con el borde de la cara (x=1..3) y mandíbula inferior (y=26..30)
   ctx.fillStyle = '#a8a29e';
-  ctx.fillRect(rx(1, 3), 15 * s, 3 * s, 16 * s);
+  ctx.fillRect(rx(1, 3), 7 * s, 3 * s, 24 * s);
   ctx.fillRect(rx(1, 14), 26 * s, 14 * s, 5 * s);
 
-  // Patilla de veterano frente a la oreja (x=8..11, y=15..21)
+  // Patilla de veterano frente a la oreja (x=8..11, y=7..21)
   ctx.fillStyle = '#57534e';
-  ctx.fillRect(rx(8, 4), 15 * s, 4 * s, 7 * s);
+  ctx.fillRect(rx(8, 4), 7 * s, 4 * s, 15 * s);
   ctx.fillStyle = '#44403c';
-  ctx.fillRect(rx(9, 2), 15 * s, 2 * s, 6 * s);
+  ctx.fillRect(rx(9, 2), 7 * s, 2 * s, 14 * s);
 
-  // Cabello corto gris piedra hacia la nuca con surcos Kasure (x=18..30, y=15..23)
+  // Cabello corto gris piedra hacia la nuca con surcos Kasure (x=18..30, y=7..23)
   ctx.fillStyle = '#44403c';
-  ctx.fillRect(rx(18, 13), 15 * s, 13 * s, 9 * s);
+  ctx.fillRect(rx(18, 13), 7 * s, 13 * s, 17 * s);
   ctx.fillStyle = '#57534e';
-  ctx.fillRect(rx(19, 11), 15 * s, 11 * s, 8 * s);
+  ctx.fillRect(rx(19, 11), 7 * s, 11 * s, 16 * s);
   ctx.fillStyle = '#292524';
-  ctx.fillRect(rx(20, 2), 15 * s, 2 * s, 8 * s);
-  ctx.fillRect(rx(24, 2), 15 * s, 2 * s, 8 * s);
-  ctx.fillRect(rx(28, 2), 15 * s, 2 * s, 8 * s);
+  ctx.fillRect(rx(20, 2), 7 * s, 2 * s, 16 * s);
+  ctx.fillRect(rx(24, 2), 7 * s, 2 * s, 16 * s);
+  ctx.fillRect(rx(28, 2), 7 * s, 2 * s, 16 * s);
   ctx.fillStyle = '#78716c';
-  ctx.fillRect(rx(22, 2), 16 * s, 2 * s, 6 * s);
-  ctx.fillRect(rx(26, 2), 16 * s, 2 * s, 6 * s);
+  ctx.fillRect(rx(22, 2), 8 * s, 2 * s, 14 * s);
+  ctx.fillRect(rx(26, 2), 8 * s, 2 * s, 14 * s);
 
   // Oreja estilizada Sumi-e (x=12..17, y=16..23)
   ctx.fillStyle = '#0c0a09';
@@ -1072,11 +1033,11 @@ export function drawGuardianSideToCanvas(ctx, size = 32, flipX = false) {
 
 /**
  * SVG canónico de la Nuca / Parte Trasera de la Cabeza del Guardián (32x32) en estilo Sumi-e Pixel Art:
- * - Continuación trasera de la corona dorada (#b45309, #d97706, #fef08a) con broche imperial posterior.
+ * - Sombra proyectada por la corona 3D (#1c1917, #57534e, #78716c) en y=1..6.
  * - Cabello corto de coloso veterano en gris basalto y ceniza (#292524, #44403c, #57534e, #78716c) con trazos Kasure verticales.
  * - Cubrenuca / gorjal acorazado de acero y bronce con ribete áureo y remaches en y=24..30 que empata con los laterales.
  */
-export const GUARDIAN_BACK_BODY = `<rect width="32" height="32" fill="#44403c"/><path d="M0,0 H32 V32 H0 Z M1,1 V31 H31 V1 Z" fill="#0c0a09"/><rect x="1" y="1" width="30" height="4" fill="#1c1917"/><path d="M1,1 H6 V5 H12 V1 H20 V5 H26 V1 H31 V12 H1 Z" fill="#b45309"/><path d="M2,2 H5 V6 H13 V2 H19 V6 H27 V2 H30 V10 H2 Z" fill="#d97706"/><g fill="#fef08a"><rect x="2" y="2" width="3" height="1"/><rect x="13" y="2" width="6" height="1"/><rect x="27" y="2" width="3" height="1"/><rect x="2" y="9" width="28" height="1"/></g><rect x="13" y="4" width="6" height="5" fill="#0c0a09"/><rect x="14" y="5" width="4" height="3" fill="#78350f"/><rect x="15" y="5" width="2" height="2" fill="#fef08a"/><rect x="1" y="11" width="30" height="2" fill="#0c0a09"/><rect x="1" y="13" width="30" height="2" fill="#78716c"/><rect x="2" y="15" width="28" height="9" fill="#57534e"/><g fill="#292524"><rect x="4" y="15" width="2" height="9"/><rect x="9" y="15" width="2" height="9"/><rect x="15" y="15" width="2" height="9"/><rect x="21" y="15" width="2" height="9"/><rect x="26" y="15" width="2" height="9"/></g><g fill="#78716c"><rect x="6" y="16" width="2" height="7"/><rect x="12" y="16" width="2" height="7"/><rect x="18" y="16" width="2" height="7"/><rect x="24" y="16" width="2" height="7"/></g><rect x="1" y="24" width="30" height="7" fill="#0c0a09"/><rect x="2" y="25" width="28" height="5" fill="#44403c"/><rect x="3" y="25" width="26" height="2" fill="#b45309"/><rect x="4" y="25" width="24" height="1" fill="#d97706"/><rect x="15" y="25" width="2" height="5" fill="#292524"/><g fill="#fef08a"><rect x="6" y="28" width="2" height="2"/><rect x="24" y="28" width="2" height="2"/></g>`;
+export const GUARDIAN_BACK_BODY = `<rect width="32" height="32" fill="#44403c"/><path d="M0,0 H32 V32 H0 Z M1,1 V31 H31 V1 Z" fill="#0c0a09"/><rect x="1" y="1" width="30" height="3" fill="#1c1917"/><rect x="1" y="4" width="30" height="2" fill="#57534e"/><rect x="1" y="6" width="30" height="1" fill="#78716c"/><rect x="2" y="7" width="28" height="17" fill="#57534e"/><g fill="#292524"><rect x="4" y="7" width="2" height="17"/><rect x="9" y="7" width="2" height="17"/><rect x="15" y="7" width="2" height="17"/><rect x="21" y="7" width="2" height="17"/><rect x="26" y="7" width="2" height="17"/></g><g fill="#78716c"><rect x="6" y="8" width="2" height="15"/><rect x="12" y="8" width="2" height="15"/><rect x="18" y="8" width="2" height="15"/><rect x="24" y="8" width="2" height="15"/></g><rect x="1" y="24" width="30" height="7" fill="#0c0a09"/><rect x="2" y="25" width="28" height="5" fill="#44403c"/><rect x="3" y="25" width="26" height="2" fill="#b45309"/><rect x="4" y="25" width="24" height="1" fill="#d97706"/><rect x="15" y="25" width="2" height="5" fill="#292524"/><g fill="#fef08a"><rect x="6" y="28" width="2" height="2"/><rect x="24" y="28" width="2" height="2"/></g>`;
 
 export const GUARDIAN_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_BACK_BODY}</svg>`;
 
@@ -1097,60 +1058,28 @@ export function drawGuardianBackToCanvas(ctx, size = 32) {
   ctx.fillRect(0, 0, s, size);
   ctx.fillRect(size - s, 0, s, size);
 
-  // Fondo interior de almenas traseras (y=1..4)
+  // Sombra proyectada por la corona 3D (y=1..6)
   ctx.fillStyle = '#1c1917';
-  ctx.fillRect(1 * s, 1 * s, 30 * s, 4 * s);
-
-  // Corona real trasera (y=1..10)
-  ctx.fillStyle = '#b45309';
-  ctx.fillRect(1 * s, 1 * s, 5 * s, 11 * s);
-  ctx.fillRect(6 * s, 5 * s, 6 * s, 7 * s);
-  ctx.fillRect(12 * s, 1 * s, 8 * s, 11 * s);
-  ctx.fillRect(20 * s, 5 * s, 6 * s, 7 * s);
-  ctx.fillRect(26 * s, 1 * s, 5 * s, 11 * s);
-
-  ctx.fillStyle = '#d97706';
-  ctx.fillRect(2 * s, 2 * s, 3 * s, 8 * s);
-  ctx.fillRect(5 * s, 6 * s, 8 * s, 4 * s);
-  ctx.fillRect(13 * s, 2 * s, 6 * s, 8 * s);
-  ctx.fillRect(19 * s, 6 * s, 8 * s, 4 * s);
-  ctx.fillRect(27 * s, 2 * s, 3 * s, 8 * s);
-
-  // Filos áureos
-  ctx.fillStyle = '#fef08a';
-  ctx.fillRect(2 * s, 2 * s, 3 * s, 1 * s);
-  ctx.fillRect(13 * s, 2 * s, 6 * s, 1 * s);
-  ctx.fillRect(27 * s, 2 * s, 3 * s, 1 * s);
-  ctx.fillRect(2 * s, 9 * s, 28 * s, 1 * s);
-
-  // Broche imperial trasero en el centro de la corona
-  ctx.fillStyle = '#0c0a09';
-  ctx.fillRect(13 * s, 4 * s, 6 * s, 5 * s);
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(14 * s, 5 * s, 4 * s, 3 * s);
-  ctx.fillStyle = '#fef08a';
-  ctx.fillRect(15 * s, 5 * s, 2 * s, 2 * s);
-
-  // Banda de tinta Sumi (y=11..12) y sombra bajo la corona (y=13..14)
-  ctx.fillStyle = '#0c0a09';
-  ctx.fillRect(1 * s, 11 * s, 30 * s, 2 * s);
-  ctx.fillStyle = '#78716c';
-  ctx.fillRect(1 * s, 13 * s, 30 * s, 2 * s);
-
-  // Cabello corto de veterano en la nuca con surcos Kasure (y=15..23)
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 3 * s);
   ctx.fillStyle = '#57534e';
-  ctx.fillRect(2 * s, 15 * s, 28 * s, 9 * s);
-  ctx.fillStyle = '#292524';
-  ctx.fillRect(4 * s, 15 * s, 2 * s, 9 * s);
-  ctx.fillRect(9 * s, 15 * s, 2 * s, 9 * s);
-  ctx.fillRect(15 * s, 15 * s, 2 * s, 9 * s);
-  ctx.fillRect(21 * s, 15 * s, 2 * s, 9 * s);
-  ctx.fillRect(26 * s, 15 * s, 2 * s, 9 * s);
+  ctx.fillRect(1 * s, 4 * s, 30 * s, 2 * s);
   ctx.fillStyle = '#78716c';
-  ctx.fillRect(6 * s, 16 * s, 2 * s, 7 * s);
-  ctx.fillRect(12 * s, 16 * s, 2 * s, 7 * s);
-  ctx.fillRect(18 * s, 16 * s, 2 * s, 7 * s);
-  ctx.fillRect(24 * s, 16 * s, 2 * s, 7 * s);
+  ctx.fillRect(1 * s, 6 * s, 30 * s, 1 * s);
+
+  // Cabello corto de veterano en la nuca con surcos Kasure (y=7..23)
+  ctx.fillStyle = '#57534e';
+  ctx.fillRect(2 * s, 7 * s, 28 * s, 17 * s);
+  ctx.fillStyle = '#292524';
+  ctx.fillRect(4 * s, 7 * s, 2 * s, 17 * s);
+  ctx.fillRect(9 * s, 7 * s, 2 * s, 17 * s);
+  ctx.fillRect(15 * s, 7 * s, 2 * s, 17 * s);
+  ctx.fillRect(21 * s, 7 * s, 2 * s, 17 * s);
+  ctx.fillRect(26 * s, 7 * s, 2 * s, 17 * s);
+  ctx.fillStyle = '#78716c';
+  ctx.fillRect(6 * s, 8 * s, 2 * s, 15 * s);
+  ctx.fillRect(12 * s, 8 * s, 2 * s, 15 * s);
+  ctx.fillRect(18 * s, 8 * s, 2 * s, 15 * s);
+  ctx.fillRect(24 * s, 8 * s, 2 * s, 15 * s);
 
   // Cubrenuca / gorjal acorazado de acero y bronce (y=24..30)
   ctx.fillStyle = '#0c0a09';
@@ -3236,6 +3165,1399 @@ export function drawAdventurerArmBackToCanvas(ctx, size = 32) {
   ctx.fillRect(2 * s, 30 * s, 28 * s, 2 * s);
 }
 
+/**
+ * SVG canónico del Frente de la Pierna del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Muslo con pantalón de expedición (#1e293b, #334155, #475569), rodillera de cuero con remaches de latón (#78350f, #fef08a), espinillera con cordones y empeine de bota con suela Sumi.
+ */
+export const ADVENTURER_LEG_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="11" fill="#1e293b"/><rect x="2" y="1" width="28" height="10" fill="#334155"/><rect x="5" y="2" width="6" height="8" fill="#475569"/><rect x="14" y="2" width="4" height="8" fill="#64748b"/><rect x="22" y="2" width="5" height="8" fill="#0f172a"/><rect x="2" y="12" width="28" height="8" fill="#0c0a09"/><rect x="3" y="12" width="26" height="7" fill="#451a03"/><rect x="5" y="13" width="22" height="5" fill="#78350f"/><rect x="9" y="14" width="14" height="3" fill="#b45309"/><rect x="5" y="13" width="2" height="2" fill="#fef08a"/><rect x="25" y="13" width="2" height="2" fill="#fef08a"/><rect x="5" y="16" width="2" height="2" fill="#fef08a"/><rect x="25" y="16" width="2" height="2" fill="#fef08a"/><rect x="2" y="20" width="28" height="7" fill="#0c0a09"/><rect x="3" y="20" width="26" height="6" fill="#3d2817"/><rect x="5" y="21" width="22" height="4" fill="#4a2e18"/><rect x="8" y="21" width="16" height="3" fill="#6b4423"/><g fill="#cbd5e1"><rect x="10" y="21" width="12" height="1"/><rect x="10" y="24" width="12" height="1"/></g><rect x="1" y="27" width="30" height="5" fill="#0c0a09"/><rect x="2" y="27" width="28" height="3" fill="#2e1909"/><rect x="4" y="28" width="24" height="2" fill="#3d2817"/><rect x="1" y="30" width="30" height="2" fill="#0c0a09"/>`;
+
+export const ADVENTURER_LEG_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_LEG_FRONT_BODY}</svg>`;
+
+export function drawAdventurerLegFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Muslo / Pantalón de explorador
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 11 * s);
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 10 * s);
+
+  // Pliegues verticales de marcha
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(5 * s, 2 * s, 6 * s, 8 * s);
+  ctx.fillStyle = '#64748b';
+  ctx.fillRect(14 * s, 2 * s, 4 * s, 8 * s);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(22 * s, 2 * s, 5 * s, 8 * s);
+
+  // 2. Rodillera de cuero con remaches de latón
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 12 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(3 * s, 12 * s, 26 * s, 7 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(5 * s, 13 * s, 22 * s, 5 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(9 * s, 14 * s, 14 * s, 3 * s);
+
+  // 4 remaches de latón en las esquinas de la rodillera
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(5 * s, 13 * s, 2 * s, 2 * s);
+  ctx.fillRect(25 * s, 13 * s, 2 * s, 2 * s);
+  ctx.fillRect(5 * s, 16 * s, 2 * s, 2 * s);
+  ctx.fillRect(25 * s, 16 * s, 2 * s, 2 * s);
+
+  // 3. Espinillera / Polaina de viaje con cordones
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 20 * s, 28 * s, 7 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(3 * s, 20 * s, 26 * s, 6 * s);
+  ctx.fillStyle = '#4a2e18';
+  ctx.fillRect(5 * s, 21 * s, 22 * s, 4 * s);
+  ctx.fillStyle = '#6b4423';
+  ctx.fillRect(8 * s, 21 * s, 16 * s, 3 * s);
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(10 * s, 21 * s, 12 * s, 1 * s);
+  ctx.fillRect(10 * s, 24 * s, 12 * s, 1 * s);
+
+  // 4. Empeine de bota y suela
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 27 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(2 * s, 27 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(4 * s, 28 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 30 * s, 30 * s, 2 * s);
+}
+
+/**
+ * SVG canónico del Costado Exterior de la Pierna del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Muslo lateral con bolsillo cargo utilitario de cuero y hebilla (#451a03, #d97706), rodillera lateral con correa y bota de explorador con hebilla de latón.
+ */
+export const ADVENTURER_LEG_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="11" fill="#1e293b"/><rect x="2" y="1" width="28" height="10" fill="#334155"/><rect x="8" y="2" width="16" height="9" fill="#0c0a09"/><rect x="9" y="3" width="14" height="7" fill="#451a03"/><rect x="10" y="4" width="12" height="5" fill="#78350f"/><rect x="8" y="2" width="16" height="2" fill="#451a03"/><rect x="14" y="3" width="4" height="2" fill="#d97706"/><rect x="15" y="3" width="2" height="1" fill="#fef08a"/><rect x="1" y="12" width="30" height="8" fill="#0c0a09"/><rect x="2" y="13" width="28" height="6" fill="#451a03"/><rect x="4" y="14" width="24" height="4" fill="#78350f"/><rect x="2" y="15" width="28" height="2" fill="#0c0a09"/><rect x="3" y="15" width="26" height="1" fill="#b45309"/><rect x="2" y="20" width="28" height="7" fill="#0c0a09"/><rect x="3" y="20" width="26" height="6" fill="#3d2817"/><rect x="5" y="21" width="22" height="4" fill="#4a2e18"/><rect x="2" y="22" width="28" height="2" fill="#0c0a09"/><rect x="3" y="22" width="26" height="1" fill="#78350f"/><rect x="14" y="21" width="4" height="3" fill="#d97706"/><rect x="15" y="22" width="2" height="1" fill="#fef08a"/><rect x="1" y="27" width="30" height="5" fill="#0c0a09"/><rect x="2" y="27" width="28" height="3" fill="#2e1909"/><rect x="3" y="28" width="26" height="2" fill="#3d2817"/><rect x="1" y="30" width="30" height="2" fill="#0c0a09"/>`;
+
+export const ADVENTURER_LEG_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_LEG_SIDE_BODY}</svg>`;
+
+export function drawAdventurerLegSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Muslo lateral con bolsillo cargo
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 11 * s);
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 10 * s);
+
+  // Bolsillo de cuero utilitario
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(8, 16), 2 * s, 16 * s, 9 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(9, 14), 3 * s, 14 * s, 7 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(10, 12), 4 * s, 12 * s, 5 * s);
+  // Solapa y hebilla
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(8, 16), 2 * s, 16 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(14, 4), 3 * s, 4 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(15, 2), 3 * s, 2 * s, 1 * s);
+
+  // 2. Rodillera lateral con correa envolvente
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 12 * s, 30 * s, 8 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(2, 28), 13 * s, 28 * s, 6 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(4, 24), 14 * s, 24 * s, 4 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 15 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(rx(3, 26), 15 * s, 26 * s, 1 * s);
+
+  // 3. Polaina lateral y correas con hebilla de latón
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 20 * s, 28 * s, 7 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(rx(3, 26), 20 * s, 26 * s, 6 * s);
+  ctx.fillStyle = '#4a2e18';
+  ctx.fillRect(rx(5, 22), 21 * s, 22 * s, 4 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 22 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(3, 26), 22 * s, 26 * s, 1 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(14, 4), 21 * s, 4 * s, 3 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(15, 2), 22 * s, 2 * s, 1 * s);
+
+  // 4. Bota lateral y suela
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 27 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(rx(2, 28), 27 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(rx(3, 26), 28 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 30 * s, 30 * s, 2 * s);
+}
+
+/**
+ * SVG canónico del Costado Interior de la Pierna del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Entrepierna en penumbra azul oscuro (#0f172a, #1e293b), costura de cuero con puntadas y caña interior de la bota.
+ */
+export const ADVENTURER_LEG_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="19" fill="#0f172a"/><rect x="2" y="1" width="28" height="18" fill="#1e293b"/><rect x="4" y="2" width="24" height="16" fill="#334155"/><rect x="14" y="2" width="4" height="17" fill="#0f172a"/><rect x="15" y="2" width="2" height="17" fill="#451a03"/><g fill="#78350f"><rect x="13" y="5" width="6" height="1"/><rect x="13" y="9" width="6" height="1"/><rect x="13" y="13" width="6" height="1"/><rect x="13" y="17" width="6" height="1"/></g><rect x="1" y="20" width="30" height="7" fill="#0c0a09"/><rect x="2" y="20" width="28" height="6" fill="#2e1909"/><rect x="3" y="21" width="26" height="4" fill="#3d2817"/><rect x="1" y="27" width="30" height="5" fill="#0c0a09"/><rect x="2" y="27" width="28" height="3" fill="#2e1909"/><rect x="1" y="30" width="30" height="2" fill="#0c0a09"/>`;
+
+export const ADVENTURER_LEG_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_LEG_INNER_BODY}</svg>`;
+
+export function drawAdventurerLegInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Penumbra interior de entrepierna
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 19 * s);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 18 * s);
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(rx(4, 24), 2 * s, 24 * s, 16 * s);
+
+  // Costura reforzada interior
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(rx(14, 4), 2 * s, 4 * s, 17 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(15, 2), 2 * s, 2 * s, 17 * s);
+
+  ctx.fillStyle = '#78350f';
+  for (const y of [5, 9, 13, 17]) {
+    ctx.fillRect(rx(13, 6), y * s, 6 * s, 1 * s);
+  }
+
+  // Caña interior de la bota
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 20 * s, 30 * s, 7 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(rx(2, 28), 20 * s, 28 * s, 6 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(rx(3, 26), 21 * s, 26 * s, 4 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 27 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(rx(2, 28), 27 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 30 * s, 30 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda de la Pierna del Aventurero (32x32) en estilo Sumi-e Pixel Art:
+ * - Isquiotibial con costura vertical dorsal (#334155, #1e293b), correas poplíteas de la rodillera, caña trasera de la bota y talón de cuero reforzado.
+ */
+export const ADVENTURER_LEG_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="11" fill="#1e293b"/><rect x="2" y="1" width="28" height="10" fill="#334155"/><rect x="5" y="2" width="6" height="8" fill="#475569"/><rect x="21" y="2" width="6" height="8" fill="#0f172a"/><rect x="14" y="1" width="4" height="11" fill="#0c0a09"/><rect x="15" y="1" width="2" height="10" fill="#1e293b"/><rect x="1" y="12" width="30" height="8" fill="#0c0a09"/><rect x="2" y="13" width="28" height="6" fill="#1e293b"/><rect x="2" y="14" width="28" height="2" fill="#451a03"/><rect x="3" y="14" width="26" height="2" fill="#78350f"/><rect x="2" y="17" width="28" height="2" fill="#451a03"/><rect x="3" y="17" width="26" height="2" fill="#78350f"/><rect x="2" y="20" width="28" height="7" fill="#0c0a09"/><rect x="3" y="20" width="26" height="6" fill="#3d2817"/><rect x="5" y="21" width="22" height="4" fill="#4a2e18"/><rect x="14" y="20" width="4" height="6" fill="#0c0a09"/><rect x="15" y="20" width="2" height="6" fill="#2e1909"/><rect x="1" y="27" width="30" height="5" fill="#0c0a09"/><rect x="2" y="27" width="28" height="3" fill="#2e1909"/><rect x="4" y="28" width="24" height="2" fill="#3d2817"/><rect x="1" y="30" width="30" height="2" fill="#0c0a09"/>`;
+
+export const ADVENTURER_LEG_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${ADVENTURER_LEG_BACK_BODY}</svg>`;
+
+export function drawAdventurerLegBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Isquiotibial / Pantalón trasero con costura dorsal
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 11 * s);
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 10 * s);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(5 * s, 2 * s, 6 * s, 8 * s);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(21 * s, 2 * s, 6 * s, 8 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 1 * s, 4 * s, 11 * s);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(15 * s, 1 * s, 2 * s, 10 * s);
+
+  // Correas traseras de la rodillera (hueco poplíteo)
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 12 * s, 30 * s, 8 * s);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(2 * s, 13 * s, 28 * s, 6 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(2 * s, 14 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(3 * s, 14 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(2 * s, 17 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(3 * s, 17 * s, 26 * s, 2 * s);
+
+  // Pantorrilla / Caña trasera de la bota
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 20 * s, 28 * s, 7 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(3 * s, 20 * s, 26 * s, 6 * s);
+  ctx.fillStyle = '#4a2e18';
+  ctx.fillRect(5 * s, 21 * s, 22 * s, 4 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 20 * s, 4 * s, 6 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(15 * s, 20 * s, 2 * s, 6 * s);
+
+  // Talón y tacón de la bota
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 27 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(2 * s, 27 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(4 * s, 28 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 30 * s, 30 * s, 2 * s);
+}
+
+/**
+ * SVG canónico del Frente de la Pierna del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Muslo con tela carmesí sagrada (#7f1d1d, #991b1b) y quijote de acero (#52525b, #71717a, #a1a1aa), poleyn diamantado con Cruz Solar dorada (#d97706, #fef08a), greba de acero con arista central brillante (#f8fafc) y sabatón articulado con suela Sumi.
+ */
+export const PALADIN_LEG_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="11" fill="#7f1d1d"/><rect x="2" y="1" width="28" height="10" fill="#991b1b"/><rect x="4" y="2" width="24" height="8" fill="#52525b"/><rect x="6" y="2" width="20" height="8" fill="#71717a"/><rect x="9" y="3" width="14" height="6" fill="#a1a1aa"/><rect x="13" y="3" width="6" height="6" fill="#cbd5e1"/><rect x="15" y="3" width="2" height="6" fill="#f8fafc"/><rect x="4" y="9" width="24" height="2" fill="#d97706"/><rect x="6" y="9" width="20" height="1" fill="#fef08a"/><rect x="2" y="11" width="28" height="8" fill="#0c0a09"/><rect x="3" y="11" width="26" height="8" fill="#52525b"/><rect x="5" y="12" width="22" height="6" fill="#71717a"/><rect x="8" y="12" width="16" height="6" fill="#a1a1aa"/><rect x="12" y="13" width="8" height="4" fill="#cbd5e1"/><rect x="15" y="13" width="2" height="4" fill="#f8fafc"/><rect x="14" y="12" width="4" height="6" fill="#d97706"/><rect x="12" y="14" width="8" height="2" fill="#d97706"/><rect x="15" y="14" width="2" height="2" fill="#fef08a"/><rect x="2" y="19" width="28" height="9" fill="#0c0a09"/><rect x="3" y="19" width="26" height="8" fill="#52525b"/><rect x="5" y="20" width="22" height="7" fill="#71717a"/><rect x="8" y="20" width="16" height="7" fill="#a1a1aa"/><rect x="13" y="20" width="6" height="7" fill="#cbd5e1"/><rect x="15" y="20" width="2" height="7" fill="#f8fafc"/><g fill="#f8fafc"><rect x="5" y="21" width="2" height="2"/><rect x="25" y="21" width="2" height="2"/><rect x="5" y="25" width="2" height="2"/><rect x="25" y="25" width="2" height="2"/></g><rect x="1" y="28" width="30" height="4" fill="#0c0a09"/><rect x="2" y="28" width="28" height="3" fill="#52525b"/><rect x="4" y="29" width="24" height="2" fill="#71717a"/><rect x="2" y="29" width="28" height="1" fill="#d97706"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const PALADIN_LEG_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_LEG_FRONT_BODY}</svg>`;
+
+export function drawPaladinLegFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Muslo / Calzones carmesí sagrado con placa de acero superior (quijote)
+  ctx.fillStyle = '#7f1d1d';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 11 * s);
+  ctx.fillStyle = '#991b1b';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 10 * s);
+
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 8 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(6 * s, 2 * s, 20 * s, 8 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(9 * s, 3 * s, 14 * s, 6 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(13 * s, 3 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(15 * s, 3 * s, 2 * s, 6 * s);
+
+  // Ribete dorado inferior del quijote
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(4 * s, 9 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(6 * s, 9 * s, 20 * s, 1 * s);
+
+  // 2. Rodillera templaria diamantada (Poleyn)
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 11 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(3 * s, 11 * s, 26 * s, 8 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(5 * s, 12 * s, 22 * s, 6 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(8 * s, 12 * s, 16 * s, 6 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(12 * s, 13 * s, 8 * s, 4 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(15 * s, 13 * s, 2 * s, 4 * s);
+
+  // Cruz solar en oro en el centro de la rodillera
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(14 * s, 12 * s, 4 * s, 6 * s);
+  ctx.fillRect(12 * s, 14 * s, 8 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 14 * s, 2 * s, 2 * s);
+
+  // 3. Greba de espinilla (Cnémida) en acero laminado
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 19 * s, 28 * s, 9 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(3 * s, 19 * s, 26 * s, 8 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(5 * s, 20 * s, 22 * s, 7 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(8 * s, 20 * s, 16 * s, 7 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(13 * s, 20 * s, 6 * s, 7 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(15 * s, 20 * s, 2 * s, 7 * s);
+
+  // Remaches plateados en los flancos de la greba
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(5 * s, 21 * s, 2 * s, 2 * s);
+  ctx.fillRect(25 * s, 21 * s, 2 * s, 2 * s);
+  ctx.fillRect(5 * s, 25 * s, 2 * s, 2 * s);
+  ctx.fillRect(25 * s, 25 * s, 2 * s, 2 * s);
+
+  // 4. Sabatón / Escarpe laminado y suela Sumi
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 28 * s, 30 * s, 4 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(2 * s, 28 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(4 * s, 29 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(2 * s, 29 * s, 28 * s, 1 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Lateral de la Pierna del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Placas laterales de acero con correas de cuero y hebillas doradas, aleta exterior de rodillera (fan-plate) con ribete de oro, greba lateral y sabatón.
+ */
+export const PALADIN_LEG_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="11" fill="#7f1d1d"/><rect x="2" y="1" width="28" height="10" fill="#991b1b"/><rect x="4" y="2" width="24" height="8" fill="#52525b"/><rect x="6" y="2" width="20" height="8" fill="#71717a"/><rect x="2" y="4" width="28" height="3" fill="#0c0a09"/><rect x="3" y="5" width="26" height="1" fill="#451a03"/><rect x="13" y="4" width="6" height="3" fill="#d97706"/><rect x="14" y="5" width="4" height="1" fill="#fef08a"/><rect x="2" y="11" width="28" height="8" fill="#0c0a09"/><rect x="3" y="11" width="26" height="8" fill="#52525b"/><rect x="5" y="12" width="22" height="6" fill="#71717a"/><rect x="8" y="12" width="16" height="6" fill="#a1a1aa"/><rect x="10" y="13" width="12" height="4" fill="#cbd5e1"/><rect x="13" y="11" width="6" height="8" fill="#d97706"/><rect x="14" y="12" width="4" height="6" fill="#fef08a"/><rect x="15" y="14" width="2" height="2" fill="#f8fafc"/><rect x="2" y="19" width="28" height="9" fill="#0c0a09"/><rect x="3" y="19" width="26" height="8" fill="#52525b"/><rect x="5" y="20" width="22" height="7" fill="#71717a"/><rect x="8" y="20" width="16" height="7" fill="#a1a1aa"/><rect x="2" y="22" width="28" height="3" fill="#0c0a09"/><rect x="3" y="23" width="26" height="1" fill="#451a03"/><rect x="13" y="22" width="6" height="3" fill="#d97706"/><rect x="14" y="23" width="4" height="1" fill="#fef08a"/><rect x="1" y="28" width="30" height="4" fill="#0c0a09"/><rect x="2" y="28" width="28" height="3" fill="#52525b"/><rect x="4" y="29" width="24" height="2" fill="#71717a"/><rect x="2" y="29" width="28" height="1" fill="#d97706"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const PALADIN_LEG_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_LEG_SIDE_BODY}</svg>`;
+
+export function drawPaladinLegSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Muslo exterior con tela carmesí y placa de acero
+  ctx.fillStyle = '#7f1d1d';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 11 * s);
+  ctx.fillStyle = '#991b1b';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 10 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(rx(4, 24), 2 * s, 24 * s, 8 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(rx(6, 20), 2 * s, 20 * s, 8 * s);
+
+  // Correa de cuero del muslo con hebilla dorada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 4 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(3, 26), 5 * s, 26 * s, 1 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(13, 6), 4 * s, 6 * s, 3 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(14, 4), 5 * s, 4 * s, 1 * s);
+
+  // 2. Aleta lateral de la rodillera (fan-plate)
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 11 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(rx(3, 26), 11 * s, 26 * s, 8 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(rx(5, 22), 12 * s, 22 * s, 6 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(rx(8, 16), 12 * s, 16 * s, 6 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(rx(10, 12), 13 * s, 12 * s, 4 * s);
+
+  // Relieve de fan-plate con ribete de oro y gema central
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(13, 6), 11 * s, 6 * s, 8 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(14, 4), 12 * s, 4 * s, 6 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(rx(15, 2), 14 * s, 2 * s, 2 * s);
+
+  // 3. Greba lateral de acero
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 19 * s, 28 * s, 9 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(rx(3, 26), 19 * s, 26 * s, 8 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(rx(5, 22), 20 * s, 22 * s, 7 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(rx(8, 16), 20 * s, 16 * s, 7 * s);
+
+  // Correa inferior de la greba con hebilla dorada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 22 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(3, 26), 23 * s, 26 * s, 1 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(13, 6), 22 * s, 6 * s, 3 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(14, 4), 23 * s, 4 * s, 1 * s);
+
+  // 4. Sabatón lateral y suela Sumi
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 28 * s, 30 * s, 4 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(rx(2, 28), 28 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(rx(4, 24), 29 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(2, 28), 29 * s, 28 * s, 1 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Interior de la Pierna del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Penumbra templaria (#18181b, #27272a), pliegues carmesí profundos (#450a0a, #7f1d1d), cota de malla y costura interior de cuero.
+ */
+export const PALADIN_LEG_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="30" fill="#18181b"/><rect x="2" y="1" width="28" height="29" fill="#27272a"/><rect x="3" y="2" width="8" height="27" fill="#450a0a"/><rect x="4" y="3" width="6" height="25" fill="#7f1d1d"/><g fill="#52525b"><rect x="14" y="4" width="2" height="2"/><rect x="19" y="4" width="2" height="2"/><rect x="24" y="4" width="2" height="2"/><rect x="14" y="11" width="2" height="2"/><rect x="19" y="11" width="2" height="2"/><rect x="24" y="11" width="2" height="2"/><rect x="14" y="18" width="2" height="2"/><rect x="19" y="18" width="2" height="2"/><rect x="24" y="18" width="2" height="2"/><rect x="14" y="24" width="2" height="2"/><rect x="19" y="24" width="2" height="2"/><rect x="24" y="24" width="2" height="2"/></g><rect x="11" y="2" width="4" height="28" fill="#0c0a09"/><rect x="12" y="2" width="2" height="28" fill="#451a03"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="3" y="30" width="26" height="2" fill="#3f3f46"/>`;
+
+export const PALADIN_LEG_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_LEG_INNER_BODY}</svg>`;
+
+export function drawPaladinLegInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Penumbra interior templaria
+  ctx.fillStyle = '#18181b';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 30 * s);
+  ctx.fillStyle = '#27272a';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 29 * s);
+
+  // Pliegues carmesí profundos
+  ctx.fillStyle = '#450a0a';
+  ctx.fillRect(rx(3, 8), 2 * s, 8 * s, 27 * s);
+  ctx.fillStyle = '#7f1d1d';
+  ctx.fillRect(rx(4, 6), 3 * s, 6 * s, 25 * s);
+
+  // Eslabones de cota de malla interior
+  ctx.fillStyle = '#52525b';
+  for (const y of [4, 11, 18, 24]) {
+    ctx.fillRect(rx(14, 2), y * s, 2 * s, 2 * s);
+    ctx.fillRect(rx(19, 2), y * s, 2 * s, 2 * s);
+    ctx.fillRect(rx(24, 2), y * s, 2 * s, 2 * s);
+  }
+
+  // Costura reforzada de cuero flexible
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 4), 2 * s, 4 * s, 28 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(12, 2), 2 * s, 2 * s, 28 * s);
+
+  // Remate inferior
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#3f3f46';
+  ctx.fillRect(rx(3, 26), 30 * s, 26 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda de la Pierna del Paladín (32x32) en estilo Sumi-e Pixel Art:
+ * - Muslo posterior con calzones carmesí acolchados (#7f1d1d, #991b1b), hueco poplíteo con doble correa templaria (#451a03, #d97706), greba posterior articulada de acero y talonera reforzada.
+ */
+export const PALADIN_LEG_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="11" fill="#7f1d1d"/><rect x="2" y="1" width="28" height="10" fill="#991b1b"/><rect x="5" y="2" width="8" height="8" fill="#b91c1c"/><rect x="19" y="2" width="8" height="8" fill="#450a0a"/><rect x="14" y="1" width="4" height="11" fill="#0c0a09"/><rect x="15" y="1" width="2" height="10" fill="#450a0a"/><rect x="1" y="12" width="30" height="8" fill="#0c0a09"/><rect x="2" y="13" width="28" height="6" fill="#27272a"/><rect x="2" y="14" width="28" height="2" fill="#451a03"/><rect x="3" y="14" width="26" height="2" fill="#78350f"/><rect x="13" y="14" width="6" height="2" fill="#d97706"/><rect x="14" y="14" width="4" height="1" fill="#fef08a"/><rect x="2" y="17" width="28" height="2" fill="#451a03"/><rect x="3" y="17" width="26" height="2" fill="#78350f"/><rect x="13" y="17" width="6" height="2" fill="#d97706"/><rect x="14" y="17" width="4" height="1" fill="#fef08a"/><rect x="2" y="20" width="28" height="8" fill="#0c0a09"/><rect x="3" y="20" width="26" height="7" fill="#52525b"/><rect x="5" y="21" width="22" height="5" fill="#71717a"/><rect x="8" y="21" width="16" height="4" fill="#a1a1aa"/><rect x="14" y="20" width="4" height="7" fill="#0c0a09"/><rect x="15" y="20" width="2" height="7" fill="#cbd5e1"/><rect x="1" y="28" width="30" height="4" fill="#0c0a09"/><rect x="2" y="28" width="28" height="3" fill="#52525b"/><rect x="4" y="29" width="24" height="2" fill="#71717a"/><rect x="2" y="29" width="28" height="1" fill="#d97706"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const PALADIN_LEG_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${PALADIN_LEG_BACK_BODY}</svg>`;
+
+export function drawPaladinLegBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Muslo posterior con calzones carmesí acolchados
+  ctx.fillStyle = '#7f1d1d';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 11 * s);
+  ctx.fillStyle = '#991b1b';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 10 * s);
+  ctx.fillStyle = '#b91c1c';
+  ctx.fillRect(5 * s, 2 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#450a0a';
+  ctx.fillRect(19 * s, 2 * s, 8 * s, 8 * s);
+
+  // Costura central vertical
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 1 * s, 4 * s, 11 * s);
+  ctx.fillStyle = '#450a0a';
+  ctx.fillRect(15 * s, 1 * s, 2 * s, 10 * s);
+
+  // 2. Hueco poplíteo con correas dobles templarias y hebillas de oro
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 12 * s, 30 * s, 8 * s);
+  ctx.fillStyle = '#27272a';
+  ctx.fillRect(2 * s, 13 * s, 28 * s, 6 * s);
+
+  // Correa 1
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(2 * s, 14 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(3 * s, 14 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(13 * s, 14 * s, 6 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(14 * s, 14 * s, 4 * s, 1 * s);
+
+  // Correa 2
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(2 * s, 17 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(3 * s, 17 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(13 * s, 17 * s, 6 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(14 * s, 17 * s, 4 * s, 1 * s);
+
+  // 3. Gemelo / Greba posterior articulada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 20 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(3 * s, 20 * s, 26 * s, 7 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(5 * s, 21 * s, 22 * s, 5 * s);
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillRect(8 * s, 21 * s, 16 * s, 4 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 20 * s, 4 * s, 7 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(15 * s, 20 * s, 2 * s, 7 * s);
+
+  // 4. Talonera de acero reforzada con ribete de oro y suela Sumi
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 28 * s, 30 * s, 4 * s);
+  ctx.fillStyle = '#52525b';
+  ctx.fillRect(2 * s, 28 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#71717a';
+  ctx.fillRect(4 * s, 29 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(2 * s, 29 * s, 28 * s, 1 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Frente de la Pierna del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Muslo con pantalón de montaraz verde bosque (#14532d, #166534) y refuerzo de cuero (#451a03), rodillera de cuero reforzada con remaches de bronce (#78350f, #fef08a), bota alta de cazador con cordones en zigzag (#d9b48a) y suela Sumi.
+ */
+export const RANGER_LEG_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="11" fill="#052e16"/><rect x="2" y="1" width="28" height="10" fill="#14532d"/><rect x="4" y="2" width="24" height="8" fill="#166534"/><rect x="7" y="2" width="8" height="8" fill="#15803d"/><rect x="21" y="2" width="6" height="8" fill="#052e16"/><rect x="13" y="1" width="6" height="10" fill="#0c0a09"/><rect x="14" y="2" width="4" height="8" fill="#451a03"/><rect x="15" y="2" width="2" height="8" fill="#78350f"/><rect x="2" y="11" width="28" height="8" fill="#0c0a09"/><rect x="3" y="11" width="26" height="8" fill="#2e1909"/><rect x="4" y="12" width="24" height="6" fill="#451a03"/><rect x="7" y="12" width="18" height="6" fill="#78350f"/><rect x="11" y="13" width="10" height="4" fill="#b45309"/><rect x="14" y="14" width="4" height="2" fill="#d97706"/><rect x="15" y="14" width="2" height="2" fill="#fef08a"/><g fill="#fef08a"><rect x="4" y="12" width="2" height="2"/><rect x="26" y="12" width="2" height="2"/><rect x="4" y="16" width="2" height="2"/><rect x="26" y="16" width="2" height="2"/></g><rect x="2" y="19" width="28" height="9" fill="#0c0a09"/><rect x="3" y="19" width="26" height="8" fill="#2e1909"/><rect x="4" y="20" width="24" height="7" fill="#3d2817"/><rect x="7" y="20" width="18" height="7" fill="#4a2e18"/><g fill="#fef08a"><rect x="8" y="21" width="2" height="1"/><rect x="22" y="21" width="2" height="1"/><rect x="8" y="24" width="2" height="1"/><rect x="22" y="24" width="2" height="1"/></g><g fill="#d9b48a"><rect x="10" y="21" width="12" height="1"/><rect x="11" y="22" width="10" height="1"/><rect x="10" y="24" width="12" height="1"/><rect x="11" y="25" width="10" height="1"/></g><rect x="1" y="28" width="30" height="4" fill="#0c0a09"/><rect x="2" y="28" width="28" height="3" fill="#2e1909"/><rect x="4" y="29" width="24" height="2" fill="#3d2817"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const RANGER_LEG_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_LEG_FRONT_BODY}</svg>`;
+
+export function drawRangerLegFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Muslo con pantalón de montaraz
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 11 * s);
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 10 * s);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 8 * s);
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(7 * s, 2 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(21 * s, 2 * s, 6 * s, 8 * s);
+
+  // Refuerzo de cuero en el muslo
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(13 * s, 1 * s, 6 * s, 10 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(14 * s, 2 * s, 4 * s, 8 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(15 * s, 2 * s, 2 * s, 8 * s);
+
+  // 2. Rodillera de cuero reforzada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 11 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(3 * s, 11 * s, 26 * s, 8 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(4 * s, 12 * s, 24 * s, 6 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(7 * s, 12 * s, 18 * s, 6 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(11 * s, 13 * s, 10 * s, 4 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(14 * s, 14 * s, 4 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 14 * s, 2 * s, 2 * s);
+
+  // Remaches de bronce en las esquinas
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(4 * s, 12 * s, 2 * s, 2 * s);
+  ctx.fillRect(26 * s, 12 * s, 2 * s, 2 * s);
+  ctx.fillRect(4 * s, 16 * s, 2 * s, 2 * s);
+  ctx.fillRect(26 * s, 16 * s, 2 * s, 2 * s);
+
+  // 3. Caña de la bota alta de cazador con cordones
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 19 * s, 28 * s, 9 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(3 * s, 19 * s, 26 * s, 8 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(4 * s, 20 * s, 24 * s, 7 * s);
+  ctx.fillStyle = '#4a2e18';
+  ctx.fillRect(7 * s, 20 * s, 18 * s, 7 * s);
+
+  // Ojetes de bronce
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(8 * s, 21 * s, 2 * s, 1 * s);
+  ctx.fillRect(22 * s, 21 * s, 2 * s, 1 * s);
+  ctx.fillRect(8 * s, 24 * s, 2 * s, 1 * s);
+  ctx.fillRect(22 * s, 24 * s, 2 * s, 1 * s);
+
+  // Cordones en zigzag
+  ctx.fillStyle = '#d9b48a';
+  ctx.fillRect(10 * s, 21 * s, 12 * s, 1 * s);
+  ctx.fillRect(11 * s, 22 * s, 10 * s, 1 * s);
+  ctx.fillRect(10 * s, 24 * s, 12 * s, 1 * s);
+  ctx.fillRect(11 * s, 25 * s, 10 * s, 1 * s);
+
+  // 4. Empeine y puntera con suela Sumi
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 28 * s, 30 * s, 4 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(2 * s, 28 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(4 * s, 29 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Lateral de la Pierna del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Vaina utilitaria de cuero en el muslo (#451a03, #78350f) con hebilla de bronce, aleta exterior de rodillera y caña de bota con correas dobles.
+ */
+export const RANGER_LEG_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="11" fill="#052e16"/><rect x="2" y="1" width="28" height="10" fill="#14532d"/><rect x="4" y="2" width="24" height="8" fill="#166534"/><rect x="10" y="2" width="12" height="9" fill="#0c0a09"/><rect x="11" y="3" width="10" height="7" fill="#451a03"/><rect x="12" y="4" width="8" height="5" fill="#78350f"/><rect x="14" y="3" width="4" height="4" fill="#d97706"/><rect x="15" y="4" width="2" height="2" fill="#fef08a"/><rect x="2" y="11" width="28" height="8" fill="#0c0a09"/><rect x="3" y="11" width="26" height="8" fill="#2e1909"/><rect x="4" y="12" width="24" height="6" fill="#451a03"/><rect x="7" y="12" width="18" height="6" fill="#78350f"/><rect x="13" y="11" width="6" height="8" fill="#d97706"/><rect x="14" y="12" width="4" height="6" fill="#fef08a"/><rect x="15" y="14" width="2" height="2" fill="#f8fafc"/><rect x="2" y="19" width="28" height="9" fill="#0c0a09"/><rect x="3" y="19" width="26" height="8" fill="#2e1909"/><rect x="4" y="20" width="24" height="7" fill="#3d2817"/><rect x="7" y="20" width="18" height="7" fill="#4a2e18"/><rect x="2" y="22" width="28" height="3" fill="#0c0a09"/><rect x="3" y="23" width="26" height="1" fill="#451a03"/><rect x="13" y="22" width="6" height="3" fill="#d97706"/><rect x="14" y="23" width="4" height="1" fill="#fef08a"/><rect x="1" y="28" width="30" height="4" fill="#0c0a09"/><rect x="2" y="28" width="28" height="3" fill="#2e1909"/><rect x="4" y="29" width="24" height="2" fill="#3d2817"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const RANGER_LEG_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_LEG_SIDE_BODY}</svg>`;
+
+export function drawRangerLegSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Muslo lateral
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 11 * s);
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 10 * s);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(rx(4, 24), 2 * s, 24 * s, 8 * s);
+
+  // Vaina / bolsillo utilitario lateral
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(10, 12), 2 * s, 12 * s, 9 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(11, 10), 3 * s, 10 * s, 7 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(12, 8), 4 * s, 8 * s, 5 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(14, 4), 3 * s, 4 * s, 4 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(15, 2), 4 * s, 2 * s, 2 * s);
+
+  // 2. Aleta lateral de la rodillera
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 11 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(rx(3, 26), 11 * s, 26 * s, 8 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(4, 24), 12 * s, 24 * s, 6 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(7, 18), 12 * s, 18 * s, 6 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(13, 6), 11 * s, 6 * s, 8 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(14, 4), 12 * s, 4 * s, 6 * s);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(rx(15, 2), 14 * s, 2 * s, 2 * s);
+
+  // 3. Caña lateral de bota
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 19 * s, 28 * s, 9 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(rx(3, 26), 19 * s, 26 * s, 8 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(rx(4, 24), 20 * s, 24 * s, 7 * s);
+  ctx.fillStyle = '#4a2e18';
+  ctx.fillRect(rx(7, 18), 20 * s, 18 * s, 7 * s);
+
+  // Correa de cuero y hebilla
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 22 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(3, 26), 23 * s, 26 * s, 1 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(13, 6), 22 * s, 6 * s, 3 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(14, 4), 23 * s, 4 * s, 1 * s);
+
+  // 4. Sabatón lateral y suela Sumi
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 28 * s, 30 * s, 4 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(rx(2, 28), 28 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(rx(4, 24), 29 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Interior de la Pierna del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Penumbra verde bosque (#052e16, #14532d), refuerzo de badana de cuero (#2e1909, #451a03) y puntadas de cáñamo.
+ */
+export const RANGER_LEG_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="30" fill="#052e16"/><rect x="2" y="1" width="28" height="29" fill="#14532d"/><rect x="3" y="2" width="8" height="27" fill="#052e16"/><rect x="4" y="3" width="6" height="25" fill="#166534"/><g fill="#451a03"><rect x="14" y="4" width="8" height="3"/><rect x="14" y="11" width="8" height="3"/><rect x="14" y="18" width="8" height="3"/><rect x="14" y="24" width="8" height="3"/></g><g fill="#78350f"><rect x="15" y="5" width="6" height="1"/><rect x="15" y="12" width="6" height="1"/><rect x="15" y="19" width="6" height="1"/><rect x="15" y="25" width="6" height="1"/></g><rect x="11" y="2" width="4" height="28" fill="#0c0a09"/><rect x="12" y="2" width="2" height="28" fill="#451a03"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="3" y="30" width="26" height="2" fill="#2e1909"/>`;
+
+export const RANGER_LEG_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_LEG_INNER_BODY}</svg>`;
+
+export function drawRangerLegInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 30 * s);
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 29 * s);
+
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(rx(3, 8), 2 * s, 8 * s, 27 * s);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(rx(4, 6), 3 * s, 6 * s, 25 * s);
+
+  // Parches de cuero interior de fricción
+  ctx.fillStyle = '#451a03';
+  for (const y of [4, 11, 18, 24]) {
+    ctx.fillRect(rx(14, 8), y * s, 8 * s, 3 * s);
+  }
+  ctx.fillStyle = '#78350f';
+  for (const y of [5, 12, 19, 25]) {
+    ctx.fillRect(rx(15, 6), y * s, 6 * s, 1 * s);
+  }
+
+  // Costura central
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 4), 2 * s, 4 * s, 28 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(12, 2), 2 * s, 2 * s, 28 * s);
+
+  // Remate inferior
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(rx(3, 26), 30 * s, 26 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda de la Pierna del Explorador (32x32) en estilo Sumi-e Pixel Art:
+ * - Muslo posterior con costura vertical dorsal (#14532d, #052e16), hueco poplíteo con doble correa de cuero (#451a03, #d97706) y caña trasera de bota.
+ */
+export const RANGER_LEG_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="11" fill="#052e16"/><rect x="2" y="1" width="28" height="10" fill="#14532d"/><rect x="5" y="2" width="8" height="8" fill="#166534"/><rect x="19" y="2" width="8" height="8" fill="#052e16"/><rect x="14" y="1" width="4" height="11" fill="#0c0a09"/><rect x="15" y="1" width="2" height="10" fill="#052e16"/><rect x="1" y="12" width="30" height="8" fill="#0c0a09"/><rect x="2" y="13" width="28" height="6" fill="#14532d"/><rect x="2" y="14" width="28" height="2" fill="#451a03"/><rect x="3" y="14" width="26" height="2" fill="#78350f"/><rect x="13" y="14" width="6" height="2" fill="#d97706"/><rect x="14" y="14" width="4" height="1" fill="#fef08a"/><rect x="2" y="17" width="28" height="2" fill="#451a03"/><rect x="3" y="17" width="26" height="2" fill="#78350f"/><rect x="13" y="17" width="6" height="2" fill="#d97706"/><rect x="14" y="17" width="4" height="1" fill="#fef08a"/><rect x="2" y="20" width="28" height="8" fill="#0c0a09"/><rect x="3" y="20" width="26" height="7" fill="#3d2817"/><rect x="5" y="21" width="22" height="5" fill="#4a2e18"/><rect x="8" y="21" width="16" height="4" fill="#6b4423"/><rect x="14" y="20" width="4" height="7" fill="#0c0a09"/><rect x="15" y="20" width="2" height="7" fill="#2e1909"/><rect x="1" y="28" width="30" height="4" fill="#0c0a09"/><rect x="2" y="28" width="28" height="3" fill="#2e1909"/><rect x="4" y="29" width="24" height="2" fill="#3d2817"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const RANGER_LEG_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${RANGER_LEG_BACK_BODY}</svg>`;
+
+export function drawRangerLegBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Muslo posterior
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 11 * s);
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 10 * s);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(5 * s, 2 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(19 * s, 2 * s, 8 * s, 8 * s);
+
+  // Costura central vertical
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 1 * s, 4 * s, 11 * s);
+  ctx.fillStyle = '#052e16';
+  ctx.fillRect(15 * s, 1 * s, 2 * s, 10 * s);
+
+  // 2. Hueco poplíteo con correas dobles
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 12 * s, 30 * s, 8 * s);
+  ctx.fillStyle = '#14532d';
+  ctx.fillRect(2 * s, 13 * s, 28 * s, 6 * s);
+
+  // Correa 1
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(2 * s, 14 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(3 * s, 14 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(13 * s, 14 * s, 6 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(14 * s, 14 * s, 4 * s, 1 * s);
+
+  // Correa 2
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(2 * s, 17 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(3 * s, 17 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(13 * s, 17 * s, 6 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(14 * s, 17 * s, 4 * s, 1 * s);
+
+  // 3. Caña trasera de la bota
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 20 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(3 * s, 20 * s, 26 * s, 7 * s);
+  ctx.fillStyle = '#4a2e18';
+  ctx.fillRect(5 * s, 21 * s, 22 * s, 5 * s);
+  ctx.fillStyle = '#6b4423';
+  ctx.fillRect(8 * s, 21 * s, 16 * s, 4 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 20 * s, 4 * s, 7 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(15 * s, 20 * s, 2 * s, 7 * s);
+
+  // 4. Talonera de cuero
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 28 * s, 30 * s, 4 * s);
+  ctx.fillStyle = '#2e1909';
+  ctx.fillRect(2 * s, 28 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#3d2817';
+  ctx.fillRect(4 * s, 29 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Frente de la Pierna del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Caída frontal de la falda talar en violeta místico (#2e1065, #3b1078, #4c1d95) con estola rúnica vertical en oro y amatista (#d4af37, #fef08a, #c084fc), cenefa dorada inferior y botines de terciopelo nocturno.
+ */
+export const WIZARD_LEG_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="20" fill="#1e1b4b"/><rect x="2" y="1" width="28" height="19" fill="#2e1065"/><rect x="4" y="2" width="24" height="17" fill="#3b1078"/><rect x="6" y="2" width="20" height="17" fill="#4c1d95"/><rect x="12" y="1" width="8" height="19" fill="#0c0a09"/><rect x="13" y="2" width="6" height="17" fill="#2e1065"/><rect x="14" y="2" width="4" height="17" fill="#5b21b6"/><g fill="#fef08a"><rect x="15" y="4" width="2" height="2"/><rect x="15" y="9" width="2" height="2"/><rect x="15" y="14" width="2" height="2"/></g><g fill="#c084fc"><rect x="14" y="5" width="4" height="1"/><rect x="14" y="10" width="4" height="1"/><rect x="14" y="15" width="4" height="1"/></g><rect x="1" y="21" width="30" height="6" fill="#0c0a09"/><rect x="2" y="21" width="28" height="5" fill="#2e1065"/><rect x="3" y="22" width="26" height="3" fill="#3b1078"/><rect x="2" y="23" width="28" height="2" fill="#d4af37"/><rect x="4" y="23" width="24" height="1" fill="#fef08a"/><rect x="1" y="27" width="30" height="5" fill="#0c0a09"/><rect x="3" y="27" width="26" height="3" fill="#1e1b4b"/><rect x="6" y="28" width="20" height="2" fill="#2e1065"/><rect x="14" y="28" width="4" height="2" fill="#d4af37"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const WIZARD_LEG_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_LEG_FRONT_BODY}</svg>`;
+
+export function drawWizardLegFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Caída frontal de la falda talar
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 20 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 19 * s);
+  ctx.fillStyle = '#3b1078';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 17 * s);
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(6 * s, 2 * s, 20 * s, 17 * s);
+
+  // Estola rúnica central
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(12 * s, 1 * s, 8 * s, 19 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(13 * s, 2 * s, 6 * s, 17 * s);
+  ctx.fillStyle = '#5b21b6';
+  ctx.fillRect(14 * s, 2 * s, 4 * s, 17 * s);
+
+  // Sellos y runas doradas/amatistas
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 4 * s, 2 * s, 2 * s);
+  ctx.fillRect(15 * s, 9 * s, 2 * s, 2 * s);
+  ctx.fillRect(15 * s, 14 * s, 2 * s, 2 * s);
+
+  ctx.fillStyle = '#c084fc';
+  ctx.fillRect(14 * s, 5 * s, 4 * s, 1 * s);
+  ctx.fillRect(14 * s, 10 * s, 4 * s, 1 * s);
+  ctx.fillRect(14 * s, 15 * s, 4 * s, 1 * s);
+
+  // 2. Dobladillo inferior con cenefa dorada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 21 * s, 30 * s, 6 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(2 * s, 21 * s, 28 * s, 5 * s);
+  ctx.fillStyle = '#3b1078';
+  ctx.fillRect(3 * s, 22 * s, 26 * s, 3 * s);
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(2 * s, 23 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(4 * s, 23 * s, 24 * s, 1 * s);
+
+  // 3. Botines de sabio y suela Sumi
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 27 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(3 * s, 27 * s, 26 * s, 3 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(6 * s, 28 * s, 20 * s, 2 * s);
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(14 * s, 28 * s, 4 * s, 2 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Lateral de la Pierna del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Caída lateral de la túnica con sello de estrella arcana (#c084fc, #fef08a), cenefa dorada y perfil del botín puntiagudo.
+ */
+export const WIZARD_LEG_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="20" fill="#1e1b4b"/><rect x="2" y="1" width="28" height="19" fill="#2e1065"/><rect x="4" y="2" width="24" height="17" fill="#3b1078"/><rect x="6" y="2" width="20" height="17" fill="#4c1d95"/><rect x="11" y="5" width="10" height="10" fill="#0c0a09"/><rect x="12" y="6" width="8" height="8" fill="#2e1065"/><rect x="13" y="7" width="6" height="6" fill="#3b1078"/><rect x="14" y="7" width="4" height="6" fill="#c084fc"/><rect x="15" y="8" width="2" height="4" fill="#fef08a"/><rect x="1" y="21" width="30" height="6" fill="#0c0a09"/><rect x="2" y="21" width="28" height="5" fill="#2e1065"/><rect x="3" y="22" width="26" height="3" fill="#3b1078"/><rect x="2" y="23" width="28" height="2" fill="#d4af37"/><rect x="4" y="23" width="24" height="1" fill="#fef08a"/><rect x="1" y="27" width="30" height="5" fill="#0c0a09"/><rect x="3" y="27" width="26" height="3" fill="#1e1b4b"/><rect x="5" y="28" width="22" height="2" fill="#2e1065"/><rect x="13" y="27" width="6" height="2" fill="#d4af37"/><rect x="14" y="28" width="4" height="1" fill="#fef08a"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const WIZARD_LEG_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_LEG_SIDE_BODY}</svg>`;
+
+export function drawWizardLegSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Caída lateral de la túnica
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 20 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 19 * s);
+  ctx.fillStyle = '#3b1078';
+  ctx.fillRect(rx(4, 24), 2 * s, 24 * s, 17 * s);
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(rx(6, 20), 2 * s, 20 * s, 17 * s);
+
+  // Sello arcano lateral de estrella/luna
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 10), 5 * s, 10 * s, 10 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(rx(12, 8), 6 * s, 8 * s, 8 * s);
+  ctx.fillStyle = '#3b1078';
+  ctx.fillRect(rx(13, 6), 7 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#c084fc';
+  ctx.fillRect(rx(14, 4), 7 * s, 4 * s, 6 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(15, 2), 8 * s, 2 * s, 4 * s);
+
+  // 2. Dobladillo inferior con cenefa dorada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 21 * s, 30 * s, 6 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(rx(2, 28), 21 * s, 28 * s, 5 * s);
+  ctx.fillStyle = '#3b1078';
+  ctx.fillRect(rx(3, 26), 22 * s, 26 * s, 3 * s);
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(rx(2, 28), 23 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(4, 24), 23 * s, 24 * s, 1 * s);
+
+  // 3. Botín lateral y suela Sumi
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 27 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(rx(3, 26), 27 * s, 26 * s, 3 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(rx(5, 22), 28 * s, 22 * s, 2 * s);
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(rx(13, 6), 27 * s, 6 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(14, 4), 28 * s, 4 * s, 1 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Interior de la Pierna del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Penumbra mística interior (#0f172a, #1e1b4b, #2e1065), pliegues oscuros y costura interior de tela talar.
+ */
+export const WIZARD_LEG_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="30" fill="#0f172a"/><rect x="2" y="1" width="28" height="29" fill="#1e1b4b"/><rect x="3" y="2" width="8" height="27" fill="#0f172a"/><rect x="4" y="3" width="6" height="25" fill="#2e1065"/><rect x="11" y="2" width="4" height="28" fill="#0c0a09"/><rect x="12" y="2" width="2" height="28" fill="#1e1b4b"/><g fill="#3b1078"><rect x="16" y="5" width="6" height="2"/><rect x="16" y="13" width="6" height="2"/><rect x="16" y="21" width="6" height="2"/></g><rect x="1" y="28" width="30" height="4" fill="#0c0a09"/><rect x="3" y="29" width="26" height="2" fill="#1e1b4b"/>`;
+
+export const WIZARD_LEG_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_LEG_INNER_BODY}</svg>`;
+
+export function drawWizardLegInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 30 * s);
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 29 * s);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(rx(3, 8), 2 * s, 8 * s, 27 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(rx(4, 6), 3 * s, 6 * s, 25 * s);
+
+  // Pliegues interiores
+  ctx.fillStyle = '#3b1078';
+  for (const y of [5, 13, 21]) {
+    ctx.fillRect(rx(16, 6), y * s, 6 * s, 2 * s);
+  }
+
+  // Costura vertical interior
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 4), 2 * s, 4 * s, 28 * s);
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(rx(12, 2), 2 * s, 2 * s, 28 * s);
+
+  // Remate inferior
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 28 * s, 30 * s, 4 * s);
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(rx(3, 26), 29 * s, 26 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda de la Pierna del Hechicero (32x32) en estilo Sumi-e Pixel Art:
+ * - Caída posterior de la falda talar con pliegues simétricos (#2e1065, #3b1078, #4c1d95), cenefa rúnica dorada continua y talones de terciopelo.
+ */
+export const WIZARD_LEG_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="20" fill="#1e1b4b"/><rect x="2" y="1" width="28" height="19" fill="#2e1065"/><rect x="4" y="2" width="24" height="17" fill="#3b1078"/><rect x="6" y="2" width="20" height="17" fill="#4c1d95"/><rect x="14" y="1" width="4" height="19" fill="#0c0a09"/><rect x="15" y="1" width="2" height="19" fill="#1e1b4b"/><rect x="1" y="21" width="30" height="6" fill="#0c0a09"/><rect x="2" y="21" width="28" height="5" fill="#2e1065"/><rect x="3" y="22" width="26" height="3" fill="#3b1078"/><rect x="2" y="23" width="28" height="2" fill="#d4af37"/><rect x="4" y="23" width="24" height="1" fill="#fef08a"/><rect x="1" y="27" width="30" height="5" fill="#0c0a09"/><rect x="3" y="27" width="26" height="3" fill="#1e1b4b"/><rect x="6" y="28" width="20" height="2" fill="#2e1065"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const WIZARD_LEG_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${WIZARD_LEG_BACK_BODY}</svg>`;
+
+export function drawWizardLegBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Caída posterior de la túnica
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(1 * s, 1 * s, 30 * s, 20 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 19 * s);
+  ctx.fillStyle = '#3b1078';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 17 * s);
+  ctx.fillStyle = '#4c1d95';
+  ctx.fillRect(6 * s, 2 * s, 20 * s, 17 * s);
+
+  // Costura central dorsal
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 1 * s, 4 * s, 19 * s);
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(15 * s, 1 * s, 2 * s, 19 * s);
+
+  // 2. Dobladillo inferior con cenefa dorada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 21 * s, 30 * s, 6 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(2 * s, 21 * s, 28 * s, 5 * s);
+  ctx.fillStyle = '#3b1078';
+  ctx.fillRect(3 * s, 22 * s, 26 * s, 3 * s);
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(2 * s, 23 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(4 * s, 23 * s, 24 * s, 1 * s);
+
+  // 3. Talones de botines y suela Sumi
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 27 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#1e1b4b';
+  ctx.fillRect(3 * s, 27 * s, 26 * s, 3 * s);
+  ctx.fillStyle = '#2e1065';
+  ctx.fillRect(6 * s, 28 * s, 20 * s, 2 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Frente de la Pierna del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Muslo superior acorazado con quijote de bronce monolítico (#5a3a18, #78350f, #92400e) y remaches áureos (#b45309, #fef08a).
+ * - Rodillera masiva de acero pesado (#3a3f48, #475569, #6b7078) con arista dorada central (#d97706, #fef08a).
+ * - Greba de placas de acero con arista brillante (#94a3b8, #cbd5e1), sabatón acorazado con puntera reforzada y suela de tinta Sumi.
+ */
+export const GUARDIAN_LEG_FRONT_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="2" y="1" width="28" height="11" fill="#5a3a18"/><rect x="4" y="2" width="24" height="9" fill="#78350f"/><rect x="8" y="2" width="16" height="8" fill="#92400e"/><rect x="13" y="3" width="6" height="7" fill="#b45309"/><rect x="15" y="4" width="2" height="5" fill="#fef08a"/><rect x="5" y="3" width="2" height="2" fill="#fef08a"/><rect x="25" y="3" width="2" height="2" fill="#fef08a"/><rect x="5" y="8" width="2" height="2" fill="#fef08a"/><rect x="25" y="8" width="2" height="2" fill="#fef08a"/><rect x="2" y="12" width="28" height="8" fill="#0c0a09"/><rect x="3" y="13" width="26" height="6" fill="#3a3f48"/><rect x="5" y="13" width="22" height="6" fill="#475569"/><rect x="8" y="14" width="16" height="4" fill="#6b7078"/><rect x="13" y="13" width="6" height="6" fill="#0c0a09"/><rect x="14" y="14" width="4" height="4" fill="#d97706"/><rect x="15" y="15" width="2" height="2" fill="#fef08a"/><rect x="2" y="20" width="28" height="7" fill="#0c0a09"/><rect x="3" y="20" width="26" height="6" fill="#3a3f48"/><rect x="5" y="21" width="22" height="5" fill="#475569"/><rect x="8" y="21" width="16" height="4" fill="#6b7078"/><rect x="12" y="21" width="8" height="4" fill="#94a3b8"/><rect x="15" y="20" width="2" height="6" fill="#cbd5e1"/><rect x="2" y="22" width="28" height="2" fill="#0c0a09"/><rect x="3" y="22" width="26" height="1" fill="#1c1917"/><rect x="15" y="22" width="2" height="2" fill="#fef08a"/><rect x="1" y="27" width="30" height="5" fill="#0c0a09"/><rect x="2" y="27" width="28" height="4" fill="#3a3f48"/><rect x="4" y="28" width="24" height="2" fill="#6b7078"/><rect x="2" y="28" width="28" height="1" fill="#d97706"/><rect x="4" y="28" width="24" height="1" fill="#fef08a"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const GUARDIAN_LEG_FRONT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_LEG_FRONT_BODY}</svg>`;
+
+export function drawGuardianLegFrontToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Quijote / Placa superior de muslo en bronce monolítico
+  ctx.fillStyle = '#5a3a18';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 11 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 9 * s);
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(8 * s, 2 * s, 16 * s, 8 * s);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(13 * s, 3 * s, 6 * s, 7 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 4 * s, 2 * s, 5 * s);
+
+  // Remaches áureos de fijación
+  for (const y of [3, 8]) {
+    ctx.fillRect(5 * s, y * s, 2 * s, 2 * s);
+    ctx.fillRect(25 * s, y * s, 2 * s, 2 * s);
+  }
+
+  // 2. Rodillera masiva de acero articulada (poleyn)
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 12 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(3 * s, 13 * s, 26 * s, 6 * s);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(5 * s, 13 * s, 22 * s, 6 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(8 * s, 14 * s, 16 * s, 4 * s);
+
+  // Rombo central áureo en la rodilla
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(13 * s, 13 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(14 * s, 14 * s, 4 * s, 4 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 15 * s, 2 * s, 2 * s);
+
+  // 3. Greba de placas de acero
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 20 * s, 28 * s, 7 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(3 * s, 20 * s, 26 * s, 6 * s);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(5 * s, 21 * s, 22 * s, 5 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(8 * s, 21 * s, 16 * s, 4 * s);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(12 * s, 21 * s, 8 * s, 4 * s);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(15 * s, 20 * s, 2 * s, 6 * s);
+
+  // Correa transversal de ajuste de la greba con remache áureo
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 22 * s, 28 * s, 2 * s);
+  ctx.fillStyle = '#1c1917';
+  ctx.fillRect(3 * s, 22 * s, 26 * s, 1 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(15 * s, 22 * s, 2 * s, 2 * s);
+
+  // 4. Sabatón laminado pesado con puntera reforzada y filo de oro
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 27 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(2 * s, 27 * s, 28 * s, 4 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(4 * s, 28 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(2 * s, 28 * s, 28 * s, 1 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(4 * s, 28 * s, 24 * s, 1 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Exterior de la Pierna del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Placas de quijote lateral de bronce (#78350f, #92400e) con correas pesadas y remaches (#44403c).
+ * - Aleta protectora lateral de rodilla (fan-plate) en acero con ribete de bronce y oro.
+ * - Caña de greba lateral con doble hebilla de acero y sabatón perfilado con suela Sumi.
+ */
+export const GUARDIAN_LEG_SIDE_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="2" y="1" width="28" height="11" fill="#5a3a18"/><rect x="4" y="2" width="24" height="9" fill="#78350f"/><rect x="8" y="2" width="16" height="8" fill="#92400e"/><rect x="13" y="3" width="6" height="6" fill="#0c0a09"/><rect x="14" y="4" width="4" height="4" fill="#d97706"/><rect x="15" y="5" width="2" height="2" fill="#fef08a"/><rect x="5" y="3" width="2" height="7" fill="#44403c"/><rect x="25" y="3" width="2" height="7" fill="#44403c"/><rect x="2" y="12" width="28" height="8" fill="#0c0a09"/><rect x="3" y="13" width="26" height="6" fill="#3a3f48"/><rect x="5" y="13" width="22" height="6" fill="#475569"/><rect x="8" y="14" width="16" height="4" fill="#6b7078"/><rect x="3" y="15" width="26" height="2" fill="#0c0a09"/><rect x="4" y="15" width="24" height="1" fill="#d97706"/><rect x="2" y="20" width="28" height="7" fill="#0c0a09"/><rect x="3" y="20" width="26" height="6" fill="#3a3f48"/><rect x="5" y="21" width="22" height="5" fill="#475569"/><rect x="8" y="21" width="16" height="4" fill="#6b7078"/><rect x="2" y="22" width="28" height="3" fill="#0c0a09"/><rect x="3" y="23" width="26" height="1" fill="#1c1917"/><rect x="13" y="22" width="6" height="3" fill="#d97706"/><rect x="14" y="23" width="4" height="1" fill="#fef08a"/><rect x="1" y="27" width="30" height="5" fill="#0c0a09"/><rect x="2" y="27" width="28" height="4" fill="#3a3f48"/><rect x="4" y="28" width="24" height="2" fill="#6b7078"/><rect x="2" y="28" width="28" height="1" fill="#d97706"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const GUARDIAN_LEG_SIDE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_LEG_SIDE_BODY}</svg>`;
+
+export function drawGuardianLegSideToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Quijote lateral de bronce monolítico
+  ctx.fillStyle = '#5a3a18';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 11 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(rx(4, 24), 2 * s, 24 * s, 9 * s);
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(rx(8, 16), 2 * s, 16 * s, 8 * s);
+
+  // Blasón romboidal de oro en el muslo
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(13, 6), 3 * s, 6 * s, 6 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(14, 4), 4 * s, 4 * s, 4 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(15, 2), 5 * s, 2 * s, 2 * s);
+
+  // Remaches laterales oscuros
+  ctx.fillStyle = '#44403c';
+  ctx.fillRect(rx(5, 2), 3 * s, 2 * s, 7 * s);
+  ctx.fillRect(rx(25, 2), 3 * s, 2 * s, 7 * s);
+
+  // 2. Aleta lateral de rodillera (fan-plate)
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 12 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(rx(3, 26), 13 * s, 26 * s, 6 * s);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(rx(5, 22), 13 * s, 22 * s, 6 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(rx(8, 16), 14 * s, 16 * s, 4 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(3, 26), 15 * s, 26 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(4, 24), 15 * s, 24 * s, 1 * s);
+
+  // 3. Caña lateral de la greba con hebilla reforzada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 20 * s, 28 * s, 7 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(rx(3, 26), 20 * s, 26 * s, 6 * s);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(rx(5, 22), 21 * s, 22 * s, 5 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(rx(8, 16), 21 * s, 16 * s, 4 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(2, 28), 22 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#1c1917';
+  ctx.fillRect(rx(3, 26), 23 * s, 26 * s, 1 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(13, 6), 22 * s, 6 * s, 3 * s);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(rx(14, 4), 23 * s, 4 * s, 1 * s);
+
+  // 4. Sabatón lateral y suela Sumi
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 27 * s, 30 * s, 5 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(rx(2, 28), 27 * s, 28 * s, 4 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(rx(4, 24), 28 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(rx(2, 28), 28 * s, 28 * s, 1 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 31), 31 * s, 30 * s, 1 * s);
+}
+
+/**
+ * SVG canónico del Costado Interior de la Pierna del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Vista orientada a la entrepierna: penumbra acorazada (#1c1917, #292524), cuero protector de fricción y cota de malla densa (#3a3f48, #57534e).
+ */
+export const GUARDIAN_LEG_INNER_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="1" y="1" width="30" height="30" fill="#1c1917"/><rect x="2" y="1" width="28" height="29" fill="#292524"/><rect x="3" y="2" width="8" height="27" fill="#44403c"/><rect x="4" y="3" width="6" height="25" fill="#57534e"/><g fill="#3a3f48"><rect x="14" y="4" width="2" height="2"/><rect x="19" y="4" width="2" height="2"/><rect x="24" y="4" width="2" height="2"/><rect x="14" y="11" width="2" height="2"/><rect x="19" y="11" width="2" height="2"/><rect x="24" y="11" width="2" height="2"/><rect x="14" y="18" width="2" height="2"/><rect x="19" y="18" width="2" height="2"/><rect x="24" y="18" width="2" height="2"/><rect x="14" y="24" width="2" height="2"/><rect x="19" y="24" width="2" height="2"/><rect x="24" y="24" width="2" height="2"/></g><rect x="11" y="2" width="4" height="28" fill="#0c0a09"/><rect x="12" y="2" width="2" height="28" fill="#451a03"/><rect x="1" y="29" width="30" height="3" fill="#0c0a09"/><rect x="3" y="30" width="26" height="2" fill="#3a3f48"/>`;
+
+export const GUARDIAN_LEG_INNER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_LEG_INNER_BODY}</svg>`;
+
+export function drawGuardianLegInnerToCanvas(ctx, size = 32, flipX = false) {
+  const s = size / 32;
+  const rx = (x, w) => (flipX ? (32 - x - w) * s : x * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // Penumbra interior de coloso
+  ctx.fillStyle = '#1c1917';
+  ctx.fillRect(rx(1, 30), 1 * s, 30 * s, 30 * s);
+  ctx.fillStyle = '#292524';
+  ctx.fillRect(rx(2, 28), 1 * s, 28 * s, 29 * s);
+
+  // Cuero acolchado de fricción
+  ctx.fillStyle = '#44403c';
+  ctx.fillRect(rx(3, 8), 2 * s, 8 * s, 27 * s);
+  ctx.fillStyle = '#57534e';
+  ctx.fillRect(rx(4, 6), 3 * s, 6 * s, 25 * s);
+
+  // Eslabones de cota de malla interior
+  ctx.fillStyle = '#3a3f48';
+  for (const y of [4, 11, 18, 24]) {
+    ctx.fillRect(rx(14, 2), y * s, 2 * s, 2 * s);
+    ctx.fillRect(rx(19, 2), y * s, 2 * s, 2 * s);
+    ctx.fillRect(rx(24, 2), y * s, 2 * s, 2 * s);
+  }
+
+  // Costura reforzada de cuero flexible
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(11, 4), 2 * s, 4 * s, 28 * s);
+  ctx.fillStyle = '#451a03';
+  ctx.fillRect(rx(12, 2), 2 * s, 2 * s, 28 * s);
+
+  // Remate inferior
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(rx(1, 30), 29 * s, 30 * s, 3 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(rx(3, 26), 30 * s, 26 * s, 2 * s);
+}
+
+/**
+ * SVG canónico de la Espalda de la Pierna del Guardián (32x32) en estilo Sumi-e Pixel Art:
+ * - Isquiotibial acolchado de cuero y bronce (#5a3a18, #78350f), hueco poplíteo con doble correa de blindaje (#1c1917, #fef08a), greba posterior maciza de acero y talonera reforzada.
+ */
+export const GUARDIAN_LEG_BACK_BODY = `<rect width="32" height="32" fill="#0c0a09"/><rect x="2" y="1" width="28" height="11" fill="#5a3a18"/><rect x="4" y="2" width="24" height="9" fill="#78350f"/><rect x="8" y="2" width="16" height="8" fill="#92400e"/><rect x="14" y="1" width="4" height="11" fill="#0c0a09"/><rect x="15" y="1" width="2" height="10" fill="#5a3a18"/><rect x="5" y="3" width="2" height="2" fill="#fef08a"/><rect x="25" y="3" width="2" height="2" fill="#fef08a"/><rect x="1" y="12" width="30" height="8" fill="#0c0a09"/><rect x="2" y="13" width="28" height="6" fill="#1c1917"/><rect x="2" y="14" width="28" height="2" fill="#292524"/><rect x="3" y="14" width="26" height="2" fill="#44403c"/><rect x="13" y="14" width="6" height="2" fill="#d97706"/><rect x="14" y="14" width="4" height="1" fill="#fef08a"/><rect x="2" y="17" width="28" height="2" fill="#292524"/><rect x="3" y="17" width="26" height="2" fill="#44403c"/><rect x="13" y="17" width="6" height="2" fill="#d97706"/><rect x="14" y="17" width="4" height="1" fill="#fef08a"/><rect x="2" y="20" width="28" height="8" fill="#0c0a09"/><rect x="3" y="20" width="26" height="7" fill="#3a3f48"/><rect x="5" y="21" width="22" height="5" fill="#475569"/><rect x="8" y="21" width="16" height="4" fill="#6b7078"/><rect x="14" y="20" width="4" height="7" fill="#0c0a09"/><rect x="15" y="20" width="2" height="7" fill="#94a3b8"/><rect x="1" y="28" width="30" height="4" fill="#0c0a09"/><rect x="2" y="28" width="28" height="3" fill="#3a3f48"/><rect x="4" y="29" width="24" height="2" fill="#6b7078"/><rect x="2" y="29" width="28" height="1" fill="#d97706"/><rect x="1" y="31" width="30" height="1" fill="#0c0a09"/>`;
+
+export const GUARDIAN_LEG_BACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">${GUARDIAN_LEG_BACK_BODY}</svg>`;
+
+export function drawGuardianLegBackToCanvas(ctx, size = 32) {
+  const s = size / 32;
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(0, 0, size, size);
+
+  // 1. Isquiotibial posterior acorazado
+  ctx.fillStyle = '#5a3a18';
+  ctx.fillRect(2 * s, 1 * s, 28 * s, 11 * s);
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(4 * s, 2 * s, 24 * s, 9 * s);
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(8 * s, 2 * s, 16 * s, 8 * s);
+
+  // Costura central dorsal
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 1 * s, 4 * s, 11 * s);
+  ctx.fillStyle = '#5a3a18';
+  ctx.fillRect(15 * s, 1 * s, 2 * s, 10 * s);
+
+  // Remaches superiores
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(5 * s, 3 * s, 2 * s, 2 * s);
+  ctx.fillRect(25 * s, 3 * s, 2 * s, 2 * s);
+
+  // 2. Hueco poplíteo con doble correa de ajuste y hebillas áureas
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 12 * s, 30 * s, 8 * s);
+  ctx.fillStyle = '#1c1917';
+  ctx.fillRect(2 * s, 13 * s, 28 * s, 6 * s);
+
+  for (const y of [14, 17]) {
+    ctx.fillStyle = '#292524';
+    ctx.fillRect(2 * s, y * s, 28 * s, 2 * s);
+    ctx.fillStyle = '#44403c';
+    ctx.fillRect(3 * s, y * s, 26 * s, 2 * s);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(13 * s, y * s, 6 * s, 2 * s);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(14 * s, y * s, 4 * s, 1 * s);
+  }
+
+  // 3. Greba posterior articulada
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(2 * s, 20 * s, 28 * s, 8 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(3 * s, 20 * s, 26 * s, 7 * s);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(5 * s, 21 * s, 22 * s, 5 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(8 * s, 21 * s, 16 * s, 4 * s);
+
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(14 * s, 20 * s, 4 * s, 7 * s);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(15 * s, 20 * s, 2 * s, 7 * s);
+
+  // 4. Talonera reforzada y suela
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 28 * s, 30 * s, 4 * s);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(2 * s, 28 * s, 28 * s, 3 * s);
+  ctx.fillStyle = '#6b7078';
+  ctx.fillRect(4 * s, 29 * s, 24 * s, 2 * s);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(2 * s, 29 * s, 28 * s, 1 * s);
+  ctx.fillStyle = '#0c0a09';
+  ctx.fillRect(1 * s, 31 * s, 30 * s, 1 * s);
+}
+
 
 /**
  * Catálogo canónico de retratos de héroes para la UI e integración 3D.
@@ -3265,6 +4587,14 @@ export const HERO_PORTRAITS = {
     armInnerBody: GUARDIAN_ARM_INNER_BODY,
     armBackSvg: GUARDIAN_ARM_BACK_SVG,
     armBackBody: GUARDIAN_ARM_BACK_BODY,
+    legFrontSvg: GUARDIAN_LEG_FRONT_SVG,
+    legFrontBody: GUARDIAN_LEG_FRONT_BODY,
+    legSideSvg: GUARDIAN_LEG_SIDE_SVG,
+    legSideBody: GUARDIAN_LEG_SIDE_BODY,
+    legInnerSvg: GUARDIAN_LEG_INNER_SVG,
+    legInnerBody: GUARDIAN_LEG_INNER_BODY,
+    legBackSvg: GUARDIAN_LEG_BACK_SVG,
+    legBackBody: GUARDIAN_LEG_BACK_BODY,
     drawToCanvas: drawGuardianPortraitToCanvas,
     drawSideToCanvas: drawGuardianSideToCanvas,
     drawBackToCanvas: drawGuardianBackToCanvas,
@@ -3275,6 +4605,10 @@ export const HERO_PORTRAITS = {
     drawArmSideToCanvas: drawGuardianArmSideToCanvas,
     drawArmInnerToCanvas: drawGuardianArmInnerToCanvas,
     drawArmBackToCanvas: drawGuardianArmBackToCanvas,
+    drawLegFrontToCanvas: drawGuardianLegFrontToCanvas,
+    drawLegSideToCanvas: drawGuardianLegSideToCanvas,
+    drawLegInnerToCanvas: drawGuardianLegInnerToCanvas,
+    drawLegBackToCanvas: drawGuardianLegBackToCanvas,
   },
   wizard: {
     id: 'wizard',
@@ -3300,6 +4634,14 @@ export const HERO_PORTRAITS = {
     armInnerBody: WIZARD_ARM_INNER_BODY,
     armBackSvg: WIZARD_ARM_BACK_SVG,
     armBackBody: WIZARD_ARM_BACK_BODY,
+    legFrontSvg: WIZARD_LEG_FRONT_SVG,
+    legFrontBody: WIZARD_LEG_FRONT_BODY,
+    legSideSvg: WIZARD_LEG_SIDE_SVG,
+    legSideBody: WIZARD_LEG_SIDE_BODY,
+    legInnerSvg: WIZARD_LEG_INNER_SVG,
+    legInnerBody: WIZARD_LEG_INNER_BODY,
+    legBackSvg: WIZARD_LEG_BACK_SVG,
+    legBackBody: WIZARD_LEG_BACK_BODY,
     drawToCanvas: drawWizardHeadToCanvas,
     drawSideToCanvas: drawWizardSideToCanvas,
     drawBackToCanvas: drawWizardBackToCanvas,
@@ -3310,6 +4652,10 @@ export const HERO_PORTRAITS = {
     drawArmSideToCanvas: drawWizardArmSideToCanvas,
     drawArmInnerToCanvas: drawWizardArmInnerToCanvas,
     drawArmBackToCanvas: drawWizardArmBackToCanvas,
+    drawLegFrontToCanvas: drawWizardLegFrontToCanvas,
+    drawLegSideToCanvas: drawWizardLegSideToCanvas,
+    drawLegInnerToCanvas: drawWizardLegInnerToCanvas,
+    drawLegBackToCanvas: drawWizardLegBackToCanvas,
   },
   ranger: {
     id: 'ranger',
@@ -3335,6 +4681,14 @@ export const HERO_PORTRAITS = {
     armInnerBody: RANGER_ARM_INNER_BODY,
     armBackSvg: RANGER_ARM_BACK_SVG,
     armBackBody: RANGER_ARM_BACK_BODY,
+    legFrontSvg: RANGER_LEG_FRONT_SVG,
+    legFrontBody: RANGER_LEG_FRONT_BODY,
+    legSideSvg: RANGER_LEG_SIDE_SVG,
+    legSideBody: RANGER_LEG_SIDE_BODY,
+    legInnerSvg: RANGER_LEG_INNER_SVG,
+    legInnerBody: RANGER_LEG_INNER_BODY,
+    legBackSvg: RANGER_LEG_BACK_SVG,
+    legBackBody: RANGER_LEG_BACK_BODY,
     drawToCanvas: drawRangerPortraitToCanvas,
     drawSideToCanvas: drawRangerSideToCanvas,
     drawBackToCanvas: drawRangerBackToCanvas,
@@ -3345,6 +4699,10 @@ export const HERO_PORTRAITS = {
     drawArmSideToCanvas: drawRangerArmSideToCanvas,
     drawArmInnerToCanvas: drawRangerArmInnerToCanvas,
     drawArmBackToCanvas: drawRangerArmBackToCanvas,
+    drawLegFrontToCanvas: drawRangerLegFrontToCanvas,
+    drawLegSideToCanvas: drawRangerLegSideToCanvas,
+    drawLegInnerToCanvas: drawRangerLegInnerToCanvas,
+    drawLegBackToCanvas: drawRangerLegBackToCanvas,
   },
   paladin: {
     id: 'paladin',
@@ -3370,6 +4728,14 @@ export const HERO_PORTRAITS = {
     armInnerBody: PALADIN_ARM_INNER_BODY,
     armBackSvg: PALADIN_ARM_BACK_SVG,
     armBackBody: PALADIN_ARM_BACK_BODY,
+    legFrontSvg: PALADIN_LEG_FRONT_SVG,
+    legFrontBody: PALADIN_LEG_FRONT_BODY,
+    legSideSvg: PALADIN_LEG_SIDE_SVG,
+    legSideBody: PALADIN_LEG_SIDE_BODY,
+    legInnerSvg: PALADIN_LEG_INNER_SVG,
+    legInnerBody: PALADIN_LEG_INNER_BODY,
+    legBackSvg: PALADIN_LEG_BACK_SVG,
+    legBackBody: PALADIN_LEG_BACK_BODY,
     drawToCanvas: drawPaladinPortraitToCanvas,
     drawSideToCanvas: drawPaladinSideToCanvas,
     drawBackToCanvas: drawPaladinBackToCanvas,
@@ -3380,6 +4746,10 @@ export const HERO_PORTRAITS = {
     drawArmSideToCanvas: drawPaladinArmSideToCanvas,
     drawArmInnerToCanvas: drawPaladinArmInnerToCanvas,
     drawArmBackToCanvas: drawPaladinArmBackToCanvas,
+    drawLegFrontToCanvas: drawPaladinLegFrontToCanvas,
+    drawLegSideToCanvas: drawPaladinLegSideToCanvas,
+    drawLegInnerToCanvas: drawPaladinLegInnerToCanvas,
+    drawLegBackToCanvas: drawPaladinLegBackToCanvas,
   },
   adventurer: {
     id: 'adventurer',
@@ -3415,6 +4785,18 @@ export const HERO_PORTRAITS = {
     drawArmSideToCanvas: drawAdventurerArmSideToCanvas,
     drawArmInnerToCanvas: drawAdventurerArmInnerToCanvas,
     drawArmBackToCanvas: drawAdventurerArmBackToCanvas,
+    legFrontSvg: ADVENTURER_LEG_FRONT_SVG,
+    legFrontBody: ADVENTURER_LEG_FRONT_BODY,
+    legSideSvg: ADVENTURER_LEG_SIDE_SVG,
+    legSideBody: ADVENTURER_LEG_SIDE_BODY,
+    legInnerSvg: ADVENTURER_LEG_INNER_SVG,
+    legInnerBody: ADVENTURER_LEG_INNER_BODY,
+    legBackSvg: ADVENTURER_LEG_BACK_SVG,
+    legBackBody: ADVENTURER_LEG_BACK_BODY,
+    drawLegFrontToCanvas: drawAdventurerLegFrontToCanvas,
+    drawLegSideToCanvas: drawAdventurerLegSideToCanvas,
+    drawLegInnerToCanvas: drawAdventurerLegInnerToCanvas,
+    drawLegBackToCanvas: drawAdventurerLegBackToCanvas,
   },
 };
 
@@ -3429,6 +4811,10 @@ const _armFrontTextureCache = new Map();
 const _armSideTextureCache = new Map();
 const _armInnerTextureCache = new Map();
 const _armBackTextureCache = new Map();
+const _legFrontTextureCache = new Map();
+const _legSideTextureCache = new Map();
+const _legInnerTextureCache = new Map();
+const _legBackTextureCache = new Map();
 
 // Caché Singleton de materiales MeshLambertMaterial por héroe (reutilización global)
 const _faceMaterialCache = new Map();
@@ -3441,6 +4827,10 @@ const _armFrontMaterialCache = new Map();
 const _armSideMaterialCache = new Map();
 const _armInnerMaterialCache = new Map();
 const _armBackMaterialCache = new Map();
+const _legFrontMaterialCache = new Map();
+const _legSideMaterialCache = new Map();
+const _legInnerMaterialCache = new Map();
+const _legBackMaterialCache = new Map();
 
 /**
  * Genera o recupera del caché la textura CanvasTexture de Three.js para la cara del héroe.
@@ -4125,6 +5515,284 @@ export function createHeroArmBackMaterial(heroId) {
 }
 
 /**
+ * Genera o recupera del caché la textura frontal (+Z, índice 4) de la pierna del héroe.
+ */
+export function createHeroLegFrontTexture(heroId, size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const key = `${heroId}_${size}`;
+  if (_legFrontTextureCache.has(key)) {
+    return _legFrontTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawLegFrontToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawLegFrontToCanvas(ctx, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _legFrontTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material frontal (+Z, índice 4) para la pierna 3D del héroe.
+ */
+export function createHeroLegFrontMaterial(heroId) {
+  if (typeof document === 'undefined') {
+    if (_legFrontMaterialCache.has(heroId)) {
+      return _legFrontMaterialCache.get(heroId);
+    }
+    const color = heroId === 'wizard' ? 0x1e1b4b : (heroId === 'ranger' ? 0x14532d : (heroId === 'paladin' ? 0x3f3f46 : (heroId === 'adventurer' ? 0x1e293b : 0x1c1917)));
+    const mat = new THREE.MeshLambertMaterial({ color });
+    mat.userData = { isShared: true, heroId };
+    _legFrontMaterialCache.set(heroId, mat);
+    return mat;
+  }
+
+  if (_legFrontMaterialCache.has(heroId)) {
+    return _legFrontMaterialCache.get(heroId);
+  }
+
+  const texture = createHeroLegFrontTexture(heroId, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId };
+  _legFrontMaterialCache.set(heroId, mat);
+  return mat;
+}
+
+/**
+ * Genera o recupera del caché la textura lateral exterior (+X o -X) de la pierna del héroe.
+ * @param {string} heroId
+ * @param {'R'|'L'} side - 'R' para exterior derecho, 'L' para exterior izquierdo.
+ * @param {number} size
+ */
+export function createHeroLegSideTexture(heroId, side = 'R', size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const normSide = side === 'L' ? 'L' : 'R';
+  const key = `${heroId}_${normSide}_${size}`;
+  if (_legSideTextureCache.has(key)) {
+    return _legSideTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawLegSideToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawLegSideToCanvas(ctx, size, normSide === 'L');
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _legSideTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material lateral exterior para la pierna 3D del héroe.
+ * @param {string} heroId
+ * @param {'R'|'L'} side
+ */
+export function createHeroLegSideMaterial(heroId, side = 'R') {
+  const normSide = side === 'L' ? 'L' : 'R';
+  const cacheKey = `${heroId}_${normSide}`;
+
+  if (typeof document === 'undefined') {
+    if (_legSideMaterialCache.has(cacheKey)) {
+      return _legSideMaterialCache.get(cacheKey);
+    }
+    const color = heroId === 'wizard' ? 0x1e1b4b : (heroId === 'ranger' ? 0x14532d : (heroId === 'paladin' ? 0x3f3f46 : (heroId === 'adventurer' ? 0x1e293b : 0x1c1917)));
+    const mat = new THREE.MeshLambertMaterial({ color });
+    mat.userData = { isShared: true, heroId, side: normSide };
+    _legSideMaterialCache.set(cacheKey, mat);
+    return mat;
+  }
+
+  if (_legSideMaterialCache.has(cacheKey)) {
+    return _legSideMaterialCache.get(cacheKey);
+  }
+
+  const texture = createHeroLegSideTexture(heroId, normSide, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId, side: normSide };
+  _legSideMaterialCache.set(cacheKey, mat);
+  return mat;
+}
+
+/**
+ * Genera o recupera del caché la textura lateral interior para la pierna 3D del héroe.
+ * @param {string} heroId
+ * @param {'R'|'L'} side - 'R' para pierna derecha (lado interior -X), 'L' para pierna izquierda (lado interior +X).
+ * @param {number} size
+ */
+export function createHeroLegInnerTexture(heroId, side = 'R', size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const normSide = side === 'L' ? 'L' : 'R';
+  const key = `${heroId}_${normSide}_${size}`;
+  if (_legInnerTextureCache.has(key)) {
+    return _legInnerTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawLegInnerToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawLegInnerToCanvas(ctx, size, normSide === 'L');
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _legInnerTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material lateral interior para la pierna 3D del héroe.
+ * @param {string} heroId
+ * @param {'R'|'L'} side
+ */
+export function createHeroLegInnerMaterial(heroId, side = 'R') {
+  const normSide = side === 'L' ? 'L' : 'R';
+  const cacheKey = `${heroId}_${normSide}`;
+
+  if (typeof document === 'undefined') {
+    if (_legInnerMaterialCache.has(cacheKey)) {
+      return _legInnerMaterialCache.get(cacheKey);
+    }
+    const color = heroId === 'wizard' ? 0x0f172a : (heroId === 'ranger' ? 0x052e16 : (heroId === 'paladin' ? 0x27272a : (heroId === 'adventurer' ? 0x0f172a : 0x1c1917)));
+    const mat = new THREE.MeshLambertMaterial({ color });
+    mat.userData = { isShared: true, heroId, side: normSide };
+    _legInnerMaterialCache.set(cacheKey, mat);
+    return mat;
+  }
+
+  if (_legInnerMaterialCache.has(cacheKey)) {
+    return _legInnerMaterialCache.get(cacheKey);
+  }
+
+  const texture = createHeroLegInnerTexture(heroId, normSide, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId, side: normSide };
+  _legInnerMaterialCache.set(cacheKey, mat);
+  return mat;
+}
+
+/**
+ * Genera o recupera del caché la textura trasera (-Z, índice 5) de la pierna del héroe.
+ */
+export function createHeroLegBackTexture(heroId, size = 64) {
+  if (typeof document === 'undefined') return null;
+
+  const key = `${heroId}_${size}`;
+  if (_legBackTextureCache.has(key)) {
+    return _legBackTextureCache.get(key);
+  }
+
+  const def = HERO_PORTRAITS[heroId];
+  if (!def || !def.drawLegBackToCanvas) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  def.drawLegBackToCanvas(ctx, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  texture.generateMipmaps = false;
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  _legBackTextureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Crea o recupera del caché el material trasero (-Z, índice 5) para la pierna 3D del héroe.
+ */
+export function createHeroLegBackMaterial(heroId) {
+  if (typeof document === 'undefined') {
+    if (_legBackMaterialCache.has(heroId)) {
+      return _legBackMaterialCache.get(heroId);
+    }
+    const color = heroId === 'wizard' ? 0x1e1b4b : (heroId === 'ranger' ? 0x14532d : (heroId === 'paladin' ? 0x3f3f46 : (heroId === 'adventurer' ? 0x1e293b : 0x1c1917)));
+    const mat = new THREE.MeshLambertMaterial({ color });
+    mat.userData = { isShared: true, heroId };
+    _legBackMaterialCache.set(heroId, mat);
+    return mat;
+  }
+
+  if (_legBackMaterialCache.has(heroId)) {
+    return _legBackMaterialCache.get(heroId);
+  }
+
+  const texture = createHeroLegBackTexture(heroId, 64);
+  if (!texture) {
+    return null;
+  }
+
+  const mat = new THREE.MeshLambertMaterial({
+    map: texture,
+    color: 0xffffff,
+  });
+  mat.userData = { isShared: true, heroId };
+  _legBackMaterialCache.set(heroId, mat);
+  return mat;
+}
+
+/**
  * Libera de forma explícita todos los materiales y texturas cacheados en memoria de GPU.
  */
 export function disposeHeroPortraitsCache() {
@@ -4237,6 +5905,50 @@ export function disposeHeroPortraitsCache() {
     tex.dispose?.();
   }
   _armBackTextureCache.clear();
+
+  for (const mat of _legFrontMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _legFrontMaterialCache.clear();
+
+  for (const tex of _legFrontTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _legFrontTextureCache.clear();
+
+  for (const mat of _legSideMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _legSideMaterialCache.clear();
+
+  for (const tex of _legSideTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _legSideTextureCache.clear();
+
+  for (const mat of _legInnerMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _legInnerMaterialCache.clear();
+
+  for (const tex of _legInnerTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _legInnerTextureCache.clear();
+
+  for (const mat of _legBackMaterialCache.values()) {
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  _legBackMaterialCache.clear();
+
+  for (const tex of _legBackTextureCache.values()) {
+    tex.dispose?.();
+  }
+  _legBackTextureCache.clear();
 }
 
 

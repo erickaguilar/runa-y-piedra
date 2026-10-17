@@ -12,6 +12,10 @@ import {
   createHeroArmSideMaterial,
   createHeroArmInnerMaterial,
   createHeroArmBackMaterial,
+  createHeroLegFrontMaterial,
+  createHeroLegSideMaterial,
+  createHeroLegInnerMaterial,
+  createHeroLegBackMaterial,
 } from '../../../heroes/heroPortraits.js';
 
 let _rngGeoCache = null;
@@ -344,6 +348,53 @@ export function buildRangerGear(a, G, add) {
     add(gloveR, a.parts.armRPivot);
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // 7. PIERNAS — Texturas Sumi-e 360° (frente +Z, exterior, interior, espalda -Z)
+  // ═══════════════════════════════════════════════════════════
+  let legFrontMat = null;
+  let legSideRMat = null;
+  let legSideLMat = null;
+  let legInnerRMat = null;
+  let legInnerLMat = null;
+  let legBackMat = null;
+  const legL = a.parts?.legL || (a.parts?.legLPivot?.children?.find((c) => c.geometry === G?.leg));
+  const legR = a.parts?.legR || (a.parts?.legRPivot?.children?.find((c) => c.geometry === G?.leg));
+
+  if (legL || legR) {
+    legFrontMat = createHeroLegFrontMaterial('ranger');
+    legSideRMat = createHeroLegSideMaterial('ranger', 'R');
+    legSideLMat = createHeroLegSideMaterial('ranger', 'L');
+    legInnerRMat = createHeroLegInnerMaterial('ranger', 'R');
+    legInnerLMat = createHeroLegInnerMaterial('ranger', 'L');
+    legBackMat = createHeroLegBackMaterial('ranger');
+
+    if (legR) {
+      if (!a._origLegRMat) a._origLegRMat = legR.material;
+      const baseLegR = Array.isArray(a._origLegRMat) ? a._origLegRMat[0] : (a._origLegRMat || legR.material);
+      legR.material = [
+        legSideRMat || baseLegR,   // +X (exterior derecho)
+        legInnerRMat || baseLegR,  // -X (interior derecho)
+        baseLegR,                  // +Y (cadera)
+        baseLegR,                  // -Y (suela)
+        legFrontMat || baseLegR,   // +Z (frente / rodillera y cordones)
+        legBackMat || baseLegR,    // -Z (espalda / gemelo y talonera)
+      ];
+    }
+
+    if (legL) {
+      if (!a._origLegLMat) a._origLegLMat = legL.material;
+      const baseLegL = Array.isArray(a._origLegLMat) ? a._origLegLMat[0] : (a._origLegLMat || legL.material);
+      legL.material = [
+        legInnerLMat || baseLegL,  // +X (interior izquierdo)
+        legSideLMat || baseLegL,   // -X (exterior izquierdo)
+        baseLegL,                  // +Y (cadera)
+        baseLegL,                  // -Y (suela)
+        legFrontMat || baseLegL,   // +Z (frente / rodillera y cordones)
+        legBackMat || baseLegL,    // -Z (espalda / gemelo y talonera)
+      ];
+    }
+  }
+
   const mats = [
     hoodMat,
     hoodDarkMat,
@@ -369,6 +420,12 @@ export function buildRangerGear(a, G, add) {
   if (armInnerRMat) mats.push(armInnerRMat);
   if (armInnerLMat) mats.push(armInnerLMat);
   if (armBackMat) mats.push(armBackMat);
+  if (legFrontMat) mats.push(legFrontMat);
+  if (legSideRMat) mats.push(legSideRMat);
+  if (legSideLMat) mats.push(legSideLMat);
+  if (legInnerRMat) mats.push(legInnerRMat);
+  if (legInnerLMat) mats.push(legInnerLMat);
+  if (legBackMat) mats.push(legBackMat);
   return mats;
 }
 
