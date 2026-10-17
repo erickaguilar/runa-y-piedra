@@ -27,6 +27,11 @@ export class Player {
     this.invulnTicks = 0; // Protección anti-muerte-en-bucle tras reaparecer (~2s)
     this.lavaSinkingTicks = 0; // Animación de hundimiento/caída lenta en lava (~1.2s antes de reaparecer)
 
+    // Estadísticas de verticalidad (se acumulan en SimulationEngine; consumidas por la telemetría Dev)
+    this.maxAltitude = 0;
+    this.jumpCount = 0;
+    this.jumpPadCount = 0;
+
     // Inventario de llaves (ids de llave, p. ej. "llave_santuario"). Persiste ante muertes.
     this.keys = [];
 

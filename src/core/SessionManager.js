@@ -425,9 +425,9 @@ export const SessionMixin = {
       const progress = this.chapterRegistry?.progress;
 
       saveManager.saveDungeonCompletion({
-        levelId: completedLevelId,
-        chapterId: curChapter?.id || 'capitulo_1',
-        isVictory,
+        _levelId: completedLevelId,
+        _chapterId: curChapter?.id || 'capitulo_1',
+        _isVictory: isVictory,
         campaign: progress,
         inventory: {
           totalGems: this.inventory?.gems || 0,

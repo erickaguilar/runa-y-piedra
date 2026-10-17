@@ -265,7 +265,7 @@ export class NetworkManager extends EventTarget {
       }, 50);
       if (typeof setTimeout === 'function') {
         const timer = setTimeout(() => clearInterval(checkInterval), 5000);
-        timer.unref?.();
+        /** @type {any} */ (timer).unref?.();
       }
     }
   }
@@ -753,7 +753,8 @@ export class NetworkManager extends EventTarget {
     // Difusión inmediata + periódica (el invitado guarda en sessionStorage al recibir).
     tick();
     this._worldSnapshotTimer = setInterval(tick, intervalMs);
-    if (this._worldSnapshotTimer?.unref) this._worldSnapshotTimer.unref();
+    const snapshotTimer = /** @type {any} */ (this._worldSnapshotTimer);
+    if (snapshotTimer?.unref) snapshotTimer.unref();
   }
 
   stopWorldSnapshot() {

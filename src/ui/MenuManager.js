@@ -151,7 +151,7 @@ export const MenuMixin = {
     }
 
     // 2. Guardar nombre
-    const nameInput = document.getElementById('player-name-input');
+    const nameInput = /** @type {HTMLInputElement|null} */ (document.getElementById('player-name-input'));
     if (nameInput) {
       nameInput.addEventListener('input', (e) => {
         if (this.isMenuLocked) {
@@ -159,7 +159,7 @@ export const MenuMixin = {
           return;
         }
         const currentHero = PLAYER_HEROES[this.selectedColorIndex] || PLAYER_HEROES[0];
-        const val = e.target.value.trim();
+        const val = /** @type {HTMLInputElement} */ (e.target).value.trim();
         this.playerName = val || currentHero.name;
         try {
           saveManager.updateProfile({ name: this.playerName });
@@ -192,7 +192,7 @@ export const MenuMixin = {
 
     // 4. Unirse con selector interactivo de héroe para invitados
     const handleJoin = () => {
-      const pin = document.getElementById('pin-input')?.value?.trim() || '';
+      const pin = /** @type {HTMLInputElement|null} */ (document.getElementById('pin-input'))?.value?.trim() || '';
       if (!pin) {
         this.setStatus('Introduce el PIN de la sala');
         return;
@@ -240,7 +240,7 @@ export const MenuMixin = {
 
     const btnJoin = document.getElementById('btn-join');
     if (btnJoin) btnJoin.onclick = handleJoin;
-    const pinInput = document.getElementById('pin-input');
+    const pinInput = /** @type {HTMLInputElement|null} */ (document.getElementById('pin-input'));
     if (pinInput) {
       pinInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleJoin();
@@ -456,7 +456,7 @@ export const MenuMixin = {
                   this.settingsCallbacks?.onCameraChange?.(s.camera);
                 }
                 if (s.soundMuted !== undefined) {
-                  soundManager.isMuted = !!s.soundMuted;
+                  soundManager.setMuted?.(!!s.soundMuted);
                   localStorage.setItem('dungeon_sound_muted', s.soundMuted ? '1' : '0');
                 }
                 if (s.dpr) {
@@ -637,7 +637,7 @@ export const MenuMixin = {
   },
 
   updatePartyList(players) {
-    const countPills = document.querySelectorAll('.party-count-pill');
+    const countPills = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.party-count-pill'));
     if (countPills && countPills.length > 0) {
       countPills.forEach(pill => {
         if (players.length >= 5) {

@@ -161,7 +161,7 @@ export const SaveSlotsModalMixin = {
     document.body.appendChild(overlay);
     const openedAt = Date.now();
 
-    const closeBtn = overlay.querySelector('#btn-close-save-slots');
+    const closeBtn = /** @type {HTMLElement|null} */ (overlay.querySelector('#btn-close-save-slots'));
     const handleClose = (e) => {
       if (e) {
         e.stopPropagation();
@@ -188,7 +188,7 @@ export const SaveSlotsModalMixin = {
     overlay.addEventListener('touchend', handleBackdrop, { passive: false });
 
     // Cargar ranura
-    overlay.querySelectorAll('.btn-slot-load').forEach(btn => {
+    /** @type {NodeListOf<HTMLElement>} */ (overlay.querySelectorAll('.btn-slot-load')).forEach(btn => {
       const handleLoad = async (e) => {
         if (e) {
           e.stopPropagation();
@@ -222,7 +222,7 @@ export const SaveSlotsModalMixin = {
     });
 
     // Nueva partida en ranura vacía
-    overlay.querySelectorAll('.btn-slot-new').forEach(btn => {
+    /** @type {NodeListOf<HTMLElement>} */ (overlay.querySelectorAll('.btn-slot-new')).forEach(btn => {
       const handleNew = async (e) => {
         if (e) {
           e.stopPropagation();
@@ -256,7 +256,7 @@ export const SaveSlotsModalMixin = {
     });
 
     // Exportar partida
-    overlay.querySelectorAll('.btn-slot-export').forEach(btn => {
+    /** @type {NodeListOf<HTMLElement>} */ (overlay.querySelectorAll('.btn-slot-export')).forEach(btn => {
       const handleExport = async (e) => {
         if (e) {
           e.stopPropagation();
@@ -286,7 +286,7 @@ export const SaveSlotsModalMixin = {
     });
 
     // Borrar / Reiniciar partida
-    overlay.querySelectorAll('.btn-slot-delete').forEach(btn => {
+    /** @type {NodeListOf<HTMLElement>} */ (overlay.querySelectorAll('.btn-slot-delete')).forEach(btn => {
       const handleDelete = (e) => {
         if (e) {
           e.stopPropagation();
@@ -334,10 +334,10 @@ export const SaveSlotsModalMixin = {
     });
 
     // Importar partida
-    const fileInput = overlay.querySelector('#slot-file-input');
+    const fileInput = /** @type {HTMLInputElement|null} */ (overlay.querySelector('#slot-file-input'));
     let pendingImportSlotId = null;
 
-    overlay.querySelectorAll('.btn-slot-import').forEach(btn => {
+    /** @type {NodeListOf<HTMLElement>} */ (overlay.querySelectorAll('.btn-slot-import')).forEach(btn => {
       const handleImport = (e) => {
         if (e) {
           e.stopPropagation();
@@ -356,7 +356,7 @@ export const SaveSlotsModalMixin = {
 
     if (fileInput) {
       fileInput.onchange = async (e) => {
-        const file = e.target.files?.[0];
+        const file = /** @type {HTMLInputElement} */ (e.target).files?.[0];
         if (!file || !pendingImportSlotId) return;
         try {
           const text = await file.text();

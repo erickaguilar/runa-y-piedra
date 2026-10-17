@@ -34,7 +34,7 @@ export const InventoryMixin = {
   },
 
   addInventoryGems(amount) {
-    const n = parseInt(amount, 10);
+    const n = parseInt(String(amount), 10);
     if (!isNaN(n) && n > 0) {
       this.inventory.gems = (this.inventory.gems || 0) + n;
       this.ui?.updateInventory?.(this.inventory);
@@ -47,7 +47,7 @@ export const InventoryMixin = {
    * @returns {boolean} True si la transacción fue exitosa
    */
   spendInventoryGems(amount) {
-    const n = parseInt(amount, 10);
+    const n = parseInt(String(amount), 10);
     if (!isNaN(n) && n > 0 && (this.inventory?.gems || 0) >= n) {
       this.inventory.gems = Math.max(0, (this.inventory.gems || 0) - n);
       this.ui?.updateInventory?.(this.inventory);
@@ -115,7 +115,7 @@ export const InventoryMixin = {
 
   /**
    * Procesa la venta de un artículo del inventario al mercader a cambio de gemas
-   * @param {'potion'|'scroll'|'consumable'|'relic'} itemType Tipo de objeto
+   * @param {'potion'|'scroll'|'consumable'|'relic'|'key'} itemType Tipo de objeto
    * @param {string} itemId ID del objeto
    * @param {number} price Gemas a recibir
    * @returns {boolean}
@@ -127,7 +127,7 @@ export const InventoryMixin = {
       return false;
     }
 
-    const p = parseInt(price, 10);
+    const p = parseInt(String(price), 10);
     if (isNaN(p) || p <= 0) return false;
 
     let success = false;

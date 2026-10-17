@@ -33,8 +33,10 @@ export class NetworkStats {
     // Métricas por segundo (sliding window de 1s)
     this.ppsIn = 0;
     this.ppsOut = 0;
-    this.kbpsIn = 0;
-    this.kbpsOut = 0;
+    /** @type {string|number} Ancho de banda de entrada en KB/s (formateado a 1 decimal). */
+    this.kbpsIn = '0.0';
+    /** @type {string|number} Ancho de banda de salida en KB/s (formateado a 1 decimal). */
+    this.kbpsOut = '0.0';
 
     this._windowPacketsIn = 0;
     this._windowPacketsOut = 0;

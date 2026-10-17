@@ -25,7 +25,7 @@ export class HeroRegistry {
   }
 
   getHeroByIndex(index = 0) {
-    const idx = parseInt(index, 10);
+    const idx = parseInt(String(index), 10);
     return this.heroesByIndex.get(idx) || this.heroes[0];
   }
 
@@ -34,8 +34,8 @@ export class HeroRegistry {
   }
 
   getHero(idOrIndex = 0) {
-    if (typeof idOrIndex === 'number' || !isNaN(parseInt(idOrIndex, 10))) {
-      return this.getHeroByIndex(parseInt(idOrIndex, 10));
+    if (typeof idOrIndex === 'number' || !isNaN(parseInt(String(idOrIndex), 10))) {
+      return this.getHeroByIndex(parseInt(String(idOrIndex), 10));
     }
     return this.getHeroById(idOrIndex);
   }

@@ -373,7 +373,6 @@ export class VoxelSandboxGame {
     if (Array.isArray(this.world.doors)) {
       for (const d of this.world.doors) {
         this.world.closeDoor(d.id);
-        this.voxelMap?.closeDoor?.(d.id);
         this.doorRenderer?.closeDoor?.(d.id);
       }
     } else {

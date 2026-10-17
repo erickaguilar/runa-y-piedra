@@ -6,6 +6,10 @@ const HALF_W = (PHYSICS_CONFIG.PLAYER_W || 0.6) / 2;
 const PLAYER_H = PHYSICS_CONFIG.PLAYER_H || 1.8;
 
 export class SimulationEngine {
+  /**
+   * @param {import('../core/World.js').World} world
+   * @param {Record<string, any>} [callbacks] Callbacks de eventos de simulación (respawn, lava, agua, escalinata, jump pads, placas).
+   */
   constructor(world, { onPlayerRespawn, onPlayerLavaSink, onPlayerWaterEnter, onStairTouch, onJumpPad, onPressurePlateStep, onPressurePlateRelease, isTransitioning, lavaSinkTicks } = {}) {
     this.world = world;
     this.onPlayerRespawn = onPlayerRespawn || null;

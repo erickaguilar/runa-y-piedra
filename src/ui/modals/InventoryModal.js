@@ -20,7 +20,7 @@ export const InventoryModalMixin = {
       const keysCount = keys?.length || 0;
       this.keysTagHud.style.display = (keysCount > 0 && this._livesVisible !== false) ? 'flex' : 'none';
       const countEl = document.getElementById('hud-keys-count');
-      if (countEl) countEl.textContent = keysCount;
+      if (countEl) countEl.textContent = String(keysCount);
     }
 
     if (!this.inventoryHud) return;

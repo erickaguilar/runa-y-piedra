@@ -210,7 +210,7 @@ export class RoomDebugOverlay {
       console.log('📋 [Dev Coords] Copiado exitosamente al portapapeles:', detailedPayload);
     }
 
-    const copyBtn = this.uiRefs?.copyBtn || document.getElementById('btn-overlay-copy-coords');
+    const copyBtn = /** @type {HTMLElement|null} */ (this.uiRefs?.copyBtn || document.getElementById('btn-overlay-copy-coords'));
     if (copyBtn) {
       copyBtn.innerHTML = `✓ Copiado`;
       copyBtn.style.background = 'rgba(16, 185, 129, 0.45)';
@@ -279,11 +279,11 @@ export class RoomDebugOverlay {
     const r = this.uiRefs;
     if (r.room) {
       r.room.textContent = roomName;
-      r.room.title = levelName;
+      /** @type {HTMLElement} */ (r.room).title = levelName;
     }
     if (r.level) {
       r.level.textContent = levelId;
-      r.level.title = levelName;
+      /** @type {HTMLElement} */ (r.level).title = levelName;
     }
     if (r.pos) {
       r.pos.textContent = `X: ${pos.x.toFixed(2)} | Y: ${pos.y.toFixed(2)} | Z: ${pos.z.toFixed(2)}`;

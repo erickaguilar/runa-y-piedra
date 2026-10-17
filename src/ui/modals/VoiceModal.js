@@ -27,8 +27,8 @@ export function showVoicePrompt(onAccept, onDecline) {
   `;
   document.body.appendChild(modal);
 
-  const btnYes = modal.querySelector('#voice-yes');
-  const btnNo = modal.querySelector('#voice-no');
+  const btnYes = /** @type {HTMLElement} */ (modal.querySelector('#voice-yes'));
+  const btnNo = /** @type {HTMLElement} */ (modal.querySelector('#voice-no'));
 
   const cleanup = () => {
     modal.remove();

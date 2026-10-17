@@ -846,6 +846,9 @@ export function renderIcon(nameOrEmoji, options = {}) {
  * @param {string} text - Input text containing :shortcodes: or emojis
  * @param {Object} [options] - Options passed to renderIcon
  * @param {number} [options.size=16] - SVG icon size
+ * @param {string} [options.color] - Color (defaults to icon color or 'currentColor')
+ * @param {string} [options.className] - Extra CSS class name
+ * @param {string} [options.style] - Extra inline CSS
  * @returns {string} Text with icon shortcodes and emojis replaced by inline SVGs
  */
 export function replaceEmojisWithSvg(text, options = {}) {

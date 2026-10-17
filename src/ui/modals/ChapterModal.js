@@ -241,7 +241,7 @@ export const ChapterModalMixin = {
     document.body.appendChild(overlay);
     const openedAt = Date.now();
 
-    const closeBtn = overlay.querySelector('#btn-close-chapter');
+    const closeBtn = /** @type {HTMLElement|null} */ (overlay.querySelector('#btn-close-chapter'));
     const handleClose = (e) => {
       if (e) {
         e.stopPropagation();
@@ -279,23 +279,25 @@ export const ChapterModalMixin = {
       }
     };
 
-    overlay.querySelectorAll('.chapter-launch-btn').forEach((btn) => {
+    /** @type {NodeListOf<HTMLElement>} */ (overlay.querySelectorAll('.chapter-launch-btn')).forEach((btn) => {
       let touchStartX = 0;
       let touchStartY = 0;
       let isScrolling = false;
 
       btn.addEventListener('touchstart', (e) => {
-        if (e.touches && e.touches[0]) {
-          touchStartX = e.touches[0].clientX;
-          touchStartY = e.touches[0].clientY;
+        const te = /** @type {TouchEvent} */ (e);
+        if (te.touches && te.touches[0]) {
+          touchStartX = te.touches[0].clientX;
+          touchStartY = te.touches[0].clientY;
           isScrolling = false;
         }
       }, { passive: true });
 
       btn.addEventListener('touchmove', (e) => {
-        if (e.touches && e.touches[0]) {
-          const dx = e.touches[0].clientX - touchStartX;
-          const dy = e.touches[0].clientY - touchStartY;
+        const te = /** @type {TouchEvent} */ (e);
+        if (te.touches && te.touches[0]) {
+          const dx = te.touches[0].clientX - touchStartX;
+          const dy = te.touches[0].clientY - touchStartY;
           if (Math.hypot(dx, dy) > 8) {
             isScrolling = true;
           }

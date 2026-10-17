@@ -216,7 +216,7 @@ export const ShopModalMixin = {
       };
     }
 
-    const tabBtns = overlay.querySelectorAll('.shop-tab-btn');
+    const tabBtns = /** @type {NodeListOf<HTMLElement>} */ (overlay.querySelectorAll('.shop-tab-btn'));
     tabBtns.forEach(btn => {
       btn.onclick = () => {
         const tab = btn.dataset.shopTab;
@@ -229,7 +229,7 @@ export const ShopModalMixin = {
     });
 
     // Delegación de eventos para Comprar
-    const buyBtns = overlay.querySelectorAll('.btn-shop-buy');
+    const buyBtns = /** @type {NodeListOf<HTMLElement>} */ (overlay.querySelectorAll('.btn-shop-buy'));
     buyBtns.forEach(btn => {
       btn.onclick = () => {
         const itemId = btn.dataset.itemId;
@@ -246,7 +246,7 @@ export const ShopModalMixin = {
     });
 
     // Delegación de eventos para Vender
-    const sellBtns = overlay.querySelectorAll('.btn-shop-sell');
+    const sellBtns = /** @type {NodeListOf<HTMLElement>} */ (overlay.querySelectorAll('.btn-shop-sell'));
     sellBtns.forEach(btn => {
       btn.onclick = () => {
         const itemType = btn.dataset.itemType;

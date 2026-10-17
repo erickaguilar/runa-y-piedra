@@ -9,6 +9,12 @@ export function floorVariant(x, z) {
   return BLOCK_TYPES.FLOOR_MOSS;              // 10: con musgo (~10%)
 }
 
+/**
+ * Deriva el yaw (radianes) desde una configuración de orientación declarativa.
+ * @param {Record<string, any>} [cfg] Config con `facing`/`direction`/`rotation`/`angle`/`yaw`.
+ * @param {number} [defaultYaw] Valor de retorno por defecto.
+ * @returns {number}
+ */
 export function parseOrientationYaw(cfg = {}, defaultYaw = 0) {
   if (!cfg || typeof cfg !== 'object') return defaultYaw;
 

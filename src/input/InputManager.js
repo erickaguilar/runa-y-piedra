@@ -59,7 +59,7 @@ export class InputManager {
 
   initKeyboard() {
     window.addEventListener('keydown', (e) => {
-      const tag = e.target?.tagName;
+      const tag = /** @type {HTMLElement} */ (e.target)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
       if (e.code === 'Space') {

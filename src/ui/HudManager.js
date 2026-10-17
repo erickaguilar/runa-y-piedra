@@ -6,8 +6,9 @@ export const HudMixin = {
   _bindControlsHud() {
     if (typeof document === 'undefined') return;
     const btnCloseControls = document.getElementById('btn-close-controls');
-    if (btnCloseControls && !btnCloseControls.__bound) {
-      btnCloseControls.__bound = true;
+    const btnCloseEl = /** @type {any} */ (btnCloseControls);
+    if (btnCloseControls && !btnCloseEl.__bound) {
+      btnCloseEl.__bound = true;
       const handleClose = (e) => {
         if (e) {
           e.stopPropagation();

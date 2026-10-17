@@ -369,7 +369,7 @@ export const DevModalMixin = {
       // Teletransporte a sala seleccionada
       document.getElementById('btn-dev-teleport-room')?.addEventListener('click', () => {
         soundManager.playClick();
-        const sel = document.getElementById('dev-sel-room');
+        const sel = /** @type {HTMLSelectElement|null} */ (document.getElementById('dev-sel-room'));
         const roomIdx = parseInt(sel?.value || '0', 10);
         callbacks.onTeleportToRoom?.(roomIdx);
         this.closeDevModal();

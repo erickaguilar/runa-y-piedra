@@ -129,7 +129,7 @@ export class IndexedDBAdapter {
       try {
         const req = indexedDB.open(this.dbName, 1);
         req.onupgradeneeded = (e) => {
-          const db = e.target.result;
+          const db = /** @type {IDBOpenDBRequest} */ (e.target).result;
           if (!db.objectStoreNames.contains(this.storeName)) {
             db.createObjectStore(this.storeName);
           }

@@ -13,7 +13,7 @@ export const GuestJoinModalMixin = {
   /**
    * Muestra el modal interactivo de selección de clase y apodo para invitados.
    * @param {object} options
-   * @param {string} options.pin - PIN de la sala a la que se une.
+   * @param {string} [options.pin] - PIN de la sala a la que se une.
    * @param {string} [options.initialName] - Nombre predeterminado.
    * @param {number} [options.initialHeroIndex] - Índice de héroe predeterminado (0..4).
    * @param {number[]} [options.unavailableHeroIndices] - Índices de héroe ya ocupados por el anfitrión u otros jugadores.
@@ -155,7 +155,7 @@ export const GuestJoinModalMixin = {
 
     (document.body || this.uiEl).appendChild(overlay);
 
-    const nameInput = document.getElementById('guest-player-name-input');
+    const nameInput = /** @type {HTMLInputElement|null} */ (document.getElementById('guest-player-name-input'));
     if (nameInput) {
       nameInput.value = initialPlayerName;
     }
@@ -211,17 +211,17 @@ export const GuestJoinModalMixin = {
       }
     };
 
-    overlay._updateSelectedHero = (idx) => updateSelectedHero(idx);
-    overlay._setUnavailableHeroes = (indices) => setUnavailableHeroes(indices);
+    /** @type {any} */ (overlay)._updateSelectedHero = (idx) => updateSelectedHero(idx);
+    /** @type {any} */ (overlay)._setUnavailableHeroes = (indices) => setUnavailableHeroes(indices);
     this._guestJoinSetUnavailable = setUnavailableHeroes;
 
     if (heroesRow) {
       heroesRow.addEventListener('click', (e) => {
-        const chip = e.target.closest('.hero-chip');
+        const chip = /** @type {Element} */ (e.target).closest('.hero-chip');
         if (!chip) return;
         const isBlocked = chip.classList.contains('blocked') || chip.getAttribute('data-blocked') === 'true';
         if (isBlocked) {
-          soundManager.playError?.();
+          soundManager.playLocked?.();
           return;
         }
         const idx = parseInt(chip.getAttribute('data-hero-index'), 10);

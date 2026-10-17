@@ -432,6 +432,12 @@ export class SaveManager {
   /**
    * Guarda de forma explícita y atómica la partida al terminar una mazmorra.
    * Regla de negocio: El progreso de campaña y el botín recolectado solo se persisten en disco al completar con éxito una mazmorra.
+   * @param {Object} [options]
+   * @param {string} [options._levelId] Identificador informativo de la mazmorra completada.
+   * @param {string} [options._chapterId] Identificador informativo del capítulo.
+   * @param {boolean} [options._isVictory] Marca de victoria del clímax.
+   * @param {Object|null} [options.campaign] Progreso de campaña a consolidar.
+   * @param {Object|null} [options.inventory] Estado de inventario a consolidar.
    */
   async saveDungeonCompletion({ _levelId, _chapterId, _isVictory = false, campaign = null, inventory = null } = {}) {
     if (this._isGuestMode) {

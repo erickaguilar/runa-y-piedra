@@ -176,6 +176,7 @@ export function serializeOpenedChests(openedSet) {
   if (!openedSet) return {};
 
   if (typeof openedSet === 'object' && !(openedSet instanceof Set) && !Array.isArray(openedSet)) {
+    /** @type {Record<string, number[]>} */
     const result = {};
     for (const [levelId, chestIds] of Object.entries(openedSet)) {
       if (Array.isArray(chestIds)) {
@@ -188,6 +189,7 @@ export function serializeOpenedChests(openedSet) {
     return result;
   }
 
+  /** @type {Record<string, number[]>} */
   const result = {};
   const entries = openedSet instanceof Set
     ? openedSet.values()
@@ -296,6 +298,7 @@ export function serializeOpenedDoors(openedSet) {
   if (!openedSet) return {};
 
   if (typeof openedSet === 'object' && !(openedSet instanceof Set) && !Array.isArray(openedSet)) {
+    /** @type {Record<string, number[]>} */
     const result = {};
     for (const [levelId, doorIds] of Object.entries(openedSet)) {
       if (Array.isArray(doorIds)) {
@@ -308,6 +311,7 @@ export function serializeOpenedDoors(openedSet) {
     return result;
   }
 
+  /** @type {Record<string, number[]>} */
   const result = {};
   const entries = openedSet instanceof Set
     ? openedSet.values()

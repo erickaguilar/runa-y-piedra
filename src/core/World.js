@@ -33,6 +33,8 @@ export class World {
     this.stairwells = [];
     this.stairsOpen = false;
     this.spawnPoint = { x: WORLD_CONFIG.SPAWN_X, y: 1.2, z: WORLD_CONFIG.SPAWN_Z };
+    /** @type {Object|null} Datos del nivel cargado actualmente (asignado por LevelLoader). */
+    this.currentLevel = null;
     this.levelRegistry = new LevelRegistry();
     this.chapterRegistry = new ChapterRegistry();
 

@@ -301,7 +301,7 @@ export const SettingsModalMixin = {
     const sensSlider = document.getElementById('settings-sens-slider');
     const sensVal = document.getElementById('sens-val-display');
     sensSlider.oninput = (e) => {
-      const val = parseFloat(e.target.value);
+      const val = parseFloat(/** @type {HTMLInputElement} */ (e.target).value);
       sensVal.textContent = `${val.toFixed(1)}x`;
       this.settingsCallbacks?.onSensitivityChange?.(val);
     };
