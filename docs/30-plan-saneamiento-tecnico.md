@@ -44,7 +44,7 @@ pruebas existente como red de seguridad.
 | Tests en verde | 321 | ≥ 321 (nunca menos) |
 | `!important` en CSS | 1822 | ≤ 50 |
 | CSS compilado (gzip) | 20.41 KB | sin regresión / a la baja |
-| Archivo de lógica más grande | 912 líneas | ≤ 500 |
+| Archivo de lógica más grande | 912 líneas | ≤ 500 (hoy 374: `AppBootstrapMixin`) ✅ |
 | `console.log` en `src/` | 32 | 0 en rutas de producción ✅ |
 | Enlaces rotos en README | 4 | 0 |
 | `checkJs` (type checking real) | `false` (no-op) | `true`, 0 errores ✅ |
@@ -174,19 +174,30 @@ No existe ningún `TODO`/`FIXME` real en `src/`.
 
 Objetivo: ningún archivo de **lógica** supere ~500 líneas (excluyendo archivos de datos/arte).
 
-- [ ] **`GameApp.js` (912):** extraer el *bootstrap* gráfico (escena + renderers + loaders) y la
-      coordinación de sesión/red a colaboradores ya existentes (`SessionManager`,
-      `NetworkCoordinator`), dejando `GameApp` como orquestador delgado.
-- [ ] **`NetworkManager.js` (888):** separar en (a) señalización PeerJS/ICE, (b) gestión de
-      canales duales hot/safe, (c) heartbeat/telemetría. Ya existen `ChannelLinks` y
-      `NetworkStats` como base.
-- [ ] **`InteractionController.js` (742):** separar *detección/raycast* (soporta en
-      `BlockRaycaster`) de *ejecución de acciones* (puertas, cofres, altares, placas).
-- [ ] Mantener las firmas públicas para no romper consumidores; mover tests existentes si cambia
-      la ubicación.
+- [x] **`GameApp.js` (912 → 278):** extraídos ajustes/UI/cámara/bucle a `AppBootstrapMixin` y las
+      herramientas de desarrollo/utilidades de mundo a `DevToolsMixin`; `GameApp` queda como
+      orquestador delgado (bootstrap + composición de mixins).
+- [x] **`NetworkManager.js` (888 → 297):** separado en (a) señalización PeerJS/ICE →
+      `SignalingMixin`, (b) canales duales hot/safe → `ChannelsMixin`, (c) despacho de mensajes
+      entrantes del protocolo → `IncomingMixin`. Reutiliza `ChannelLinks`/`NetworkStats`.
+- [x] **`InteractionController.js` (742 → 230):** conserva *detección/raycast* y *dispatch*; la
+      *ejecución de acciones* vive en `InteractionActions` (cofres/llaves, puertas) e
+      `InteractionMechanisms` (placas, pedestal, fosa).
+- [x] Mantener las firmas públicas: la descomposición usa mixins compuestos vía
+      `Object.assign(Clase.prototype, ...)`, así que la API no cambia y no hubo que mover tests.
+- [ ] _Pendiente:_ smoke test manual host + invitado sobre `npm run dev` (requiere navegador).
 
-**DoD:** los 3 archivos objetivo ≤ 500 líneas; suite completa en verde; smoke test manual de
-host + invitado sin regresiones; `07-arquitectura-atomica-modular.md` actualizado.
+**Técnica aplicada:** cada bloque de métodos se movió **verbatim** a un objeto mixin (mismo `this`,
+sin reescribir lógica), lo que garantiza ausencia de cambios de comportamiento. La verificación de
+tipos de la API aportada por los mixins se declara en `src/types/mixins.d.ts` (augmentación de
+módulos), igual que el resto de mixins del proyecto.
+
+**Resultado (líneas):** `GameApp.js` 278 · `NetworkManager.js` 297 · `InteractionController.js` 230.
+Mixins nuevos: `AppBootstrapMixin` 374, `DevToolsMixin` 285, `SignalingMixin` 162, `ChannelsMixin`
+244, `IncomingMixin` 223, `InteractionActions` 302, `InteractionMechanisms` 237 (todos ≤ 500).
+
+**DoD:** los 3 archivos objetivo ≤ 500 líneas ✅; suite completa en verde (321 tests) ✅;
+`npm run ci` (lint + test + build) en verde ✅; `07-arquitectura-atomica-modular.md` actualizado ✅.
 
 ---
 

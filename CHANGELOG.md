@@ -29,6 +29,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Changed
 - **Infraestructura local (Fase 0)**: instalación completa de dependencias de desarrollo (`eslint`, `typescript`), activación del pre-commit (`core.hooksPath=.githooks`) y registro de la línea base del bundle y de la suite de pruebas en `docs/30-plan-saneamiento-tecnico.md`.
+- **Descomposición de god-objects (Fase 4)**: los tres archivos de lógica más grandes bajan por debajo de 500 líneas moviendo métodos **verbatim** a mixins temáticos compuestos vía `Object.assign(Clase.prototype, ...)`, sin alterar ninguna firma pública ni el comportamiento.
+  - `GameApp.js` **912 → 278**: `AppBootstrapMixin` (ajustes, UI, cámara, bucle) y `DevToolsMixin` (herramientas de desarrollo y utilidades de mundo).
+  - `NetworkManager.js` **888 → 297**: `SignalingMixin` (señalización PeerJS/ICE), `ChannelsMixin` (canales duales hot/safe) e `IncomingMixin` (despacho de mensajes entrantes).
+  - `InteractionController.js` **742 → 230**: `InteractionActions` (cofres/llaves, puertas) e `InteractionMechanisms` (placas, pedestal, fosa).
+  - `src/types/mixins.d.ts`: ampliada la augmentación de módulos para declarar la API aportada por los nuevos mixins (`VoxelSandboxGame`, `NetworkManager`, `InteractionController`).
+  - `docs/07-arquitectura-atomica-modular.md` y `docs/30-plan-saneamiento-tecnico.md` actualizados con la nueva estructura y el resultado de la fase.
 
 ## [1.40.0] - 2026-10-15
 
