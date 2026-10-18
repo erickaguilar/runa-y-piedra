@@ -251,6 +251,30 @@ Se ha inaugurado el sistema canónico de retratos en Pixel Art (32×32) con rend
    - **Texturizado Facial 3D (`adventurerGear.js`)**: La cara frontal (+Z) proyecta la expresión heroica y el flequillo del aventurero en perfecta continuidad con el casquete y mechón castaño 3D en la parte superior.
    - **Ciclo de Vida de Materiales**: Registro de `faceMat` y restauración a `_sharedMats.face` en `_clearGear()`.
 
+### 8.2. Pipeline de arte y organización del código (Fase 6)
+
+El arte de los héroes es **artesanal**: cada retrato/parte se dibuja a mano en *pixel art* 32×32 y se
+materializa en **dos representaciones complementarias** dentro de `src/heroes/portraits/`:
+
+1. **Datos SVG canónicos** (constantes `<HERO>_<PARTE>_[BODY|SVG]`): la fuente inspeccionable del
+   diseño (colores, siluetas, contornos), verificada por la suite (`HERO_PORTRAITS[*].svg/.body`).
+2. **Dibujo imperativo a `canvas`** (`draw<Hero><Parte>ToCanvas`): reproduce el mismo *pixel art* con
+   `ctx.fillRect` y es lo que consumen las texturas 3D (`THREE.CanvasTexture` con `NearestFilter`).
+   Es la ruta de ejecución real en el juego.
+
+No hay generador: el arte se edita a mano y ambas representaciones se mantienen a la par. El código
+se organiza así (Fase 6; antes era un único `heroPortraits.js` de 5 956 líneas):
+
+| Módulo | Contenido |
+|---|---|
+| `portraits/<hero>.js` (×5) | Datos SVG + funciones `draw*ToCanvas` + definición `<hero>Portrait` |
+| `portraits/registry.js` | Ensambla `HERO_PORTRAITS` desde las 5 definiciones |
+| `portraits/textures{Head,Torso,Arm,Leg}.js` | Factorías `createHero*Texture/Material`, cachés y `dispose<Region>PortraitTextures()` |
+| `heroPortraits.js` | Fachada (30 líneas): re-exporta registro, factorías y arte; compone `disposeHeroPortraitsCache()` |
+
+Todo el arte se empaqueta en el chunk dedicado **`assets-art`** (≈ 222,9 KB / 30,5 KB gzip),
+aislado del *bundle* de entrada.
+
 
 
 

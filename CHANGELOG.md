@@ -42,6 +42,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - CSS compilado: **144.5 KB → 126.9 KB** crudos (**‑17.7 KB**) y **20.41 KB → 19.32 KB gzip**.
   - Verificación visual automatizada (arnés headless Chrome/CDP, 16 estados: menú, foco, cada modal, HUD de controles y showroom in-game): **0 diferencias de estilos computados** y **0 diferencias de píxeles** (salvo el parpadeo del cursor de texto) respecto a la línea base.
   - `docs/30-plan-saneamiento-tecnico.md` y `docs/smoke-test.md` actualizados con la validación y el estado de la fase.
+- **Extracción y descomposición del arte de héroes (Fase 6)**: `src/heroes/heroPortraits.js` deja de ser un monolito de **5 956 líneas** → **fachada de 30** + módulos temáticos en `src/heroes/portraits/`, con **equivalencia byte a byte** de las 268 declaraciones originales (sin cambios de comportamiento).
+  - **Hallazgo:** el archivo no eran "5 956 líneas de SVG inline". Los strings SVG son **140 constantes de una línea**; el resto son **funciones de dibujo imperativo a `canvas`** (`draw*ToCanvas`) que reproducen el mismo *pixel art* y alimentan las texturas 3D. Ambos son necesarios: los tests verifican los SVG y el runtime usa el *canvas*.
+  - Reparto: `portraits/<hero>.js` (×5: datos SVG + 14 `draw*ToCanvas` + definición `<hero>Portrait`, ~920–1 056 líneas), `portraits/registry.js` (ensambla `HERO_PORTRAITS`) y `portraits/textures{Head,Torso,Arm,Leg}.js` (factorías `createHero*Texture/Material`, cachés y `dispose<Region>PortraitTextures()`, ~250–340 líneas). `heroPortraits.js` **re-exporta la API histórica intacta** (registro, factorías y arte) y compone `disposeHeroPortraitsCache()`.
+  - **`Icons.js` (920 líneas)** con el mismo criterio: los datos (`ICONS`, alias, equivalencias emoji) se mueven a `src/ui/icons.data.js` (797 líneas) y la lógica permanece en `Icons.js` (**133 líneas**), que re-exporta la API.
+  - `vite.config.js`: `manualChunks` amplía `assets-art` con `src/heroes/portraits/` y `src/ui/icons.data` para que el arte siga **aislado del bundle de entrada** (`assets-art`: 222,90 KB / 30,48 KB gzip; `index`: 373,16 KB **sin cambios**). Nota: `assets-art` es un chunk dedicado pero **estático** (no *lazy*).
+  - Pipeline documentado como **artesanal** (no generado) en `docs/29-diseno-visual-sumi-e-pixel-art.md` §8.2; `docs/30-plan-saneamiento-tecnico.md` actualizado (Fase 6 ✅, KPIs y evidencia del hallazgo H6).
 
 ## [1.40.0] - 2026-10-15
 

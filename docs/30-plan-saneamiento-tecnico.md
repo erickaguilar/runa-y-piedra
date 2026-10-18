@@ -19,7 +19,7 @@ pruebas existente como red de seguridad.
 | 3. Higiene de logs | ✅ Completada |
 | 4. God-objects | ✅ Completada |
 | 5. CSS mantenible | ✅ Completada |
-| 6. Extracción de arte | ⏳ Pendiente |
+| 6. Extracción de arte | ✅ Completada |
 | 7. Proceso y guardarraíles | ⏳ Pendiente |
 
 ---
@@ -34,7 +34,7 @@ pruebas existente como red de seguridad.
 | H3 | Ruido de `console.log` en rutas de producción | 32 en `src/` (NetworkManager 16, NetAudit 7, VoiceChat 6) | Baja | 3 |
 | H4 | God-objects supervivientes | `GameApp.js` 912, `NetworkManager.js` 888, `InteractionController.js` 742 líneas | Media | 4 |
 | H5 | CSS con `!important` masivo y archivo monolítico | 1822 `!important` (1806 en `sumie-ui.css` de 105 KB) | Alta | 5 |
-| H6 | Datos de arte embebidos como JS gigante | `heroPortraits.js` 5 956 líneas | Media | 6 |
+| H6 | Datos de arte embebidos como JS gigante | `heroPortraits.js` **5 956 → fachada de 30** + módulos por héroe/región (≤ 1 056) | Media | 6 |
 | H7 | Proceso: sin revisión de código / sin guardarraíles de calidad | 0 contribuidores; CI sin verificación de límites | Media | 7 |
 
 ### Métricas objetivo (línea base → meta)
@@ -44,7 +44,9 @@ pruebas existente como red de seguridad.
 | Tests en verde | 321 | ≥ 321 (nunca menos) |
 | `!important` en CSS | 1822 | ≤ 50 (hoy **48**) ✅ |
 | CSS compilado (gzip) | 20.41 KB | sin regresión / a la baja (hoy **19.32 KB**) ✅ |
-| Archivo de lógica más grande | 912 líneas | ≤ 500 (hoy 374: `AppBootstrapMixin`) ✅ |
+| Archivo de lógica más grande (god-objects Fase 4) | 912 líneas | ≤ 500 (hoy 374: `AppBootstrapMixin`) ✅ |
+| `heroPortraits.js` (arte) | 5 956 líneas | descompuesto por héroe/región (hoy fachada de **30**) ✅ |
+| `Icons.js` (datos + lógica) | 920 líneas | datos separados de lógica (hoy lógica de **133**) ✅ |
 | `console.log` en `src/` | 32 | 0 en rutas de producción ✅ |
 | Enlaces rotos en README | 4 | 0 |
 | `checkJs` (type checking real) | `false` (no-op) | `true`, 0 errores ✅ |
@@ -262,17 +264,46 @@ build en verde ✅.
 ### Fase 6 — Extracción de arte y datos
 **Esfuerzo:** ~2–3 días · **Riesgo:** medio · **Depende de:** Fase 0
 
-- [ ] `heroPortraits.js` (5 956 líneas de SVG inline) → convertir en assets `.svg` reales en
-      `src/heroes/portraits/` importados con `?raw`, o en un módulo `heroPortraits.data.js`
-      generado por script.
-- [ ] Verificar que el arte queda en el chunk lazy `assets-art` (ya pesa 222 KB) y **no** en el
-      bundle inicial.
-- [ ] Documentar el pipeline: si el SVG se genera, añadir el script generador a `scripts/`;
-      si es artesanal, dejar constancia en el doc 29.
-- [ ] Revisar `Icons.js` (917 líneas) con el mismo criterio.
+**Hallazgo al ejecutar (matiza el informe):** `heroPortraits.js` **no** eran "5 956 líneas de SVG
+inline". Los strings SVG son solo **140 constantes de una línea**; el grueso (~5 000 líneas) son
+**funciones de dibujo imperativo a canvas** (`draw*ToCanvas`) que reproducen el mismo *pixel art*
+con `ctx.fillRect(...)`. Las texturas 3D usan **únicamente** esas funciones (`def.drawToCanvas`) y
+los tests verifican los strings (`HERO_PORTRAITS[*].svg/.body`). Ambos son necesarios: **no hay
+código muerto**. Por eso la conversión literal a `.svg` + `?raw` **no** habría desmonolitizado nada
+(movería 140 líneas). La descomposición correcta es **por héroe** (arte) y **por región** (pipeline
+de texturas), separando datos de lógica.
 
-**DoD:** `heroPortraits` deja de ser un `.js` monolítico; el bundle inicial no contiene el arte;
-menú de selección de héroe funciona igual.
+- [x] `heroPortraits.js` **5 956 → fachada de 30 líneas**; la implementación vive en
+      `src/heroes/portraits/`:
+      - `<hero>.js` (×5): datos SVG + las 14 funciones `draw*ToCanvas` + su definición
+        `<hero>Portrait` (arte; ~920–1 056 líneas cada uno).
+      - `registry.js`: ensambla `HERO_PORTRAITS` desde las 5 definiciones (evita ciclos de import).
+      - `textures{Head,Torso,Arm,Leg}.js`: factorías `createHero*Texture/Material` + cachés por
+        región y su `dispose<Region>PortraitTextures()` (~250–340 líneas cada uno).
+      - `heroPortraits.js`: fachada que **re-exporta la API histórica intacta** (registro,
+        factorías y todo el arte) y compone `disposeHeroPortraitsCache()`.
+- [x] El arte sigue en el chunk **`assets-art`** (222,90 KB, **30,48 KB gzip**) y **no** en el
+      *bundle* de entrada `index` (373,16 KB, **sin cambios**). `manualChunks` se amplía con
+      `src/heroes/portraits/` y `src/ui/icons.data` para preservar el aislamiento.
+      - **Matiz:** `assets-art` es un chunk **dedicado pero estático** (lo importa `index` vía
+        `engine-render`/`Icons`), no *lazy* como suponía el informe. Hacerlo perezoso exigiría
+        cargar de forma asíncrona la construcción de avatares (cambio de comportamiento), fuera del
+        alcance de esta fase.
+- [x] Pipeline documentado como **artesanal** (arte dibujado a mano, no generado) en
+      `docs/29-diseno-visual-sumi-e-pixel-art.md` §8.2; no procede script generador.
+- [x] `Icons.js` revisado con el mismo criterio → **datos separados de lógica**:
+      `icons.data.js` (mapa `ICONS` + alias + equivalencias emoji, 797 líneas) e `Icons.js`
+      (lógica de resolución/render, **133 líneas**), manteniendo la API (re-export).
+
+**Verificación de equivalencia:** las **268 declaraciones** *top-level* del archivo original se
+conservan **con cuerpo idéntico** (comparación normalizada); solo se reescriben `HERO_PORTRAITS`
+(ensamblado desde 5 definiciones, cada bloque **idéntico** al original) y `disposeHeroPortraitsCache`
+(agrega las 4 regiones; las **28 cachés** siguen liberándose todas). `npm run ci`: lint + **321
+tests** + build en verde.
+
+**DoD:** `heroPortraits` deja de ser un `.js` monolítico (5 956 → fachada de 30 líneas + módulos
+≤ 1 056) ✅; el *bundle* de entrada no contiene el arte ✅; el menú de selección de héroe y la API
+que consumen los tests quedan intactos ✅.
 
 ---
 
