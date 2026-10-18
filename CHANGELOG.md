@@ -7,6 +7,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.41.0] - 2026-10-18
+
 ### Added
 - **Plan de Saneamiento Técnico por Fases (`docs/30-plan-saneamiento-tecnico.md`)**: plan de ejecución en 8 fases (0–7) para eliminar la deuda de mantenibilidad detectada en la auditoría de la versión 1.40.0, con métricas objetivo medibles y criterios de aceptación por fase.
 - **Verificación de tipos real (`npm run typecheck`, `jsconfig.json`)**: activación de `checkJs` con `strict: false` sobre `src/**/*` (Fase 2). El paso 3 del linter (`tsc`) deja de ser cosmético y ahora comprueba tipos de forma efectiva con **0 errores**.
