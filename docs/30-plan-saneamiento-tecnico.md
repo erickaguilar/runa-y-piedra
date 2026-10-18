@@ -20,7 +20,7 @@ pruebas existente como red de seguridad.
 | 4. God-objects | ✅ Completada |
 | 5. CSS mantenible | ✅ Completada |
 | 6. Extracción de arte | ✅ Completada |
-| 7. Proceso y guardarraíles | ⏳ Pendiente |
+| 7. Proceso y guardarraíles | 🟡 Parcial (guards + docs ✅; branch protection y release pendientes) |
 
 ---
 
@@ -317,17 +317,32 @@ HUD de controles y showroom in-game) comparado con la línea base posterior a la
 ### Fase 7 — Proceso y guardarraíles permanentes
 **Esfuerzo:** ~2 días · **Riesgo:** bajo · **Depende de:** Fases 0–6
 
-- [ ] **Branch protection** en `main` y `develop`: PR obligatorio, CI verde requerido, sin
-      pushes directos.
-- [ ] **Ampliar `.github/workflows/ci.yml`** con un job `guards` que falle si:
-      - `!important` > umbral,
-      - algún archivo de `src/` (no-data) > 500 líneas,
-      - hay `console.log` en `src/`,
-      - bundle inicial supera el presupuesto.
+- [x] **Script de guardarraíles** ([`scripts/guards.mjs`](../scripts/guards.mjs), `npm run guards`,
+      integrado en `npm run ci`) que falla si:
+      - hay más de **50** `!important` en el CSS de `src/` (hoy **48**),
+      - algún archivo de **lógica** de `src/` supera **500** líneas (los datos/arte están exentos
+        por patrón y la **deuda pre-existente está congelada** dentro del propio script),
+      - hay `console.log`/`console.info` en `src/` fuera de `src/config/logger.js` (hoy **0**),
+      - el *bundle* de entrada supera **380 KB** (hoy **373,8 KB**).
+      - **Deuda congelada** (> 500 líneas, no puede crecer): `SoundManager` 1035 · `HudManager` 726 ·
+        `SessionManager` 711 · `MenuManager` 679 · `SaveManager` 632 · `Protocol` 619 ·
+        `DevModal` 592 · `InventoryModal` 573 · `LevelLoader` 504. Reducirlos los saca de la lista.
+      - Verificado también **en negativo**: el guardarraíl falla ante un archivo nuevo > 500, ante un
+        `console.log` y ante el crecimiento de un archivo de deuda.
+- [x] **Job `guards`** añadido a `.github/workflows/ci.yml` (build + `npm run guards`), en paralelo
+      al job `verify`.
+- [ ] **Branch protection** en `main` y `develop` (PR obligatorio, CI verde requerido, sin pushes
+      directos). *(Acción sobre el repositorio remoto; pendiente de aplicar.)*
 - [ ] Promover `develop` → `main` y publicar release `1.41.0` con el CHANGELOG del saneamiento.
-- [ ] Revisar que `docs/` vuelve a estar 1:1 con el código (evitar el drift de H1).
+      *(Pendiente de confirmación.)*
+- [x] Revisar `docs/` 1:1 con el código (drift de H1): **141 enlaces**
+      `file:///data/data/com.termux/...` → rutas relativas `../` (16 documentos), **8 enlaces**
+      `](src/…)` sin `../` corregidos y **2 tests** inexistentes reapuntados en el doc 14;
+      **202/202 enlaces relativos** resuelven, el índice de `docs/README.md` está 1:1 con la carpeta
+      (30 documentos) y los conteos de tests se sincronizan a **321**.
 
-**DoD:** push directo a `main`/`develop` rechazado; job `guards` activo; release publicada.
+**DoD:** push directo a `main`/`develop` rechazado ⏳ *(pendiente de branch protection)*; job
+`guards` activo ✅; release publicada ⏳ *(pendiente de confirmación)*.
 
 ---
 

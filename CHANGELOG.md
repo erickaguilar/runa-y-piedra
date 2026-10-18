@@ -49,6 +49,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - `vite.config.js`: `manualChunks` amplía `assets-art` con `src/heroes/portraits/` y `src/ui/icons.data` para que el arte siga **aislado del bundle de entrada** (`assets-art`: 222,90 KB / 30,48 KB gzip; `index`: 373,16 KB **sin cambios**). Nota: `assets-art` es un chunk dedicado pero **estático** (no *lazy*).
   - Pipeline documentado como **artesanal** (no generado) en `docs/29-diseno-visual-sumi-e-pixel-art.md` §8.2; `docs/30-plan-saneamiento-tecnico.md` actualizado (Fase 6 ✅, KPIs y evidencia del hallazgo H6).
   - **Validación visual**: arnés headless (16 estados) → **16/16** estilos computados idénticos y **15/16** capturas pixel-idénticas; la restante (`slots`) solo difiere por el parpadeo del cursor de texto, comprobado como ruido (dos capturas del mismo código difieren igual).
+- **Guardarraíles de calidad permanentes (Fase 7)**: [`scripts/guards.mjs`](scripts/guards.mjs) (`npm run guards`, integrado en `npm run ci`) y nuevo job `guards` en CI.
+  - Falla si hay más de **50** `!important` en el CSS de `src/` (hoy 48), si un archivo de **lógica** supera **500** líneas (los datos/arte están exentos por patrón; la deuda pre-existente queda **congelada** y no puede crecer), si hay `console.log`/`console.info` en `src/` fuera de `src/config/logger.js` (hoy 0) o si el *bundle* de entrada supera **380 KB** (hoy 373,8 KB). Verificado en negativo (falla ante un archivo nuevo > 500, ante un `console.log` y ante el crecimiento de un archivo de deuda).
+  - **`.github/workflows/ci.yml`**: job `guards` (build + `npm run guards`), en paralelo al job `verify`.
+  - **Deuda > 500 líneas congelada** (registrada en el propio script): `SoundManager` 1035 · `HudManager` 726 · `SessionManager` 711 · `MenuManager` 679 · `SaveManager` 632 · `Protocol` 619 · `DevModal` 592 · `InventoryModal` 573 · `LevelLoader` 504. Reducirlos por debajo del límite los saca de la lista.
+
+### Fixed
+- **Enlaces de documentación (drift H1)**: 141 enlaces `file:///data/data/com.termux/...` de 16 documentos convertidos a rutas relativas `../`, 8 enlaces `](src/…)` sin `../` corregidos y 2 tests inexistentes reapuntados en el doc 14; **202/202 enlaces relativos** resuelven y el índice de `docs/README.md` queda 1:1 con la carpeta (30 documentos). Conteos de tests sincronizados a **321** en `docs/14`, `docs/19`, `docs/28` y `docs/29`; `docs/07`, `docs/10` y `docs/29` actualizados con la estructura de la Fase 6 (`portraits/`, `icons.data.js`) y las capas CSS de la Fase 5.
 
 ## [1.40.0] - 2026-10-15
 
