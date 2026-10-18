@@ -35,6 +35,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - `InteractionController.js` **742 → 230**: `InteractionActions` (cofres/llaves, puertas) e `InteractionMechanisms` (placas, pedestal, fosa).
   - `src/types/mixins.d.ts`: ampliada la augmentación de módulos para declarar la API aportada por los nuevos mixins (`VoxelSandboxGame`, `NetworkManager`, `InteractionController`).
   - `docs/07-arquitectura-atomica-modular.md` y `docs/30-plan-saneamiento-tecnico.md` actualizados con la nueva estructura y el resultado de la fase.
+- **CSS mantenible con capas `@layer` (Fase 5)**: eliminación prácticamente total del `!important` heredado del rediseño Sumi-e. Las 5 hojas anteriores (`base`, `menu`, `hud`, `modals`, `chapter`) se aíslan en `@layer legacy { ... }` y `sumie-ui.css` se importa **sin capa**, de modo que su cascada normal gana a la heredada **por orden de capas, sin especificidad**.
+  - `!important`: **1822 → 48** en todo el proyecto (‑97 %); `sumie-ui.css` pasa de 1806 a **32**.
+  - Los 32 restantes de Sumi-e existen **solo** para vencer estilos *inline* que inyecta JavaScript (un `@layer` nunca puede superar un estilo inline); se derivaron de forma automática eligiendo el ganador real de la cascada por cada conflicto.
+  - Limpieza de **declaraciones inline muertas** en `DevModal.js` e `InventoryModal.js` (propiedades que Sumi-e ya sobrescribía), sin tocar ninguna propiedad *viva*.
+  - CSS compilado: **144.5 KB → 126.9 KB** crudos (**‑17.7 KB**) y **20.41 KB → 19.32 KB gzip**.
+  - Verificación visual automatizada (arnés headless Chrome/CDP, 16 estados: menú, foco, cada modal, HUD de controles y showroom in-game): **0 diferencias de estilos computados** y **0 diferencias de píxeles** (salvo el parpadeo del cursor de texto) respecto a la línea base.
+  - `docs/30-plan-saneamiento-tecnico.md` y `docs/smoke-test.md` actualizados con la validación y el estado de la fase.
 
 ## [1.40.0] - 2026-10-15
 

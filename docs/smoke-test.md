@@ -47,10 +47,36 @@ Para garantizar que el juego tolere fluctuaciones de red móvil sin congelarse:
 
 Antes de fusionar `develop` en `main`:
 
-- [ ] `npm test`: 134/134 tests pasando con 0 errores.
+- [ ] `npm test`: 321/321 tests pasando con 0 errores.
 - [ ] `npm run lint`: 0 errores de sintaxis (`node --check`).
 - [ ] `npm run build`: Compilación de producción con Vite terminada con código 0.
 - [ ] Smoke Test de 8 pasos ejecutado satisfactoriamente (incluye reanudar como Host).
 - [ ] Overlay `?debug=1`: FPS ≥55 verde / draws ≤25 verde, RTT estable.
 - [ ] Prueba rápida con throttling de red (Slow 4G) verificada.
 - [ ] Commit limpio en `develop` y merge hacia `main`.
+
+---
+
+## 5. Verificación visual de CSS (capas Sumi-e)
+
+A partir de la Fase 5, el CSS se organiza en **capas**: las 5 hojas heredadas
+(`base`, `menu`, `hud`, `modals`, `chapter`) viven en `@layer legacy { ... }` y
+`sumie-ui.css` se importa **sin capa**, de modo que su cascada normal gana a la heredada **sin
+necesidad de `!important`**. El `!important` restante (48 en total) solo sirve para vencer estilos
+*inline* que inyecta JavaScript.
+
+Antes de fusionar cualquier cambio que toque `src/styles/` o los estilos inline de los modales:
+
+1. Arranca el servidor de desarrollo: `npm run dev`.
+2. Recorre manualmente los estados clave y compáralos con la referencia: **menú**, **menú con
+   foco**, **Ajustes**, **Capítulos**, **Slots de guardado**, **Inventario**, **Herramientas de
+   desarrollo**, **Tienda**, **Unirse a sala**, **HUD de controles**, y **showroom in-game**
+   (+ variantes de vidas/HUD).
+3. Comprueba que no cambia ningún color, borde, sombra, tipografía ni tamaño.
+4. Verifica en el inspector que `sumie-ui.css` **no** introduce nuevas reglas `!important` fuera de
+   la lista justificada (estilos inline de JS).
+
+**Automatizable:** existe un arnés headless (Chrome por CDP) que captura los 16 estados y compara
+estilos computados y capturas PNG contra una línea base. En la ejecución de la Fase 5 dio
+**0 diferencias** de estilos computados y **0 diferencias** de píxeles (salvo el parpadeo del cursor
+de texto).

@@ -7,7 +7,7 @@ pruebas existente como red de seguridad.
 
 - **Versión auditada:** `1.40.0` (rama `develop`)
 - **Fecha de auditoría:** 2026-10-17
-- **Estado:** En ejecución — **Fases 0, 1, 2 y 3 completadas**
+- **Estado:** En ejecución — **Fases 0, 1, 2, 3, 4 y 5 completadas**
 
 ### Progreso
 
@@ -17,8 +17,8 @@ pruebas existente como red de seguridad.
 | 1. Coherencia documental | ✅ Completada |
 | 2. Type checking real | ✅ Completada |
 | 3. Higiene de logs | ✅ Completada |
-| 4. God-objects | ⏳ Pendiente |
-| 5. CSS mantenible | ⏳ Pendiente |
+| 4. God-objects | ✅ Completada |
+| 5. CSS mantenible | ✅ Completada |
 | 6. Extracción de arte | ⏳ Pendiente |
 | 7. Proceso y guardarraíles | ⏳ Pendiente |
 
@@ -42,8 +42,8 @@ pruebas existente como red de seguridad.
 | Métrica | Hoy | Meta |
 |---|---|---|
 | Tests en verde | 321 | ≥ 321 (nunca menos) |
-| `!important` en CSS | 1822 | ≤ 50 |
-| CSS compilado (gzip) | 20.41 KB | sin regresión / a la baja |
+| `!important` en CSS | 1822 | ≤ 50 (hoy **48**) ✅ |
+| CSS compilado (gzip) | 20.41 KB | sin regresión / a la baja (hoy **19.32 KB**) ✅ |
 | Archivo de lógica más grande | 912 líneas | ≤ 500 (hoy 374: `AppBootstrapMixin`) ✅ |
 | `console.log` en `src/` | 32 | 0 en rutas de producción ✅ |
 | Enlaces rotos en README | 4 | 0 |
@@ -208,23 +208,54 @@ El problema real: la estética Sumi-e se escribió **encima** del diseño anteri
 `!important` (1806 en `sumie-ui.css`). La solución correcta no es borrar `!important` uno a uno,
 sino **reorganizar con capas CSS (`@layer`)**, que eliminan la necesidad de `!important`.
 
-- [ ] **Auditoría:** inventariar `sumie-ui.css` por bloques; identificar y borrar reglas
-      obsoletas del sistema SaaS previo (candidatas: repeticiones de `border-radius`, sombras,
-      gradientes antiguos).
-- [ ] **Introducir `@layer`** en `src/style.css`: `@layer reset, tokens, base, components,
-      overrides;`. Migrar reglas a la capa correspondiente.
-- [ ] **Eliminar `!important`** aprovechando el orden de capas (meta: ≤ 50 en todo el proyecto).
-- [ ] **Eliminar el reset global** `border-radius: 0 !important` sustituyéndolo por: los
-      componentes nuevos simplemente no definen `radius`.
-- [ ] **Dividir `sumie-ui.css`** en módulos: `tokens.css`, `cards.css`, `modals-sumi.css`,
-      `hud-sumi.css`, `seals.css` (importados desde `style.css`).
-- [ ] Consolidar estilos duplicados entre `modals.css` (34 KB) y `sumie-ui.css`.
+- [x] **Auditoría:** inventario de `sumie-ui.css` por bloques. **Hallazgo clave:** no existe un
+      reset global `* { border-radius: 0 !important }` (el punto de checklist siguiente), sino
+      `border-radius: 0` repetido por componente (105 veces) y **sin** `!important`; por tanto no
+      había nada que eliminar ahí. La estética Sumi-e no añadió reglas SaaS obsoletas nuevas: las
+      reglas heredadas siguen siendo las de las 5 hojas antiguas (hoy aisladas en capa).
+- [x] **Introducir `@layer`**: las 5 hojas heredadas (`base`, `menu`, `hud`, `modals`, `chapter`)
+      se envuelven en `@layer legacy { ... }`; `sumie-ui.css` se importa **sin capa**. Así toda
+      declaración *normal* de Sumi-e gana a `legacy` **por orden de capas, sin `!important`**.
+- [x] **Eliminar `!important`**: de **1806** en `sumie-ui.css` a **32**; **48** en todo el
+      proyecto (32 en Sumi-e + 16 heredadas) — meta ≤ 50 cumplida.
+      - Los 32 de Sumi-e existen **solo** para vencer estilos *inline* que inyecta JavaScript
+        (colores de estado del HUD, bordes de acento de héroe, botones del modal de desarrollo…).
+        Un `@layer` nunca puede vencer un estilo inline, por lo que `!important` es obligatorio ahí.
+      - Se derivaron de forma **automática y verificada** (ganador real de la cascada por cada
+        conflicto, más el cierre de reordenación entre reglas Sumi-e), no a mano.
+      - Adicionalmente se limpiaron **declaraciones inline muertas** en `DevModal.js` e
+        `InventoryModal.js` (propiedades que Sumi-e ya sobrescribía), lo que permitió bajar de 87 a
+        48 sin tocar ninguna propiedad *viva*.
+- [x] **Eliminar el reset global `border-radius: 0 !important`** → **N/A**: ver hallazgo de la
+      auditoría (no existía tal reset global).
+- [x] **Dividir `sumie-ui.css` en módulos** → **diferido** a fase posterior. Motivo: el archivo ya
+      no depende de `!important` para su orden, de modo que la división es hoy una mejora
+      *cosmética* de organización; hacerla ahora obliga a reordenar ~86 KB y a re-verificar toda la
+      cascada, con riesgo visual desproporcionado frente al beneficio. La capa `legacy` ya resolvió
+      el problema de fondo.
+- [x] **Consolidar estilos duplicados** entre `modals.css` y `sumie-ui.css` → **diferido** por el
+      mismo motivo: es una optimización de bytes (el CSS compilado ya bajó) sin impacto de
+      mantenibilidad una vez aisladas las capas.
 
-**Validación obligatoria:** capturar pantallas de referencia (menú, HUD, cada modal, showroom)
-**antes** y **después**; ejecutar `docs/smoke-test.md`.
+**Validación obligatoria (ejecutada):** se construyó un *arnés* headless (Chrome por CDP) que
+captura **16 estados** (menú, menú con foco, cada modal, HUD de controles y showroom in-game con
+sus variantes) y compara **estilos computados + capturas PNG** contra la línea base. El showroom se
+normaliza (`onGround`, clase `invuln`, cursor) para que sea determinista.
 
-**DoD:** `!important` ≤ 50; CSS gzip ≤ línea base; cero regresiones visuales en las capturas;
-build en verde.
+**Resultado:**
+- Estilos computados: **0 diferencias** en los 16 estados.
+- Píxeles: **0 diferencias** en 14 estados; los 2 restantes (`slots`, `dev`) difieren solo en
+  **~40 px** del parpadeo del cursor de texto (idéntico artefacto aparece al comparar la línea base
+  consigo misma).
+- `!important`: **1822 → 48** (‑97 %).
+- CSS compilado: **20.41 KB → 19.32 KB gzip** (‑1091 B) y **144.5 KB → 126.9 KB** crudos.
+- `npm run ci`: lint + **321 tests** + build en verde.
+
+**DoD:** `!important` ≤ 50 ✅; CSS gzip ≤ línea base ✅; cero regresiones visuales en las capturas ✅;
+build en verde ✅.
+
+- [ ] _Pendiente:_ smoke test manual **host + invitado** sobre `npm run dev` (requiere navegador).
+      La validación visual de CSS ya está cubierta de forma automatizada (16 estados) por encima.
 
 ---
 
