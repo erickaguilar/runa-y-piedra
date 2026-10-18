@@ -80,7 +80,7 @@ export const DevModalMixin = {
               <h2 class="sumie-modal-title" style="display:flex;align-items:center;gap:6px;color:var(--rune-jade,#34d399);margin:0;">
                 ${renderIcon('terminal', { size: 18, color: '#10b981' })} HERRAMIENTAS DEV
               </h2>
-              <span class="settings-version-pill sumie-stamp-pill" style="color:var(--rune-jade,#34d399);">
+              <span class="settings-version-pill sumie-stamp-pill">
                 DEV MODE
               </span>
             </div>
@@ -101,7 +101,7 @@ export const DevModalMixin = {
                   <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;color:var(--rune-jade,#34d399);font-weight:700;">
                     ${renderIcon('map', { size: 15, color: '#34d399' })} Calibración de Salas & Físicas
                   </span>
-                  <span class="settings-version-pill sumie-stamp-pill" style="color:${inGame ? 'var(--rune-jade,#34d399)' : 'var(--washi-muted,#94a3b8)'};font-size:9px;">
+                  <span class="settings-version-pill sumie-stamp-pill">
                     ${inGame ? (state.currentLevelId || 'EN PARTIDA') : 'REQUIERE PARTIDA'}
                   </span>
                 </div>
@@ -247,7 +247,7 @@ export const DevModalMixin = {
                   <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;color:var(--rune-jade,#34d399);font-weight:700;">
                     ${renderIcon('sparkles', { size: 15, color: '#34d399' })} Showroom & Atlas
                   </span>
-                  <span class="settings-version-pill sumie-stamp-pill" style="color:var(--rune-jade,#34d399);font-size:9px;">
+                  <span class="settings-version-pill sumie-stamp-pill">
                     EXCLUSIVO DEV
                   </span>
                 </div>
@@ -275,7 +275,7 @@ export const DevModalMixin = {
                   <span class="lobby-label" style="margin:0;display:flex;align-items:center;gap:6px;color:var(--washi-paper,#f8fafc);">
                     ${renderIcon('bolt', { size: 15, color: '#38bdf8' })} Telemetría WebRTC
                   </span>
-                  <span class="settings-version-pill sumie-stamp-pill" style="color:var(--rune-cyan,#38bdf8);font-size:9px;">
+                  <span class="settings-version-pill sumie-stamp-pill">
                     ?debug=1
                   </span>
                 </div>
@@ -327,7 +327,7 @@ export const DevModalMixin = {
                     ${renderIcon('refresh', { size: 15, color: '#38bdf8' })} Recargar Página (F5)
                   </span>
                 </div>
-                <button id="btn-reload-page" class="btn-primary" style="width:100%;padding:9px;background:linear-gradient(135deg,#0284c7,#0369a1);border:2px solid var(--ink-black);box-shadow:inset 0 0 0 1px var(--rune-cyan), 3px 3px 0px var(--ink-black);display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;border-radius:0;font-family:'Silkscreen',monospace;font-size:10px;" title="Recargar juego (F5)">
+                <button id="btn-reload-page" class="btn-primary" style="width:100%;padding:9px;display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;" title="Recargar juego (F5)">
                   ${renderIcon('refresh', { size: 15, color: '#fff' })} Recargar Página Ahora
                 </button>
               </div>

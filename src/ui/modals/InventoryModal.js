@@ -264,8 +264,8 @@ export const InventoryModalMixin = {
           <div class="inv-detail-icon key-bg" style="width:48px;height:48px;margin-bottom:2px;">
             ${renderIcon('key', { size: 24, color: '#fbbf24' })}
           </div>
-          <h4 style="margin:0;color:#fef08a;font-size:13px;font-weight:700;">Llavero de Expedición Vacío</h4>
-          <p style="color:#94a3b8;font-size:11px;text-align:center;margin:0;line-height:1.4;">
+          <h4 style="margin:0;">Llavero de Expedición Vacío</h4>
+          <p style="text-align:center;margin:0;line-height:1.4;">
             No tienes llaves en tu llavero. Explora las cámaras para saquear cofres con llaves de paso.<br>
             Las llaves son objetos de misión: no pueden comprarse ni venderse en el mercado.
           </p>
@@ -277,7 +277,7 @@ export const InventoryModalMixin = {
       return gemsHtml || `
         <div class="inv-modal-empty" style="padding:16px 10px;display:flex;align-items:center;justify-content:center;gap:8px;">
           ${renderIcon('gem', { size: 16, color: '#64748b' })}
-          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">No tienes gemas recolectadas actualmente.</p>
+          <p style="text-align:center;margin:0;">No tienes gemas recolectadas actualmente.</p>
         </div>
       `;
     }
@@ -286,7 +286,7 @@ export const InventoryModalMixin = {
       return relicsHtml || `
         <div class="inv-modal-empty" style="padding:16px 10px;display:flex;align-items:center;justify-content:center;gap:8px;">
           ${renderIcon('trophy', { size: 16, color: '#64748b' })}
-          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Aún no has descubierto reliquias arcanas míticas.</p>
+          <p style="text-align:center;margin:0;">Aún no has descubierto reliquias arcanas míticas.</p>
         </div>
       `;
     }
@@ -295,7 +295,7 @@ export const InventoryModalMixin = {
       return potionsHtml || `
         <div class="inv-modal-empty" style="padding:16px 10px;display:flex;align-items:center;justify-content:center;gap:8px;">
           ${renderIcon('potion', { size: 16, color: '#64748b' })}
-          <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">No tienes pociones ni consumibles disponibles.</p>
+          <p style="text-align:center;margin:0;">No tienes pociones ni consumibles disponibles.</p>
         </div>
       `;
     }
@@ -372,7 +372,7 @@ export const InventoryModalMixin = {
               <h2 style="display:flex;align-items:center;gap:6px;font-size:15px;margin:0;">
                 ${renderIcon('chest', { size: 18, color: '#f59e0b' })} BOTÍN DE EXPEDICIÓN
               </h2>
-              <span class="settings-version-pill" style="color:#fbbf24;background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.3);">
+              <span class="settings-version-pill">
                 ${totalItems} ${totalItems === 1 ? 'tesoro' : 'tesoros'}
               </span>
               <span title="Sello Hanko Imperial" style="display:inline-flex;align-items:center;filter:drop-shadow(1px 1px 0px var(--ink-black));">
