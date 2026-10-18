@@ -34,7 +34,7 @@ export default defineConfig({
           if (id.includes('src/levels/data/')) {
             return 'levels-data';
           }
-          if (id.includes('src/heroes/heroPortraits') || id.includes('src/ui/Icons')) {
+          if (id.includes('src/heroes/heroPortraits') || id.includes('src/heroes/portraits/') || id.includes('src/ui/Icons') || id.includes('src/ui/icons.data')) {
             return 'assets-art';
           }
         }
