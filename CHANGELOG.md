@@ -7,6 +7,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Changed
+- **Branch protection** en `main` y `develop` (PR obligatorio, `enforce_admins`, checks requeridos `verify` + `guards`, sin force-push ni borrado): cierre remoto de la Fase 7 del plan de saneamiento. Un push directo pasa a ser rechazado (`GH006`). La release `1.41.0` ya quedó publicada por *fast-forward* de `develop` a `main`.
+
 ## [1.41.0] - 2026-10-18
 
 ### Added

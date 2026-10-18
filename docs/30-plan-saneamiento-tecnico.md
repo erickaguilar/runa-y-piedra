@@ -20,7 +20,7 @@ pruebas existente como red de seguridad.
 | 4. God-objects | ✅ Completada |
 | 5. CSS mantenible | ✅ Completada |
 | 6. Extracción de arte | ✅ Completada |
-| 7. Proceso y guardarraíles | 🟡 Parcial (guards + docs ✅; branch protection y release pendientes) |
+| 7. Proceso y guardarraíles | ✅ Completada |
 
 ---
 
@@ -48,9 +48,10 @@ pruebas existente como red de seguridad.
 | `heroPortraits.js` (arte) | 5 956 líneas | descompuesto por héroe/región (hoy fachada de **30**) ✅ |
 | `Icons.js` (datos + lógica) | 920 líneas | datos separados de lógica (hoy lógica de **133**) ✅ |
 | `console.log` en `src/` | 32 | 0 en rutas de producción ✅ |
-| Enlaces rotos en README | 4 | 0 |
+| Enlaces rotos en `README`/`docs/` | 4 (+146 `file:///` en docs) | 0 (verificado: 202/202 relativos resuelven) ✅ |
 | `checkJs` (type checking real) | `false` (no-op) | `true`, 0 errores ✅ |
-| Bundle principal | 373 KB (100 KB gzip) | sin regresión |
+| Bundle principal | 373 KB (100 KB gzip) | sin regresión: hoy 373,8 KB / 100,4 KB gzip ✅ |
+| Guardarraíles permanentes (Fase 7) | — | `npm run guards` + job `guards` en CI ✅ |
 
 ---
 
@@ -331,18 +332,22 @@ HUD de controles y showroom in-game) comparado con la línea base posterior a la
         `console.log` y ante el crecimiento de un archivo de deuda.
 - [x] **Job `guards`** añadido a `.github/workflows/ci.yml` (build + `npm run guards`), en paralelo
       al job `verify`.
-- [ ] **Branch protection** en `main` y `develop` (PR obligatorio, CI verde requerido, sin pushes
-      directos). *(Acción sobre el repositorio remoto; pendiente de aplicar.)*
-- [ ] Promover `develop` → `main` y publicar release `1.41.0` con el CHANGELOG del saneamiento.
-      *(Pendiente de confirmación.)*
+- [x] **Branch protection** en `main` y `develop` (aplicada vía `gh api`): PR obligatorio
+      (0 aprobaciones requeridas), `enforce_admins: true`, checks requeridos `verify` + `guards`
+      (estrictos), sin `force-push` ni borrado. **Verificado**: un push directo a `develop` es
+      rechazado (`GH006: protected branch`).
+- [x] **Promover `develop` → `main`** por *fast-forward* (`main` == `develop`) y **publicar la release
+      `1.41.0`**: tag `v1.41.0` y GitHub Release
+      ([releases/tag/v1.41.0](https://github.com/erickaguilar/runa-y-piedra/releases/tag/v1.41.0)),
+      con `package.json`/`constants.js` a `1.41.0` y el CHANGELOG del saneamiento.
 - [x] Revisar `docs/` 1:1 con el código (drift de H1): **141 enlaces**
       `file:///data/data/com.termux/...` → rutas relativas `../` (16 documentos), **8 enlaces**
       `](src/…)` sin `../` corregidos y **2 tests** inexistentes reapuntados en el doc 14;
       **202/202 enlaces relativos** resuelven, el índice de `docs/README.md` está 1:1 con la carpeta
       (30 documentos) y los conteos de tests se sincronizan a **321**.
 
-**DoD:** push directo a `main`/`develop` rechazado ⏳ *(pendiente de branch protection)*; job
-`guards` activo ✅; release publicada ⏳ *(pendiente de confirmación)*.
+**DoD:** push directo a `main`/`develop` rechazado ✅; job `guards` activo (local y en CI) ✅;
+release `1.41.0` publicada ✅.
 
 ---
 
