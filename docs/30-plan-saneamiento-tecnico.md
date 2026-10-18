@@ -305,6 +305,13 @@ tests** + build en verde.
 ≤ 1 056) ✅; el *bundle* de entrada no contiene el arte ✅; el menú de selección de héroe y la API
 que consumen los tests quedan intactos ✅.
 
+**Validación visual (ejecutada):** arnés headless (Chrome/CDP, 16 estados: menú, foco, cada modal,
+HUD de controles y showroom in-game) comparado con la línea base posterior a la Fase 5:
+- Estilos computados: **16/16 estados, 0 diferencias**.
+- Píxeles: **15/16 idénticos**; el único (`slots`, 83 px en una caja de 12×8) es el **parpadeo del
+  cursor de texto** del campo de nombre, confirmado como ruido al comparar dos capturas del
+  **mismo** código (que también difieren en esa región y en `dev`).
+
 ---
 
 ### Fase 7 — Proceso y guardarraíles permanentes

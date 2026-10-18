@@ -48,6 +48,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - **`Icons.js` (920 líneas)** con el mismo criterio: los datos (`ICONS`, alias, equivalencias emoji) se mueven a `src/ui/icons.data.js` (797 líneas) y la lógica permanece en `Icons.js` (**133 líneas**), que re-exporta la API.
   - `vite.config.js`: `manualChunks` amplía `assets-art` con `src/heroes/portraits/` y `src/ui/icons.data` para que el arte siga **aislado del bundle de entrada** (`assets-art`: 222,90 KB / 30,48 KB gzip; `index`: 373,16 KB **sin cambios**). Nota: `assets-art` es un chunk dedicado pero **estático** (no *lazy*).
   - Pipeline documentado como **artesanal** (no generado) en `docs/29-diseno-visual-sumi-e-pixel-art.md` §8.2; `docs/30-plan-saneamiento-tecnico.md` actualizado (Fase 6 ✅, KPIs y evidencia del hallazgo H6).
+  - **Validación visual**: arnés headless (16 estados) → **16/16** estilos computados idénticos y **15/16** capturas pixel-idénticas; la restante (`slots`) solo difiere por el parpadeo del cursor de texto, comprobado como ruido (dos capturas del mismo código difieren igual).
 
 ## [1.40.0] - 2026-10-15
 
