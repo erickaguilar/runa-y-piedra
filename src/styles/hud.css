@@ -1,3 +1,4 @@
+@layer legacy {
 /* ==========================================================================
    HUD: Controles táctiles/PC, Vidas, Botín, Alertas y Transiciones
    ========================================================================== */
@@ -846,4 +847,4 @@
     .narrative-icon.reward.done {
       will-change: auto;
     }
-
+}

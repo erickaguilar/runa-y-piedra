@@ -1,6 +1,12 @@
 /* ==========================================================================
    Runa y Piedra - Stylesheet Entry Point
    Modular architecture: Base, Menu, HUD, Modals & Expedition Atlas
+
+   Orden de capas: las 5 hojas heredadas (base/menu/hud/modals/chapter) se
+   envuelven en `@layer legacy { ... }` dentro de cada archivo; sumie-ui.css
+   se importa SIN capa y gana a `legacy` por orden de capas (sin especificidad).
+   El refuerzo forzado restante (`!` + `important`) solo vence estilos en línea
+   inyectados por JS.
    ========================================================================== */
 
 @import './styles/base.css';
