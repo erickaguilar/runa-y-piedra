@@ -54,7 +54,7 @@ Esto requiere como máximo entre 8 y 18 accesos directos al `Uint8Array`, consum
 La lava (`BLOCK_TYPES.LAVA = 7`) está diseñada como un obstáculo de entorno con física de fluido viscoso y animación de muerte orgánica:
 
 1. **Permeabilidad del Bloque (No Sólido)**:
-   - En [`PhysicsAABB.js`](file:///data/data/com.termux/files/home/develop/game/src/core/PhysicsAABB.js), la función `isSolid(world, bx, by, bz)` excluye explícitamente tanto `BLOCK_TYPES.AIR (0)` como `BLOCK_TYPES.LAVA (7)`.
+   - En [`PhysicsAABB.js`](../src/core/PhysicsAABB.js), la función `isSolid(world, bx, by, bz)` excluye explícitamente tanto `BLOCK_TYPES.AIR (0)` como `BLOCK_TYPES.LAVA (7)`.
    - El jugador no choca contra la superficie de la lava como un suelo duro; su cuerpo penetra y se sumerge en ella.
 
 2. **Viscosidad y Caída Lenta**:

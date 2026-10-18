@@ -2,9 +2,11 @@
 
 Este documento detalla el subsistema global de iconos vectoriales SVG, el motor reactivo de conversión de emojis, la integración de la Sala de Expedición en el modal de configuración y las optimizaciones de maquetación móvil anti-desbordamiento.
 
+El catálogo de datos (`ICONS`, `ICON_ALIASES` y `EMOJI_TO_ICON_MAP`) vive en [`src/ui/icons.data.js`](../src/ui/icons.data.js); [`src/ui/Icons.js`](../src/ui/Icons.js) contiene la lógica de resolución/render y re-exporta esos datos (Fase 6).
+
 ---
 
-## 1. Repositorio Global de Iconos SVG ([`src/ui/Icons.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js))
+## 1. Repositorio Global de Iconos SVG ([`src/ui/Icons.js`](../src/ui/Icons.js))
 
 Para garantizar una estética medieval-voxel profesional y nítida en pantallas de alta densidad (Retina, AMOLED), se eliminó la dependencia de emojis Unicode heterogéneos y se creó un catálogo centralizado de iconos vectoriales SVG limpios con `viewBox="0 0 24 24"`.
 
@@ -84,7 +86,7 @@ Garantiza alineación vertical milimétrica (`vertical-align: -2px`) y consisten
 
 ### Corrección del Botón "Unirse"
 - **Problema Detectado**: En resoluciones de pantalla estrechas ($\le 360\text{ px}$), el campo de texto de 4 dígitos `.join-input` superaba el ancho disponible debido al valor predeterminado del navegador `min-width: auto`, expulsando a `.btn-join` fuera del borde del modal.
-- **Solución Implementada ([`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html#L8-L45))**:
+- **Solución Implementada ([`index.html`](../index.html#L8-L45))**:
   1. **Reset Universal**: `*, *:before, *:after { box-sizing: border-box; }`.
   2. **Contenedor Elástico**: `.join-container { width: 100%; display: flex; gap: 8px; box-sizing: border-box; }`.
   3. **Input de Ancho Cero Base**: `.join-input { flex: 1; min-width: 0; box-sizing: border-box; }`.
@@ -97,7 +99,7 @@ El botón y el campo se adaptan con precisión matemática desde pantallas de $2
 ## 5. Visibilidad Contextual de Controles Táctiles
 
 Para mantener las pantallas de lobby, creación de sala y ajustes limpias y despejadas:
-- En [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), el método `setActionButtonsVisible(visible)` conmuta la visibilidad de los botones flotantes **SALTAR** y **ACTION**.
+- En [`UIManager.js`](../src/ui/UIManager.js), el método `setActionButtonsVisible(visible)` conmuta la visibilidad de los botones flotantes **SALTAR** y **ACTION**.
 - Los botones permanecen en `display: none` durante los menús y modales, apareciendo únicamente en partida activa (`currentScreen === 'in_game'`).
 
 ---
@@ -110,19 +112,19 @@ Para lograr un acabado táctil y receptivo de nivel comercial en navegadores mó
 - **Ease-Out-Expo (`cubic-bezier(0.16, 1, 0.3, 1)`)**: Utilizada en las tarjetas de alerta del HUD (`.hud-alert-card`). Es una curva asintótica suave y veloz ($Y \le 1.0$) sin rebasamiento (*overshoot*) ni oscilación.
 - **Spring Real (Resorte Físico)**: Requiere capacidad de sobrepasar el objetivo ($Y > 1.0$), oscilar en sistemas sub-amortiguados ($\zeta < 1.0$) y estabilizarse según masa y amortiguación.
 
-### 2. Integrador Físico de Resortes ([`src/ui/Spring.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Spring.js))
+### 2. Integrador Físico de Resortes ([`src/ui/Spring.js`](../src/ui/Spring.js))
 Clase autónoma y sin dependencias externas basada en **Euler semi-implícito** con 4 sub-pasos por tick:
 $$a = -k \cdot (x - x_{\text{target}}) - c \cdot v$$
 $$v \gets v + a \cdot \Delta t_{\text{sub}}$$
 $$x \gets x + v \cdot \Delta t_{\text{sub}}$$
-- **Cofre 3D ([`ChestRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js))**: Emplea `Spring(200, 14)` para la tapa, proporcionando sensación de masa pesada, rebote elástico contra el tope (~112% de apertura) y disipación natural. La intensidad luminosa interior (`lootLight.intensity`) se normaliza mediante $\text{clamp}(\text{angle} / \text{target}, 0, 1) \cdot 3.0$ para evitar destellos o parpadeos durante el rebote.
+- **Cofre 3D ([`ChestRenderer.js`](../src/render/ChestRenderer.js))**: Emplea `Spring(200, 14)` para la tapa, proporcionando sensación de masa pesada, rebote elástico contra el tope (~112% de apertura) y disipación natural. La intensidad luminosa interior (`lootLight.intensity`) se normaliza mediante $\text{clamp}(\text{angle} / \text{target}, 0, 1) \cdot 3.0$ para evitar destellos o parpadeos durante el rebote.
 
-### 3. Asimetría Táctil en Botones de Acción Móvil ([`index.html`](file:///data/data/com.termux/files/home/develop/game/index.html))
+### 3. Asimetría Táctil en Botones de Acción Móvil ([`index.html`](../index.html))
 - **Press (Presión)**: $80\text{ ms}$ con `ease-out` para feedback táctil instantáneo.
 - **Release (Liberación)**: $180\text{ ms}$ con `cubic-bezier(0.34, 1.56, 0.64, 1)` (curva *back-out* con rebote elástico visible).
 - Supresión del destello translúcido en Safari iOS vía `-webkit-tap-highlight-color: transparent`.
 
-### 4. Micro-Animaciones CSS para Iconos SVG ([`Icons.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js))
+### 4. Micro-Animaciones CSS para Iconos SVG ([`Icons.js`](../src/ui/Icons.js))
 - `@keyframes springPopIn`: Overshoot elástico único ($420\text{ ms}$) para títulos y avisos narrativos.
 - `@keyframes springBounce`: Rebote con dos oscilaciones elásticas ($620\text{ ms}$) para elementos de recompensa (gemas, llaves, tesoros).
 - **Ejecución 100% en Hilo Compositor GPU**: Selectores duales `.svg-icon` y `.narrative-icon` con descarte de `will-change` al completarse (`.done`) para optimizar memoria en pantallas Retina y AMOLED.

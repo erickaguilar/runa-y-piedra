@@ -1,16 +1,16 @@
 # 09. Biblioteca de Héroes, Clases Únicas y Modificadores Físicos
 
-Este documento describe la arquitectura declarativa de personajes del juego, el catálogo de clases gestionado por [`heroes.json`](file:///data/data/com.termux/files/home/develop/game/src/heroes/data/heroes.json), los modificadores de física en tiempo real y la representación de avatares en 3D.
+Este documento describe la arquitectura declarativa de personajes del juego, el catálogo de clases gestionado por [`heroes.json`](../src/heroes/data/heroes.json), los modificadores de física en tiempo real y la representación de avatares en 3D.
 
 ---
 
 ## 1. Arquitectura Declarativa en JSON
 
-Toda la información referente a clases de aventureros, estética, rasgos pasivos e impacto en las físicas del juego se almacena de forma desacoplada en [`src/heroes/data/heroes.json`](file:///data/data/com.termux/files/home/develop/game/src/heroes/data/heroes.json) y se administra mediante [`HeroRegistry.js`](file:///data/data/com.termux/files/home/develop/game/src/heroes/HeroRegistry.js).
+Toda la información referente a clases de aventureros, estética, rasgos pasivos e impacto en las físicas del juego se almacena de forma desacoplada en [`src/heroes/data/heroes.json`](../src/heroes/data/heroes.json) y se administra mediante [`HeroRegistry.js`](../src/heroes/HeroRegistry.js).
 
 ### Vinculación con las Constantes del Motor
 
-En [`src/config/constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js):
+En [`src/config/constants.js`](../src/config/constants.js):
 ```javascript
 import heroesData from '../heroes/data/heroes.json';
 
@@ -62,7 +62,7 @@ Cualquier módulo que importe `PLAYER_HEROES` o `PLAYER_PALETTE` recibe automát
 
 Las características de los héroes no son meramente cosméticas; modifican directamente las ecuaciones del motor físico:
 
-### 1. Velocidad de Carrera Horizontal ([`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js#L10-L16))
+### 1. Velocidad de Carrera Horizontal ([`SimulationEngine.js`](../src/simulation/SimulationEngine.js#L10-L16))
 ```javascript
 const speedMult = p.hero?.speedMultiplier || 1.0;
 const currentSpeed = PHYSICS_CONFIG.SPEED * speedMult;
@@ -72,7 +72,7 @@ p.vel.z = (fz * p.inputForward + rz * p.inputRight) * currentSpeed;
 - **Explorador ($1.12\times$)**: Permite cruzar los fosos con menor margen de riesgo gracias a su aceleración de carrera.
 - **Guardián ($0.94\times$)**: Ofrece pisada más pausada y precisa en cornisas estrechas.
 
-### 2. Impulso de Salto Vertical ([`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js#L181-L187))
+### 2. Impulso de Salto Vertical ([`main.js`](../src/main.js#L181-L187))
 ```javascript
 handleJump() {
   const local = this.playerManager.localPlayer;
@@ -89,7 +89,7 @@ handleJump() {
 
 ## 4. Tarjeta Dinámica de Características en la Interfaz (UI)
 
-En [`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js), el método `renderHeroTraitCard(hero)` renderiza en tiempo real una tarjeta informativa interactiva cuando el jugador selecciona o cambia de héroe:
+En [`UIManager.js`](../src/ui/UIManager.js), el método `renderHeroTraitCard(hero)` renderiza en tiempo real una tarjeta informativa interactiva cuando el jugador selecciona o cambia de héroe:
 
 - **Cabecera**: Icono SVG personalizado del héroe + Título de clase.
 - **Descripción**: Resumen del estilo de juego y rol.
@@ -102,7 +102,7 @@ Esta misma tarjeta se actualiza reactivamente tanto en la pantalla inicial como 
 
 ---
 
-## 5. Renderizado 3D de Avatares y Nombres en Partida ([`AvatarRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/AvatarRenderer.js))
+## 5. Renderizado 3D de Avatares y Nombres en Partida ([`AvatarRenderer.js`](../src/render/AvatarRenderer.js))
 
 - **Malla Vóxel**: Cada jugador conectado está representado por un prisma 3D ($0.6 \times 1.8 \times 0.6\text{ m}$) teñido con el color distintivo de su clase.
 - **Sprite de Texto Flotante (Nameplate)**:

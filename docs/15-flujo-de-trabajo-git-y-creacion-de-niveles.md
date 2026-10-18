@@ -41,7 +41,7 @@ gitGraph
 
 ## 2. Guía Paso a Paso: Creación de un Nuevo Nivel
 
-El motor de niveles de Runa y Piedra está completamente desacoplado en formato declarativo JSON dentro de [`src/levels/data/`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/).
+El motor de niveles de Runa y Piedra está completamente desacoplado en formato declarativo JSON dentro de [`src/levels/data/`](../src/levels/data/).
 
 ### Paso 1: Crear la Rama de Funcionalidad
 Desde una copia local actualizada de `develop`:
@@ -79,7 +79,7 @@ Crear el archivo `src/levels/data/cripta_sombras.json` siguiendo el esquema arqu
 }
 ```
 
-### Paso 3: Registrar el Nivel en [`LevelRegistry.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelRegistry.js)
+### Paso 3: Registrar el Nivel en [`LevelRegistry.js`](../src/levels/LevelRegistry.js)
 Importar el JSON con atributos de tipo y añadirlo al catálogo:
 
 ```javascript
@@ -95,7 +95,7 @@ Antes de realizar cualquier commit, es **estrictamente obligatorio** ejecutar la
 ```bash
 npm test
 ```
-El test [`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js) inspeccionará automáticamente la consistencia estructural del nuevo archivo JSON:
+El test [`tests/levels.test.js`](../tests/levels.test.js) inspeccionará automáticamente la consistencia estructural del nuevo archivo JSON:
 - Verificación de umbrales bajo puertas (`MIN_Y`).
 - Sellado perimetral impenetrable.
 - Correspondencia lógica de cofres con llaves y puertas con cerradura.
@@ -131,9 +131,9 @@ Luego, en GitHub, se abre un Pull Request hacia la rama **`develop`**. Tras la r
 Cuando un conjunto de niveles o características en `develop` conforma un hito jugable:
 
 1. **Incrementar versión y documentar**:
-   - Actualizar `"version"` en [`package.json`](file:///data/data/com.termux/files/home/develop/game/package.json).
-   - Documentar adiciones, cambios o correcciones en [`CHANGELOG.md`](file:///data/data/com.termux/files/home/develop/game/CHANGELOG.md).
-   - Actualizar el badge en [`README.md`](file:///data/data/com.termux/files/home/develop/game/README.md).
+   - Actualizar `"version"` en [`package.json`](../package.json).
+   - Documentar adiciones, cambios o correcciones en [`CHANGELOG.md`](../CHANGELOG.md).
+   - Actualizar el badge en [`README.md`](../README.md).
 2. **Fusionar en `main`**:
    ```bash
    git checkout main

@@ -65,7 +65,7 @@ En arquitecturas P2P o servidor autoritativo, existen dos alternativas extremas:
 
 Los navegadores móviles ejecutan temporizadores con fluctuaciones naturales ($\pm 5\text{ a }15\text{ ms}$). Sin un buffer de jitter, el host recibiría 0 inputs en un tick y 2 en el siguiente, provocando micro-tirones visuales.
 
-[`InputQueue.js`](file:///data/data/com.termux/files/home/develop/game/src/network/InputQueue.js) resuelve esto mediante:
+[`InputQueue.js`](../src/network/InputQueue.js) resuelve esto mediante:
 1. **Desacoplamiento Temporal**: Encola los inputs recibidos por conexión WebRTC y entrega exactamente **un input por tick de simulación (30 Hz)** en el host.
 2. **Profundidad Máxima de Cola**: Limitada estrictamente a 5 inputs ($\sim 166\text{ ms}$). Si un cliente laggy acumula exceso de paquetes, se descartan los más viejos para evitar retraso acumulativo en cámara lenta.
 3. **Rate Limiting por Conexión**: Límite de 45 inputs/segundo por peer para prevenir saturación de ancho de banda o spam malicioso.
@@ -82,11 +82,11 @@ Los navegadores móviles ejecutan temporizadores con fluctuaciones naturales ($\
 
 ## 4. Algoritmo de Reconciliación del Jugador Local (`ClientReconciler.js`)
 
-El proceso en [`ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js) opera desacoplando el **estado lógico/físico** del **estado visual de renderizado**:
+El proceso en [`ClientReconciler.js`](../src/network/ClientReconciler.js) opera desacoplando el **estado lógico/físico** del **estado visual de renderizado**:
 
 1. **Separación de Estado Lógico (`pos`) y Visual (`visualPos`)**:
    - `player.pos`: Autoridad física local y resultado exacto del replay de reconciliación. Todos los cálculos de colisiones (`tryMove`), predicción de saltos e inputs se realizan contra `player.pos`.
-   - `player.visualPos`: Estado suavizado utilizado exclusivamente por [`CameraController.js`](file:///data/data/com.termux/files/home/develop/game/src/camera/CameraController.js) para posicionar la cámara a 60 FPS sin saltos perceptibles.
+   - `player.visualPos`: Estado suavizado utilizado exclusivamente por [`CameraController.js`](../src/camera/CameraController.js) para posicionar la cámara a 60 FPS sin saltos perceptibles.
 2. **Guarda Monotónica**: Descarte de snapshots que lleguen con timestamp desfasado o fuera de orden (`simTime <= lastProcessedSimTime`).
 3. **Registro Continuo de Inputs (`recordInput`)**:
    En cada tick de física (`onTick` a 30 Hz), con $\Delta t$ fijo idéntico al del host (`FIXED_DT = 1/30 s`) y flags de acción unificados (sin estado interno duplicado `pendingActions`):
@@ -123,13 +123,13 @@ Para compañeros de equipo en la mazmorra:
 3. **Extrapolación Lineal de Seguridad ante Inanición**:
    Si una ráfaga de retraso en la red hace que $t_{\text{render}} > S_{\text{último}}.\text{time}$, el reconciliador extrapola cinemáticamente hasta un máximo estricto de **$150\text{ ms}$**.
 4. **Indicador Visual de Congelamiento**:
-   Si la inanición supera los $500\text{ ms}$, [`AvatarRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/AvatarRenderer.js) atenúa el avatar al $55\%$ de opacidad (`setFrozen(id, true)`), señalando visualmente el estado de lag sin romper la inmersión.
+   Si la inanición supera los $500\text{ ms}$, [`AvatarRenderer.js`](../src/render/AvatarRenderer.js) atenúa el avatar al $55\%$ de opacidad (`setFrozen(id, true)`), señalando visualmente el estado de lag sin romper la inmersión.
 
 ---
 
 ## 6. Telemetría Diagnóstica en el HUD (`?debug=1`)
 
-El monitor [`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js) reporta en tiempo real:
+El monitor [`NetworkStats.js`](../src/network/NetworkStats.js) reporta en tiempo real:
 
 * **`Pred Err`**: Desfase métrico instantáneo a 3 decimales (ej. `0.012 m`).
 * **`In Flight`**: Número de paquetes de input enviados pendientes de ack (típicamente 1 a 3).

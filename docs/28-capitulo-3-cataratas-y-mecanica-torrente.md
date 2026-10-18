@@ -120,5 +120,5 @@ En `src/render/models/props/pedestalModel.js` y `stairsModel.js`:
   4. Salto / impulso vertical desde el agua.
   5. Carga y consistencia de los 3 niveles en `LevelRegistry`.
   6. Desbloqueo progresivo del Capítulo 3 al completar el Capítulo 2.
-- **Resultados de la suite completa**: 285 tests pasando (0 fallos).
+- **Resultados de la suite completa**: 321 tests pasando (0 fallos).
 - **Compilación de producción**: Vite compila de forma limpia en 2.8s sin advertencias de tipos ni errores de empaquetado.

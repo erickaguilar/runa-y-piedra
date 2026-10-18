@@ -58,7 +58,7 @@ Todos los niveles se serializan en formato declarativo JSON compacto (`src/level
 
 ## 3. Arquitectura del Sistema Capitular (`ChapterRegistry`)
 
-Actualmente, [`LevelRegistry.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelRegistry.js) mantiene una lista plana de niveles. Para estructurar capítulos, se introduce un modelo jerárquico:
+Actualmente, [`LevelRegistry.js`](../src/levels/LevelRegistry.js) mantiene una lista plana de niveles. Para estructurar capítulos, se introduce un modelo jerárquico:
 
 ```mermaid
 flowchart TD
@@ -155,7 +155,7 @@ Para que una campaña de 30 mazmorras mantenga el interés de los jugadores, cad
 ## 5. Hub de Selección y Persistencia
 
 ### 5.1. El Lobby como Centro de Operaciones
-El nivel actual [`lobby_tutorial.json`](file:///data/data/com.termux/files/home/develop/game/src/levels/data/lobby_tutorial.json) se expande como el punto de reunión de la expedición:
+El nivel actual [`lobby_tutorial.json`](../src/levels/data/lobby_tutorial.json) se expande como el punto de reunión de la expedición:
 - Se añade un **Monolito de Cartografía** (objeto interactivo con tecla E / botón USAR).
 - Al interactuar el Anfitrión, se abre un modal de cuadrícula con los 10 capítulos:
   - Capítulos desbloqueados: muestran icono, nombre y estadísticas (mejor tiempo, muertes).
@@ -207,7 +207,7 @@ flowchart LR
    - 4 salas de bifurcación con cofres y cerraduras.
    - 3 salas finales (escalinata o altar).
 2. Un script en Node.js (`tools/generate-chapter.js`) combina las salas preconfiguradas aplicando la paleta de bloques de cada capítulo y exporta los archivos `.json` automáticamente.
-3. El test de integración [`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js) verifica automáticamente que los niveles generados cumplan todas las reglas:
+3. El test de integración [`tests/levels.test.js`](../tests/levels.test.js) verifica automáticamente que los niveles generados cumplan todas las reglas:
    - Umbrales sellados contra el abismo exterior.
    - Distancias de salto físicamente alcanzables ($d \le 3.8\text{ m}$ con salto simple, $d \le 7.0\text{ m}$ con Jump Pad).
    - Existencia de llave para cada puerta bloqueada.

@@ -1,10 +1,10 @@
 # 14. Subsistemas de Audio Procedural, Vidas, Resortes y Suite de Tests
 
-Este documento detalla los subsistemas de soporte del juego: el motor de audio procedural sintetizado con Web Audio API ([`SoundManager.js`](file:///data/data/com.termux/files/home/develop/game/src/audio/SoundManager.js)), el ciclo vital de vidas y checkpoints ([`Player.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/Player.js)), las animaciones por física de resortes elásticos ([`Spring.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Spring.js)) y la suite de pruebas unitarias automatizadas con `node:test`.
+Este documento detalla los subsistemas de soporte del juego: el motor de audio procedural sintetizado con Web Audio API ([`SoundManager.js`](../src/audio/SoundManager.js)), el ciclo vital de vidas y checkpoints ([`Player.js`](../src/entities/Player.js)), las animaciones por física de resortes elásticos ([`Spring.js`](../src/ui/Spring.js)) y la suite de pruebas unitarias automatizadas con `node:test`.
 
 ---
 
-## 1. Motor de Audio Procedural Sintetizado ([`SoundManager.js`](file:///data/data/com.termux/files/home/develop/game/src/audio/SoundManager.js))
+## 1. Motor de Audio Procedural Sintetizado ([`SoundManager.js`](../src/audio/SoundManager.js))
 
 Para mantener el presupuesto estricto de rendimiento móvil ($0\text{ bytes}$ adicionales en descarga de ficheros pesados `.mp3` o `.wav` y ausencia de decodificadores en el bucle principal), todo el paisaje sonoro de la mazmorra se sintetiza en tiempo real utilizando la **Web Audio API** nativa del navegador.
 
@@ -28,7 +28,7 @@ Para mantener el presupuesto estricto de rendimiento móvil ($0\text{ bytes}$ ad
 
 ## 2. Ciclo Vital de Vidas, Peligros y Checkpoints
 
-### Estructura de Vidas en [`Player.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/Player.js)
+### Estructura de Vidas en [`Player.js`](../src/entities/Player.js)
 Cada aventurero dispone de **3 vidas** iniciales:
 - `lives`: Entero entre $0$ y $3$.
 - `maxLives`: 3 vidas máximas.
@@ -45,16 +45,16 @@ loseLife(now = performance.now()) {
 
 ### Protocolo de Red y Persistencia entre Mazmorras
 El contador de vidas se transmite en el hot path del `MSG.SNAPSHOT` (byte número 24 de cada jugador). Cuando un jugador pierde una vida en el Host o en local:
-1. El HUD actualiza los corazones mediante la animación elástica de [`Spring.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Spring.js).
-2. El avatar 3D parpadea en pantalla durante el lapso de invulnerabilidad (alternancia de opacidad en [`AvatarRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/AvatarRenderer.js)).
+1. El HUD actualiza los corazones mediante la animación elástica de [`Spring.js`](../src/ui/Spring.js).
+2. El avatar 3D parpadea en pantalla durante el lapso de invulnerabilidad (alternancia de opacidad en [`AvatarRenderer.js`](../src/render/AvatarRenderer.js)).
 3. **Persistencia en la Expedición**: Al descender a una nueva mazmorra a través de la escalinata de transición, las vidas perdidas **se mantienen intactas** en todos los jugadores. Las vidas no se recargan al superar una mazmorra.
 4. **Restauración por Game Over**: Al alcanzar $0$ vidas, se dispara el evento de **Game Over**, notificando la derrota en el HUD, restaurando las vidas al máximo ($3$) y reiniciando la expedición en el vestíbulo seguro del lobby.
 
 ---
 
-## 3. Animaciones por Física de Resortes ([`Spring.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Spring.js))
+## 3. Animaciones por Física de Resortes ([`Spring.js`](../src/ui/Spring.js))
 
-Para prescindir de librerías pesadas de animación externa (como Framer Motion o GSAP), se implementó un oscilador armónico amortiguado en [`Spring.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Spring.js).
+Para prescindir de librerías pesadas de animación externa (como Framer Motion o GSAP), se implementó un oscilador armónico amortiguado en [`Spring.js`](../src/ui/Spring.js).
 
 ### Ecuación de Movimiento
 El resorte resuelve por integración numérica paso a paso:
@@ -75,7 +75,7 @@ Donde:
 
 ## 4. Suite de Pruebas Automatizadas (`node:test`)
 
-El proyecto dispone de una batería completa de **58 pruebas unitarias** ejecutables en milisegundos mediante el runner nativo de Node.js:
+El proyecto dispone de una batería completa de **321 pruebas unitarias** ejecutables en milisegundos mediante el runner nativo de Node.js:
 
 ```bash
 npm test
@@ -83,23 +83,23 @@ npm test
 
 ### Cobertura de la Suite (`tests/*.test.js`)
 
-1. **Protocolo Binario y Red ([`tests/protocol.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/protocol.test.js))**:
+1. **Protocolo Binario y Red ([`tests/protocol.test.js`](../tests/protocol.test.js))**:
    - Serialización y deserialización sin pérdidas de `INPUT`, `SNAPSHOT`, `PING`, `PONG`, `KEY`, `DOOR`, `CHEST`, `PEDESTAL` y `DESCENT`.
    - Compatibilidad hacia atrás con snapshots antiguos de 19 y 24 bytes.
-2. **Canales Duales WebRTC ([`tests/network-channels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/network-channels.test.js))**:
+2. **Canales Duales WebRTC ([`tests/network-channels.test.js`](../tests/network-channels.test.js))**:
    - Enrutado de mensajes calientes frente a seguros.
    - Configuración de reintentos y timeouts.
-3. **Predicción y Reconciliación ([`tests/reconciler.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/reconciler.test.js))**:
+3. **Predicción y Reconciliación ([`tests/reconciler.test.js`](../tests/reconciler.test.js))**:
    - Confirmación estricta de inputs mediante monotonicidad de secuencias.
    - Búfer circular de inputs pendientes y teletransporte ante desvíos mayores a $2.5\text{ m}$.
-4. **Físicas, Peligros y Vidas ([`tests/physics-lives.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/physics-lives.test.js))**:
+4. **Físicas, Peligros y Vidas ([`tests/simulation.test.js`](../tests/simulation.test.js))**:
    - Contacto con bloques de lava y deducción de vida.
    - Rescate al vacío y teletransporte a coordenadas del checkpoint.
    - Invulnerabilidad post-reaparición e inmunidad temporal a daño.
-5. **Generación de Niveles y Sensores ([`tests/levels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/levels.test.js))**:
+5. **Generación de Niveles y Sensores ([`tests/levels.test.js`](../tests/levels.test.js))**:
    - Verificación de consistencia de los 4 niveles JSON.
    - Detección de escalinata de descenso y requisitos de llave en puertas.
-6. **Física de Resortes ([`tests/spring.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/spring.test.js))**:
+6. **Física de Resortes ([`tests/spring.test.js`](../tests/spring.test.js))**:
    - Convergencia, límites de oscilación y amortiguación.
-7. **Sanitización UI e Iconos SVG ([`tests/icons-ui.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/icons-ui.test.js))**:
+7. **Sanitización UI e Iconos SVG ([`tests/icons.test.js`](../tests/icons.test.js))**:
    - Prevención de inyección XSS en apodos de jugadores y resolución vectorial de iconos.

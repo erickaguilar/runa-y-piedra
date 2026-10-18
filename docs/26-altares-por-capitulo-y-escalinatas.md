@@ -44,7 +44,7 @@ La escalinata es el mecanismo de **tránsito vertical descendente** que conecta 
    - `StairsRenderer` anima el retroceso de la losa superior y genera peldaños en espiral hacia la oscuridad junto con partículas de niebla profunda (`tintStairPit`).
 
 3. **Sensor de Descenso y Teletransporte**:
-   - Al bajar por la fosa ($y < -2.0$), [`DescentManager.js`](file:///data/data/com.termux/files/home/develop/runa-y-piedra/src/controllers/DescentManager.js) detecta la presencia del grupo.
+   - Al bajar por la fosa ($y < -2.0$), [`DescentManager.js`](../src/controllers/DescentManager.js) detecta la presencia del grupo.
    - Dispara una cuenta atrás sincronizada de 5 segundos con aviso visual unificado en el HUD (`showDescentCard`).
    - Al expirar, toda la expedición es transportada al `spawn` de la siguiente mazmorra del capítulo.
 
@@ -115,7 +115,7 @@ Altar Sagrado     Altar Crepuscular   Mesa Cartográfica   Pedestal Mercader
 
 ## 4. Hoja de Ruta para Futuros Capítulos
 
-El subsistema [`pedestalModel.js`](file:///data/data/com.termux/files/home/develop/runa-y-piedra/src/render/models/props/pedestalModel.js) implementa el patrón *Factory*:
+El subsistema [`pedestalModel.js`](../src/render/models/props/pedestalModel.js) implementa el patrón *Factory*:
 
 ```javascript
 createPedestalGeometries(themeName)

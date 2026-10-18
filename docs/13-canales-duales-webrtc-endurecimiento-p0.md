@@ -1,6 +1,6 @@
 # 13. Canales Duales WebRTC y Endurecimiento de Conexión P0
 
-Este documento detalla la arquitectura de canales duales WebRTC sobre `RTCDataChannel`, la erradicación del bloqueo de cabeza de línea (*Head-of-Line Blocking*), las estrategias de fallback transparente y el endurecimiento P0 de señalización, reintentos y tolerancia a fallos implementados en [`NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js).
+Este documento detalla la arquitectura de canales duales WebRTC sobre `RTCDataChannel`, la erradicación del bloqueo de cabeza de línea (*Head-of-Line Blocking*), las estrategias de fallback transparente y el endurecimiento P0 de señalización, reintentos y tolerancia a fallos implementados en [`NetworkManager.js`](../src/network/NetworkManager.js).
 
 ---
 
@@ -45,7 +45,7 @@ flowchart TD
 | **Seguro** | `game-safe` | `reliable: true, ordered: true` | Fiable y ordenado | `INIT` (0x04), `BLOCK` (0x03), `DOOR` (0x05), `PLAYER_META` (0x06), `CHEST_OPEN` (0x07), `HOST_CLOSING` (0x0A), `LEVEL_CHANGE` (0x0B), `KEY` (0x0C), `PEDESTAL` (0x0D), `DESCENT` (0x0E), `STAIRS` (0x0F) |
 | **Caliente** | `game-hot` | `reliable: false, maxRetransmits: 0` | No fiable y sin reintentos | `INPUT` (0x01 @ 30 Hz), `SNAPSHOT` (0x02 @ 20 Hz), `PING` (0x08 @ 1 Hz), `PONG` (0x09 @ 1 Hz) |
 
-Constantes en [`src/config/constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js):
+Constantes en [`src/config/constants.js`](../src/config/constants.js):
 ```javascript
 export const NET_CONFIG = {
   INPUT_HZ: 30,
@@ -64,7 +64,7 @@ export const NET_CONFIG = {
 ## 3. Mecanismo de Enrutado, Fallback y Normalización
 
 ### A. Apertura Oportunista y Seguimiento (`_trackLink`)
-Durante el handshake de conexión en [`NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js):
+Durante el handshake de conexión en [`NetworkManager.js`](../src/network/NetworkManager.js):
 1. El cliente inicia la conexión primaria `game-safe`.
 2. Al completarse, lanza inmediatamente una conexión oportunista `game-hot` hacia el mismo peer ID.
 3. Si el canal `hot` falla por restricciones de firewall o NAT estricto, el canal `safe` permanece intacto y absorbe el tráfico caliente automáticamente.
@@ -75,7 +75,7 @@ this._links = new Map(); // peerId -> { safe: DataConnection, hot: DataConnectio
 ```
 
 ### B. Normalización de Claves de Conexión en el Host
-En el Host, subsistemas como [`PlayerManager.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/PlayerManager.js) e [`InputQueue.js`](file:///data/data/com.termux/files/home/develop/game/src/network/InputQueue.js) utilizan la conexión como clave de identidad en sus mapas (`Map<Connection, Player>`).
+En el Host, subsistemas como [`PlayerManager.js`](../src/entities/PlayerManager.js) e [`InputQueue.js`](../src/network/InputQueue.js) utilizan la conexión como clave de identidad en sus mapas (`Map<Connection, Player>`).
 
 Para evitar duplicidad si un paquete de input llega por el canal `hot`, `_handleIncoming` normaliza siempre la conexión al canal `safe`:
 ```javascript
@@ -104,7 +104,7 @@ Se configuran múltiples servidores STUN públicos de baja latencia (`stun:stun.
 Al crear sala, si el identificador PIN de 4 dígitos ya estuviera en uso en el servidor de señalización de PeerJS (`unavailable-id`), `host()` captura el error e intenta automáticamente generar un nuevo PIN aleatorio hasta un máximo de 5 intentos antes de reportar error al usuario.
 
 ### 3. Timeout y Reintentos Automáticos al Unirse (`joinRoom`)
-El método `join()` en [`NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js) implementa un temporizador de desconexión estricto de **12 segundos** (`JOIN_TIMEOUT_MS = 12000`). En [`main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js), `joinRoom()` ejecuta automáticamente hasta 2 intentos con un intervalo de espera de $1200\text{ ms}$ antes de informar al usuario.
+El método `join()` en [`NetworkManager.js`](../src/network/NetworkManager.js) implementa un temporizador de desconexión estricto de **12 segundos** (`JOIN_TIMEOUT_MS = 12000`). En [`main.js`](../src/main.js), `joinRoom()` ejecuta automáticamente hasta 2 intentos con un intervalo de espera de $1200\text{ ms}$ antes de informar al usuario.
 
 ### 4. Traducción Amigable de Errores de Red
 Se implementó `NetworkManager.translatePeerError(err)` para mapear excepciones crípticas de WebRTC a instrucciones en español claro:
@@ -122,7 +122,7 @@ La API expone `network.getLinkInfo()` para telemetría y depuración en pantalla
 
 ## 5. Verificación de Regresión
 
-La suite de pruebas automatizadas en [`tests/network-channels.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/network-channels.test.js) valida continuamente:
+La suite de pruebas automatizadas en [`tests/network-channels.test.js`](../tests/network-channels.test.js) valida continuamente:
 - Pertenencia estricta de `INPUT`, `SNAPSHOT`, `PING` y `PONG` a `HOT_MSGS`.
 - Exclusión total de eventos críticos (`INIT`, `DOOR`, `CHEST`, `KEY`, `LEVEL_CHANGE`) del canal no fiable.
 - Coexistencia y diferenciación de nombres de canal (`game-safe` vs `game-hot`).

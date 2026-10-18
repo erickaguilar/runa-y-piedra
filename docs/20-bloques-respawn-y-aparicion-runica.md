@@ -21,12 +21,12 @@ flowchart TD
 
 | Propiedad | Valor / Definición | Archivo de Origen |
 | :--- | :--- | :--- |
-| **Identificador Numérico** | `BLOCK_TYPES.RESPAWN_PAD = 11` | [`src/config/constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js) |
-| **Color Base del Atlas** | `0xffffff` (neutro para respetar tintes SVG) | [`src/config/constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js) |
-| **Casilla en el Texture Atlas** | **Tile 11** (Fila 2, Columna 3 en la matriz 4x4) | [`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js) |
-| **Mapeo de Coordenadas UV** | `u: 0.75, v: 0.50` | [`src/render/VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js) |
-| **Comportamiento Físico** | Sólido colisionable (`isSolid === true`) | [`src/core/PhysicsAABB.js`](file:///data/data/com.termux/files/home/develop/game/src/core/PhysicsAABB.js) |
-| **Dimensiones Típicas** | Plataforma de `2x2` bloques centrada en el spawn | [`src/levels/LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js) |
+| **Identificador Numérico** | `BLOCK_TYPES.RESPAWN_PAD = 11` | [`src/config/constants.js`](../src/config/constants.js) |
+| **Color Base del Atlas** | `0xffffff` (neutro para respetar tintes SVG) | [`src/config/constants.js`](../src/config/constants.js) |
+| **Casilla en el Texture Atlas** | **Tile 11** (Fila 2, Columna 3 en la matriz 4x4) | [`src/render/TextureGenerator.js`](../src/render/TextureGenerator.js) |
+| **Mapeo de Coordenadas UV** | `u: 0.75, v: 0.50` | [`src/render/VoxelMap.js`](../src/render/VoxelMap.js) |
+| **Comportamiento Físico** | Sólido colisionable (`isSolid === true`) | [`src/core/PhysicsAABB.js`](../src/core/PhysicsAABB.js) |
+| **Dimensiones Típicas** | Plataforma de `2x2` bloques centrada en el spawn | [`src/levels/LevelLoader.js`](../src/levels/LevelLoader.js) |
 
 ---
 
@@ -74,7 +74,7 @@ El sprite del bloque se genera proceduralmente dentro del Texture Atlas de 512x5
 
 Para garantizar la máxima legibilidad espacial y evitar la dispersión de jugadores en expediciones cooperativas, el diseño establece que **únicamente existe un solo punto de spawn por mazmorra**:
 
-El generador de mundos [`LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js) implementa el método estático `_placeRespawnPads(world, levelData)` bajo esta regla estricta:
+El generador de mundos [`LevelLoader.js`](../src/levels/LevelLoader.js) implementa el método estático `_placeRespawnPads(world, levelData)` bajo esta regla estricta:
 
 1. **Plataforma Sagrada de la Entrada:**
    - Calcula las coordenadas del spawn principal (`x: spawnPoint.x, z: spawnPoint.z`).
@@ -82,7 +82,7 @@ El generador de mundos [`LevelLoader.js`](file:///data/data/com.termux/files/hom
    - Garantiza que al iniciar la partida, descender a una nueva mazmorra o reaparecer tras una muerte, todos los aventureros aparezcan reunidos en el mismo santuario rúnico visible.
 2. **Salas Intermedias y Checkpoints:**
    - Las salas avanzadas registran progreso narrativo en el HUD (p. ej., 'Sala 2 (El Abismo)', 'Sala 3 (Santuario Ancestral)'), pero **NO colocan losas de respawn secundarias**.
-   - Si un jugador cae en lava o al abismo en salas intermedias, [`SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js) reubica siempre al jugador en la losa rúnica de la entrada con su respectivo escudo de invulnerabilidad.
+   - Si un jugador cae en lava o al abismo en salas intermedias, [`SimulationEngine.js`](../src/simulation/SimulationEngine.js) reubica siempre al jugador en la losa rúnica de la entrada con su respectivo escudo de invulnerabilidad.
 
 ---
 

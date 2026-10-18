@@ -116,7 +116,7 @@ Los clientes capturan el evento, muestran un mensaje narrativo en el HUD y regre
 
 ## 5. Telemetría de Red en Tiempo Real (`NetworkStats.js`)
 
-Se diseñó la clase [`NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js) que calcula métricas acumuladas y ventanas deslizantes de 1 segundo:
+Se diseñó la clase [`NetworkStats.js`](../src/network/NetworkStats.js) que calcula métricas acumuladas y ventanas deslizantes de 1 segundo:
 
 - **Modo y Topología**: `HOST (N peers)`, `CLIENT (1 host)` o `OFFLINE`.
 - **RTT (Ping)**: Latencia de ida y vuelta en milisegundos con indicador visual por colores:

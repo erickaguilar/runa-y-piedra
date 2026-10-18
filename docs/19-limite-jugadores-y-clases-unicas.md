@@ -7,13 +7,13 @@ Este documento detalla los hallazgos técnicos, el análisis de rendimiento de r
 ## 1. Justificación Técnica: ¿Cuántos jugadores pueden jugar al mismo tiempo?
 
 ### 1.1 Límites Teóricos del Protocolo Binario
-En el protocolo binario v2 ([`Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js)), los paquetes están optimizados con *DataView* sin recolección de basura (*Zero-GC*):
+En el protocolo binario v2 ([`Protocol.js`](../src/network/Protocol.js)), los paquetes están optimizados con *DataView* sin recolección de basura (*Zero-GC*):
 - El campo `count` en la cabecera del snapshot es un `Uint8` (1 byte, hasta 255 entidades).
 - Cada jugador se identifica con un `playerId` de 1 byte.
 - Por diseño de serialización, el protocolo podría admitir técnicamente hasta 255 jugadores en una sola sesión.
 
 ### 1.2 Límites de la Arquitectura Listen-Server P2P (WebRTC)
-El juego opera en una topología en estrella P2P sin servidores centrales dedicados ([`NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js)):
+El juego opera en una topología en estrella P2P sin servidores centrales dedicados ([`NetworkManager.js`](../src/network/NetworkManager.js)):
 - **El anfitrión (Host)** ejecuta la simulación autoritativa en su propio navegador (frecuentemente un teléfono móvil o portátil).
 - Cada cliente mantiene **2 canales WebRTC simultáneos** con el Host:
   - Canal seguro (`game-safe`, SCTP fiable) para eventos de juego (puertas, llaves, cofres, cambio de nivel).
@@ -27,7 +27,7 @@ El juego opera en una topología en estrella P2P sin servidores centrales dedica
   En Android (Chrome) e iOS (Safari), el subsistema de red restringe el número de puertos ICE y conexiones SCTP en segundo plano para ahorrar batería. Superar 6-8 conexiones P2P en un teléfono provoca latencia errática, pérdida de paquetes en el canal caliente y eventual desconexión de clientes débiles.
 
 ### 1.3 Relación Espacial y Jugabilidad en las Mazmorras
-- Las dimensiones del mapa ([`constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js)) son de **24 × 24 × 36 metros**.
+- Las dimensiones del mapa ([`constants.js`](../src/config/constants.js)) son de **24 × 24 × 36 metros**.
 - Los pasillos y puertas de separación entre cámaras miden **2 bloques de ancho (2.0 m)**.
 - Las plataformas de salto (*Jump Pads*) miden 2×1 metros.
 - Con más de 5 jugadores en la misma sala, se producen aglomeraciones en los umbrales de las losas y puertas, empujones en los saltos de lava y confusión visual en tercera persona.
@@ -39,7 +39,7 @@ El juego opera en una topología en estrella P2P sin servidores centrales dedica
 
 ## 2. Unicidad Absoluta de Razas y Clases de Héroes
 
-El juego cuenta con exactamente **5 clases de héroes declaradas** en [`src/heroes/data/heroes.json`](file:///data/data/com.termux/files/home/develop/game/src/heroes/data/heroes.json):
+El juego cuenta con exactamente **5 clases de héroes declaradas** en [`src/heroes/data/heroes.json`](../src/heroes/data/heroes.json):
 
 | Índice | Clase / Raza | Título | Rol | Color | Rasgo Distintivo |
 | :---: | :--- | :--- | :--- | :---: | :--- |
@@ -60,7 +60,7 @@ Para garantizar la riqueza táctica del grupo:
 ## 3. Implementación de la Arquitectura de Unicidad
 
 ### 3.1 Métodos Autoritativos en `PlayerManager`
-En [`src/entities/PlayerManager.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/PlayerManager.js):
+En [`src/entities/PlayerManager.js`](../src/entities/PlayerManager.js):
 
 ```javascript
 // Obtiene el conjunto de colorIndex actualmente ocupados en la sala
@@ -108,7 +108,7 @@ Al unirse un nuevo jugador o al intentar cambiar de clase:
 ## 4. Control de Aforo Estricto (`MAX_PLAYERS = 5`)
 
 ### 4.1 Rechazo Autoritativo de Conexiones Excedentes
-En [`src/config/constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js):
+En [`src/config/constants.js`](../src/config/constants.js):
 ```javascript
 export const GAME_CONFIG = {
   MAX_PLAYERS: 5,
@@ -156,7 +156,7 @@ En el cliente que intentó unirse:
 ## 5. Experiencia de Usuario e Interfaz Visual (UI/UX)
 
 ### 5.1 Selector de Clases en Configuración con Bloqueo Visual
-En el modal de ⚙️ Configuración ([`UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js)):
+En el modal de ⚙️ Configuración ([`UIManager.js`](../src/ui/UIManager.js)):
 - Se renderiza la fila de fichas de héroe (`#settings-heroes-row`).
 - Las clases tomadas por otros compañeros de la sala reciben la clase CSS `.hero-chip.occupied`:
   - **Filtro:** escala de grises al 85% y opacidad al 35%.
@@ -190,7 +190,7 @@ En la cabecera de la lista de compañeros:
 
 ## 6. Verificación Automatizada
 
-La implementación cuenta con pruebas exhaustivas en [`tests/player-manager.test.js`](file:///data/data/com.termux/files/home/develop/game/tests/player-manager.test.js):
+La implementación cuenta con pruebas exhaustivas en [`tests/player-manager.test.js`](../tests/player-manager.test.js):
 - `límite estricto de 5 jugadores simultáneos y rechazo al exceder aforo`: verifica que el 6º jugador recibe `null`, que la sala marca `isFull() === true`, y que al desconectarse un miembro el cupo se libera de nuevo.
 - `unicidad absoluta de razas/héroes`: comprueba que si dos o más clientes solicitan la misma clase (p. ej. *Aventurero*), el gestor asigna determinísticamente las clases libres sucesivas (*Paladín*, *Explorador*...), garantizando cero colisiones.
-- **Resultado de la suite:** 93/93 pruebas unitarias pasando satisfactoriamente.
+- **Resultado de la suite:** todas las pruebas pasan (321/321) satisfactoriamente.

@@ -35,6 +35,8 @@ runa-y-piedra/
 │   │   └── PlayerManager.js  # Colección de jugadores y mapeo con DataConnections WebRTC
 │   ├── heroes/
 │   │   ├── data/             # Definiciones declarativas de clases de héroes
+│   │   ├── portraits/        # Arte Sumi-e por héroe (datos SVG + dibujo) y factorías de textura
+│   │   ├── heroPortraits.js  # Fachada del arte de héroes (registro + factorías)
 │   │   └── HeroRegistry.js   # Registro y persistencia de perfiles en localStorage
 │   ├── input/
 │   │   └── InputManager.js   # Unificación de Nipple.js, touch look pasivo, teclado y ratón
@@ -88,7 +90,8 @@ runa-y-piedra/
 │   ├── simulation/
 │   │   └── SimulationEngine.js # Bucle de física autoritativo a 30 Hz
 │   ├── ui/
-│   │   ├── Icons.js          # Repositorio global de iconos SVG vectoriales
+│   │   ├── icons.data.js     # Datos del registro de iconos SVG (ICONS, alias, equivalencias emoji)
+│   │   ├── Icons.js          # Lógica de resolución/render de iconos SVG vectoriales
 │   │   ├── Spring.js         # Física de resortes elásticos para animaciones UI
 │   │   └── UIManager.js      # HUD, selección de clase, QR, modales y mensajes narrativos
 │   └── main.js               # Orquestador desacoplado del juego
@@ -103,55 +106,57 @@ runa-y-piedra/
 
 | Módulo | Responsabilidad Única |
 |---|---|
-| [`src/config/constants.js`](file:///data/data/com.termux/files/home/develop/game/src/config/constants.js) | Centralizar constantes numéricas, configuraciones de red, canales WebRTC y paletas de colores. |
-| [`src/audio/SoundManager.js`](file:///data/data/com.termux/files/home/develop/game/src/audio/SoundManager.js) | Sintetizar efectos de sonido procedurales con Web Audio API (salto, daño, puertas, llaves, victoria) sin descargas. |
-| [`src/camera/CameraController.js`](file:///data/data/com.termux/files/home/develop/game/src/camera/CameraController.js) | Manejar la perspectiva del jugador con interpolación angular sin allocations de vectores en el render loop. |
-| [`src/controllers/DescentManager.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/DescentManager.js) | Orquestar la apertura cooperativa de escalinatas y la sincronización del descenso de nivel. |
-| [`src/controllers/InteractionController.js`](file:///data/data/com.termux/files/home/develop/game/src/controllers/InteractionController.js) | Evaluar proximidad/raycasting y despachar interacciones (cofres, puertas, placas, pedestal, fosa); delega la ejecución en sus mixins. |
-| [`src/controllers/InteractionActions.js`](src/controllers/InteractionActions.js) | Mixin de ejecución de acciones: cofres/llaves y puertas con cerradura. |
-| [`src/controllers/InteractionMechanisms.js`](src/controllers/InteractionMechanisms.js) | Mixin de ejecución de mecanismos: placas de presión, pedestal/altar y fosa de escalinata. |
-| [`src/core/GameLoop.js`](file:///data/data/com.termux/files/home/develop/game/src/core/GameLoop.js) | Acumulador de tiempo fijo para desacoplar la simulación (30 Hz) del refresco de pantalla (`requestAnimationFrame`). |
-| [`src/core/PhysicsAABB.js`](file:///data/data/com.termux/files/home/develop/game/src/core/PhysicsAABB.js) | Resolver colisiones caja-bloque por ejes y verificar plataformas especiales (lava, jump pads, escalinata). |
-| [`src/core/World.js`](file:///data/data/com.termux/files/home/develop/game/src/core/World.js) | Almacenar la matriz tridimensional del terreno en un `Uint8Array` plano sin sobrecarga de objetos. |
-| [`src/core/GameApp.js`](src/core/GameApp.js) | Orquestador delgado: construye los subsistemas y compone los mixins temáticos del juego. |
-| [`src/core/AppBootstrapMixin.js`](src/core/AppBootstrapMixin.js) | Mixin de arranque: ajustes, inicialización de UI, control de cámara y bucle de juego. |
-| [`src/core/DevToolsMixin.js`](src/core/DevToolsMixin.js) | Mixin de herramientas de desarrollo y utilidades de mundo (showroom, telemetría, reportes). |
-| [`src/entities/Player.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/Player.js) | Encapsular el estado del aventurero: cinemática, 3 vidas, checkpoints, invulnerabilidad e inventario de llaves. |
-| [`src/entities/PlayerManager.js`](file:///data/data/com.termux/files/home/develop/game/src/entities/PlayerManager.js) | Administrar las instancias de jugadores en memoria y enlazarlas de forma unívoca con sus conexiones WebRTC. |
-| [`src/heroes/HeroRegistry.js`](file:///data/data/com.termux/files/home/develop/game/src/heroes/HeroRegistry.js) | Gestionar la biblioteca de clases, estadísticas de movimiento/salto y la persistencia del perfil local. |
-| [`src/input/InputManager.js`](file:///data/data/com.termux/files/home/develop/game/src/input/InputManager.js) | Capturar todos los eventos de entrada de forma homogénea (Touch, Mouse, Teclado) y exponer vectores de entrada normalizados. |
-| [`src/interaction/BlockRaycaster.js`](file:///data/data/com.termux/files/home/develop/game/src/interaction/BlockRaycaster.js) | Identificar interactuables prioritarios mediante distancia euclidiana y cálculo de vector de enfoque. |
-| [`src/levels/LevelLoader.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelLoader.js) | Interpretar descripciones JSON de nivel y poblar la cuadrícula vóxel, interactuables y checkpoints. |
-| [`src/levels/LevelRegistry.js`](file:///data/data/com.termux/files/home/develop/game/src/levels/LevelRegistry.js) | Registrar los niveles del juego y gestionar la progresión o conmutación en caliente de mapas. |
-| [`src/network/ClientReconciler.js`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js) | Almacenar historial de inputs locales, aplicar predicción client-side y corregir desvíos frente a snapshots autoritativos. |
-| [`src/network/InputQueue.js`](file:///data/data/com.termux/files/home/develop/game/src/network/InputQueue.js) | Búfer autoritativo de inputs remotos en el Host, garantizando aplicación por tick y prevención de speedhacks. |
-| [`src/network/NetworkManager.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkManager.js) | Núcleo de red: envío/recepción, snapshot de mundo, roster y chat de voz; compone señalización, canales y despacho desde mixins. |
-| [`src/network/SignalingMixin.js`](src/network/SignalingMixin.js) | Mixin: señalización PeerJS/ICE, registro del host, reconexión y heartbeat. |
-| [`src/network/ChannelsMixin.js`](src/network/ChannelsMixin.js) | Mixin: canales duales `game-safe`/`game-hot`, diagnóstico de conexión y unión como cliente. |
-| [`src/network/IncomingMixin.js`](src/network/IncomingMixin.js) | Mixin: despacho de mensajes entrantes del protocolo binario. |
-| [`src/network/NetworkStats.js`](file:///data/data/com.termux/files/home/develop/game/src/network/NetworkStats.js) | Recolectar métricas de RTT, jitter, paquetes entrantes/salientes y bytes consumidos. |
-| [`src/network/Protocol.js`](file:///data/data/com.termux/files/home/develop/game/src/network/Protocol.js) | Serialización y deserialización binaria Zero-GC en `DataView` preasignados para todos los tipos de mensaje. |
-| [`src/render/AvatarRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/AvatarRenderer.js) | Gestionar ciclo de vida de avatares remotos: interpolación cinemática Lerp, ciclo de marcha y orientación de nametags billboard. |
-| [`src/render/DoorRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/DoorRenderer.js) | Controlar la animación de puertas de mazmorra mediante resortes dinámicos ($K=240, C=20$) y sincronización de estado. |
-| [`src/render/ChestRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/ChestRenderer.js) | Controlar la apertura elástica de la tapa del cofre ($K=200, C=14$), luz de tesoro y estados de interacción. |
-| [`src/render/PedestalRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/PedestalRenderer.js) | Controlar la cinemática del altar: rotación de runas solares, levitación armónica del orbe y sistema de partículas VFX. |
-| [`src/render/StairsRenderer.js`](file:///data/data/com.termux/files/home/develop/game/src/render/StairsRenderer.js) | Controlar la secuencia de apertura de escalinata: temblor telúrico sísmico, deslizamiento de losa y niebla del pozo. |
-| [`src/render/models/heroes/`](file:///data/data/com.termux/files/home/develop/game/src/render/models/heroes/) | Ensambladores de mallas 3D para aventureros: esqueleto base articulado, materiales compartidos y equipamiento por clase (paladín, explorador, mago, guardián). |
-| [`src/render/models/props/`](file:///data/data/com.termux/files/home/develop/game/src/render/models/props/) | Ensambladores de mallas 3D para elementos del escenario: cofres, puertas de doble hoja, pedestal ceremonial y losa de escalinata con pozo. |
-| [`src/render/TextureGenerator.js`](file:///data/data/com.termux/files/home/develop/game/src/render/TextureGenerator.js) | Rasterizar en tiempo de ejecución el canvas WebGL y crear el `THREE.CanvasTexture` del atlas. |
-| [`src/render/textures/`](file:///data/data/com.termux/files/home/develop/game/src/render/textures/) | Módulos atómicos con los fragmentos vectoriales SVG de muros, suelos, pilares, lava y losas especiales. |
-| [`src/render/VoxelMap.js`](file:///data/data/com.termux/files/home/develop/game/src/render/VoxelMap.js) | Renderizar todo el escenario en un único `THREE.InstancedMesh` con gestión de instancias libres. |
-| [`src/simulation/SimulationEngine.js`](file:///data/data/com.termux/files/home/develop/game/src/simulation/SimulationEngine.js) | Ejecutar el bucle físico autoritativo para todos los aventureros a 30 Hz. |
-| [`src/ui/Icons.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Icons.js) | Proveer iconos SVG vectoriales nítidos para botones táctiles y mensajes narrativos. |
-| [`src/ui/Spring.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/Spring.js) | Modelar osciladores armónicos amortiguados para animaciones elásticas y suaves de UI. |
-| [`src/ui/UIManager.js`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js) | Gestionar HUD, indicadores de vidas, selección de héroes, códigos QR, telemetría y modales. |
-| [`src/main.js`](file:///data/data/com.termux/files/home/develop/game/src/main.js) | Orquestador central: enlazar subsistemas, temporizadores de red, ciclo de vida del juego y transiciones. |
+| [`src/config/constants.js`](../src/config/constants.js) | Centralizar constantes numéricas, configuraciones de red, canales WebRTC y paletas de colores. |
+| [`src/audio/SoundManager.js`](../src/audio/SoundManager.js) | Sintetizar efectos de sonido procedurales con Web Audio API (salto, daño, puertas, llaves, victoria) sin descargas. |
+| [`src/camera/CameraController.js`](../src/camera/CameraController.js) | Manejar la perspectiva del jugador con interpolación angular sin allocations de vectores en el render loop. |
+| [`src/controllers/DescentManager.js`](../src/controllers/DescentManager.js) | Orquestar la apertura cooperativa de escalinatas y la sincronización del descenso de nivel. |
+| [`src/controllers/InteractionController.js`](../src/controllers/InteractionController.js) | Evaluar proximidad/raycasting y despachar interacciones (cofres, puertas, placas, pedestal, fosa); delega la ejecución en sus mixins. |
+| [`src/controllers/InteractionActions.js`](../src/controllers/InteractionActions.js) | Mixin de ejecución de acciones: cofres/llaves y puertas con cerradura. |
+| [`src/controllers/InteractionMechanisms.js`](../src/controllers/InteractionMechanisms.js) | Mixin de ejecución de mecanismos: placas de presión, pedestal/altar y fosa de escalinata. |
+| [`src/core/GameLoop.js`](../src/core/GameLoop.js) | Acumulador de tiempo fijo para desacoplar la simulación (30 Hz) del refresco de pantalla (`requestAnimationFrame`). |
+| [`src/core/PhysicsAABB.js`](../src/core/PhysicsAABB.js) | Resolver colisiones caja-bloque por ejes y verificar plataformas especiales (lava, jump pads, escalinata). |
+| [`src/core/World.js`](../src/core/World.js) | Almacenar la matriz tridimensional del terreno en un `Uint8Array` plano sin sobrecarga de objetos. |
+| [`src/core/GameApp.js`](../src/core/GameApp.js) | Orquestador delgado: construye los subsistemas y compone los mixins temáticos del juego. |
+| [`src/core/AppBootstrapMixin.js`](../src/core/AppBootstrapMixin.js) | Mixin de arranque: ajustes, inicialización de UI, control de cámara y bucle de juego. |
+| [`src/core/DevToolsMixin.js`](../src/core/DevToolsMixin.js) | Mixin de herramientas de desarrollo y utilidades de mundo (showroom, telemetría, reportes). |
+| [`src/entities/Player.js`](../src/entities/Player.js) | Encapsular el estado del aventurero: cinemática, 3 vidas, checkpoints, invulnerabilidad e inventario de llaves. |
+| [`src/entities/PlayerManager.js`](../src/entities/PlayerManager.js) | Administrar las instancias de jugadores en memoria y enlazarlas de forma unívoca con sus conexiones WebRTC. |
+| [`src/heroes/HeroRegistry.js`](../src/heroes/HeroRegistry.js) | Gestionar la biblioteca de clases, estadísticas de movimiento/salto y la persistencia del perfil local. |
+| [`src/input/InputManager.js`](../src/input/InputManager.js) | Capturar todos los eventos de entrada de forma homogénea (Touch, Mouse, Teclado) y exponer vectores de entrada normalizados. |
+| [`src/interaction/BlockRaycaster.js`](../src/interaction/BlockRaycaster.js) | Identificar interactuables prioritarios mediante distancia euclidiana y cálculo de vector de enfoque. |
+| [`src/levels/LevelLoader.js`](../src/levels/LevelLoader.js) | Interpretar descripciones JSON de nivel y poblar la cuadrícula vóxel, interactuables y checkpoints. |
+| [`src/levels/LevelRegistry.js`](../src/levels/LevelRegistry.js) | Registrar los niveles del juego y gestionar la progresión o conmutación en caliente de mapas. |
+| [`src/network/ClientReconciler.js`](../src/network/ClientReconciler.js) | Almacenar historial de inputs locales, aplicar predicción client-side y corregir desvíos frente a snapshots autoritativos. |
+| [`src/network/InputQueue.js`](../src/network/InputQueue.js) | Búfer autoritativo de inputs remotos en el Host, garantizando aplicación por tick y prevención de speedhacks. |
+| [`src/network/NetworkManager.js`](../src/network/NetworkManager.js) | Núcleo de red: envío/recepción, snapshot de mundo, roster y chat de voz; compone señalización, canales y despacho desde mixins. |
+| [`src/network/SignalingMixin.js`](../src/network/SignalingMixin.js) | Mixin: señalización PeerJS/ICE, registro del host, reconexión y heartbeat. |
+| [`src/network/ChannelsMixin.js`](../src/network/ChannelsMixin.js) | Mixin: canales duales `game-safe`/`game-hot`, diagnóstico de conexión y unión como cliente. |
+| [`src/network/IncomingMixin.js`](../src/network/IncomingMixin.js) | Mixin: despacho de mensajes entrantes del protocolo binario. |
+| [`src/network/NetworkStats.js`](../src/network/NetworkStats.js) | Recolectar métricas de RTT, jitter, paquetes entrantes/salientes y bytes consumidos. |
+| [`src/network/Protocol.js`](../src/network/Protocol.js) | Serialización y deserialización binaria Zero-GC en `DataView` preasignados para todos los tipos de mensaje. |
+| [`src/render/AvatarRenderer.js`](../src/render/AvatarRenderer.js) | Gestionar ciclo de vida de avatares remotos: interpolación cinemática Lerp, ciclo de marcha y orientación de nametags billboard. |
+| [`src/render/DoorRenderer.js`](../src/render/DoorRenderer.js) | Controlar la animación de puertas de mazmorra mediante resortes dinámicos ($K=240, C=20$) y sincronización de estado. |
+| [`src/render/ChestRenderer.js`](../src/render/ChestRenderer.js) | Controlar la apertura elástica de la tapa del cofre ($K=200, C=14$), luz de tesoro y estados de interacción. |
+| [`src/render/PedestalRenderer.js`](../src/render/PedestalRenderer.js) | Controlar la cinemática del altar: rotación de runas solares, levitación armónica del orbe y sistema de partículas VFX. |
+| [`src/render/StairsRenderer.js`](../src/render/StairsRenderer.js) | Controlar la secuencia de apertura de escalinata: temblor telúrico sísmico, deslizamiento de losa y niebla del pozo. |
+| [`src/render/models/heroes/`](../src/render/models/heroes/) | Ensambladores de mallas 3D para aventureros: esqueleto base articulado, materiales compartidos y equipamiento por clase (paladín, explorador, mago, guardián). |
+| [`src/heroes/heroPortraits.js`](../src/heroes/heroPortraits.js) | Fachada del arte Sumi-e de héroes: reúne el registro de retratos (`src/heroes/portraits/`) y las factorías de textura/material por región. |
+| [`src/render/models/props/`](../src/render/models/props/) | Ensambladores de mallas 3D para elementos del escenario: cofres, puertas de doble hoja, pedestal ceremonial y losa de escalinata con pozo. |
+| [`src/render/TextureGenerator.js`](../src/render/TextureGenerator.js) | Rasterizar en tiempo de ejecución el canvas WebGL y crear el `THREE.CanvasTexture` del atlas. |
+| [`src/render/textures/`](../src/render/textures/) | Módulos atómicos con los fragmentos vectoriales SVG de muros, suelos, pilares, lava y losas especiales. |
+| [`src/render/VoxelMap.js`](../src/render/VoxelMap.js) | Renderizar todo el escenario en un único `THREE.InstancedMesh` con gestión de instancias libres. |
+| [`src/simulation/SimulationEngine.js`](../src/simulation/SimulationEngine.js) | Ejecutar el bucle físico autoritativo para todos los aventureros a 30 Hz. |
+| [`src/ui/Icons.js`](../src/ui/Icons.js) | Proveer iconos SVG vectoriales nítidos para botones táctiles y mensajes narrativos (lógica; los datos viven en `icons.data.js`). |
+| [`src/ui/icons.data.js`](../src/ui/icons.data.js) | Datos del registro de iconos SVG: mapa `ICONS`, alias (`ICON_ALIASES`) y equivalencias emoji→icono. |
+| [`src/ui/Spring.js`](../src/ui/Spring.js) | Modelar osciladores armónicos amortiguados para animaciones elásticas y suaves de UI. |
+| [`src/ui/UIManager.js`](../src/ui/UIManager.js) | Gestionar HUD, indicadores de vidas, selección de héroes, códigos QR, telemetría y modales. |
+| [`src/main.js`](../src/main.js) | Orquestador central: enlazar subsistemas, temporizadores de red, ciclo de vida del juego y transiciones. |
 
 ---
 
 ## 3. Beneficios Técnicos Obtenidos
 
 1. **Desacoplamiento Total**: Las clases de física, entidades y protocolo (`Player`, `SimulationEngine`, `World`, `Protocol`) no dependen de Three.js ni del DOM, permitiendo su ejecución en Web Workers o en Node.js para testing (`npm test`).
-2. **Eliminación del Antipatrón God-File**: `main.js` delega la gestión de interacción a [`InteractionController`](file:///data/data/com.termux/files/home/develop/game/src/controllers/InteractionController.js), el descenso a [`DescentManager`](file:///data/data/com.termux/files/home/develop/game/src/controllers/DescentManager.js), la predicción a [`ClientReconciler`](file:///data/data/com.termux/files/home/develop/game/src/network/ClientReconciler.js) y la UI a [`UIManager`](file:///data/data/com.termux/files/home/develop/game/src/ui/UIManager.js).
+2. **Eliminación del Antipatrón God-File**: `main.js` delega la gestión de interacción a [`InteractionController`](../src/controllers/InteractionController.js), el descenso a [`DescentManager`](../src/controllers/DescentManager.js), la predicción a [`ClientReconciler`](../src/network/ClientReconciler.js) y la UI a [`UIManager`](../src/ui/UIManager.js).
 3. **Mantenibilidad y Testabilidad**: Cada archivo posee una responsabilidad atómica verificable de forma independiente mediante tests unitarios automatizados.
 4. **Descomposición de God-Objects**: Los tres orquestadores más grandes quedaron por debajo de 500 líneas (`GameApp.js` 912→278, `NetworkManager.js` 888→297, `InteractionController.js` 742→230), delegando su lógica en mixins temáticos compuestos vía `Object.assign(Clase.prototype, ...)` sin alterar sus firmas públicas.
