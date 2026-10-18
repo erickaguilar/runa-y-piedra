@@ -7,7 +7,7 @@ pruebas existente como red de seguridad.
 
 - **Versión auditada:** `1.40.0` (rama `develop`)
 - **Fecha de auditoría:** 2026-10-17
-- **Estado:** En ejecución — **Fases 0, 1, 2, 3, 4 y 5 completadas**
+- **Estado:** Completado — **Fases 0–7 completadas** (v1.41.0)
 
 ### Progreso
 
@@ -188,7 +188,8 @@ Objetivo: ningún archivo de **lógica** supere ~500 líneas (excluyendo archivo
       `InteractionMechanisms` (placas, pedestal, fosa).
 - [x] Mantener las firmas públicas: la descomposición usa mixins compuestos vía
       `Object.assign(Clase.prototype, ...)`, así que la API no cambia y no hubo que mover tests.
-- [ ] _Pendiente:_ smoke test manual host + invitado sobre `npm run dev` (requiere navegador).
+- [x] _Hecho:_ smoke test host + invitado **automatizado** con `npm run smoke:mp`
+      (Chrome headless por CDP: 11/11 comprobaciones; ver [`smoke-test.md`](smoke-test.md) §2.1).
 
 **Técnica aplicada:** cada bloque de métodos se movió **verbatim** a un objeto mixin (mismo `this`,
 sin reescribir lógica), lo que garantiza ausencia de cambios de comportamiento. La verificación de
@@ -257,7 +258,8 @@ normaliza (`onGround`, clase `invuln`, cursor) para que sea determinista.
 **DoD:** `!important` ≤ 50 ✅; CSS gzip ≤ línea base ✅; cero regresiones visuales en las capturas ✅;
 build en verde ✅.
 
-- [ ] _Pendiente:_ smoke test manual **host + invitado** sobre `npm run dev` (requiere navegador).
+- [x] _Hecho:_ smoke test host + invitado **automatizado** con `npm run smoke:mp`
+      (11/11 comprobaciones; ver [`smoke-test.md`](smoke-test.md) §2.1).
       La validación visual de CSS ya está cubierta de forma automatizada (16 estados) por encima.
 
 ---
@@ -381,6 +383,19 @@ Fase 0 (infra)
 Comparar tras cada fase fusionada: `npm test` (verde y ≥321), `tsc` (0 errores),
 `grep -c "!important"`, tamaño del archivo de lógica mayor, `grep -rc "console.log" src`,
 tamaños de `dist/assets`.
+
+**Verificación E2E (v1.41.0):** `npm run smoke:mp` — **11/11** comprobaciones (los 8 pasos del
+protocolo + overlay de telemetría + predicción local con ~350 ms de latencia). Requiere
+`npm run dev` y Chrome/Chromium; **no** forma parte de `npm run ci` (necesita navegador y salida
+a Internet para la señalización de PeerJS). Detalles y límites en
+[`smoke-test.md`](smoke-test.md) §2.1.
+
+**Observación de rendimiento (fuera del alcance de este plan):** en la ejecución headless el
+overlay reporta **≈66 draw calls** en el vestíbulo, por encima del presupuesto de 20–40 de
+[`01-hardware-y-presupuesto-rendimiento.md`](01-hardware-y-presupuesto-rendimiento.md). El
+saneamiento no modifica la composición de la escena, por lo que no es una regresión de estas
+fases; queda como candidato a optimización futura (agrupación/*instancing*). El FPS medido en
+headless (SwiftShader, sin GPU) no es representativo del dispositivo real.
 
 ---
 
