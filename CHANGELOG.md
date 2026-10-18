@@ -7,8 +7,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+- **Smoke test multijugador automatizado (`npm run smoke:mp`)**: `scripts/smoke-mp.mjs` abre dos pestañas (Anfitrión + Invitado) en Chrome headless vía CDP y recorre los 8 pasos del protocolo (`docs/smoke-test.md`) más el overlay de telemetría (`?debug=1`), la predicción local con ~350 ms de latencia y la reanudación del Invitado como Host. Salida: `report.json` + capturas en `.smoke-out/` (ignorado por git). Verificado **11/11**. Cierra los dos ítems de smoke test que quedaban pendientes en las Fases 4 y 5 del plan de saneamiento.
+  - Cubre: creación de sala, unión por `?join=PIN`, roster, movimiento en ambos sentidos, cofre abierto por el Invitado (validación autoritativa de distancia del Host), puerta abierta por el Anfitrión, incorporación tardía con estado del mundo (nivel/puerta/cofre), `peer-left` y migración de Host.
+  - Documentados los límites: el FPS headless (SwiftShader) no es representativo, el cierre abrupto de pestaña no propaga SCTP de forma determinista (se usa salida ordenada) y CDP no limita el SCTP de WebRTC (latencia simulada en los canales de envío).
+
 ### Changed
 - **Branch protection** en `main` y `develop` (PR obligatorio, `enforce_admins`, checks requeridos `verify` + `guards`, sin force-push ni borrado): cierre remoto de la Fase 7 del plan de saneamiento. Un push directo pasa a ser rechazado (`GH006`). La release `1.41.0` ya quedó publicada por *fast-forward* de `develop` a `main`.
+- **Documentación del smoke test** (`docs/smoke-test.md`): corregido el título (*7 → 8 pasos*), añadida la sección §2.1 con la ejecución automatizada y sus límites, y actualizada la lista de control con la última ejecución verificada. En `docs/30-plan-saneamiento-tecnico.md` se marcan como hechos los dos pendientes de smoke test y se anota una observación de rendimiento (~66 draw calls frente al presupuesto de 20–40) para seguimiento futuro, sin tratarla como regresión.
 
 ## [1.41.0] - 2026-10-18
 
