@@ -75,7 +75,7 @@ Donde:
 
 ## 4. Suite de Pruebas Automatizadas (`node:test`)
 
-El proyecto dispone de una batería completa de **321 pruebas unitarias** ejecutables en milisegundos mediante el runner nativo de Node.js:
+El proyecto dispone de una batería completa de **322 pruebas unitarias** ejecutables en milisegundos mediante el runner nativo de Node.js:
 
 ```bash
 npm test

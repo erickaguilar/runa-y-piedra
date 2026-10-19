@@ -193,4 +193,4 @@ En la cabecera de la lista de compañeros:
 La implementación cuenta con pruebas exhaustivas en [`tests/player-manager.test.js`](../tests/player-manager.test.js):
 - `límite estricto de 5 jugadores simultáneos y rechazo al exceder aforo`: verifica que el 6º jugador recibe `null`, que la sala marca `isFull() === true`, y que al desconectarse un miembro el cupo se libera de nuevo.
 - `unicidad absoluta de razas/héroes`: comprueba que si dos o más clientes solicitan la misma clase (p. ej. *Aventurero*), el gestor asigna determinísticamente las clases libres sucesivas (*Paladín*, *Explorador*...), garantizando cero colisiones.
-- **Resultado de la suite:** todas las pruebas pasan (321/321) satisfactoriamente.
+- **Resultado de la suite:** todas las pruebas pasan (322/322) satisfactoriamente.

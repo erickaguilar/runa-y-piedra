@@ -89,7 +89,7 @@ Para garantizar que el juego tolere fluctuaciones de red móvil sin congelarse:
 Antes de fusionar `develop` en `main`, todas las casillas deben quedar marcadas. **Última
 ejecución verificada: 2026-10-18 · v1.41.0.**
 
-- [x] `npm test`: 321/321 tests pasando con 0 errores.
+- [x] `npm test`: 322/322 tests pasando con 0 errores.
 - [x] `npm run lint`: 0 errores de sintaxis (`node --check`).
 - [x] `npm run build`: Compilación de producción con Vite terminada con código 0.
 - [x] Smoke Test de 8 pasos ejecutado satisfactoriamente (incluye reanudar como Host) —
