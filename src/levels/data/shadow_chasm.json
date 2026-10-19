@@ -144,7 +144,7 @@
     { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 23] },
     { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
     { "type": "pillar", "x": 17, "z": 5, "height": 5, "block": "PILLAR" },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 11], "to": [13, 0, 12] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 11], "to": [13, 0, 13] },
     { "type": "fill", "block": "PILLAR", "from": [8, 0, 14], "to": [9, 0, 14] },
     { "type": "fill", "block": "JUMP_PAD", "from": [8, 1, 14], "to": [9, 1, 14] },
     { "type": "fill", "block": "PILLAR", "from": [14, 0, 16], "to": [15, 1, 16] },
