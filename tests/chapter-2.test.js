@@ -76,16 +76,19 @@ test('Capítulo 2 - Nivel 2 (shadow_chasm) incorpora abismo, plataformas JUMP_PA
   const levelData = world.levelRegistry.getLevel('shadow_chasm');
   world.loadLevel(levelData);
 
+  assert.equal(world.sizeZ, 49, 'shadow_chasm extiende la Sala 2 hasta z=48');
   assert.equal(world.doors.length, 2);
   const d2 = world.doors.find(d => d.id === 2);
   assert.ok(d2, 'Puerta 2 debe existir');
+  assert.equal(d2.z, 37, 'La Puerta 2 se reubica al final de la Sala 2 ampliada');
 
   // La Puerta 2 ahora es activada por mecanismo de losa de presión en la Sala 2
   const p2 = world.pressurePlates.find(p => p.targetDoorId === 2 || p.id === 'losa_chasm_puerta2');
   assert.ok(p2, 'Debe existir una losa de presión para la Puerta 2 en Sala 2');
-  assert.equal(p2.x, 19.0);
+  assert.equal(p2.x, 13.0);
   assert.equal(p2.y, 3.0);
-  assert.equal(p2.z, 17.0);
+  assert.equal(p2.z, 27.0);
+  assert.notEqual(world.get(13, 2, 27), 0, 'La losa debe descansar sobre una plataforma sólida');
 
   const c1 = world.chests.find(c => c.id === 1);
   assert.ok(c1, 'Cofre 1 debe existir');
@@ -98,7 +101,95 @@ test('Capítulo 2 - Nivel 2 (shadow_chasm) incorpora abismo, plataformas JUMP_PA
   }
   assert.equal(world.get(9, 0, 13), 0, 'La ampliación no debe invadir el hueco de salto en x=9');
 
+  // Nueva zona segura de salida (z=34..36) a ancho completo antes de la Puerta 2
+  for (let x = 1; x <= 22; x++) {
+    for (let z = 34; z <= 36; z++) {
+      assert.notEqual(world.get(x, 0, z), 0, `Zona segura de salida sólida en (x=${x}, z=${z})`);
+      assert.notEqual(world.get(x, 0, z), 7, `La zona segura de salida (x=${x}, z=${z}) no debe ser lava`);
+    }
+  }
+
+  // El abismo de lava cubre toda la Sala 2 entre las dos zonas seguras
+  for (let z = 14; z <= 33; z++) {
+    assert.equal(world.get(11, -1, z), 7, `Debe haber lava en (x=11, y=-1, z=${z})`);
+  }
+
   assert.equal(world.stairwells.length, 1);
+});
+
+test('Capítulo 2 - shadow_chasm: la Sala 2 ampliada tiene saltos seguros para todos los héroes', async () => {
+  const { PLAYER_HEROES, PHYSICS_CONFIG, BLOCK_TYPES } = await import('../src/config/constants.js');
+  const world = new World();
+  world.loadLevel(world.levelRegistry.getLevel('shadow_chasm'));
+
+  const dt = 1 / PHYSICS_CONFIG.TICK_HZ;
+  // Alcance horizontal discreto (30 Hz, mismo integrador que SimulationEngine) con diferencia de cota deltaY
+  const reach = (jumpMult, speedMult, deltaY = 0, padMult = 1) => {
+    let vy = PHYSICS_CONFIG.JUMP_VELOCITY * jumpMult * padMult, y = 0, ticks = 0;
+    do {
+      vy += PHYSICS_CONFIG.GRAVITY * dt;
+      y += vy * dt;
+      ticks++;
+    } while (ticks < 200 && !(ticks > 1 && y <= deltaY && vy < 0));
+    return PHYSICS_CONFIG.SPEED * speedMult * (ticks - 1) * dt;
+  };
+  // Distancia borde a borde entre superficies [x1, x2, cota, z1, z2] (bloques inclusivos)
+  const gap = (a, b) => Math.hypot(
+    Math.max(0, b[0] - (a[1] + 1), a[0] - (b[1] + 1)),
+    Math.max(0, b[3] - (a[4] + 1), a[3] - (b[4] + 1)),
+  );
+
+  // [x1, x2, cotaSuperior, z1, z2, esJumpPad]
+  const surfaces = [
+    [10, 13, 1, 11, 13, false], // Zona segura de entrada
+    [8, 9, 2, 15, 15, true],    // Jump pad 1
+    [9, 11, 3, 18, 18, false],  // Plataforma 2
+    [6, 8, 3, 20, 20, false],   // Plataforma 3
+    [4, 6, 2, 23, 23, false],   // Plataforma 4
+    [8, 10, 2, 25, 25, false],  // Plataforma 5
+    [12, 14, 3, 26, 28, false], // Plataforma de la losa de presión
+    [16, 18, 3, 30, 30, false], // Plataforma 7
+    [19, 20, 2, 32, 32, false], // Plataforma 8
+    [1, 22, 1, 34, 36, false],  // Zona segura de salida
+  ];
+
+  const flooring = new Set([
+    BLOCK_TYPES.STONE_FLOOR,
+    BLOCK_TYPES.FLOOR_STONE,
+    BLOCK_TYPES.FLOOR_WORN,
+    BLOCK_TYPES.FLOOR_MOSS,
+  ]);
+
+  // Cada plataforma descansa sobre suelo sólido (o es una losa de salto)
+  for (const s of surfaces) {
+    const cx = Math.floor((s[0] + s[1]) / 2);
+    const cz = Math.floor((s[3] + s[4]) / 2);
+    const block = world.get(cx, s[2] - 1, cz);
+    if (s[5]) {
+      assert.equal(block, BLOCK_TYPES.JUMP_PAD, `Jump pad esperado en (${cx}, ${s[2] - 1}, ${cz})`);
+    } else {
+      assert.ok(flooring.has(block), `Suelo de piedra esperado en (${cx}, ${s[2] - 1}, ${cz}), se obtuvo ${block}`);
+    }
+  }
+
+  const ceilingY = 7; // Techo de la sala ampliada
+  for (const h of PLAYER_HEROES) {
+    for (let i = 0; i < surfaces.length - 1; i++) {
+      const a = surfaces[i];
+      const b = surfaces[i + 1];
+      const deltaY = b[2] - a[2];
+      const padMult = a[5] ? 1.35 : 1;
+      const r = reach(h.jumpMultiplier, h.speedMultiplier, deltaY, padMult);
+      const g = gap(a, b);
+      assert.ok(
+        g <= r * 0.65,
+        `${h.name} no alcanza el salto ${i + 1} de shadow_chasm (dY=${deltaY}): hueco ${g.toFixed(2)}m > 65% de ${r.toFixed(2)}m`
+      );
+      const apex = (PHYSICS_CONFIG.JUMP_VELOCITY * h.jumpMultiplier * padMult) ** 2 / (2 * -PHYSICS_CONFIG.GRAVITY);
+      const headY = a[2] + apex + PHYSICS_CONFIG.PLAYER_H;
+      assert.ok(headY <= ceilingY, `${h.name} golpearía el techo en el salto ${i + 1} (cabeza ${headY.toFixed(2)} > ${ceilingY})`);
+    }
+  }
 });
 
 test('Capítulo 2 - Nivel 3 (shadow_sanctum) es el Climax con altar y sin escalinata', () => {

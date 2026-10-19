@@ -7,7 +7,7 @@
   "dimensions": {
     "sizeX": 24,
     "sizeY": 16,
-    "sizeZ": 36
+    "sizeZ": 49
   },
   "spawn": {
     "x": 12.0,
@@ -32,9 +32,9 @@
     {
       "id": "losa_chasm_puerta2",
       "name": "Losa del Abismo Suspendido",
-      "x": 19.0,
+      "x": 13.0,
       "y": 3.0,
-      "z": 17.0,
+      "z": 27.0,
       "radius": 0.85,
       "triggerRadius": 2.4,
       "targetDoorId": 2,
@@ -68,13 +68,13 @@
       "x2": 13,
       "y1": 1,
       "y2": 3,
-      "z": 24,
+      "z": 37,
       "swingDir": 1,
       "coords": [
-        { "x": 11, "y": 1, "z": 24 },
-        { "x": 11, "y": 2, "z": 24 },
-        { "x": 12, "y": 1, "z": 24 },
-        { "x": 12, "y": 2, "z": 24 }
+        { "x": 11, "y": 1, "z": 37 },
+        { "x": 11, "y": 2, "z": 37 },
+        { "x": 12, "y": 1, "z": 37 },
+        { "x": 12, "y": 2, "z": 37 }
       ],
       "openMessage": ":door: ¡Puerta 2 abierta! ¡Habéis conquistado el Abismo de las Sombras! Entrad a la Cámara de la Resonancia.",
       "lockedMessage": ":lock: ¡Puerta sellada por un mecanismo rúnico! Activa la losa de presión suspendida en el Gran Abismo."
@@ -92,19 +92,19 @@
       "id": "sala_2",
       "name": "Sala 2 (El Gran Abismo)",
       "minZ": 11.5,
-      "maxZ": 24.0,
+      "maxZ": 37.0,
       "respawn": { "x": 11.5, "y": 1.2, "z": 12.0 }
     },
     {
       "id": "sala_3",
       "name": "Sala 3 (Cámara de la Resonancia)",
-      "minZ": 24.5,
-      "maxZ": 36.0,
-      "respawn": { "x": 11.5, "y": 1.2, "z": 25.0 }
+      "minZ": 37.5,
+      "maxZ": 49.0,
+      "respawn": { "x": 11.5, "y": 1.2, "z": 38.0 }
     }
   ],
   "objectives": [],
-  "stairs": { "x1": 11, "x2": 12, "z1": 31, "z2": 33, "openFromStart": false },
+  "stairs": { "x1": 11, "x2": 12, "z1": 44, "z2": 46, "openFromStart": false },
   "chests": [
     {
       "id": 1,
@@ -121,7 +121,7 @@
       "name": "Cofre Crepuscular de la Resonancia",
       "x": 18.5,
       "y": 1.0,
-      "z": 28.5,
+      "z": 41.5,
       "facing": "west",
       "reward": ":potion: Poción de Vida y :gem: 350 Gemas",
       "message": ":chest: ¡Has abierto el Cofre Crepuscular! Has obtenido: :potion: Poción de Vida (+1 :heart:) y :gem: 350 Gemas.",
@@ -136,27 +136,33 @@
   ],
   "regions": [
     { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 11] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 24], "to": [22, 0, 34] },
-    { "type": "perimeter", "height": 5, "block": "WALL" },
-    { "type": "divider", "z": 11, "height": 5, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
-    { "type": "divider", "z": 24, "height": 5, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
-    { "type": "ceiling", "y": 6, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
-    { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 23] },
-    { "type": "pillar", "x": 6, "z": 5, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 5, "height": 5, "block": "PILLAR" },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 37], "to": [22, 0, 48] },
+    { "type": "perimeter", "height": 6, "block": "WALL" },
+    { "type": "divider", "z": 11, "height": 6, "block": "WALL", "doorId": 1, "doorOpening": [11, 12] },
+    { "type": "divider", "z": 37, "height": 6, "block": "WALL", "doorId": 2, "doorOpening": [11, 12] },
+    { "type": "ceiling", "y": 7, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 48 },
+    { "type": "fill", "block": "LAVA", "from": [1, -1, 12], "to": [22, -1, 33] },
+    { "type": "pillar", "x": 6, "z": 5, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 5, "height": 6, "block": "PILLAR" },
     { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 11], "to": [13, 0, 13] },
-    { "type": "fill", "block": "PILLAR", "from": [8, 0, 14], "to": [9, 0, 14] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [8, 1, 14], "to": [9, 1, 14] },
-    { "type": "fill", "block": "PILLAR", "from": [14, 0, 16], "to": [15, 1, 16] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [14, 2, 16], "to": [15, 2, 16] },
-    { "type": "fill", "block": "PILLAR", "from": [18, 0, 16], "to": [20, 1, 18] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [18, 2, 16], "to": [20, 2, 18] },
+    { "type": "fill", "block": "PILLAR", "from": [8, 0, 15], "to": [9, 0, 15] },
+    { "type": "fill", "block": "JUMP_PAD", "from": [8, 1, 15], "to": [9, 1, 15] },
     { "type": "fill", "block": "PILLAR", "from": [9, 0, 18], "to": [11, 1, 18] },
     { "type": "fill", "block": "STONE_FLOOR", "from": [9, 2, 18], "to": [11, 2, 18] },
-    { "type": "fill", "block": "PILLAR", "from": [14, 0, 20], "to": [15, 0, 20] },
-    { "type": "fill", "block": "JUMP_PAD", "from": [14, 1, 20], "to": [15, 1, 20] },
-    { "type": "fill", "block": "STONE_FLOOR", "from": [10, 0, 23], "to": [13, 0, 24] },
-    { "type": "pillar", "x": 6, "z": 29, "height": 5, "block": "PILLAR" },
-    { "type": "pillar", "x": 17, "z": 29, "height": 5, "block": "PILLAR" }
+    { "type": "fill", "block": "PILLAR", "from": [6, 0, 20], "to": [8, 1, 20] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [6, 2, 20], "to": [8, 2, 20] },
+    { "type": "fill", "block": "PILLAR", "from": [4, 0, 23], "to": [6, 0, 23] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [4, 1, 23], "to": [6, 1, 23] },
+    { "type": "fill", "block": "PILLAR", "from": [8, 0, 25], "to": [10, 0, 25] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [8, 1, 25], "to": [10, 1, 25] },
+    { "type": "fill", "block": "PILLAR", "from": [12, 0, 26], "to": [14, 1, 28] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [12, 2, 26], "to": [14, 2, 28] },
+    { "type": "fill", "block": "PILLAR", "from": [16, 0, 30], "to": [18, 1, 30] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [16, 2, 30], "to": [18, 2, 30] },
+    { "type": "fill", "block": "PILLAR", "from": [19, 0, 32], "to": [20, 0, 32] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [19, 1, 32], "to": [20, 1, 32] },
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 34], "to": [22, 0, 36] },
+    { "type": "pillar", "x": 6, "z": 42, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 17, "z": 42, "height": 6, "block": "PILLAR" }
   ]
 }
