@@ -90,6 +90,14 @@ test('Capítulo 2 - Nivel 2 (shadow_chasm) incorpora abismo, plataformas JUMP_PA
   const c1 = world.chests.find(c => c.id === 1);
   assert.ok(c1, 'Cofre 1 debe existir');
 
+  // La zona segura de entrada (z=11..12) se amplía un bloque hacia el foso (z=13)
+  for (let x = 10; x <= 13; x++) {
+    assert.notEqual(world.get(x, 0, 13), 0, `Suelo seguro ampliado en (x=${x}, z=13)`);
+    assert.notEqual(world.get(x, 0, 13), 7, `La ampliación (x=${x}, z=13) no debe ser lava`);
+    assert.equal(world.get(x, -1, 13), 7, `Debe seguir habiendo lava bajo la ampliación (x=${x}, z=13)`);
+  }
+  assert.equal(world.get(9, 0, 13), 0, 'La ampliación no debe invadir el hueco de salto en x=9');
+
   assert.equal(world.stairwells.length, 1);
 });
 
@@ -199,13 +207,19 @@ test('Capítulo 2 - shadow_vault: Dispone de bloques de aterrizaje en z=40..42 f
     }
   }
 
-  // Muro divisorio central sólido en z=14..43 y anclado en la lava (y=-1 a y=6 sin hueco ni flotación)
+  // Muro divisorio central sólido en z=15..42 y anclado en la lava (y=-1 a y=6 sin hueco ni flotación)
   for (let z = 15; z <= 42; z++) {
     for (let x = 11; x <= 13; x++) {
       assert.equal(world.get(x, -1, z), 2, `Muro central en (x=${x}, y=-1, z=${z}) debe estar anclado en lava`);
       assert.equal(world.get(x, 0, z), 2, `Muro central en (x=${x}, y=0, z=${z}) no debe ser vacío`);
       assert.equal(world.get(x, 1, z), 2, `Muro central en (x=${x}, y=1, z=${z}) debe ser muro`);
     }
+  }
+
+  // La fila de entrada del muro (z=14) se retira para despejar el umbral de la Puerta 1
+  for (let x = 11; x <= 13; x++) {
+    assert.equal(world.get(x, 1, 14), 0, `El umbral (x=${x}, y=1, z=14) debe estar despejado`);
+    assert.equal(world.get(x, 1, 15), 2, `El muro central debe comenzar en (x=${x}, y=1, z=15)`);
   }
 });
 
@@ -434,6 +448,9 @@ test('Capítulo 2 - shadow_sanctum: preserva el desafío cooperativo de 2 jugado
   const chest1 = world.chests.find(c => c.id === 1);
   assert.ok(chest1, 'Cofre 1 debe existir');
   assert.equal(chest1.givesKey, 'llave_crepusculo', 'Cofre 1 otorga llave_crepusculo');
+  assert.equal(chest1.x, 20.5, 'Cofre 1 debe quedar a la izquierda del vano de la Puerta 3, fuera del eje de entrada');
+  assert.notEqual(world.get(20, 0, 34), 0, 'El cofre desplazado debe descansar sobre suelo sólido');
+  assert.notEqual(world.get(20, 0, 34), 7, 'El cofre desplazado no debe quedar sobre lava');
 
   // Checkpoints
   assert.equal(world.checkpoints.length, 3, 'Debe haber 3 checkpoints para las 3 salas');

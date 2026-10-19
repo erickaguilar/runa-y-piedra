@@ -16,6 +16,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - **Branch protection** en `main` y `develop` (PR obligatorio, `enforce_admins`, checks requeridos `verify` + `guards`, sin force-push ni borrado): cierre remoto de la Fase 7 del plan de saneamiento. Un push directo pasa a ser rechazado (`GH006`). La release `1.41.0` ya quedó publicada por *fast-forward* de `develop` a `main`.
 - **Documentación del smoke test** (`docs/smoke-test.md`): corregido el título (*7 → 8 pasos*), añadida la sección §2.1 con la ejecución automatizada y sus límites, y actualizada la lista de control con la última ejecución verificada. En `docs/30-plan-saneamiento-tecnico.md` se marcan como hechos los dos pendientes de smoke test y se anota una observación de rendimiento (~66 draw calls frente al presupuesto de 20–40) para seguimiento futuro, sin tratarla como regresión.
 
+### Fixed
+- **Ajustes de diseño de las mazmorras del Capítulo 2 (`src/levels/data/shadow_{vault,chasm,sanctum}.json`)**:
+  - `shadow_vault`: se retira la primera fila del muro divisorio central (`z=14`) para despejar el umbral de la Puerta 1; el muro pasa a arrancar en `z=15`, ya anclado sobre el lecho de lava.
+  - `shadow_chasm`: la zona segura de entrada de la Sala 2 (El Gran Abismo) se amplía un bloque hacia el foso (`z=11..13`), dando margen antes del primer salto.
+  - `shadow_sanctum`: el Cofre del Heraldo Sombrío se desplaza de `x=18.5` a `x=20.5` para sacarlo del eje del vano de la Puerta Reja Este y que no sea lo primero que se ve al entrar.
+
 ## [1.41.0] - 2026-10-18
 
 ### Added
