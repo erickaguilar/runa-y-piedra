@@ -216,7 +216,7 @@ Al consagrar el altar supremo que culmina un capítulo (ej. `abyss_throne` en el
 
 ## 7. Hoja de Estilos Centralizada (`src/styles/sumie-ui.css`)
 
-Para facilitar el mantenimiento y evitar regresiones, todas las reglas de transformación visual de Sumi-e se consolidaron en la hoja modular `src/styles/sumie-ui.css`, importada al final de `src/style.css` **sin capa `@layer`**, mientras que las 5 hojas heredadas (`base`, `menu`, `hud`, `modals`, `chapter`) quedan aisladas en `@layer legacy { … }`. Así la cascada *normal* de Sumi-e gana a la heredada **por orden de capas, sin `!important`** (Fase 5). De esta manera, no se rompe la lógica interna ni los contratos de eventos de `UIManager`, asegurando compatibilidad del 100% con la suite automatizada de pruebas (321 pruebas pasando).
+Para facilitar el mantenimiento y evitar regresiones, todas las reglas de transformación visual de Sumi-e se consolidaron en la hoja modular `src/styles/sumie-ui.css`, importada al final de `src/style.css` **sin capa `@layer`**, mientras que las 5 hojas heredadas (`base`, `menu`, `hud`, `modals`, `chapter`) quedan aisladas en `@layer legacy { … }`. Así la cascada *normal* de Sumi-e gana a la heredada **por orden de capas, sin `!important`** (Fase 5). De esta manera, no se rompe la lógica interna ni los contratos de eventos de `UIManager`, asegurando compatibilidad del 100% con la suite automatizada de pruebas (322 pruebas pasando).
 
 ---
 
