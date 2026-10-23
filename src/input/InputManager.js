@@ -2,12 +2,13 @@ import nipplejs from 'nipplejs';
 import { saveManager } from '../storage/SaveManager.js';
 
 export class InputManager {
-  constructor({ canvas, inputMode = null, isGameActive = null, onJump, onInteract, onCameraToggle, onSettingsToggle, onInventoryToggle, onUsePotion, onControlsToggle, onChapterMapToggle, onToggleFlightMode }) {
+  constructor({ canvas, inputMode = null, isGameActive = null, onJump, onInteract, onAttack, onCameraToggle, onSettingsToggle, onInventoryToggle, onUsePotion, onControlsToggle, onChapterMapToggle, onToggleFlightMode }) {
     this.canvas = canvas;
     this.inputMode = inputMode;
     this.isGameActive = isGameActive;
     this.onJump = onJump;
     this.onInteract = onInteract;
+    this.onAttack = onAttack;
     this.onCameraToggle = onCameraToggle;
     this.onSettingsToggle = onSettingsToggle;
     this.onInventoryToggle = onInventoryToggle;
@@ -70,7 +71,13 @@ export class InputManager {
         return;
       }
 
-      if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'Enter') {
+      if (e.code === 'KeyF' || e.code === 'KeyJ') {
+        e.preventDefault();
+        this.onAttack?.();
+        return;
+      }
+
+      if (e.code === 'KeyE' || e.code === 'Enter') {
         e.preventDefault();
         this.onInteract?.();
         return;
@@ -162,7 +169,11 @@ export class InputManager {
     window.addEventListener('mousedown', (e) => {
       if (!this.pointerLocked) return;
       if (e.button === 0) {
-        this.onInteract?.();
+        if (this.onAttack) {
+          this.onAttack();
+        } else {
+          this.onInteract?.();
+        }
       }
     });
 
@@ -245,11 +256,12 @@ export class InputManager {
     this.canvas.addEventListener('touchend', endLook, { passive: true });
     this.canvas.addEventListener('touchcancel', endLook, { passive: true });
 
-    // 3. Botones táctiles de Mazmorra (SALTAR e INTERACTUAR/ABRIR)
+    // 3. Botones táctiles de Mazmorra (SALTAR, ATACAR e INTERACTUAR/ABRIR)
     this.bindTouchButton('btn-jump', () => {
       this.pendingJump = true;
       this.onJump?.();
     });
+    this.bindTouchButton('btn-attack', () => this.onAttack?.());
     this.bindTouchButton('btn-interact', () => this.onInteract?.());
   }
 

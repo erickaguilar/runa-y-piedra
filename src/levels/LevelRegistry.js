@@ -30,6 +30,8 @@ import titanGate from './data/titan_gate.json' with { type: 'json' };
 import titanChamber from './data/titan_chamber.json' with { type: 'json' };
 import titanHeart from './data/titan_heart.json' with { type: 'json' };
 import devShowroom from './data/dev_showroom.json' with { type: 'json' };
+import devCombatroom from './data/dev_combatroom.json' with { type: 'json' };
+
 
 export class LevelRegistry {
   constructor() {
@@ -78,7 +80,10 @@ export class LevelRegistry {
     this.registerLevel(titanHeart);
     // Nivel Showroom de pruebas exclusivo de herramientas dev
     this.registerLevel(devShowroom);
+    // Nivel CombatRoom de pruebas exclusivo de herramientas dev
+    this.registerLevel(devCombatroom);
     this.currentLevelId = lobbyTutorial.id;
+
   }
 
   registerLevel(levelData) {

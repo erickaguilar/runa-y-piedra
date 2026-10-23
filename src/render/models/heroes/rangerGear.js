@@ -1,6 +1,7 @@
 // src/render/models/heroes/rangerGear.js
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildRangerBowMesh } from './heroWeapons.js';
 import {
   createHeroFaceMaterial,
   createHeroHeadSideMaterial,
@@ -346,6 +347,17 @@ export function buildRangerGear(a, G, add) {
     const gloveR = new THREE.Mesh(geo.glove, leatherMat);
     gloveR.position.set(0, -0.47, 0);
     add(gloveR, a.parts.armRPivot);
+  }
+
+  // 6b. ARCO RÚNICO DEL VIENTO — Empuñado en la mano derecha (armLPivot)
+  const bow = buildRangerBowMesh();
+  bow.position.set(0, -0.45, 0.08);
+  bow.rotation.set(Math.PI / 12, 0, -Math.PI / 16);
+  if (a.parts?.armLPivot) {
+    add(bow, a.parts.armLPivot);
+  } else {
+    bow.position.set(-0.30, 0.88, 0.10);
+    add(bow, a.gear);
   }
 
   // ═══════════════════════════════════════════════════════════

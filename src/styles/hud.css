@@ -24,6 +24,8 @@
     @keyframes interactPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
     #btn-jump{right:max(24px, env(safe-area-inset-right));bottom:calc(max(85px, env(safe-area-inset-bottom)) + 10px);
       background:linear-gradient(160deg,rgba(107,114,128,.92),rgba(55,65,81,.92))}
+    #btn-attack{right:calc(max(24px, env(safe-area-inset-right)) + 98px);bottom:calc(max(85px, env(safe-area-inset-bottom)) + 10px);
+      background:linear-gradient(160deg,rgba(185,28,28,.92),rgba(153,27,27,.92))}
 
     /* Palanca de Vuelo Activo (Lado Derecho) */
     .flight-stick-zone {
@@ -681,6 +683,11 @@
       background: rgba(217, 119, 6, 0.85);
       color: #fef3c7;
       border-color: rgba(245, 158, 11, 0.5);
+    }
+    .hud-pill-attack {
+      background: rgba(185, 28, 28, 0.85);
+      color: #fee2e2;
+      border-color: rgba(239, 68, 68, 0.5);
     }
     .hud-pc-controls,
     .hud-touch-controls {

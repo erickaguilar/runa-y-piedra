@@ -49,6 +49,7 @@ export const HudMixin = {
       : false;
     const btnInteract = document.getElementById('btn-interact');
     const btnJump = document.getElementById('btn-jump');
+    const btnAttack = document.getElementById('btn-attack');
     const flightStick = document.getElementById('flight-stick-zone');
 
     this._actionButtonsVisible = !!visible;
@@ -60,6 +61,10 @@ export const HudMixin = {
     } else {
       if (flightStick) flightStick.style.display = 'none';
       if (btnJump) btnJump.style.display = (visible && isTouch) ? 'flex' : 'none';
+    }
+
+    if (btnAttack) {
+      btnAttack.style.display = (visible && isTouch) ? 'flex' : 'none';
     }
 
     if (btnInteract) {

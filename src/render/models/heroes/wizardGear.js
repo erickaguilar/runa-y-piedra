@@ -231,11 +231,12 @@ export function buildWizardGear(a, G, add) {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 3. BÁCULO ARCANO — Anclado directamente a la MANO derecha (armRPivot)
-  //    armRPivot está en y = 1.33. La mano está en y = -0.42 a -0.47.
+  // 3. BÁCULO ARCANO — Anclado directamente a la MANO derecha (armLPivot)
+  //    armLPivot está en y = 1.33. La mano está en y = -0.42 a -0.47.
   // ═══════════════════════════════════════════════════════════
   const staff = new THREE.Group();
   staff.position.set(0, -0.42, 0.10);
+  staff.rotation.set(Math.PI / 12, 0, 0);
 
   const shaft = new THREE.Mesh(geo.shaft, woodMat);
   shaft.position.set(0, 0.20, 0);
@@ -260,10 +261,10 @@ export function buildWizardGear(a, G, add) {
   crystalInner.rotation.x = Math.PI / 4;
   staff.add(crystalInner);
 
-  if (a.parts?.armRPivot) {
-    add(staff, a.parts.armRPivot);
+  if (a.parts?.armLPivot) {
+    add(staff, a.parts.armLPivot);
   } else {
-    staff.position.set(0.30, 0.91, 0.10);
+    staff.position.set(-0.30, 0.91, 0.10);
     add(staff, a.gear);
   }
 
@@ -273,18 +274,18 @@ export function buildWizardGear(a, G, add) {
   const bookGroup = new THREE.Group();
 
   const book = new THREE.Mesh(geo.book, bookCoverMat);
-  book.position.set(-0.20, 0.82, 0.16);
-  book.rotation.z = 0.15;
+  book.position.set(0.20, 0.82, 0.16);
+  book.rotation.z = -0.15;
   bookGroup.add(book);
 
   const pages = new THREE.Mesh(geo.pages, bookPagesMat);
-  pages.position.set(-0.20, 0.82, 0.185);
-  pages.rotation.z = 0.15;
+  pages.position.set(0.20, 0.82, 0.185);
+  pages.rotation.z = -0.15;
   bookGroup.add(pages);
 
   const clasp = new THREE.Mesh(geo.clasp, ringMat);
-  clasp.position.set(-0.15, 0.82, 0.19);
-  clasp.rotation.z = 0.15;
+  clasp.position.set(0.15, 0.82, 0.19);
+  clasp.rotation.z = -0.15;
   bookGroup.add(clasp);
 
   add(bookGroup, a.gear);

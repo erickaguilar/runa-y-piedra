@@ -14,6 +14,12 @@ import { StairsRenderer } from '../render/StairsRenderer.js';
 import { HeroShowcaseRenderer } from '../render/HeroShowcaseRenderer.js';
 import { PropShowcaseRenderer } from '../render/PropShowcaseRenderer.js';
 import { PressurePlateRenderer } from '../render/PressurePlateRenderer.js';
+import { DummyRenderer } from '../render/DummyRenderer.js';
+import { ProjectileRenderer } from '../render/ProjectileRenderer.js';
+import { EnemyRenderer } from '../render/EnemyRenderer.js';
+import { FirstPersonWeaponRenderer } from '../render/FirstPersonWeaponRenderer.js';
+import { CombatManager } from '../combat/CombatManager.js';
+import { EnemyManager } from '../combat/EnemyManager.js';
 import { World } from './World.js';
 import { PlayerManager } from '../entities/PlayerManager.js';
 import { SimulationEngine } from '../simulation/SimulationEngine.js';
@@ -62,6 +68,53 @@ export class VoxelSandboxGame {
     this.propShowcaseRenderer.loadShowcases(this.world.propShowcases || []);
     this.pressurePlateRenderer = new PressurePlateRenderer(this.sceneManager.scene);
     this.pressurePlateRenderer.loadPressurePlates(this.world.pressurePlates);
+    this.enemyManager = new EnemyManager({
+      onEnemyHit: (hit) => {
+        this.soundManager?.playHit(hit.soundType);
+        const curLevelId = this.world?.levelRegistry?.currentLevelId;
+        if (curLevelId === 'dev_combatroom') {
+          this.ui?.showNarrativeMessage(`:crossed_swords: ¡Golpe a ${hit.enemyName}! Vida: ${hit.hp}/${hit.maxHp}`, 1400);
+        }
+      },
+      onEnemyDefeated: (enemy) => {
+        this.soundManager?.playHit('iron');
+        const curLevelId = this.world?.levelRegistry?.currentLevelId;
+        if (curLevelId === 'dev_combatroom') {
+          this.ui?.showNarrativeMessage(`:skull: ¡${enemy.name} derrotado! Reaparición en 4s.`, 3000);
+        }
+      },
+      onPlayerDamaged: (player, damage, enemy) => {
+        if (player.invulnTicks > 0) return;
+        const dmg = typeof damage === 'number' ? damage : 1;
+        player.damageCounter = (player.damageCounter || 0) + dmg;
+        if (player.damageCounter >= 1) {
+          player.damageCounter -= 1;
+          player.loseLife();
+          player.invulnTicks = 45;
+          this.soundManager?.playHurt();
+          this.ui?.updateLives(player.lives, player.maxLives);
+          this.ui?.showNarrativeMessage(`:shield: ¡${enemy.name} te ha golpeado! (${player.lives} vidas)`, 1800);
+        } else {
+          player.invulnTicks = 25;
+          this.soundManager?.playHurt();
+          this.ui?.showNarrativeMessage(`:shield: ¡${enemy.name} te rozó! (${dmg} daño)`, 1400);
+        }
+      },
+    });
+    this.combatManager = new CombatManager({
+      enemyManager: this.enemyManager,
+      onHit: (hit) => {
+        this.soundManager?.playHit(hit.soundType);
+        const curLevelId = this.world?.levelRegistry?.currentLevelId;
+        if (curLevelId === 'dev_combatroom') {
+          this.ui?.showNarrativeMessage(`:swords: ¡Impacto en ${hit.dummyName}! Daño: ${hit.effectiveDamage} • DPS: ${hit.dps.toFixed(1)}`, 1600);
+        }
+      },
+    });
+    this.dummyRenderer = new DummyRenderer(this.sceneManager.scene);
+    this.projectileRenderer = new ProjectileRenderer(this.sceneManager.scene);
+    this.enemyRenderer = new EnemyRenderer(this.sceneManager.scene);
+    this.fpWeaponRenderer = new FirstPersonWeaponRenderer(this.sceneManager.camera);
     this.interaction = new InteractionController(this);
     this.descent = new DescentManager(this);
     this.interaction.ensureStairsState();
@@ -117,7 +170,7 @@ export class VoxelSandboxGame {
             this.restoreSavedState();
             // Game Over en un capítulo = traslado al campamento/lobby con vidas restauradas
             const curLevelId = this.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon_classic';
-            const targetLevelId = (curLevelId === 'dev_showroom') ? 'dev_showroom' : 'lobby_tutorial';
+            const targetLevelId = (curLevelId === 'dev_showroom' || curLevelId === 'dev_combatroom') ? curLevelId : 'lobby_tutorial';
             this.switchLevel(targetLevelId, this.mode === 'host', { isGameOver: true });
           } else {
             this.soundManager.playHurt();
@@ -136,7 +189,7 @@ export class VoxelSandboxGame {
           if (gameOver && this.mode === 'host') {
             // Si un compañero en coop sufre Game Over en una mazmorra, la expedición completa regresa al lobby
             const curLevelId = this.world?.levelRegistry?.getCurrentLevel()?.id || 'dungeon_classic';
-            const targetLevelId = (curLevelId === 'dev_showroom') ? 'dev_showroom' : 'lobby_tutorial';
+            const targetLevelId = (curLevelId === 'dev_showroom' || curLevelId === 'dev_combatroom') ? curLevelId : 'lobby_tutorial';
             this.soundManager.playGameOver();
             this.ui.showGameOver(this.playerManager.localPlayer?.lives ?? 3, this.playerManager.localPlayer?.maxLives ?? 3);
             this.restoreSavedState();
@@ -175,6 +228,7 @@ export class VoxelSandboxGame {
       isGameActive: () => !!this.mode,
       onJump: () => {},
       onInteract: () => this.interaction.handleInteract(),
+      onAttack: () => this.handleAttack(),
       onCameraToggle: () => this.toggleCameraMode(),
       onSettingsToggle: () => this.toggleSettings(),
       onInventoryToggle: () => this.ui.toggleInventoryModal(),
@@ -248,6 +302,25 @@ export class VoxelSandboxGame {
     if (typeof window !== 'undefined') window.__game = this;
   }
 
+  handleAttack() {
+    if (!this.mode) return;
+    const local = this.playerManager?.localPlayer;
+    if (!local) return;
+
+    const result = this.combatManager?.executePlayerAttack(local);
+    if (!result) return;
+
+    this.soundManager?.playAttack();
+    this.fpWeaponRenderer?.triggerAttack?.(result.weapon);
+    const curLevelId = this.world?.levelRegistry?.currentLevelId;
+    if (curLevelId === 'dev_combatroom') {
+      const heroName = local.hero?.name || 'Aventurero';
+      if (!result.hits || result.hits.length === 0) {
+        this.ui?.showNarrativeMessage(`:swords: ¡${heroName} ataca con ${result.weapon.name}!`, 1200);
+      }
+    }
+  }
+
   /**
    * Libera todos los recursos WebGL, la escena, renderizadores y controladores del juego.
    */
@@ -262,6 +335,10 @@ export class VoxelSandboxGame {
     this.heroShowcaseRenderer?.dispose?.();
     this.propShowcaseRenderer?.dispose?.();
     this.pressurePlateRenderer?.dispose?.();
+    this.dummyRenderer?.dispose?.();
+    this.projectileRenderer?.dispose?.();
+    this.enemyRenderer?.dispose?.();
+    this.fpWeaponRenderer?.dispose?.();
     this.avatars?.dispose?.();
     this.sceneManager?.dispose?.();
   }

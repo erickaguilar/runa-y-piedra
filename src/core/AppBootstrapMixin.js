@@ -173,7 +173,18 @@ export const AppBootstrapMixin = {
     this.cameraMode = mode === 'third' ? 'third' : 'first';
     saveManager.updateSettings({ camera: this.cameraMode });
     const local = this.playerManager.localPlayer;
-    if (local) this.avatars.setLocalVisible(local.id, this.cameraMode === 'third');
+    if (local) {
+      this.avatars.setLocalVisible(local.id, this.cameraMode === 'third');
+      if (this.fpWeaponRenderer) {
+        if (this.cameraMode === 'first' && this.mode) {
+          const heroId = local.hero?.id || PLAYER_HEROES[local.colorIndex]?.id || 'adventurer';
+          this.fpWeaponRenderer.setHero(heroId);
+          this.fpWeaponRenderer.setVisible(true);
+        } else {
+          this.fpWeaponRenderer.setVisible(false);
+        }
+      }
+    }
     if (!silent) {
       // Se elimina la notificación de vista en primera persona por solicitud del usuario
       if (this.cameraMode === 'third') {
@@ -201,7 +212,7 @@ export const AppBootstrapMixin = {
 
     // 3. Fallbacks contextuales por ID de nivel
     if (id === 'shadow_sanctum' || id.startsWith('shadow_')) return 'abyss';
-    if (id === 'abyss_throne' || id.startsWith('dungeon_') || id === 'dev_showroom') return 'classic';
+    if (id === 'abyss_throne' || id.startsWith('dungeon_') || id === 'dev_showroom' || id === 'dev_combatroom') return 'classic';
     if (id.includes('inferno')) return 'inferno';
     return 'classic';
   },
@@ -286,6 +297,10 @@ export const AppBootstrapMixin = {
           // 3. Simular predicción local con la misma acción y dt fijo
           this.simulation.integratePlayer(local, FIXED_DT, jumpAction);
         }
+
+        // 4. Simulación autoritativa de combate y enemigos (proyectiles, IA y temporizadores)
+        this.combatManager?.update(FIXED_DT, this.world);
+        this.enemyManager?.update(FIXED_DT, this.world, this.playerManager.getAllPlayers());
       },
       onRender: (dt) => {
         // Perf fase 3: FPS real medido en rAF, push al overlay cada ~0.5s
@@ -321,12 +336,19 @@ export const AppBootstrapMixin = {
             });
           }
 
-          // Avatar propio solo visible en tercera persona
+          // Avatar propio en tercera persona; arma visible en primera persona
           if (this.cameraMode === 'third') {
             const hero = local.hero || PLAYER_HEROES[local.colorIndex] || PLAYER_HEROES[0];
             this.avatars.updateLocal(local.id, local.visualPos.x, local.visualPos.y, local.visualPos.z, local.yaw, hero.hex || hero.color, hero.id || null);
+            this.fpWeaponRenderer?.setVisible(false);
           } else {
             this.avatars.setLocalVisible(local.id, false);
+            if (this.fpWeaponRenderer) {
+              const heroId = local.hero?.id || PLAYER_HEROES[local.colorIndex]?.id || 'adventurer';
+              this.fpWeaponRenderer.setHero(heroId);
+              this.fpWeaponRenderer.setVisible(true);
+              this.fpWeaponRenderer.update(dt, local);
+            }
           }
 
           // Reflejar invulnerabilidad post-respawn en el HUD sin re-renderizar corazones
@@ -357,6 +379,8 @@ export const AppBootstrapMixin = {
           }
 
           this.avatars.update(dt);
+        } else {
+          this.fpWeaponRenderer?.setVisible?.(false);
         }
         this.chestRenderer.update(dt);
         this.doorRenderer.update(dt);
@@ -364,6 +388,9 @@ export const AppBootstrapMixin = {
         this.stairsRenderer.update(dt);
         this.pressurePlateRenderer.update(dt);
         this.propShowcaseRenderer?.update(dt);
+        this.dummyRenderer?.update?.(dt, this.combatManager?.getAllDummies?.());
+        this.projectileRenderer?.update?.(dt, this.combatManager?.projectiles);
+        this.enemyRenderer?.update?.(dt, this.enemyManager?.getAllEnemies?.());
         this.sceneManager.render();
       },
     });

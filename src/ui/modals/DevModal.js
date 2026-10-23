@@ -63,6 +63,7 @@ export const DevModalMixin = {
     const callbacks = this.devCallbacks || this.settingsCallbacks || {};
     const state = callbacks.getGameState ? callbacks.getGameState() : {};
     const isCurrentShowroom = state.currentLevelId === 'dev_showroom';
+    const isCurrentCombatRoom = state.currentLevelId === 'dev_combatroom';
     const inGame = !!state.inGame;
     const currentHeroIdx = state.currentHeroIndex ?? 0;
     const isNoclip = !!state.isNoclip;
@@ -76,7 +77,7 @@ export const DevModalMixin = {
       <div id="modal-dev" class="menu dev-modal sumie-modal-box">
         <div class="settings-header sumie-modal-header">
           <div>
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <h2 class="sumie-modal-title" style="display:flex;align-items:center;gap:6px;color:var(--rune-jade,#34d399);margin:0;">
                 ${renderIcon('terminal', { size: 18, color: '#10b981' })} HERRAMIENTAS DEV
               </h2>
@@ -166,7 +167,7 @@ export const DevModalMixin = {
                     <p class="sumie-dev-muted">
                       Cambia de personaje al instante para testear si los saltos y parkours son viables para cada clase.
                     </p>
-                    <div class="dev-hero-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:6px;margin-bottom:8px;">
+                    <div class="dev-hero-grid">
                       ${PLAYER_HEROES.map((h, idx) => {
                         const isActive = currentHeroIdx === idx;
                         return `
@@ -222,7 +223,7 @@ export const DevModalMixin = {
 
                   <!-- F. Exportar Reporte de Posición / JSON -->
                   <div class="sumie-dev-section" style="margin-top:10px;padding-top:8px;border-top:2px solid var(--ink-black);">
-                    <div style="display:flex;gap:6px;">
+                    <div class="dev-copy-row" style="display:flex;flex-wrap:wrap;gap:6px;">
                       <button id="btn-dev-copy-report" class="btn-secondary sumie-btn-small" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;">
                         ${renderIcon('copy', { size: 13, color: '#34d399' })} <span id="btn-dev-copy-report-text">Copiar Posición</span>
                       </button>
@@ -258,12 +259,20 @@ export const DevModalMixin = {
                   <button id="btn-dev-enter-showroom" class="btn-primary" style="width:100%;padding:9px;display:inline-flex;align-items:center;justify-content:center;gap:8px;" title="Cargar mapa showroom">
                     ${renderIcon('sparkles', { size: 15, color: '#fff' })} Entrar al Showroom de Bloques
                   </button>
+                  <button id="btn-dev-enter-combatroom" class="btn-primary" style="width:100%;padding:9px;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#991b1b;box-shadow:inset 0 0 0 2px #dc2626, inset 0 0 0 4px #0c0a09, 4px 4px 0px #0c0a09;" title="Cargar arena de combate PvE">
+                    ${renderIcon('swords', { size: 15, color: '#fff' })} Entrar a Sala de Combate PvE
+                  </button>
                   <button id="btn-dev-open-atlas" class="btn-secondary" style="width:100%;padding:8px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:11px;" title="Abrir Atlas de Expedición">
                     ${renderIcon('map', { size: 14, color: '#38bdf8' })} Explorar Atlas de Expedición
                   </button>
                   ${isCurrentShowroom ? `
                     <button id="btn-dev-exit-showroom" class="btn-secondary" style="width:100%;padding:8px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:11px;" title="Volver al lobby">
                       ${renderIcon('refresh', { size: 14, color: '#cbd5e1' })} Volver al Lobby / Tutorial
+                    </button>
+                  ` : ''}
+                  ${isCurrentCombatRoom ? `
+                    <button id="btn-dev-exit-combatroom" class="btn-secondary" style="width:100%;padding:8px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:11px;" title="Volver al lobby">
+                      ${renderIcon('refresh', { size: 14, color: '#cbd5e1' })} Salir de Sala de Combate
                     </button>
                   ` : ''}
                 </div>
@@ -499,6 +508,22 @@ export const DevModalMixin = {
       this.closeDevModal();
       if (callbacks.onExitShowroom) {
         callbacks.onExitShowroom();
+      }
+    });
+
+    document.getElementById('btn-dev-enter-combatroom')?.addEventListener('click', async () => {
+      soundManager.playClick();
+      this.closeDevModal();
+      if (callbacks.onEnterCombatRoom) {
+        await callbacks.onEnterCombatRoom();
+      }
+    });
+
+    document.getElementById('btn-dev-exit-combatroom')?.addEventListener('click', () => {
+      soundManager.playClick();
+      this.closeDevModal();
+      if (callbacks.onExitCombatRoom) {
+        callbacks.onExitCombatRoom();
       }
     });
 

@@ -569,6 +569,68 @@ export class SoundManager {
   }
 
   /**
+   * Sonido de ataque: silbido aerodinámico y barrido de corte rápido.
+   */
+  playAttack() {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(320, t);
+    osc.frequency.exponentialRampToValueAtTime(90, t + 0.11);
+
+    gain.gain.setValueAtTime(0.24, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.14);
+  }
+
+  /**
+   * Sonido de impacto en objetivos (madera/paja, hierro/blindaje, arcana o genérico).
+   * @param {'wood'|'iron'|'magic'|'generic'} type
+   */
+  playHit(type = 'generic') {
+    this._initContext();
+    if (!this.ctx || this._isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    if (type === 'iron') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.exponentialRampToValueAtTime(240, t + 0.12);
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    } else if (type === 'magic') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1174, t);
+      osc.frequency.exponentialRampToValueAtTime(440, t + 0.22);
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    } else {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(180, t);
+      osc.frequency.exponentialRampToValueAtTime(55, t + 0.14);
+      gain.gain.setValueAtTime(0.38, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+    }
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+    osc.start(t);
+    osc.stop(t + (type === 'magic' ? 0.26 : 0.18));
+  }
+
+  /**
    * Salpicadura y corriente acuática al entrar en torrente o canales de agua.
    */
   playWaterSplash() {

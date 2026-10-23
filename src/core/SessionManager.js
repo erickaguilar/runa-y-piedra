@@ -169,6 +169,35 @@ export const SessionMixin = {
     this.ui.showNarrativeMessage(':potion: Sesión local iniciada en Showroom de Desarrollo.', 4500);
   },
 
+  async startDevCombatRoomSession() {
+    this.mode = 'host';
+    this.playerManager.setLocalId(0);
+    this.playerManager.setLocalProfile('Dev Tester', 0);
+    this.avatars.remove(-1);
+
+    this.ui.currentScreen = 'in_game';
+    this.ui.hideMenu();
+    this.ui.setCrosshairVisible(true);
+    this.ui.setActionButtonsVisible(true);
+    this.ui.setLivesVisible(true);
+    this.resetInventory({ keepGems: false, keepRelics: false });
+
+    const localInit = this.playerManager.localPlayer;
+    const spawnYaw = this.world.spawnPoint?.yaw ?? Math.PI;
+    this.input.yaw = spawnYaw;
+    this.input.pitch = 0;
+    localInit.yaw = spawnYaw;
+    localInit.pitch = 0;
+    localInit.resetLives();
+    this.ui.updateLives(localInit.lives, localInit.maxLives);
+    this.ui.setHasKey(false);
+
+    // Cargar directamente el nivel dev_combatroom sin sincronizar por red
+    this.switchLevel('dev_combatroom', false);
+    this.ui.showNarrativeMessage(':swords: Sesión local iniciada en Sala de Combate PvE.', 4500);
+  },
+
+
   switchLevel(levelId, broadcast = true, { isGameOver = false } = {}) {
     const levelData = this.world.levelRegistry.getLevel(levelId);
     if (!levelData) return;
@@ -205,6 +234,17 @@ export const SessionMixin = {
     this.pedestalRenderer.loadPedestals(this.world.objectives, { theme: this.pedestalTheme(), monoliths: this.world.monoliths });
     this.heroShowcaseRenderer?.loadShowcases(this.world.heroShowcases || levelData.heroShowcases || []);
     this.propShowcaseRenderer?.loadShowcases(this.world.propShowcases || levelData.propShowcases || []);
+    if (levelId === 'dev_combatroom') {
+      this.dummyRenderer?.loadDummies(this.combatManager?.getAllDummies() || []);
+      this.enemyManager?.clear();
+      const list = levelData.enemies || [{ type: 'basalt_skitterer', x: 12, y: 1, z: 26 }];
+      for (const e of list) this.enemyManager?.spawnEnemy(e.type, e, e.id);
+      this.enemyRenderer?.loadEnemies(this.enemyManager?.getAllEnemies() || []);
+    } else {
+      this.dummyRenderer?.clear();
+      this.enemyManager?.clear();
+      this.enemyRenderer?.clear();
+    }
     this.pressurePlateRenderer?.loadPressurePlates(this.world.pressurePlates);
     // Las losas de presión se reinician siempre al entrar al nivel: sus puertas de mecanismo
     // arrancan cerradas, así que una losa "ya pisada" bloquearía el puzle.
@@ -307,6 +347,8 @@ export const SessionMixin = {
       this.ui.showNarrativeMessage(':skull: ¡GAME OVER! Has caído en la expedición. Regresas al Campamento con tus vidas restauradas.', 5000);
     } else if (levelData.id === 'dev_showroom') {
       this.ui.showNarrativeMessage(':potion: Showroom de Desarrollo: Galería completa de bloques y físicas.', 5500);
+    } else if (levelData.id === 'dev_combatroom') {
+      this.ui.showNarrativeMessage(':swords: Sala de Combate: Pruebas PvE y Armamento de Clase.', 5500);
     } else if (levelData.id === 'lobby_tutorial') {
       const isTouch = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
         ? window.matchMedia('(pointer: coarse)').matches
@@ -411,7 +453,7 @@ export const SessionMixin = {
    */
   saveDungeonCompletion(completedLevelId, isVictory = false) {
     if (this.mode === 'client') return; // Solo la sesión anfitriona o local persiste el avance canónico
-    if (!completedLevelId || completedLevelId === 'lobby_tutorial' || completedLevelId === 'dev_showroom') {
+    if (!completedLevelId || completedLevelId === 'lobby_tutorial' || completedLevelId === 'dev_showroom' || completedLevelId === 'dev_combatroom') {
       return;
     }
     // Solo persistir a almacenamiento permanente al culminar el capítulo
@@ -659,6 +701,22 @@ export const SessionMixin = {
       this.propShowcaseRenderer.clear();
     }
 
+    if (this.dummyRenderer?.clear) {
+      this.dummyRenderer.clear();
+    }
+
+    if (this.enemyRenderer?.clear) {
+      this.enemyRenderer.clear();
+    }
+
+    if (this.enemyManager?.clear) {
+      this.enemyManager.clear();
+    }
+
+    if (this.combatManager?.resetDummies) {
+      this.combatManager.resetDummies();
+    }
+
     if (this.playerManager?.reset) {
       this.playerManager.reset();
     }
@@ -696,6 +754,7 @@ export const SessionMixin = {
     }
 
     // Regresar la interfaz al menú principal
+    this.fpWeaponRenderer?.setVisible?.(false);
     if (this.ui) {
       this.ui.currentScreen = 'menu';
       this.ui.setCrosshairVisible?.(false);

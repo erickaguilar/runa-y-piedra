@@ -1,4 +1,5 @@
 import { WORLD_CONFIG, PLAYER_HEROES } from '../config/constants.js';
+import { getHeroWeapon } from '../config/combat.js';
 
 export class Player {
   constructor(id, x = WORLD_CONFIG.SPAWN_X, y = WORLD_CONFIG.SPAWN_Y, z = WORLD_CONFIG.SPAWN_Z, name = 'Aventurero', colorIndex = 0, yaw = Math.PI) {
@@ -6,6 +7,7 @@ export class Player {
     this.name = name;
     this.colorIndex = colorIndex;
     this.hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+    this.weapon = getHeroWeapon(colorIndex);
 
     // Posición lógica/física autoritativa (utilizada por SimulationEngine y replay)
     this.pos = { x, y, z };
@@ -24,6 +26,7 @@ export class Player {
     // Sistema de vidas: 3 corazones, muerte instantánea en lava/vacío
     this.maxLives = 3;
     this.lives = 3;
+    this.damageCounter = 0; // Acumulador de daño parcial (< 1 corazón)
     this.invulnTicks = 0; // Protección anti-muerte-en-bucle tras reaparecer (~2s)
     this.lavaSinkingTicks = 0; // Animación de hundimiento/caída lenta en lava (~1.2s antes de reaparecer)
 
@@ -43,12 +46,28 @@ export class Player {
     // Metadatos de red para sincronización de roster y elección determinista de líder
     this.peerId = '';
     this.joinedAt = Date.now();
+
+    // Sistema de combate y armas
+    this.lastAttackTime = 0;
+    this.attackCooldownMs = this.weapon?.cooldownMs ?? 350;
+  }
+
+  canAttack(now = Date.now()) {
+    return (now - this.lastAttackTime) >= this.attackCooldownMs;
+  }
+
+  triggerAttack(now = Date.now()) {
+    if (!this.canAttack(now)) return false;
+    this.lastAttackTime = now;
+    return true;
   }
 
 
   setColorIndex(colorIndex) {
     this.colorIndex = colorIndex;
     this.hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+    this.weapon = getHeroWeapon(colorIndex);
+    this.attackCooldownMs = this.weapon?.cooldownMs ?? 350;
   }
 
   setInput(forward, right, yaw = this.yaw) {
@@ -154,6 +173,7 @@ export class Player {
   resetLives() {
     this.cancelLavaSinking();
     this.lives = this.maxLives;
+    this.damageCounter = 0;
     this.invulnTicks = 60;
   }
 
@@ -166,6 +186,7 @@ export class Player {
     const spawnYaw = (s.yaw !== undefined && s.yaw !== null) ? s.yaw : Math.PI;
     this.checkpoint = { x: s.x, y: s.y, z: s.z, roomName: 'Sala 1 (Vestíbulo)', yaw: spawnYaw };
     this.lives = this.maxLives;
+    this.damageCounter = 0;
     return this.respawn(s);
   }
 
