@@ -94,7 +94,7 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Motor de audio procedural sintetizado con Web Audio API (`SoundManager.js`) con cero descarga de ficheros pesados.
     - Ciclo de 3 vidas, peligros ambientales letales (lava y abismo), invulnerabilidad temporal (2.5 s) y Game Over cooperativo.
     - Oscilador armónico amortiguado (`Spring.js`) para animaciones elásticas reactivas de UI.
-    - Suite de 372 pruebas automatizadas nativas con `node:test` sin dependencias externas pesadas.
+    - Suite de 373 pruebas automatizadas nativas con `node:test` sin dependencias externas pesadas.
 
 15. [**15. Flujo de Trabajo Git y Creación de Nuevos Niveles de Mazmorra**](./15-flujo-de-trabajo-git-y-creacion-de-niveles.md)
     - Metodología de ramificación GitFlow (`main`, `develop`, `feature/*`, `hotfix/*`).

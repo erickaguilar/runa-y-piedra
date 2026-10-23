@@ -1,17 +1,10 @@
 // src/render/FirstPersonWeaponRenderer.js
 import * as THREE from 'three';
 import { buildHeroWeaponMesh } from './models/heroes/heroWeapons.js';
-import { buildHeroArmMesh, setupOverlayMesh } from './models/heroes/heroArms.js';
+import { buildHeroArmMesh, setupOverlayMesh, FP_CONFIGS } from './models/heroes/heroArms.js';
+import { evaluateHeroAttack, resetHeroAttackMeshes } from './firstPersonAttacks.js';
 
 const HERO_NAMES = ['adventurer', 'paladin', 'ranger', 'wizard', 'guardian'];
-
-const FP_CONFIGS = {
-  adventurer: { pos: [0.26, -0.22, -0.46], rot: [-0.65, -0.20, 0.10], scale: 0.65 },
-  paladin:    { pos: [0.28, -0.24, -0.50], rot: [-0.60, -0.22, 0.08], scale: 0.58 },
-  ranger:     { pos: [0.24, -0.20, -0.44], rot: [-0.15, Math.PI - 0.20, 0.15], scale: 0.62 },
-  wizard:     { pos: [0.28, -0.26, -0.48], rot: [-0.55, -0.18, 0.06], scale: 0.55 },
-  guardian:   { pos: [0.24, -0.25, -0.47], rot: [-0.54, -0.25, 0.12], scale: 0.63 },
-};
 
 /**
  * Renderizador de arma y extremidad en primera persona (Viewmodel cinemático).
@@ -36,6 +29,9 @@ export class FirstPersonWeaponRenderer {
     this.wizardCoreMesh = null;
     this.wizardOrbitalMesh = null;
     this.guardianRuneMesh = null;
+    this.rangerGemMesh = null;
+    this.rangerArrowMesh = null;
+    this.rangerStringMesh = null;
 
     // Configuración base fija
     this.basePos = new THREE.Vector3();
@@ -97,6 +93,9 @@ export class FirstPersonWeaponRenderer {
     this.wizardCoreMesh = null;
     this.wizardOrbitalMesh = null;
     this.guardianRuneMesh = null;
+    this.rangerGemMesh = null;
+    this.rangerArrowMesh = null;
+    this.rangerStringMesh = null;
 
     // 1. Malla del arma
     this.currentWeaponMesh = buildHeroWeaponMesh(heroIdOrIndex);
@@ -112,6 +111,13 @@ export class FirstPersonWeaponRenderer {
           if (child.name === 'WizardOrbitalRing') this.wizardOrbitalMesh = child;
         }
         if (heroKey === 'guardian' && child.name === 'GuardianRunicCore') this.guardianRuneMesh = child;
+        if (heroKey === 'ranger') {
+          if (child.name === 'RangerWindGem') this.rangerGemMesh = child;
+          if (child.name === 'RangerArrow' || child.parent?.name === 'RangerArrow') {
+            if (!this.rangerArrowMesh) this.rangerArrowMesh = child.name === 'RangerArrow' ? child : child.parent;
+          }
+          if (child.name === 'RangerBowString') this.rangerStringMesh = child;
+        }
       }
     });
     this.group.add(this.currentWeaponMesh);
@@ -139,6 +145,7 @@ export class FirstPersonWeaponRenderer {
     const cooldownMs = weapon?.cooldownMs || 350;
     // La duración visual cubre el 85% del cooldown para estar lista para el siguiente golpe
     this.attackDuration = Math.max(0.20, (cooldownMs / 1000) * 0.85);
+    if (this.rangerArrowMesh) this.rangerArrowMesh.visible = true;
   }
 
   /**
@@ -227,201 +234,18 @@ export class FirstPersonWeaponRenderer {
     if (this.isAttacking) {
       this.attackTimer += safeDt;
       const p = Math.min(1.0, this.attackTimer / this.attackDuration);
-      const heroKey = this.currentHeroKey || 'adventurer';
-
-      if (heroKey === 'adventurer') {
-        // Estocada ágil y corte frontal
-        if (p < 0.20) {
-          const t = p / 0.20;
-          atkZ = t * 0.03;
-          atkRotX = -t * 0.12;
-        } else if (p < 0.55) {
-          const t = (p - 0.20) / 0.35;
-          atkZ = 0.03 - t * 0.20;
-          atkX = -t * 0.06;
-          atkY = t * 0.02;
-          atkRotX = -0.12 + t * 0.45;
-          atkRotY = -t * 0.22;
-        } else {
-          const t = (p - 0.55) / 0.45;
-          const ease = 1 - t * t;
-          atkZ = -0.17 * ease;
-          atkX = -0.06 * ease;
-          atkY = 0.02 * ease;
-          atkRotX = 0.33 * ease;
-          atkRotY = -0.22 * ease;
-        }
-      } else if (heroKey === 'paladin') {
-        // Gran tajo horizontal con mandoble sagrado
-        if (p < 0.22) {
-          const t = p / 0.22;
-          atkY = t * 0.08;
-          atkZ = t * 0.05;
-          atkRotX = t * 0.32;
-          atkRotZ = -t * 0.25;
-        } else if (p < 0.62) {
-          const t = (p - 0.22) / 0.40;
-          atkX = -t * 0.26;
-          atkY = 0.08 - t * 0.14;
-          atkRotY = -t * 1.35;
-          atkRotZ = -0.25 + t * 0.80;
-          atkRotX = 0.32 - t * 0.65;
-        } else {
-          const t = (p - 0.62) / 0.38;
-          const ease = 1 - t * t;
-          atkX = -0.26 * ease;
-          atkY = -0.06 * ease;
-          atkRotY = -1.35 * ease;
-          atkRotZ = 0.55 * ease;
-          atkRotX = -0.33 * ease;
-        }
-      } else if (heroKey === 'ranger') {
-        // Arco rúnico: retroceso del arco y latigazo
-        if (p < 0.30) {
-          const t = p / 0.30;
-          atkZ = t * 0.07;
-          atkX = -t * 0.03;
-          atkRotZ = t * 0.16;
-        } else if (p < 0.50) {
-          const t = (p - 0.30) / 0.20;
-          atkZ = 0.07 - t * 0.14;
-          atkRotX = -Math.sin(t * Math.PI) * 0.16;
-          atkRotZ = 0.16 - t * 0.22;
-        } else {
-          const t = (p - 0.50) / 0.50;
-          const ease = 1 - t;
-          const vibe = Math.sin(t * Math.PI * 4) * ease * 0.008;
-          atkZ = -0.07 * ease + vibe;
-          atkRotZ = -0.06 * ease;
-        }
-      } else if (heroKey === 'wizard') {
-        // Canalización, concentración de plasma y descarga de rayo arcano (4 fases)
-        if (p < 0.24) {
-          // Fase 1: Carga y elevación mística con micro-vibración
-          const t = p / 0.24;
-          const channelVibe = Math.sin(t * Math.PI * 8) * t * 0.005;
-          atkY = t * 0.10 + channelVibe;
-          atkZ = t * 0.06;
-          atkRotX = t * 0.28;
-          atkRotZ = -t * 0.12;
-          if (this.crystalMesh?.material) {
-            this.crystalMesh.material.emissiveIntensity = 0.8 + t * 0.8;
-          }
-          if (this.wizardCoreMesh?.material) {
-            this.wizardCoreMesh.material.emissiveIntensity = 1.5 + t * 1.0;
-          }
-        } else if (p < 0.52) {
-          // Fase 2: Descarga violenta de plasma arcano al frente (punto de mira)
-          const t = (p - 0.24) / 0.28;
-          const thrust = t * t;
-          atkZ = 0.06 - thrust * 0.26;
-          atkY = 0.10 - thrust * 0.08;
-          atkRotX = 0.28 - thrust * 0.65;
-          atkRotY = -thrust * 0.15;
-          atkRotZ = -0.12 + thrust * 0.18;
-          if (this.crystalMesh?.material) {
-            this.crystalMesh.material.emissiveIntensity = 1.6 + (1 - Math.abs(t - 0.5) * 2) * 1.2;
-          }
-          if (this.wizardCoreMesh?.material) {
-            this.wizardCoreMesh.material.emissiveIntensity = 2.5 + (1 - Math.abs(t - 0.5) * 2) * 1.5;
-          }
-        } else if (p < 0.76) {
-          // Fase 3: Retroceso elástico y disipación de energía residual
-          const t = (p - 0.52) / 0.24;
-          const dissipate = 1 - t;
-          const recoilVibe = Math.sin(t * Math.PI * 6) * dissipate * 0.006;
-          atkZ = -0.20 + t * 0.10 + recoilVibe;
-          atkY = 0.02 + Math.sin(t * Math.PI) * 0.04;
-          atkRotX = -0.37 + t * 0.22;
-          atkRotY = -0.15 + t * 0.09;
-          atkRotZ = 0.06 - t * 0.04;
-          if (this.crystalMesh?.material) {
-            this.crystalMesh.material.emissiveIntensity = 0.8 + dissipate * 0.8;
-          }
-          if (this.wizardCoreMesh?.material) {
-            this.wizardCoreMesh.material.emissiveIntensity = 1.5 + dissipate * 1.0;
-          }
-        } else {
-          // Fase 4: Retorno armónico suave al reposo
-          const t = (p - 0.76) / 0.24;
-          const ease = 1 - t * t;
-          atkZ = -0.10 * ease;
-          atkY = 0.02 * ease;
-          atkRotX = -0.15 * ease;
-          atkRotY = -0.06 * ease;
-          atkRotZ = 0.02 * ease;
-          if (this.crystalMesh?.material) {
-            this.crystalMesh.material.emissiveIntensity = 0.8;
-          }
-          if (this.wizardCoreMesh?.material) {
-            this.wizardCoreMesh.material.emissiveIntensity = 1.5;
-          }
-        }
-      } else if (heroKey === 'guardian') {
-        // Mazo sísmico: alzada bimano y golpe descendente demoledor
-        if (p < 0.32) {
-          const t = p / 0.32;
-          atkY = t * 0.16;
-          atkZ = t * 0.06;
-          atkX = t * 0.03;
-          atkRotX = t * 0.55;
-          atkRotY = t * 0.18;
-          atkRotZ = -t * 0.22;
-          if (this.guardianRuneMesh?.material) {
-            this.guardianRuneMesh.material.emissiveIntensity = 0.6 + t * 0.8;
-          }
-        } else if (p < 0.52) {
-          const t = (p - 0.32) / 0.20;
-          const a = t * t;
-          atkY = 0.16 - a * 0.44;
-          atkZ = 0.06 - a * 0.22;
-          atkX = 0.03 - a * 0.09;
-          atkRotX = 0.55 - a * 1.55;
-          atkRotY = 0.18 - a * 0.38;
-          atkRotZ = -0.22 + a * 0.30;
-          if (this.guardianRuneMesh?.material) {
-            this.guardianRuneMesh.material.emissiveIntensity = 1.4 + a * 1.2;
-          }
-        } else if (p < 0.72) {
-          const t = (p - 0.52) / 0.20;
-          const tremor = Math.sin(t * Math.PI * 8) * (1 - t) * 0.014;
-          const side = Math.cos(t * Math.PI * 6) * (1 - t) * 0.008;
-          atkY = -0.28 + t * 0.12 + tremor;
-          atkZ = -0.16 + t * 0.08;
-          atkX = -0.06 + side;
-          atkRotX = -1.0 + t * 0.45;
-          atkRotY = -0.20 + t * 0.10;
-          atkRotZ = 0.08 - t * 0.04;
-          if (this.guardianRuneMesh?.material) {
-            this.guardianRuneMesh.material.emissiveIntensity = 2.6 * (1 - t) + 0.6 * t;
-          }
-        } else {
-          const t = (p - 0.72) / 0.28;
-          const ease = 1 - t * t;
-          atkY = -0.16 * ease;
-          atkZ = -0.08 * ease;
-          atkX = -0.04 * ease;
-          atkRotX = -0.55 * ease;
-          atkRotY = -0.10 * ease;
-          atkRotZ = 0.04 * ease;
-          if (this.guardianRuneMesh?.material) {
-            this.guardianRuneMesh.material.emissiveIntensity = 0.6;
-          }
-        }
-      }
+      const res = evaluateHeroAttack(this.currentHeroKey || 'adventurer', p, this);
+      atkX = res.atkX;
+      atkY = res.atkY;
+      atkZ = res.atkZ;
+      atkRotX = res.atkRotX;
+      atkRotY = res.atkRotY;
+      atkRotZ = res.atkRotZ;
 
       if (p >= 1.0) {
         this.isAttacking = false;
         this.attackTimer = 0;
-        if (this.guardianRuneMesh?.material) {
-          this.guardianRuneMesh.material.emissiveIntensity = 0.6;
-        }
-        if (this.crystalMesh?.material) {
-          this.crystalMesh.material.emissiveIntensity = 0.8;
-        }
-        if (this.wizardCoreMesh?.material) {
-          this.wizardCoreMesh.material.emissiveIntensity = 1.5;
-        }
+        resetHeroAttackMeshes(this);
       }
     }
 
@@ -451,6 +275,9 @@ export class FirstPersonWeaponRenderer {
     if (!this.isAttacking && this.guardianRuneMesh?.material) {
       this.guardianRuneMesh.material.emissiveIntensity = 0.6 + Math.sin(this.idlePhase * 2.5) * 0.15;
     }
+    if (!this.isAttacking && this.rangerGemMesh?.material) {
+      this.rangerGemMesh.material.emissiveIntensity = 0.4 + Math.sin(this.idlePhase * 2.2) * 0.15;
+    }
 
     // 7. Composición directa sobre la transformación de grupo (Zero-GC)
     this.group.position.x = this.basePos.x + idleX + bobX + this.swayPos.x + atkX;
@@ -475,6 +302,9 @@ export class FirstPersonWeaponRenderer {
     this.wizardCoreMesh = null;
     this.wizardOrbitalMesh = null;
     this.guardianRuneMesh = null;
+    this.rangerGemMesh = null;
+    this.rangerArrowMesh = null;
+    this.rangerStringMesh = null;
     this.camera.remove(this.group);
   }
 }

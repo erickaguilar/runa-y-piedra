@@ -9,6 +9,14 @@ const HERO_COLORS = {
   guardian: 0xfbbf24,
 };
 
+export const FP_CONFIGS = {
+  adventurer: { pos: [0.26, -0.22, -0.46], rot: [-0.65, -0.20, 0.10], scale: 0.65 },
+  paladin:    { pos: [0.28, -0.24, -0.50], rot: [-0.60, -0.22, 0.08], scale: 0.58 },
+  ranger:     { pos: [0.24, -0.20, -0.44], rot: [-0.15, Math.PI - 0.20, 0.15], scale: 0.62 },
+  wizard:     { pos: [0.28, -0.26, -0.48], rot: [-0.55, -0.18, 0.06], scale: 0.55 },
+  guardian:   { pos: [0.24, -0.25, -0.47], rot: [-0.54, -0.25, 0.12], scale: 0.63 },
+};
+
 const GRIP_OFFSETS = {
   adventurer: { gripY: -0.09, armRotX: -0.55, armRotZ: 0.25 },
   paladin:    { gripY: -0.15, armRotX: -0.55, armRotZ: 0.22 },
@@ -33,6 +41,12 @@ export function getArmGeometries() {
     const wizardLeftHand = new THREE.BoxGeometry(0.08, 0.075, 0.08);
     const wizardLeftForearm = new THREE.BoxGeometry(0.085, 0.22, 0.085);
 
+    // Complementos para el arquero forestal (Explorador)
+    const rangerBracer = new THREE.BoxGeometry(0.092, 0.16, 0.035);
+    const rangerBuckle = new THREE.BoxGeometry(0.096, 0.035, 0.04);
+    const rangerDrawHand = new THREE.BoxGeometry(0.08, 0.08, 0.08);
+    const rangerDrawArm = new THREE.BoxGeometry(0.08, 0.22, 0.08);
+
     forearm.userData = { isShared: true };
     hand.userData = { isShared: true };
     vambrace.userData = { isShared: true };
@@ -42,6 +56,10 @@ export function getArmGeometries() {
     wizardBracelet.userData = { isShared: true };
     wizardLeftHand.userData = { isShared: true };
     wizardLeftForearm.userData = { isShared: true };
+    rangerBracer.userData = { isShared: true };
+    rangerBuckle.userData = { isShared: true };
+    rangerDrawHand.userData = { isShared: true };
+    rangerDrawArm.userData = { isShared: true };
 
     _sharedArmGeo = {
       forearm,
@@ -53,6 +71,10 @@ export function getArmGeometries() {
       wizardBracelet,
       wizardLeftHand,
       wizardLeftForearm,
+      rangerBracer,
+      rangerBuckle,
+      rangerDrawHand,
+      rangerDrawArm,
     };
   }
   return _sharedArmGeo;
@@ -68,13 +90,15 @@ export function getArmMaterials(heroKey) {
   const handMat = new THREE.MeshLambertMaterial({ color: handColor });
   const goldMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.35, metalness: 0.75 });
   const darkRobeMat = new THREE.MeshLambertMaterial({ color: 0x581c87 });
+  const leatherMat = new THREE.MeshLambertMaterial({ color: 0x4a2e18 });
 
   sleeveMat.userData = { isShared: true };
   handMat.userData = { isShared: true };
   goldMat.userData = { isShared: true };
   darkRobeMat.userData = { isShared: true };
+  leatherMat.userData = { isShared: true };
 
-  const mats = { sleeveMat, handMat, goldMat, darkRobeMat };
+  const mats = { sleeveMat, handMat, goldMat, darkRobeMat, leatherMat };
   _armMatCache.set(heroKey, mats);
   return mats;
 }
@@ -162,6 +186,33 @@ export function buildHeroArmMesh(heroKey) {
     lArm.position.set(-0.19, grip.gripY - 0.26, 0.16);
     lArm.rotation.set(-0.45, 0.35, -0.30);
     armGroup.add(lArm);
+  } else if (heroKey === 'ranger') {
+    // Brazalete de cuero de arquero (arm guard) sobre el antebrazo izquierdo
+    const bracer = setupOverlayMesh(new THREE.Mesh(G.rangerBracer, M.leatherMat));
+    bracer.name = 'RangerArmGuard';
+    bracer.position.set(0.06, grip.gripY - 0.16, 0.16);
+    bracer.rotation.set(grip.armRotX, 0, grip.armRotZ);
+    armGroup.add(bracer);
+
+    // Hebilla dorada del brazalete
+    const buckle = setupOverlayMesh(new THREE.Mesh(G.rangerBuckle, M.goldMat));
+    buckle.name = 'RangerBracerBuckle';
+    buckle.position.set(0.06, grip.gripY - 0.16, 0.19);
+    buckle.rotation.set(grip.armRotX, 0, grip.armRotZ);
+    armGroup.add(buckle);
+
+    // Mano derecha de tensado (draw hand) lista en la cuerda
+    const drawHand = setupOverlayMesh(new THREE.Mesh(G.rangerDrawHand, M.leatherMat));
+    drawHand.name = 'RangerDrawHand';
+    drawHand.position.set(0.02, grip.gripY - 0.04, -0.07);
+    armGroup.add(drawHand);
+
+    // Antebrazo de tensado con manga verde
+    const drawArm = setupOverlayMesh(new THREE.Mesh(G.rangerDrawArm, M.sleeveMat));
+    drawArm.name = 'RangerDrawArm';
+    drawArm.position.set(0.08, grip.gripY - 0.18, -0.15);
+    drawArm.rotation.set(-0.70, 0.15, 0.40);
+    armGroup.add(drawArm);
   }
 
   return armGroup;

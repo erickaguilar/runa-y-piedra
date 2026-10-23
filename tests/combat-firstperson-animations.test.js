@@ -306,3 +306,53 @@ test('FirstPersonWeaponRenderer: Hechicero integra báculo arcano, corona de gar
 
   renderer.dispose();
 });
+
+test('FirstPersonWeaponRenderer: Explorador integra arco rúnico, gema eólica, flecha montada y cinemática de tiro con arco', () => {
+  const camera = new THREE.PerspectiveCamera();
+  const renderer = new FirstPersonWeaponRenderer(camera);
+  renderer.setHero('ranger');
+  renderer.setVisible(true);
+
+  // 1. Identificación de componentes de arquería en el arco
+  assert.ok(renderer.rangerGemMesh, 'Debe identificar la gema eólica del arco');
+  assert.ok(renderer.rangerArrowMesh, 'Debe identificar la flecha montada en el reposaflechas');
+  assert.ok(renderer.rangerStringMesh, 'Debe identificar la cuerda tensable del arco');
+
+  // 2. Traje y brazos de arquero (brazalete protector de cuero, hebilla y mano de tensado)
+  let armMeshes = 0;
+  renderer.currentArmMesh.traverse((child) => {
+    if (child.isMesh) armMeshes++;
+  });
+  assert.ok(armMeshes >= 4, 'El Explorador debe contar con brazalete protector, hebilla y mano de tensado (>= 4 meshes)');
+
+  // 3. Respiración eólica en reposo (idle)
+  const player = { pos: { x: 0, y: 1, z: 0 }, vel: { x: 0, y: 0, z: 0 }, yaw: 0, pitch: 0, onGround: true };
+  const initialGemEmissive = renderer.rangerGemMesh.material.emissiveIntensity;
+  for (let i = 0; i < 20; i++) {
+    renderer.update(0.016, player);
+  }
+  assert.notEqual(renderer.rangerGemMesh.material.emissiveIntensity, initialGemEmissive, 'La gema eólica debe modular sutilmente su brillo en reposo');
+
+  // 4. Secuencia de tensado, suelta y vibración de cuerda en ataque
+  renderer.triggerAttack(HERO_WEAPONS[2]);
+  assert.equal(renderer.isAttacking, true);
+
+  // Avanzar a fase de tensado máximo (~30% del tiempo de ataque)
+  const targetDrawTime = renderer.attackDuration * 0.30;
+  while (renderer.attackTimer < targetDrawTime) {
+    renderer.update(0.016, player);
+  }
+  assert.ok(renderer.rangerStringMesh.position.z < -0.04, 'La cuerda debe retraerse hacia el arquero durante el tensado');
+  assert.ok(renderer.rangerGemMesh.material.emissiveIntensity > 1.0, 'La gema eólica debe brillar con mayor intensidad al tensar el arco');
+  assert.equal(renderer.rangerArrowMesh.visible, true, 'La flecha debe ser visible mientras se tensa el arco');
+
+  // Completar animación de ataque completa
+  while (renderer.isAttacking) {
+    renderer.update(0.016, player);
+  }
+  assert.equal(renderer.isAttacking, false);
+  assert.equal(renderer.rangerArrowMesh.visible, true, 'La siguiente flecha debe estar cargada en el reposaflechas');
+  assert.equal(renderer.rangerStringMesh.position.z, -0.04, 'La cuerda debe retornar a su posición neutral');
+
+  renderer.dispose();
+});

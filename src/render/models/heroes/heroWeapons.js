@@ -21,12 +21,18 @@ function getWeaponGeoCache() {
   const greatPommel = new THREE.BoxGeometry(0.07, 0.06, 0.06);
 
   // 3. Arco Rúnico del Viento (Explorador)
-  const bowGrip = new THREE.BoxGeometry(0.04, 0.12, 0.05);
+  const bowGrip = new THREE.BoxGeometry(0.04, 0.14, 0.055);
+  const bowRiserPlate = new THREE.BoxGeometry(0.048, 0.08, 0.06);
+  const bowWindGem = new THREE.OctahedronGeometry(0.035, 0);
   const bowLimbUpper = new THREE.BoxGeometry(0.035, 0.36, 0.035);
   const bowLimbLower = new THREE.BoxGeometry(0.035, 0.36, 0.035);
+  const bowLimbPlate = new THREE.BoxGeometry(0.042, 0.06, 0.042);
   const bowTipUpper = new THREE.BoxGeometry(0.03, 0.18, 0.03);
   const bowTipLower = new THREE.BoxGeometry(0.03, 0.18, 0.03);
   const bowString = new THREE.CylinderGeometry(0.005, 0.005, 0.98, 4);
+  const bowArrowShaft = new THREE.CylinderGeometry(0.007, 0.007, 0.58, 4);
+  const bowArrowTip = new THREE.ConeGeometry(0.018, 0.06, 4);
+  const bowArrowFletch = new THREE.BoxGeometry(0.028, 0.08, 0.004);
 
   // 4. Báculo de Rayo Arcano (Hechicero)
   const staffShaft = new THREE.CylinderGeometry(0.022, 0.022, 1.15, 6);
@@ -64,11 +70,17 @@ function getWeaponGeoCache() {
     greatPommel,
 
     bowGrip,
+    bowRiserPlate,
+    bowWindGem,
     bowLimbUpper,
     bowLimbLower,
+    bowLimbPlate,
     bowTipUpper,
     bowTipLower,
     bowString,
+    bowArrowShaft,
+    bowArrowTip,
+    bowArrowFletch,
 
     staffShaft,
     staffGripWrap,
@@ -112,6 +124,9 @@ function getWeaponMatCache() {
     leatherRedMat: new THREE.MeshLambertMaterial({ color: 0x991b1b }),
     woodMat: new THREE.MeshLambertMaterial({ color: 0x78350f }),
     runicGreenMat: new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.5, emissive: 0x064e3b, emissiveIntensity: 0.4 }),
+    runicGreenBrightMat: new THREE.MeshStandardMaterial({ color: 0x6ee7b7, roughness: 0.2, emissive: 0x10b981, emissiveIntensity: 1.2 }),
+    arrowWoodMat: new THREE.MeshLambertMaterial({ color: 0xd9b48a }),
+    fletchRedMat: new THREE.MeshLambertMaterial({ color: 0xb91c1c }),
     runicPurpleMat: new THREE.MeshStandardMaterial({ color: 0xa855f7, roughness: 0.2, emissive: 0x6b21a8, emissiveIntensity: 0.8 }),
     runicPurpleBrightMat: new THREE.MeshStandardMaterial({ color: 0xf3e8ff, roughness: 0.1, emissive: 0xc084fc, emissiveIntensity: 1.5 }),
     arcaneWoodMat: new THREE.MeshLambertMaterial({ color: 0x3b1d11 }),
@@ -207,33 +222,83 @@ export function buildRangerBowMesh() {
   const group = new THREE.Group();
   group.name = 'Weapon_RangerBow';
 
+  // Empuñadura central de cuero de arquero con reposaflechas
   const grip = new THREE.Mesh(G.bowGrip, M.leatherMat);
   grip.position.set(0, 0, 0.08);
   group.add(grip);
 
+  // Placas de refuerzo áureas en la montura central
+  const plate = new THREE.Mesh(G.bowRiserPlate, M.brassGoldMat);
+  plate.position.set(0, 0, 0.08);
+  group.add(plate);
+
+  // Gema Rúnica del Viento incrustada en el núcleo del arco
+  const gem = new THREE.Mesh(G.bowWindGem, M.runicGreenBrightMat);
+  gem.name = 'RangerWindGem';
+  gem.position.set(0, 0, 0.115);
+  group.add(gem);
+
+  // Pala superior esmeralda con placa de refuerzo dorada
   const limbUpper = new THREE.Mesh(G.bowLimbUpper, M.runicGreenMat);
   limbUpper.position.set(0, 0.22, 0.04);
   limbUpper.rotation.x = -0.24;
   group.add(limbUpper);
+
+  const plateUpper = new THREE.Mesh(G.bowLimbPlate, M.brassGoldMat);
+  plateUpper.position.set(0, 0.10, 0.065);
+  group.add(plateUpper);
 
   const tipUpper = new THREE.Mesh(G.bowTipUpper, M.woodMat);
   tipUpper.position.set(0, 0.45, -0.04);
   tipUpper.rotation.x = -0.65;
   group.add(tipUpper);
 
+  // Pala inferior esmeralda con placa de refuerzo dorada
   const limbLower = new THREE.Mesh(G.bowLimbLower, M.runicGreenMat);
   limbLower.position.set(0, -0.22, 0.04);
   limbLower.rotation.x = 0.24;
   group.add(limbLower);
+
+  const plateLower = new THREE.Mesh(G.bowLimbPlate, M.brassGoldMat);
+  plateLower.position.set(0, -0.10, 0.065);
+  group.add(plateLower);
 
   const tipLower = new THREE.Mesh(G.bowTipLower, M.woodMat);
   tipLower.position.set(0, -0.45, -0.04);
   tipLower.rotation.x = 0.65;
   group.add(tipLower);
 
+  // Cuerda de seda rúnica plateada
   const string = new THREE.Mesh(G.bowString, M.stringMat);
+  string.name = 'RangerBowString';
   string.position.set(0, 0, -0.04);
   group.add(string);
+
+  // Flecha rúnica montada en el reposaflechas lista para disparar
+  const arrowGroup = new THREE.Group();
+  arrowGroup.name = 'RangerArrow';
+  arrowGroup.position.set(0, 0.02, 0.08);
+
+  const shaft = new THREE.Mesh(G.bowArrowShaft, M.arrowWoodMat);
+  shaft.rotation.x = Math.PI / 2;
+  shaft.position.set(0, 0, 0.12);
+  arrowGroup.add(shaft);
+
+  const arrowTip = new THREE.Mesh(G.bowArrowTip, M.steelLightMat);
+  arrowTip.rotation.x = Math.PI / 2;
+  arrowTip.position.set(0, 0, 0.43);
+  arrowGroup.add(arrowTip);
+
+  const fletch1 = new THREE.Mesh(G.bowArrowFletch, M.fletchRedMat);
+  fletch1.position.set(0, 0.015, -0.12);
+  arrowGroup.add(fletch1);
+
+  const fletch2 = new THREE.Mesh(G.bowArrowFletch, M.runicGreenMat);
+  fletch2.rotation.z = Math.PI / 2;
+  fletch2.position.set(0.015, 0, -0.12);
+  arrowGroup.add(fletch2);
+
+  group.add(arrowGroup);
 
   return group;
 }
