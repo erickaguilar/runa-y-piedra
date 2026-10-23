@@ -9,7 +9,7 @@ const FP_CONFIGS = {
   paladin:    { pos: [0.28, -0.24, -0.50], rot: [-0.60, -0.22, 0.08], scale: 0.58 },
   ranger:     { pos: [0.24, -0.20, -0.44], rot: [-0.15, Math.PI - 0.20, 0.15], scale: 0.62 },
   wizard:     { pos: [0.28, -0.26, -0.48], rot: [-0.55, -0.18, 0.06], scale: 0.55 },
-  guardian:   { pos: [0.26, -0.22, -0.46], rot: [-0.60, -0.22, 0.10], scale: 0.60 },
+  guardian:   { pos: [0.24, -0.25, -0.47], rot: [-0.54, -0.25, 0.12], scale: 0.63 },
 };
 
 const HERO_COLORS = {
@@ -25,7 +25,7 @@ const GRIP_OFFSETS = {
   paladin:    { gripY: -0.15, armRotX: -0.55, armRotZ: 0.22 },
   ranger:     { gripY:  0.00, armRotX: -0.40, armRotZ: 0.20 },
   wizard:     { gripY:  0.20, armRotX: -0.50, armRotZ: 0.18 },
-  guardian:   { gripY:  0.12, armRotX: -0.55, armRotZ: 0.22 },
+  guardian:   { gripY:  0.08, armRotX: -0.55, armRotZ: 0.22 },
 };
 
 let _sharedArmGeo = null;
@@ -33,9 +33,15 @@ function getArmGeometries() {
   if (!_sharedArmGeo) {
     const forearm = new THREE.BoxGeometry(0.08, 0.30, 0.08);
     const hand = new THREE.BoxGeometry(0.09, 0.08, 0.09);
+    const vambrace = new THREE.BoxGeometry(0.095, 0.18, 0.035);
+    const leftHand = new THREE.BoxGeometry(0.085, 0.08, 0.085);
+    const leftForearm = new THREE.BoxGeometry(0.08, 0.24, 0.08);
     forearm.userData = { isShared: true };
     hand.userData = { isShared: true };
-    _sharedArmGeo = { forearm, hand };
+    vambrace.userData = { isShared: true };
+    leftHand.userData = { isShared: true };
+    leftForearm.userData = { isShared: true };
+    _sharedArmGeo = { forearm, hand, vambrace, leftHand, leftForearm };
   }
   return _sharedArmGeo;
 }
@@ -54,34 +60,44 @@ function getArmMaterials(heroKey) {
   return mats;
 }
 
+function setupOverlayMesh(mesh) {
+  mesh.frustumCulled = false;
+  mesh.renderOrder = 9999;
+  mesh.onBeforeRender = (renderer) => renderer.clearDepth?.();
+  return mesh;
+}
+
 function buildHeroArmMesh(heroKey) {
   const G = getArmGeometries();
   const M = getArmMaterials(heroKey);
   const armGroup = new THREE.Group();
   armGroup.name = `Arm_${heroKey}`;
-
   const grip = GRIP_OFFSETS[heroKey] || GRIP_OFFSETS.adventurer;
 
-  // Mano sujetando la empuñadura
-  const handMesh = new THREE.Mesh(G.hand, M.handMat);
+  const handMesh = setupOverlayMesh(new THREE.Mesh(G.hand, M.handMat));
   handMesh.position.set(0, grip.gripY, 0);
-  handMesh.frustumCulled = false;
-  handMesh.renderOrder = 9999;
-  handMesh.onBeforeRender = (renderer) => {
-    renderer.clearDepth?.();
-  };
   armGroup.add(handMesh);
 
-  // Antebrazo extendiéndose hacia la esquina inferior derecha
-  const forearmMesh = new THREE.Mesh(G.forearm, M.sleeveMat);
+  const forearmMesh = setupOverlayMesh(new THREE.Mesh(G.forearm, M.sleeveMat));
   forearmMesh.position.set(0.06, grip.gripY - 0.18, 0.14);
   forearmMesh.rotation.set(grip.armRotX, 0, grip.armRotZ);
-  forearmMesh.frustumCulled = false;
-  forearmMesh.renderOrder = 9999;
-  forearmMesh.onBeforeRender = (renderer) => {
-    renderer.clearDepth?.();
-  };
   armGroup.add(forearmMesh);
+
+  if (heroKey === 'guardian') {
+    const plate = setupOverlayMesh(new THREE.Mesh(G.vambrace, M.handMat));
+    plate.position.set(0.06, grip.gripY - 0.15, 0.19);
+    plate.rotation.set(grip.armRotX, 0, grip.armRotZ);
+    armGroup.add(plate);
+
+    const lHand = setupOverlayMesh(new THREE.Mesh(G.leftHand, M.handMat));
+    lHand.position.set(-0.02, grip.gripY - 0.20, 0.02);
+    armGroup.add(lHand);
+
+    const lArm = setupOverlayMesh(new THREE.Mesh(G.leftForearm, M.sleeveMat));
+    lArm.position.set(-0.09, grip.gripY - 0.32, 0.15);
+    lArm.rotation.set(-0.40, 0.20, -0.35);
+    armGroup.add(lArm);
+  }
 
   return armGroup;
 }
@@ -106,6 +122,7 @@ export class FirstPersonWeaponRenderer {
     this.currentWeaponMesh = null;
     this.currentArmMesh = null;
     this.crystalMesh = null;
+    this.guardianRuneMesh = null;
 
     // Configuración base fija
     this.basePos = new THREE.Vector3();
@@ -170,14 +187,9 @@ export class FirstPersonWeaponRenderer {
     this.currentWeaponMesh.renderOrder = 9999;
     this.currentWeaponMesh.traverse((child) => {
       if (child.isMesh) {
-        child.frustumCulled = false;
-        child.renderOrder = 9999;
-        child.onBeforeRender = (renderer) => {
-          renderer.clearDepth?.();
-        };
-        if (heroKey === 'wizard' && child.geometry?.type === 'OctahedronGeometry') {
-          this.crystalMesh = child;
-        }
+        setupOverlayMesh(child);
+        if (heroKey === 'wizard' && child.geometry?.type === 'OctahedronGeometry') this.crystalMesh = child;
+        if (heroKey === 'guardian' && child.name === 'GuardianRunicCore') this.guardianRuneMesh = child;
       }
     });
     this.group.add(this.currentWeaponMesh);
@@ -380,37 +392,74 @@ export class FirstPersonWeaponRenderer {
           atkRotX = -0.18 * ease;
         }
       } else if (heroKey === 'guardian') {
-        // Mazo sísmico: alzada y golpe descendente violento
-        if (p < 0.30) {
-          const t = p / 0.30;
-          atkY = t * 0.12;
-          atkZ = t * 0.05;
-          atkRotX = t * 0.45;
-        } else if (p < 0.58) {
-          const t = (p - 0.30) / 0.28;
-          atkY = 0.12 - t * 0.24;
-          atkZ = 0.05 - t * 0.12;
-          atkRotX = 0.45 - t * 1.05;
+        // Mazo sísmico: alzada bimano y golpe descendente demoledor
+        if (p < 0.32) {
+          const t = p / 0.32;
+          atkY = t * 0.16;
+          atkZ = t * 0.06;
+          atkX = t * 0.03;
+          atkRotX = t * 0.55;
+          atkRotY = t * 0.18;
+          atkRotZ = -t * 0.22;
+          if (this.guardianRuneMesh?.material) {
+            this.guardianRuneMesh.material.emissiveIntensity = 0.6 + t * 0.8;
+          }
+        } else if (p < 0.52) {
+          const t = (p - 0.32) / 0.20;
+          const a = t * t;
+          atkY = 0.16 - a * 0.44;
+          atkZ = 0.06 - a * 0.22;
+          atkX = 0.03 - a * 0.09;
+          atkRotX = 0.55 - a * 1.55;
+          atkRotY = 0.18 - a * 0.38;
+          atkRotZ = -0.22 + a * 0.30;
+          if (this.guardianRuneMesh?.material) {
+            this.guardianRuneMesh.material.emissiveIntensity = 1.4 + a * 1.2;
+          }
+        } else if (p < 0.72) {
+          const t = (p - 0.52) / 0.20;
+          const tremor = Math.sin(t * Math.PI * 8) * (1 - t) * 0.014;
+          const side = Math.cos(t * Math.PI * 6) * (1 - t) * 0.008;
+          atkY = -0.28 + t * 0.12 + tremor;
+          atkZ = -0.16 + t * 0.08;
+          atkX = -0.06 + side;
+          atkRotX = -1.0 + t * 0.45;
+          atkRotY = -0.20 + t * 0.10;
+          atkRotZ = 0.08 - t * 0.04;
+          if (this.guardianRuneMesh?.material) {
+            this.guardianRuneMesh.material.emissiveIntensity = 2.6 * (1 - t) + 0.6 * t;
+          }
         } else {
-          const t = (p - 0.58) / 0.42;
-          const ease = 1 - t;
-          const tremor = Math.sin(t * Math.PI * 6) * ease * 0.007;
-          atkY = -0.12 * ease + tremor;
-          atkZ = -0.07 * ease;
-          atkRotX = -0.60 * ease;
+          const t = (p - 0.72) / 0.28;
+          const ease = 1 - t * t;
+          atkY = -0.16 * ease;
+          atkZ = -0.08 * ease;
+          atkX = -0.04 * ease;
+          atkRotX = -0.55 * ease;
+          atkRotY = -0.10 * ease;
+          atkRotZ = 0.04 * ease;
+          if (this.guardianRuneMesh?.material) {
+            this.guardianRuneMesh.material.emissiveIntensity = 0.6;
+          }
         }
       }
 
       if (p >= 1.0) {
         this.isAttacking = false;
         this.attackTimer = 0;
+        if (this.guardianRuneMesh?.material) {
+          this.guardianRuneMesh.material.emissiveIntensity = 0.6;
+        }
       }
     }
 
-    // 6. Animación secundaria del cristal amatista (Hechicero)
+    // 6. Animación secundaria del cristal amatista (Hechicero) y pulso telúrico (Guardián)
     if (this.crystalMesh) {
       const spinSpeed = this.isAttacking ? 6.0 : 1.5;
       this.crystalMesh.rotation.y += safeDt * spinSpeed;
+    }
+    if (!this.isAttacking && this.guardianRuneMesh?.material) {
+      this.guardianRuneMesh.material.emissiveIntensity = 0.6 + Math.sin(this.idlePhase * 2.5) * 0.15;
     }
 
     // 7. Composición directa sobre la transformación de grupo (Zero-GC)
@@ -433,6 +482,7 @@ export class FirstPersonWeaponRenderer {
       this.currentArmMesh = null;
     }
     this.crystalMesh = null;
+    this.guardianRuneMesh = null;
     this.camera.remove(this.group);
   }
 }

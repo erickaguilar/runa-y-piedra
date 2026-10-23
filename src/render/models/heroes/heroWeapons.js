@@ -35,9 +35,14 @@ function getWeaponGeoCache() {
 
   // 5. Mazo Sísmico de Basalto (Guardián)
   const hammerShaft = new THREE.CylinderGeometry(0.03, 0.03, 0.76, 6);
-  const hammerHead = new THREE.BoxGeometry(0.22, 0.20, 0.32);
+  const hammerGripWrap = new THREE.CylinderGeometry(0.034, 0.034, 0.30, 6);
+  const hammerPommel = new THREE.CylinderGeometry(0.045, 0.05, 0.07, 6);
+  const hammerCollar = new THREE.BoxGeometry(0.10, 0.05, 0.10);
+  const hammerHead = new THREE.BoxGeometry(0.22, 0.20, 0.30);
+  const hammerFaceFront = new THREE.BoxGeometry(0.24, 0.22, 0.04);
   const hammerRune = new THREE.BoxGeometry(0.23, 0.14, 0.18);
   const hammerSpike = new THREE.ConeGeometry(0.07, 0.12, 4);
+  const hammerTopSpike = new THREE.ConeGeometry(0.055, 0.10, 4);
 
   _weaponGeoCache = {
     swordBlade,
@@ -63,9 +68,14 @@ function getWeaponGeoCache() {
     staffCrystal,
 
     hammerShaft,
+    hammerGripWrap,
+    hammerPommel,
+    hammerCollar,
     hammerHead,
+    hammerFaceFront,
     hammerRune,
     hammerSpike,
+    hammerTopSpike,
   };
 
   for (const g of Object.values(_weaponGeoCache)) {
@@ -246,22 +256,56 @@ export function buildGuardianHammerMesh() {
   const group = new THREE.Group();
   group.name = 'Weapon_GuardianHammer';
 
+  // Mango de acero oscuro
   const shaft = new THREE.Mesh(G.hammerShaft, M.steelDarkMat);
   shaft.position.set(0, 0.12, 0);
   group.add(shaft);
 
+  // Agarre forrado en cuero
+  const wrap = new THREE.Mesh(G.hammerGripWrap, M.leatherMat);
+  wrap.position.set(0, -0.05, 0);
+  group.add(wrap);
+
+  // Pomo contrapeso dorado
+  const pommel = new THREE.Mesh(G.hammerPommel, M.brassGoldMat);
+  pommel.position.set(0, -0.24, 0);
+  group.add(pommel);
+
+  // Collarín metálico bajo el cabezal
+  const collar = new THREE.Mesh(G.hammerCollar, M.brassGoldMat);
+  collar.position.set(0, 0.36, 0);
+  group.add(collar);
+
+  // Bloque principal de basalto
   const head = new THREE.Mesh(G.hammerHead, M.basaltMat);
   head.position.set(0, 0.48, 0);
   group.add(head);
 
+  // Caras de choque de acero frontal y posterior
+  const faceF = new THREE.Mesh(G.hammerFaceFront, M.steelMat);
+  faceF.position.set(0, 0.48, 0.16);
+  group.add(faceF);
+
+  const faceB = new THREE.Mesh(G.hammerFaceFront, M.steelMat);
+  faceB.position.set(0, 0.48, -0.16);
+  group.add(faceB);
+
+  // Núcleo rúnico telúrico
   const rune = new THREE.Mesh(G.hammerRune, M.runicGoldMat);
+  rune.name = 'GuardianRunicCore';
   rune.position.set(0, 0.48, 0);
   group.add(rune);
 
+  // Púa frontal
   const spike = new THREE.Mesh(G.hammerSpike, M.steelDarkMat);
-  spike.position.set(0, 0.48, 0.21);
+  spike.position.set(0, 0.48, 0.22);
   spike.rotation.x = Math.PI / 2;
   group.add(spike);
+
+  // Púa superior
+  const topSpike = new THREE.Mesh(G.hammerTopSpike, M.brassGoldMat);
+  topSpike.position.set(0, 0.63, 0);
+  group.add(topSpike);
 
   return group;
 }

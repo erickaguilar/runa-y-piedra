@@ -226,3 +226,28 @@ test('FirstPersonWeaponRenderer: Animaciones de ataque canónicas para los 5 hé
 
   renderer.dispose();
 });
+
+test('FirstPersonWeaponRenderer: Guardián integra empuñadura bimano, núcleo rúnico e iluminación de impacto', () => {
+  const camera = new THREE.PerspectiveCamera();
+  const renderer = new FirstPersonWeaponRenderer(camera);
+  renderer.setHero('guardian');
+  renderer.setVisible(true);
+
+  assert.ok(renderer.guardianRuneMesh, 'Debe identificar el núcleo rúnico del martillo');
+
+  let armMeshes = 0;
+  renderer.currentArmMesh.traverse((child) => {
+    if (child.isMesh) armMeshes++;
+  });
+  assert.ok(armMeshes >= 4, 'El Guardián debe poseer brazos y guanteletes bimanual (>= 4 meshes)');
+
+  // Probar pulso rúnico en ataque
+  renderer.triggerAttack(HERO_WEAPONS[4]);
+  const mockPlayer = { pos: { x: 0, y: 1, z: 0 }, vel: { x: 0, y: 0, z: 0 }, yaw: 0, pitch: 0, onGround: true };
+
+  // Avanzar al impacto
+  renderer.update(renderer.attackDuration * 0.48, mockPlayer);
+  assert.ok(renderer.guardianRuneMesh.material.emissiveIntensity > 1.0, 'El núcleo rúnico debe intensificar su brillo en el impacto');
+
+  renderer.dispose();
+});
