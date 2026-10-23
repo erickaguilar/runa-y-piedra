@@ -35,7 +35,11 @@ export const HERO_WEAPONS = [
     color: '#38bdf8',
     hex: 0x38bdf8,
     soundCue: 'slash',
-    description: 'Espada ligera de hierro templado. Golpe rápido en arco frontal estrecho (60°).',
+    sweetSpotMin: 1.1,
+    sweetSpotMax: 1.85,
+    sweetSpotBonus: 1,
+    distanceBonusLabel: 'Punta de Hoja',
+    description: 'Espada ligera de hierro templado. Golpe rápido en 60°. Bonificación de punta de hoja (+1 daño) a 1.1m–1.8m.',
   },
   {
     heroIndex: 1,
@@ -57,7 +61,11 @@ export const HERO_WEAPONS = [
     color: '#f43f5e',
     hex: 0xf43f5e,
     soundCue: 'heavy_slash',
-    description: 'Mandoble ceremonial a dos manos. Barrido horizontal de 180° con alto retroceso (2.5 m).',
+    sweetSpotMin: 1.4,
+    sweetSpotMax: 2.25,
+    sweetSpotBonus: 1,
+    distanceBonusLabel: 'Inercia de Filo',
+    description: 'Mandoble ceremonial a dos manos. Barrido horizontal de 180°. Inercia de filo exterior (+1 daño) a 1.4m–2.2m.',
   },
   {
     heroIndex: 2,
@@ -79,7 +87,11 @@ export const HERO_WEAPONS = [
     color: '#10b981',
     hex: 0x10b981,
     soundCue: 'arrow_shoot',
-    description: 'Disparo de flecha rúnica veloz (22 m/s) en trayectoria recta hacia el cursor.',
+    rangeTiers: [
+      { min: 10.0, bonus: 2, label: 'Tiro Francotirador' },
+      { min: 5.0, bonus: 1, label: 'Tiro de Precisión' },
+    ],
+    description: 'Disparo de flecha rúnica veloz (22 m/s). Daño por distancia: +1 daño (5m–10m), +2 daño (>10m francotirador).',
   },
   {
     heroIndex: 3,
@@ -101,7 +113,11 @@ export const HERO_WEAPONS = [
     color: '#a855f7',
     hex: 0xa855f7,
     soundCue: 'magic_blast',
-    description: 'Orbe arcano esférico de plasma que explota en radio de 1.2 m causando daño en área.',
+    rangeTiers: [
+      { min: 8.0, bonus: 2, label: 'Sobrecarga de Plasma' },
+      { min: 4.0, bonus: 1, label: 'Resonancia Arcana' },
+    ],
+    description: 'Orbe arcano con explosión AoE de 1.2m. Resonancia en vuelo: +1 daño (4m–8m), +2 daño (>8m sobrecarga).',
   },
   {
     heroIndex: 4,
@@ -123,7 +139,11 @@ export const HERO_WEAPONS = [
     color: '#fbbf24',
     hex: 0xfbbf24,
     soundCue: 'hammer_slam',
-    description: 'Impacto sísmico frontal radial (360°) que aturde a los enemigos durante 800 ms.',
+    sweetSpotMin: 0,
+    sweetSpotMax: 0.85,
+    sweetSpotBonus: 1,
+    distanceBonusLabel: 'Epicentro Telúrico',
+    description: 'Impacto sísmico frontal radial (360°) que aturde 800 ms. Epicentro demoledor (+1 daño) a quemarropa (<0.85m).',
   },
 ];
 
@@ -201,17 +221,95 @@ export const TRAINING_DUMMIES = [
 ];
 
 /**
- * Calcula el daño efectivo recibido por un objetivo según su armadura y vulnerabilidades.
+ * Evalúa la bonificación de daño por distancia según la clase de arma y la distancia del impacto.
+ * Permite que cada héroe tenga un comportamiento táctico distintivo según el posicionamiento.
+ *
+ * @param {Object|string} weapon Configuración del arma, objeto arma o tipo
+ * @param {number} [distance=0] Distancia recorrida o proximidad física en metros
+ * @returns {{ bonusDamage: number, label: string, isBonus: boolean }}
+ */
+export function getDistanceDamageModifier(weapon, distance = 0) {
+  if (!weapon || distance == null || distance < 0) {
+    return { bonusDamage: 0, label: '', isBonus: false };
+  }
+
+  const id = typeof weapon === 'object' ? weapon.id || '' : '';
+  const type = typeof weapon === 'object' ? weapon.type || '' : weapon;
+
+  // 1. Aventurero (Espada Ligera): Sweet spot en la punta de la espada (1.1m a 1.85m)
+  if (id === 'adventurer_sword' || type === WEAPON_TYPES.MELEE_LIGHT) {
+    if (distance >= 1.1 && distance <= 1.85) {
+      return { bonusDamage: 1, label: 'Punta de Hoja', isBonus: true };
+    }
+    return { bonusDamage: 0, label: 'Contacto', isBonus: false };
+  }
+
+  // 2. Paladín (Mandoble Pesado): Inercia centrífuga en radio exterior (1.4m a 2.25m)
+  if (id === 'paladin_greatsword' || type === WEAPON_TYPES.MELEE_HEAVY) {
+    if (distance >= 1.4 && distance <= 2.25) {
+      return { bonusDamage: 1, label: 'Inercia de Filo', isBonus: true };
+    }
+    return { bonusDamage: 0, label: 'Cuerpo a cuerpo', isBonus: false };
+  }
+
+  // 3. Cazador / Ranger (Arco Rúnico): Mayor daño balístico a mayor distancia recorrida
+  if (id === 'ranger_bow' || type === WEAPON_TYPES.PROJECTILE_ARROW) {
+    if (distance >= 10.0) {
+      return { bonusDamage: 2, label: 'Tiro Francotirador', isBonus: true };
+    }
+    if (distance >= 5.0) {
+      return { bonusDamage: 1, label: 'Tiro de Precisión', isBonus: true };
+    }
+    return { bonusDamage: 0, label: 'Quemarropa', isBonus: false };
+  }
+
+  // 4. Mago / Wizard (Báculo Arcano): Resonancia arcana de plasma durante el vuelo
+  if (id === 'wizard_staff' || type === WEAPON_TYPES.PROJECTILE_MAGIC) {
+    if (distance >= 8.0) {
+      return { bonusDamage: 2, label: 'Sobrecarga de Plasma', isBonus: true };
+    }
+    if (distance >= 4.0) {
+      return { bonusDamage: 1, label: 'Resonancia Arcana', isBonus: true };
+    }
+    return { bonusDamage: 0, label: 'Descarga Corta', isBonus: false };
+  }
+
+  // 5. Guardián (Mazo Sísmico): Epicentro destructivo a quemarropa (0m a 0.85m)
+  if (id === 'guardian_hammer' || type === WEAPON_TYPES.MELEE_WAVE) {
+    if (distance <= 0.85) {
+      return { bonusDamage: 1, label: 'Epicentro Telúrico', isBonus: true };
+    }
+    return { bonusDamage: 0, label: 'Onda Dispersa', isBonus: false };
+  }
+
+  return { bonusDamage: 0, label: '', isBonus: false };
+}
+
+/**
+ * Calcula el daño efectivo recibido por un objetivo según su armadura, vulnerabilidades y distancia.
  * @param {number} baseDamage Daño base del arma
- * @param {number} targetDefense Puntos de defensa del objetivo
- * @param {string} targetWeakness Vulnerabilidad elemental ('magic', etc.)
- * @param {string} weaponType Tipo de arma atacante
+ * @param {number} [targetDefense=0] Puntos de defensa del objetivo
+ * @param {string|null} [targetWeakness=null] Vulnerabilidad elemental ('magic', etc.)
+ * @param {string} [weaponType=''] Tipo de arma atacante
+ * @param {number} [distance=0] Distancia en metros del impacto o recorrido del proyectil
+ * @param {Object} [weapon=null] Objeto de configuración del arma (opcional)
  * @returns {number} Daño final infligido (mínimo 1)
  */
-export function calculateDamage(baseDamage, targetDefense = 0, targetWeakness = null, weaponType = '') {
+export function calculateDamage(
+  baseDamage,
+  targetDefense = 0,
+  targetWeakness = null,
+  weaponType = '',
+  distance = 0,
+  weapon = null
+) {
   let dmg = baseDamage;
   if (targetWeakness === 'magic' && weaponType === WEAPON_TYPES.PROJECTILE_MAGIC) {
     dmg += 1;
+  }
+  if (distance > 0) {
+    const mod = getDistanceDamageModifier(weapon || weaponType, distance);
+    dmg += mod.bonusDamage;
   }
   const effective = Math.max(1, dmg - targetDefense);
   return effective;

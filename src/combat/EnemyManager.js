@@ -83,16 +83,16 @@ export class EnemyManager {
       if (distSq > rangeSq) continue;
 
       let inArc = false;
+      const dist = distSq > 0 ? Math.sqrt(distSq) : 0;
       if (weapon.minDot <= -1 || distSq === 0) {
         inArc = true;
       } else {
-        const dist = Math.sqrt(distSq);
         const dot = (fx * dx + fz * dz) / dist;
         if (dot >= weapon.minDot) inArc = true;
       }
 
       if (inArc) {
-        const hit = this.applyDamage(enemy.id, weapon.damage, weapon, player, now);
+        const hit = this.applyDamage(enemy.id, weapon.damage, weapon, player, now, dist);
         if (hit) hits.push(hit);
       }
     }
@@ -112,7 +112,7 @@ export class EnemyManager {
    * @param {number} [now]
    * @returns {Array<Object>}
    */
-  resolveProjectileHit(x, y, z, radius, damage, weapon, sourcePlayer = null, now = Date.now()) {
+  resolveProjectileHit(x, y, z, radius, damage, weapon, sourcePlayer = null, now = Date.now(), distance = 0) {
     const hits = [];
     const radiusSq = radius * radius;
 
@@ -129,7 +129,7 @@ export class EnemyManager {
       const dy = cy - y;
       const dz = cz - z;
       if (dx * dx + dy * dy + dz * dz <= radiusSq) {
-        const hit = this.applyDamage(enemy.id, damage, weapon, sourcePlayer, now);
+        const hit = this.applyDamage(enemy.id, damage, weapon, sourcePlayer, now, distance);
         if (hit) hits.push(hit);
       }
     }
@@ -140,8 +140,8 @@ export class EnemyManager {
   /**
    * Alias para resolución de daño AoE de proyectiles en área.
    */
-  resolveAoeImpact(x, y, z, radius, damage, weapon, sourcePlayer = null, now = Date.now()) {
-    return this.resolveProjectileHit(x, y, z, radius, damage, weapon, sourcePlayer, now);
+  resolveAoeImpact(x, y, z, radius, damage, weapon, sourcePlayer = null, now = Date.now(), distance = 0) {
+    return this.resolveProjectileHit(x, y, z, radius, damage, weapon, sourcePlayer, now, distance);
   }
 
   /**
@@ -151,9 +151,11 @@ export class EnemyManager {
    * @param {number} [prevX]
    * @param {number} [prevY]
    * @param {number} [prevZ]
+   * @param {number} [distance=0]
+   * @param {Object} [weapon=null]
    * @returns {boolean} True si hubo impacto
    */
-  testProjectileCollision(proj, now, prevX = proj.x, prevY = proj.y, prevZ = proj.z) {
+  testProjectileCollision(proj, now, prevX = proj.x, prevY = proj.y, prevZ = proj.z, distance = 0, weapon = null) {
     const radius = 0.3;
     const pMinX = Math.min(prevX, proj.x) - radius;
     const pMaxX = Math.max(prevX, proj.x) + radius;
@@ -176,9 +178,9 @@ export class EnemyManager {
         pMinZ <= aabb.maxZ
       ) {
         if (proj.aoeRadius > 0) {
-          this.resolveAoeImpact(proj.x, proj.y, proj.z, proj.aoeRadius, proj.damage, { type: proj.type }, null, now);
+          this.resolveAoeImpact(proj.x, proj.y, proj.z, proj.aoeRadius, proj.damage, weapon || { type: proj.type }, null, now, distance);
         } else {
-          this.applyDamage(enemy.id, proj.damage, { type: proj.type, knockback: proj.knockback }, null, now);
+          this.applyDamage(enemy.id, proj.damage, weapon || { type: proj.type, knockback: proj.knockback }, null, now, distance);
         }
         return true;
       }
@@ -193,13 +195,14 @@ export class EnemyManager {
    * @param {Object} weapon
    * @param {Object} [sourcePlayer]
    * @param {number} [now]
+   * @param {number} [distance=0]
    * @returns {Object|null}
    */
-  applyDamage(enemyId, baseDamage, weapon, sourcePlayer = null, now = Date.now()) {
+  applyDamage(enemyId, baseDamage, weapon, sourcePlayer = null, now = Date.now(), distance = 0) {
     const enemy = this.enemies.find(e => e.id === enemyId);
     if (!enemy || enemy.isDead) return null;
 
-    const hitResult = enemy.applyDamage(baseDamage, weapon, sourcePlayer, now);
+    const hitResult = enemy.applyDamage(baseDamage, weapon, sourcePlayer, now, distance);
 
     if (enemy.isDead && this.onEnemyDefeated) {
       this.onEnemyDefeated(enemy, sourcePlayer);

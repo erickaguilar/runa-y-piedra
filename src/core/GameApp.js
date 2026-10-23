@@ -107,7 +107,9 @@ export class VoxelSandboxGame {
         this.soundManager?.playHit(hit.soundType);
         const curLevelId = this.world?.levelRegistry?.currentLevelId;
         if (curLevelId === 'dev_combatroom') {
-          this.ui?.showNarrativeMessage(`:swords: ¡Impacto en ${hit.dummyName}! Daño: ${hit.effectiveDamage} • DPS: ${hit.dps.toFixed(1)}`, 1600);
+          const distStr = typeof hit.distance === 'number' && hit.distance > 0 ? ` (${hit.distance.toFixed(1)}m${hit.distanceLabel ? ' • ' + hit.distanceLabel : ''})` : '';
+          const starIcon = hit.isDistanceBonus ? ' :star:' : '';
+          this.ui?.showNarrativeMessage(`:swords: ¡Impacto en ${hit.dummyName}! Daño: ${hit.effectiveDamage}${distStr}${starIcon} • DPS: ${hit.dps.toFixed(1)}`, 1600);
         }
       },
     });

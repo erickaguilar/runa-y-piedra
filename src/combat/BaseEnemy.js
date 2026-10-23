@@ -290,8 +290,8 @@ export class BaseEnemy {
    * @param {number} [now]
    * @returns {Object}
    */
-  applyDamage(baseDamage, weapon, sourcePlayer = null, now = Date.now()) {
-    const effective = calculateDamage(baseDamage, 0, null, weapon?.type || '');
+  applyDamage(baseDamage, weapon, sourcePlayer = null, now = Date.now(), distance = 0) {
+    const effective = calculateDamage(baseDamage, 0, null, weapon?.type || '', distance, weapon);
     this.hp = Math.max(0, this.hp - effective);
     this.lastHitTime = now;
 

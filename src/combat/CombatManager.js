@@ -11,6 +11,7 @@ import {
   getHeroWeapon,
   calculateDamage,
   calculateDps,
+  getDistanceDamageModifier,
 } from '../config/combat.js';
 import { isSolid } from '../core/PhysicsAABB.js';
 
@@ -68,6 +69,9 @@ export class CombatManager {
       hitCount: 0,
       lastDamage: 0,
       lastHitTime: 0,
+      lastDistance: 0,
+      lastDistanceLabel: '',
+      lastIsBonus: false,
       recentHits: [],
       dps: 0.0,
       flashTimer: 0,
@@ -169,19 +173,18 @@ export class CombatManager {
       }
 
       // 3. Test angular según el arco del arma (60°, 180° o 360°)
+      const dist = distSq > 0 ? Math.sqrt(distSq) : 0;
       if (weapon.minDot <= -1) {
-        // Onda sísmica radial de 360°: impacta en todas direcciones
-        const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now);
+        // Onda sísmica radial de 360°
+        const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now, dist);
         if (hitResult) hits.push(hitResult);
       } else if (distSq === 0) {
-        // Jugador colisionando directamente dentro de la AABB
-        const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now);
+        const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now, 0);
         if (hitResult) hits.push(hitResult);
       } else {
-        const dist = Math.sqrt(distSq);
         const dot = (fx * dx + fz * dz) / dist;
         if (dot >= weapon.minDot) {
-          const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now);
+          const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now, dist);
           if (hitResult) hits.push(hitResult);
         }
       }
@@ -239,6 +242,7 @@ export class CombatManager {
     proj.knockback = weapon.knockback || 0;
     proj.color = weapon.color;
     proj.sourcePlayerId = player.id;
+    proj.weapon = weapon;
 
     return proj;
   }
@@ -252,29 +256,35 @@ export class CombatManager {
    * @param {number} [now]
    * @returns {{ dummy: Object, effectiveDamage: number, dps: number, weapon: Object }|null}
    */
-  applyDamageToDummy(dummyId, baseDamage, weapon, sourcePlayer = null, now = Date.now()) {
+  applyDamageToDummy(dummyId, baseDamage, weapon, sourcePlayer = null, now = Date.now(), distance = 0) {
     const dummy = this.dummies.find(d => d.id === dummyId);
     if (!dummy) return null;
 
+    const distMod = getDistanceDamageModifier(weapon, distance);
     const effectiveDamage = calculateDamage(
       baseDamage,
       dummy.defense,
       dummy.weakness,
-      weapon?.type || ''
+      weapon?.type || '',
+      distance,
+      weapon
     );
 
     dummy.totalDamage += effectiveDamage;
     dummy.hitCount += 1;
     dummy.lastDamage = effectiveDamage;
     dummy.lastHitTime = now;
+    dummy.lastDistance = distance;
+    dummy.lastDistanceLabel = distMod.label;
+    dummy.lastIsBonus = distMod.isBonus;
 
     dummy.recentHits.push({ damage: effectiveDamage, timestamp: now });
     dummy.dps = calculateDps(dummy.recentHits, now, RECENT_HITS_WINDOW_MS);
 
-    // Activar retroalimentación visual: hit flash (150ms) y sacudida
+    // Retroalimentación visual: hit flash (150ms) y sacudida amplificada si fue bonus
     dummy.flashTimer = 0.15;
-    dummy.shakeTimer = 0.20;
-    dummy.shakeIntensity = 0.08;
+    dummy.shakeTimer = distMod.isBonus ? 0.30 : 0.20;
+    dummy.shakeIntensity = distMod.isBonus ? 0.14 : 0.08;
 
     const result = {
       dummy,
@@ -287,6 +297,10 @@ export class CombatManager {
       weapon,
       sourcePlayer,
       soundType: dummy.soundType,
+      distance,
+      distanceLabel: distMod.label,
+      isDistanceBonus: distMod.isBonus,
+      bonusDamage: distMod.bonusDamage,
     };
 
     if (this.onHit) {
@@ -300,7 +314,7 @@ export class CombatManager {
    * Resuelve el impacto en área (AoE) provocado por proyectiles mágicos.
    * @private
    */
-  _resolveAoeImpact(x, y, z, aoeRadius, damage, weapon, sourcePlayer, now) {
+  _resolveAoeImpact(x, y, z, aoeRadius, damage, weapon, sourcePlayer, now, distance = 0) {
     const aoeRadiusSq = aoeRadius * aoeRadius;
     const hits = [];
 
@@ -318,7 +332,7 @@ export class CombatManager {
       const distSq = dx * dx + dy * dy + dz * dz;
 
       if (distSq <= aoeRadiusSq) {
-        const hit = this.applyDamageToDummy(dummy.id, damage, weapon, sourcePlayer, now);
+        const hit = this.applyDamageToDummy(dummy.id, damage, weapon, sourcePlayer, now, distance);
         if (hit) hits.push(hit);
       }
     }
@@ -391,7 +405,7 @@ export class CombatManager {
         const bz = Math.floor(p.z);
         if (isSolid(world, bx, by, bz)) {
           if (p.aoeRadius > 0) {
-            this._resolveAoeImpact(p.x, p.y, p.z, p.aoeRadius, p.damage, { type: p.type }, null, now);
+            this._resolveAoeImpact(p.x, p.y, p.z, p.aoeRadius, p.damage, p.weapon || { type: p.type }, null, now, p.traveled);
           }
           p.active = false;
           continue;
@@ -422,16 +436,16 @@ export class CombatManager {
         ) {
           impacted = true;
           if (p.aoeRadius > 0) {
-            this._resolveAoeImpact(p.x, p.y, p.z, p.aoeRadius, p.damage, { type: p.type }, null, now);
+            this._resolveAoeImpact(p.x, p.y, p.z, p.aoeRadius, p.damage, p.weapon || { type: p.type }, null, now, p.traveled);
           } else {
-            this.applyDamageToDummy(dummy.id, p.damage, { type: p.type }, null, now);
+            this.applyDamageToDummy(dummy.id, p.damage, p.weapon || { type: p.type }, null, now, p.traveled);
           }
           break;
         }
       }
 
       if (!impacted && this.enemyManager) {
-        if (this.enemyManager.testProjectileCollision(p, now, prevX, prevY, prevZ)) {
+        if (this.enemyManager.testProjectileCollision(p, now, prevX, prevY, prevZ, p.traveled, p.weapon)) {
           impacted = true;
         }
       }
@@ -452,6 +466,9 @@ export class CombatManager {
       d.hitCount = 0;
       d.lastDamage = 0;
       d.lastHitTime = 0;
+      d.lastDistance = 0;
+      d.lastDistanceLabel = '';
+      d.lastIsBonus = false;
       d.recentHits.length = 0;
       d.dps = 0.0;
       d.flashTimer = 0;
