@@ -32,6 +32,8 @@ export class FirstPersonWeaponRenderer {
     this.rangerGemMesh = null;
     this.rangerArrowMesh = null;
     this.rangerStringMesh = null;
+    this.paladinCoreMesh = null;
+    this.paladinFullerMesh = null;
 
     // Configuración base fija
     this.basePos = new THREE.Vector3();
@@ -96,6 +98,8 @@ export class FirstPersonWeaponRenderer {
     this.rangerGemMesh = null;
     this.rangerArrowMesh = null;
     this.rangerStringMesh = null;
+    this.paladinCoreMesh = null;
+    this.paladinFullerMesh = null;
 
     // 1. Malla del arma
     this.currentWeaponMesh = buildHeroWeaponMesh(heroIdOrIndex);
@@ -111,6 +115,10 @@ export class FirstPersonWeaponRenderer {
           if (child.name === 'WizardOrbitalRing') this.wizardOrbitalMesh = child;
         }
         if (heroKey === 'guardian' && child.name === 'GuardianRunicCore') this.guardianRuneMesh = child;
+        if (heroKey === 'paladin') {
+          if (child.name === 'PaladinHolyCore') this.paladinCoreMesh = child;
+          if (child.name === 'PaladinBladeFuller') this.paladinFullerMesh = child;
+        }
         if (heroKey === 'ranger') {
           if (child.name === 'RangerWindGem') this.rangerGemMesh = child;
           if (child.name === 'RangerArrow' || child.parent?.name === 'RangerArrow') {
@@ -278,6 +286,9 @@ export class FirstPersonWeaponRenderer {
     if (!this.isAttacking && this.rangerGemMesh?.material) {
       this.rangerGemMesh.material.emissiveIntensity = 0.4 + Math.sin(this.idlePhase * 2.2) * 0.15;
     }
+    if (!this.isAttacking && this.paladinCoreMesh?.material) {
+      this.paladinCoreMesh.material.emissiveIntensity = 0.35 + Math.sin(this.idlePhase * 2.0) * 0.15;
+    }
 
     // 7. Composición directa sobre la transformación de grupo (Zero-GC)
     this.group.position.x = this.basePos.x + idleX + bobX + this.swayPos.x + atkX;
@@ -305,6 +316,8 @@ export class FirstPersonWeaponRenderer {
     this.rangerGemMesh = null;
     this.rangerArrowMesh = null;
     this.rangerStringMesh = null;
+    this.paladinCoreMesh = null;
+    this.paladinFullerMesh = null;
     this.camera.remove(this.group);
   }
 }

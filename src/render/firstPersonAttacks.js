@@ -34,28 +34,70 @@ export function evaluateHeroAttack(heroKey, p, refs) {
       atkRotY = -0.22 * ease;
     }
   } else if (heroKey === 'paladin') {
-    // Gran tajo horizontal con mandoble sagrado
-    if (p < 0.22) {
-      const t = p / 0.22;
-      atkY = t * 0.08;
-      atkZ = t * 0.05;
-      atkRotX = t * 0.32;
-      atkRotZ = -t * 0.25;
-    } else if (p < 0.62) {
-      const t = (p - 0.22) / 0.40;
-      atkX = -t * 0.26;
-      atkY = 0.08 - t * 0.14;
-      atkRotY = -t * 1.35;
-      atkRotZ = -0.25 + t * 0.80;
-      atkRotX = 0.32 - t * 0.65;
+    // Mandoble de la Luz: Alzada bimanual pesada, barrido horizontal de 180°, inercia de filo y recuperación
+    if (p < 0.25) {
+      // Fase 1: Alzada y concentración sagrada (Heavy Wind-up)
+      const t = p / 0.25;
+      atkY = t * 0.12;
+      atkZ = t * 0.08;
+      atkX = t * 0.04;
+      atkRotX = t * 0.45;
+      atkRotZ = -t * 0.35;
+      atkRotY = t * 0.30;
+      if (refs.paladinCoreMesh?.material) {
+        refs.paladinCoreMesh.material.emissiveIntensity = 0.35 + t * 1.2;
+      }
+      if (refs.paladinFullerMesh?.material) {
+        refs.paladinFullerMesh.material.emissiveIntensity = 0.1 + t * 0.8;
+      }
+    } else if (p < 0.58) {
+      // Fase 2: Gran barrido horizontal de 180° (Devastating Cleave Sweep)
+      const t = (p - 0.25) / 0.33;
+      atkX = 0.04 - t * 0.34;
+      atkY = 0.12 - t * 0.18;
+      atkZ = 0.08 - t * 0.12;
+      atkRotY = 0.30 - t * 2.15;
+      atkRotZ = -0.35 + t * 0.95;
+      atkRotX = 0.45 - t * 0.85;
+      if (refs.paladinCoreMesh?.material) {
+        refs.paladinCoreMesh.material.emissiveIntensity = 1.5 + (1 - Math.abs(t - 0.5) * 2) * 1.3;
+      }
+      if (refs.paladinFullerMesh?.material) {
+        refs.paladinFullerMesh.material.emissiveIntensity = 0.9 + (1 - Math.abs(t - 0.5) * 2) * 0.9;
+      }
+    } else if (p < 0.78) {
+      // Fase 3: Retención de inercia colosal y amortiguación (Momentum Follow-through)
+      const t = (p - 0.58) / 0.20;
+      const dissipate = 1 - t;
+      const tremor = Math.sin(t * Math.PI * 6) * dissipate * 0.008;
+      atkX = -0.30 + t * 0.10 + tremor;
+      atkY = -0.06 + t * 0.03;
+      atkZ = -0.04 + t * 0.02;
+      atkRotY = -1.85 + t * 0.40;
+      atkRotZ = 0.60 - t * 0.15;
+      atkRotX = -0.40 + t * 0.12;
+      if (refs.paladinCoreMesh?.material) {
+        refs.paladinCoreMesh.material.emissiveIntensity = 0.35 + dissipate * 0.6;
+      }
+      if (refs.paladinFullerMesh?.material) {
+        refs.paladinFullerMesh.material.emissiveIntensity = 0.1 + dissipate * 0.3;
+      }
     } else {
-      const t = (p - 0.62) / 0.38;
+      // Fase 4: Retorno a guardia de vanguardia (Recovery)
+      const t = (p - 0.78) / 0.22;
       const ease = 1 - t * t;
-      atkX = -0.26 * ease;
-      atkY = -0.06 * ease;
-      atkRotY = -1.35 * ease;
-      atkRotZ = 0.55 * ease;
-      atkRotX = -0.33 * ease;
+      atkX = -0.20 * ease;
+      atkY = -0.03 * ease;
+      atkZ = -0.02 * ease;
+      atkRotY = -1.45 * ease;
+      atkRotZ = 0.45 * ease;
+      atkRotX = -0.28 * ease;
+      if (refs.paladinCoreMesh?.material) {
+        refs.paladinCoreMesh.material.emissiveIntensity = 0.35;
+      }
+      if (refs.paladinFullerMesh?.material) {
+        refs.paladinFullerMesh.material.emissiveIntensity = 0.1;
+      }
     }
   } else if (heroKey === 'ranger') {
     // Arco rúnico: Tensado, suelta elástica, oscilación de cuerda y recarga
@@ -243,6 +285,8 @@ export function evaluateHeroAttack(heroKey, p, refs) {
  */
 export function resetHeroAttackMeshes(refs) {
   if (refs.guardianRuneMesh?.material) refs.guardianRuneMesh.material.emissiveIntensity = 0.6;
+  if (refs.paladinCoreMesh?.material) refs.paladinCoreMesh.material.emissiveIntensity = 0.35;
+  if (refs.paladinFullerMesh?.material) refs.paladinFullerMesh.material.emissiveIntensity = 0.1;
   if (refs.crystalMesh?.material) refs.crystalMesh.material.emissiveIntensity = 0.8;
   if (refs.wizardCoreMesh?.material) refs.wizardCoreMesh.material.emissiveIntensity = 1.5;
   if (refs.rangerGemMesh?.material) refs.rangerGemMesh.material.emissiveIntensity = 0.4;

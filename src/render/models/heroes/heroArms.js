@@ -47,6 +47,12 @@ export function getArmGeometries() {
     const rangerDrawHand = new THREE.BoxGeometry(0.08, 0.08, 0.08);
     const rangerDrawArm = new THREE.BoxGeometry(0.08, 0.22, 0.08);
 
+    // Complementos para el paladín (Caballero de la Luz)
+    const paladinKnuckles = new THREE.BoxGeometry(0.092, 0.025, 0.095);
+    const paladinVambrace = new THREE.BoxGeometry(0.098, 0.18, 0.038);
+    const paladinLeftHand = new THREE.BoxGeometry(0.088, 0.08, 0.088);
+    const paladinLeftForearm = new THREE.BoxGeometry(0.082, 0.24, 0.082);
+
     forearm.userData = { isShared: true };
     hand.userData = { isShared: true };
     vambrace.userData = { isShared: true };
@@ -60,21 +66,16 @@ export function getArmGeometries() {
     rangerBuckle.userData = { isShared: true };
     rangerDrawHand.userData = { isShared: true };
     rangerDrawArm.userData = { isShared: true };
+    paladinKnuckles.userData = { isShared: true };
+    paladinVambrace.userData = { isShared: true };
+    paladinLeftHand.userData = { isShared: true };
+    paladinLeftForearm.userData = { isShared: true };
 
     _sharedArmGeo = {
-      forearm,
-      hand,
-      vambrace,
-      leftHand,
-      leftForearm,
-      wizardCuff,
-      wizardBracelet,
-      wizardLeftHand,
-      wizardLeftForearm,
-      rangerBracer,
-      rangerBuckle,
-      rangerDrawHand,
-      rangerDrawArm,
+      forearm, hand, vambrace, leftHand, leftForearm,
+      wizardCuff, wizardBracelet, wizardLeftHand, wizardLeftForearm,
+      rangerBracer, rangerBuckle, rangerDrawHand, rangerDrawArm,
+      paladinKnuckles, paladinVambrace, paladinLeftHand, paladinLeftForearm,
     };
   }
   return _sharedArmGeo;
@@ -144,7 +145,33 @@ export function buildHeroArmMesh(heroKey) {
   forearmMesh.rotation.set(grip.armRotX, 0, grip.armRotZ);
   armGroup.add(forearmMesh);
 
-  if (heroKey === 'guardian') {
+  if (heroKey === 'paladin') {
+    // Guantelete de placas con nudillera dorada
+    const knuckles = setupOverlayMesh(new THREE.Mesh(G.paladinKnuckles, M.goldMat));
+    knuckles.name = 'PaladinKnuckles';
+    knuckles.position.set(0, grip.gripY + 0.035, 0.01);
+    armGroup.add(knuckles);
+
+    // Brazal de placas sobre el antebrazo derecho
+    const plate = setupOverlayMesh(new THREE.Mesh(G.paladinVambrace, M.handMat));
+    plate.name = 'PaladinVambrace';
+    plate.position.set(0.06, grip.gripY - 0.15, 0.18);
+    plate.rotation.set(grip.armRotX, 0, grip.armRotZ);
+    armGroup.add(plate);
+
+    // Mano izquierda en agarre inferior bimanual del mandoble
+    const lHand = setupOverlayMesh(new THREE.Mesh(G.paladinLeftHand, M.handMat));
+    lHand.name = 'PaladinLeftHand';
+    lHand.position.set(-0.01, grip.gripY - 0.12, 0.01);
+    armGroup.add(lHand);
+
+    // Antebrazo izquierdo con guantelete y manga carmesí
+    const lArm = setupOverlayMesh(new THREE.Mesh(G.paladinLeftForearm, M.sleeveMat));
+    lArm.name = 'PaladinLeftArm';
+    lArm.position.set(-0.07, grip.gripY - 0.24, 0.14);
+    lArm.rotation.set(-0.45, 0.18, -0.28);
+    armGroup.add(lArm);
+  } else if (heroKey === 'guardian') {
     const plate = setupOverlayMesh(new THREE.Mesh(G.vambrace, M.handMat));
     plate.position.set(0.06, grip.gripY - 0.15, 0.19);
     plate.rotation.set(grip.armRotX, 0, grip.armRotZ);

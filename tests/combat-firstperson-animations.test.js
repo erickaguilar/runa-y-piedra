@@ -356,3 +356,57 @@ test('FirstPersonWeaponRenderer: Explorador integra arco rúnico, gema eólica, 
 
   renderer.dispose();
 });
+
+test('FirstPersonWeaponRenderer: Paladín integra mandoble colosal, núcleo sagrado, guanteletes de placas y tajo de 180°', () => {
+  const camera = new THREE.PerspectiveCamera();
+  const renderer = new FirstPersonWeaponRenderer(camera);
+  renderer.setHero('paladin');
+  renderer.setVisible(true);
+
+  // 1. Identificación de componentes sagrados del mandoble
+  assert.ok(renderer.paladinCoreMesh, 'Debe identificar el núcleo solar sagrado en la cruz');
+  assert.ok(renderer.paladinFullerMesh, 'Debe identificar la acanaladura grabada de la hoja');
+
+  // 2. Traje y brazos bimanuales pesados (nudillera dorada, brazal de acero y guantelete izquierdo)
+  let armMeshes = 0;
+  renderer.currentArmMesh.traverse((child) => {
+    if (child.isMesh) armMeshes++;
+  });
+  assert.ok(armMeshes >= 4, 'El Paladín debe poseer guanteletes bimanual y placas de acero (>= 4 meshes)');
+
+  // 3. Latido sagrado en reposo (idle)
+  const player = { pos: { x: 0, y: 1, z: 0 }, vel: { x: 0, y: 0, z: 0 }, yaw: 0, pitch: 0, onGround: true };
+  const initialCoreEmissive = renderer.paladinCoreMesh.material.emissiveIntensity;
+  for (let i = 0; i < 20; i++) {
+    renderer.update(0.016, player);
+  }
+  assert.notEqual(renderer.paladinCoreMesh.material.emissiveIntensity, initialCoreEmissive, 'El núcleo sagrado debe pulsar en reposo');
+
+  // 4. Secuencia de alzada, tajo devastador de 180° y follow-through
+  renderer.triggerAttack(HERO_WEAPONS[1]);
+  assert.equal(renderer.isAttacking, true);
+
+  // Avanzar al clímax del barrido de 180° (~40% del tiempo de ataque)
+  const targetCleaveTime = renderer.attackDuration * 0.40;
+  while (renderer.attackTimer < targetCleaveTime) {
+    renderer.update(0.016, player);
+  }
+
+  assert.ok(Math.abs(renderer.group.rotation.y - renderer.baseRot.y) > 0.5, 'El mandoble debe barrer en gran arco horizontal');
+  assert.ok(
+    renderer.paladinCoreMesh.material.emissiveIntensity > 2.0,
+    'El núcleo sagrado debe brillar con resplandor celestial en el tajo'
+  );
+
+  // Completar animación de ataque completa
+  while (renderer.isAttacking) {
+    renderer.update(0.016, player);
+  }
+  assert.equal(renderer.isAttacking, false);
+  assert.ok(
+    Math.abs(renderer.paladinCoreMesh.material.emissiveIntensity - 0.35) < 0.20,
+    'El núcleo solar debe retornar a su rango de brillo base'
+  );
+
+  renderer.dispose();
+});

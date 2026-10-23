@@ -14,11 +14,14 @@ function getWeaponGeoCache() {
   const swordPommel = new THREE.BoxGeometry(0.055, 0.04, 0.045);
 
   // 2. Mandoble de la Luz (Paladín)
-  const greatBlade = new THREE.BoxGeometry(0.12, 0.92, 0.035);
-  const greatFuller = new THREE.BoxGeometry(0.03, 0.82, 0.04);
-  const greatGuard = new THREE.BoxGeometry(0.32, 0.05, 0.06);
-  const greatGrip = new THREE.BoxGeometry(0.04, 0.22, 0.04);
+  const greatBlade = new THREE.BoxGeometry(0.12, 0.96, 0.035);
+  const greatFuller = new THREE.BoxGeometry(0.035, 0.84, 0.042);
+  const greatGuard = new THREE.BoxGeometry(0.34, 0.05, 0.065);
+  const greatGrip = new THREE.BoxGeometry(0.04, 0.24, 0.04);
   const greatPommel = new THREE.BoxGeometry(0.07, 0.06, 0.06);
+  const greatCrossBoss = new THREE.BoxGeometry(0.08, 0.08, 0.085);
+  const greatSolarGem = new THREE.OctahedronGeometry(0.045, 0);
+  const greatQuillonTip = new THREE.ConeGeometry(0.032, 0.06, 4);
 
   // 3. Arco Rúnico del Viento (Explorador)
   const bowGrip = new THREE.BoxGeometry(0.04, 0.14, 0.055);
@@ -58,50 +61,11 @@ function getWeaponGeoCache() {
   const hammerTopSpike = new THREE.ConeGeometry(0.055, 0.10, 4);
 
   _weaponGeoCache = {
-    swordBlade,
-    swordGuard,
-    swordGrip,
-    swordPommel,
-
-    greatBlade,
-    greatFuller,
-    greatGuard,
-    greatGrip,
-    greatPommel,
-
-    bowGrip,
-    bowRiserPlate,
-    bowWindGem,
-    bowLimbUpper,
-    bowLimbLower,
-    bowLimbPlate,
-    bowTipUpper,
-    bowTipLower,
-    bowString,
-    bowArrowShaft,
-    bowArrowTip,
-    bowArrowFletch,
-
-    staffShaft,
-    staffGripWrap,
-    staffPommel,
-    staffBaseGem,
-    staffCollar,
-    staffCrownProng,
-    staffRing,
-    staffCrystal,
-    staffCrystalCore,
-    staffOrbitalRing,
-
-    hammerShaft,
-    hammerGripWrap,
-    hammerPommel,
-    hammerCollar,
-    hammerHead,
-    hammerFaceFront,
-    hammerRune,
-    hammerSpike,
-    hammerTopSpike,
+    swordBlade, swordGuard, swordGrip, swordPommel,
+    greatBlade, greatFuller, greatGuard, greatGrip, greatPommel, greatCrossBoss, greatSolarGem, greatQuillonTip,
+    bowGrip, bowRiserPlate, bowWindGem, bowLimbUpper, bowLimbLower, bowLimbPlate, bowTipUpper, bowTipLower, bowString, bowArrowShaft, bowArrowTip, bowArrowFletch,
+    staffShaft, staffGripWrap, staffPommel, staffBaseGem, staffCollar, staffCrownProng, staffRing, staffCrystal, staffCrystalCore, staffOrbitalRing,
+    hammerShaft, hammerGripWrap, hammerPommel, hammerCollar, hammerHead, hammerFaceFront, hammerRune, hammerSpike, hammerTopSpike,
   };
 
   for (const g of Object.values(_weaponGeoCache)) {
@@ -120,6 +84,7 @@ function getWeaponMatCache() {
     steelDarkMat: new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.7, metalness: 0.5 }),
     basaltMat: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9, metalness: 0.1 }),
     brassGoldMat: new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4, metalness: 0.7 }),
+    holyGoldBrightMat: new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.2, emissive: 0xfacc15, emissiveIntensity: 0.8 }),
     leatherMat: new THREE.MeshLambertMaterial({ color: 0x5c3317 }),
     leatherRedMat: new THREE.MeshLambertMaterial({ color: 0x991b1b }),
     woodMat: new THREE.MeshLambertMaterial({ color: 0x78350f }),
@@ -190,24 +155,52 @@ export function buildPaladinGreatswordMesh() {
   const group = new THREE.Group();
   group.name = 'Weapon_PaladinGreatsword';
 
+  // Hoja ancha de acero templado radiante
   const blade = new THREE.Mesh(G.greatBlade, M.steelLightMat);
-  blade.position.set(0, 0.56, 0);
+  blade.position.set(0, 0.58, 0);
   group.add(blade);
 
+  // Acanaladura sagrada central grabada
   const fuller = new THREE.Mesh(G.greatFuller, M.brassGoldMat);
-  fuller.position.set(0, 0.52, 0);
+  fuller.name = 'PaladinBladeFuller';
+  fuller.position.set(0, 0.54, 0);
   group.add(fuller);
 
+  // Cruceta masiva de oro sacro
   const guard = new THREE.Mesh(G.greatGuard, M.brassGoldMat);
   guard.position.set(0, 0.11, 0);
   group.add(guard);
 
+  // Gavilanes laterales en punta (quillons)
+  const quillonL = new THREE.Mesh(G.greatQuillonTip, M.brassGoldMat);
+  quillonL.position.set(-0.19, 0.11, 0);
+  quillonL.rotation.z = Math.PI / 2;
+  group.add(quillonL);
+
+  const quillonR = new THREE.Mesh(G.greatQuillonTip, M.brassGoldMat);
+  quillonR.position.set(0.19, 0.11, 0);
+  quillonR.rotation.z = -Math.PI / 2;
+  group.add(quillonR);
+
+  // Umbo central en la cruz de la guarda
+  const boss = new THREE.Mesh(G.greatCrossBoss, M.brassGoldMat);
+  boss.position.set(0, 0.11, 0);
+  group.add(boss);
+
+  // Núcleo Solar Sagrado incrustado en el centro de la cruz
+  const gem = new THREE.Mesh(G.greatSolarGem, M.holyGoldBrightMat);
+  gem.name = 'PaladinHolyCore';
+  gem.position.set(0, 0.11, 0.035);
+  group.add(gem);
+
+  // Empuñadura bimano forrada en cuero rojo carmesí
   const grip = new THREE.Mesh(G.greatGrip, M.leatherRedMat);
-  grip.position.set(0, -0.02, 0);
+  grip.position.set(0, -0.03, 0);
   group.add(grip);
 
+  // Pomo contrapeso dorado
   const pommel = new THREE.Mesh(G.greatPommel, M.brassGoldMat);
-  pommel.position.set(0, -0.15, 0);
+  pommel.position.set(0, -0.17, 0);
   group.add(pommel);
 
   return group;
