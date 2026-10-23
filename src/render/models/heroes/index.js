@@ -6,6 +6,7 @@ export * from './rangerGear.js';
 export * from './wizardGear.js';
 export * from './guardianGear.js';
 export * from './heroWeapons.js';
+export * from './heroArms.js';
 
 import { buildAdventurerGear, disposeAdventurerGearCache } from './adventurerGear.js';
 import { buildPaladinGear, disposePaladinGearCache } from './paladinGear.js';
@@ -13,6 +14,7 @@ import { buildRangerGear, disposeRangerGearCache } from './rangerGear.js';
 import { buildWizardGear, disposeWizardGearCache } from './wizardGear.js';
 import { buildGuardianGear, disposeGuardianGearCache } from './guardianGear.js';
 import { disposeWeaponCache } from './heroWeapons.js';
+import { disposeArmCache } from './heroArms.js';
 
 /**
  * Mapeo de constructores de equipamiento por identificador de clase de héroe.
@@ -35,4 +37,5 @@ export function disposeHeroGearCaches() {
   disposeWizardGearCache();
   disposeGuardianGearCache();
   disposeWeaponCache();
+  disposeArmCache();
 }

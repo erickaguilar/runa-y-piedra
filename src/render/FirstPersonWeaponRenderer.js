@@ -1,6 +1,7 @@
 // src/render/FirstPersonWeaponRenderer.js
 import * as THREE from 'three';
 import { buildHeroWeaponMesh } from './models/heroes/heroWeapons.js';
+import { buildHeroArmMesh, setupOverlayMesh } from './models/heroes/heroArms.js';
 
 const HERO_NAMES = ['adventurer', 'paladin', 'ranger', 'wizard', 'guardian'];
 
@@ -11,96 +12,6 @@ const FP_CONFIGS = {
   wizard:     { pos: [0.28, -0.26, -0.48], rot: [-0.55, -0.18, 0.06], scale: 0.55 },
   guardian:   { pos: [0.24, -0.25, -0.47], rot: [-0.54, -0.25, 0.12], scale: 0.63 },
 };
-
-const HERO_COLORS = {
-  adventurer: 0x38bdf8,
-  paladin: 0xf43f5e,
-  ranger: 0x10b981,
-  wizard: 0xa855f7,
-  guardian: 0xfbbf24,
-};
-
-const GRIP_OFFSETS = {
-  adventurer: { gripY: -0.09, armRotX: -0.55, armRotZ: 0.25 },
-  paladin:    { gripY: -0.15, armRotX: -0.55, armRotZ: 0.22 },
-  ranger:     { gripY:  0.00, armRotX: -0.40, armRotZ: 0.20 },
-  wizard:     { gripY:  0.20, armRotX: -0.50, armRotZ: 0.18 },
-  guardian:   { gripY:  0.08, armRotX: -0.55, armRotZ: 0.22 },
-};
-
-let _sharedArmGeo = null;
-function getArmGeometries() {
-  if (!_sharedArmGeo) {
-    const forearm = new THREE.BoxGeometry(0.08, 0.30, 0.08);
-    const hand = new THREE.BoxGeometry(0.09, 0.08, 0.09);
-    const vambrace = new THREE.BoxGeometry(0.095, 0.18, 0.035);
-    const leftHand = new THREE.BoxGeometry(0.085, 0.08, 0.085);
-    const leftForearm = new THREE.BoxGeometry(0.08, 0.24, 0.08);
-    forearm.userData = { isShared: true };
-    hand.userData = { isShared: true };
-    vambrace.userData = { isShared: true };
-    leftHand.userData = { isShared: true };
-    leftForearm.userData = { isShared: true };
-    _sharedArmGeo = { forearm, hand, vambrace, leftHand, leftForearm };
-  }
-  return _sharedArmGeo;
-}
-
-const _armMatCache = new Map();
-function getArmMaterials(heroKey) {
-  if (_armMatCache.has(heroKey)) return _armMatCache.get(heroKey);
-  const colorHex = HERO_COLORS[heroKey] || HERO_COLORS.adventurer;
-  const sleeveMat = new THREE.MeshLambertMaterial({ color: colorHex });
-  const handColor = (heroKey === 'paladin' || heroKey === 'guardian') ? 0x64748b : 0xd9b48a;
-  const handMat = new THREE.MeshLambertMaterial({ color: handColor });
-  sleeveMat.userData = { isShared: true };
-  handMat.userData = { isShared: true };
-  const mats = { sleeveMat, handMat };
-  _armMatCache.set(heroKey, mats);
-  return mats;
-}
-
-function setupOverlayMesh(mesh) {
-  mesh.frustumCulled = false;
-  mesh.renderOrder = 9999;
-  mesh.onBeforeRender = (renderer) => renderer.clearDepth?.();
-  return mesh;
-}
-
-function buildHeroArmMesh(heroKey) {
-  const G = getArmGeometries();
-  const M = getArmMaterials(heroKey);
-  const armGroup = new THREE.Group();
-  armGroup.name = `Arm_${heroKey}`;
-  const grip = GRIP_OFFSETS[heroKey] || GRIP_OFFSETS.adventurer;
-
-  const handMesh = setupOverlayMesh(new THREE.Mesh(G.hand, M.handMat));
-  handMesh.position.set(0, grip.gripY, 0);
-  armGroup.add(handMesh);
-
-  const forearmMesh = setupOverlayMesh(new THREE.Mesh(G.forearm, M.sleeveMat));
-  forearmMesh.position.set(0.06, grip.gripY - 0.18, 0.14);
-  forearmMesh.rotation.set(grip.armRotX, 0, grip.armRotZ);
-  armGroup.add(forearmMesh);
-
-  if (heroKey === 'guardian') {
-    const plate = setupOverlayMesh(new THREE.Mesh(G.vambrace, M.handMat));
-    plate.position.set(0.06, grip.gripY - 0.15, 0.19);
-    plate.rotation.set(grip.armRotX, 0, grip.armRotZ);
-    armGroup.add(plate);
-
-    const lHand = setupOverlayMesh(new THREE.Mesh(G.leftHand, M.handMat));
-    lHand.position.set(-0.02, grip.gripY - 0.20, 0.02);
-    armGroup.add(lHand);
-
-    const lArm = setupOverlayMesh(new THREE.Mesh(G.leftForearm, M.sleeveMat));
-    lArm.position.set(-0.09, grip.gripY - 0.32, 0.15);
-    lArm.rotation.set(-0.40, 0.20, -0.35);
-    armGroup.add(lArm);
-  }
-
-  return armGroup;
-}
 
 /**
  * Renderizador de arma y extremidad en primera persona (Viewmodel cinemático).
@@ -122,6 +33,8 @@ export class FirstPersonWeaponRenderer {
     this.currentWeaponMesh = null;
     this.currentArmMesh = null;
     this.crystalMesh = null;
+    this.wizardCoreMesh = null;
+    this.wizardOrbitalMesh = null;
     this.guardianRuneMesh = null;
 
     // Configuración base fija
@@ -181,6 +94,9 @@ export class FirstPersonWeaponRenderer {
       this.currentArmMesh = null;
     }
     this.crystalMesh = null;
+    this.wizardCoreMesh = null;
+    this.wizardOrbitalMesh = null;
+    this.guardianRuneMesh = null;
 
     // 1. Malla del arma
     this.currentWeaponMesh = buildHeroWeaponMesh(heroIdOrIndex);
@@ -188,7 +104,13 @@ export class FirstPersonWeaponRenderer {
     this.currentWeaponMesh.traverse((child) => {
       if (child.isMesh) {
         setupOverlayMesh(child);
-        if (heroKey === 'wizard' && child.geometry?.type === 'OctahedronGeometry') this.crystalMesh = child;
+        if (heroKey === 'wizard') {
+          if (child.name === 'WizardArcaneCrystal' || (!this.crystalMesh && child.geometry?.type === 'OctahedronGeometry')) {
+            this.crystalMesh = child;
+          }
+          if (child.name === 'WizardArcaneCore') this.wizardCoreMesh = child;
+          if (child.name === 'WizardOrbitalRing') this.wizardOrbitalMesh = child;
+        }
         if (heroKey === 'guardian' && child.name === 'GuardianRunicCore') this.guardianRuneMesh = child;
       }
     });
@@ -373,23 +295,67 @@ export class FirstPersonWeaponRenderer {
           atkRotZ = -0.06 * ease;
         }
       } else if (heroKey === 'wizard') {
-        // Canalización y descarga de rayo arcano
-        if (p < 0.25) {
-          const t = p / 0.25;
-          atkY = t * 0.07;
-          atkZ = t * 0.04;
-          atkRotX = t * 0.22;
-        } else if (p < 0.58) {
-          const t = (p - 0.25) / 0.33;
-          atkZ = 0.04 - t * 0.18;
-          atkY = 0.07 - t * 0.05;
-          atkRotX = 0.22 - t * 0.40;
+        // Canalización, concentración de plasma y descarga de rayo arcano (4 fases)
+        if (p < 0.24) {
+          // Fase 1: Carga y elevación mística con micro-vibración
+          const t = p / 0.24;
+          const channelVibe = Math.sin(t * Math.PI * 8) * t * 0.005;
+          atkY = t * 0.10 + channelVibe;
+          atkZ = t * 0.06;
+          atkRotX = t * 0.28;
+          atkRotZ = -t * 0.12;
+          if (this.crystalMesh?.material) {
+            this.crystalMesh.material.emissiveIntensity = 0.8 + t * 0.8;
+          }
+          if (this.wizardCoreMesh?.material) {
+            this.wizardCoreMesh.material.emissiveIntensity = 1.5 + t * 1.0;
+          }
+        } else if (p < 0.52) {
+          // Fase 2: Descarga violenta de plasma arcano al frente (punto de mira)
+          const t = (p - 0.24) / 0.28;
+          const thrust = t * t;
+          atkZ = 0.06 - thrust * 0.26;
+          atkY = 0.10 - thrust * 0.08;
+          atkRotX = 0.28 - thrust * 0.65;
+          atkRotY = -thrust * 0.15;
+          atkRotZ = -0.12 + thrust * 0.18;
+          if (this.crystalMesh?.material) {
+            this.crystalMesh.material.emissiveIntensity = 1.6 + (1 - Math.abs(t - 0.5) * 2) * 1.2;
+          }
+          if (this.wizardCoreMesh?.material) {
+            this.wizardCoreMesh.material.emissiveIntensity = 2.5 + (1 - Math.abs(t - 0.5) * 2) * 1.5;
+          }
+        } else if (p < 0.76) {
+          // Fase 3: Retroceso elástico y disipación de energía residual
+          const t = (p - 0.52) / 0.24;
+          const dissipate = 1 - t;
+          const recoilVibe = Math.sin(t * Math.PI * 6) * dissipate * 0.006;
+          atkZ = -0.20 + t * 0.10 + recoilVibe;
+          atkY = 0.02 + Math.sin(t * Math.PI) * 0.04;
+          atkRotX = -0.37 + t * 0.22;
+          atkRotY = -0.15 + t * 0.09;
+          atkRotZ = 0.06 - t * 0.04;
+          if (this.crystalMesh?.material) {
+            this.crystalMesh.material.emissiveIntensity = 0.8 + dissipate * 0.8;
+          }
+          if (this.wizardCoreMesh?.material) {
+            this.wizardCoreMesh.material.emissiveIntensity = 1.5 + dissipate * 1.0;
+          }
         } else {
-          const t = (p - 0.58) / 0.42;
+          // Fase 4: Retorno armónico suave al reposo
+          const t = (p - 0.76) / 0.24;
           const ease = 1 - t * t;
-          atkZ = -0.14 * ease;
+          atkZ = -0.10 * ease;
           atkY = 0.02 * ease;
-          atkRotX = -0.18 * ease;
+          atkRotX = -0.15 * ease;
+          atkRotY = -0.06 * ease;
+          atkRotZ = 0.02 * ease;
+          if (this.crystalMesh?.material) {
+            this.crystalMesh.material.emissiveIntensity = 0.8;
+          }
+          if (this.wizardCoreMesh?.material) {
+            this.wizardCoreMesh.material.emissiveIntensity = 1.5;
+          }
         }
       } else if (heroKey === 'guardian') {
         // Mazo sísmico: alzada bimano y golpe descendente demoledor
@@ -450,13 +416,37 @@ export class FirstPersonWeaponRenderer {
         if (this.guardianRuneMesh?.material) {
           this.guardianRuneMesh.material.emissiveIntensity = 0.6;
         }
+        if (this.crystalMesh?.material) {
+          this.crystalMesh.material.emissiveIntensity = 0.8;
+        }
+        if (this.wizardCoreMesh?.material) {
+          this.wizardCoreMesh.material.emissiveIntensity = 1.5;
+        }
       }
     }
 
-    // 6. Animación secundaria del cristal amatista (Hechicero) y pulso telúrico (Guardián)
+    // 6. Animación secundaria del cristal amatista y aro orbital (Hechicero) y pulso telúrico (Guardián)
     if (this.crystalMesh) {
-      const spinSpeed = this.isAttacking ? 6.0 : 1.5;
+      const spinSpeed = this.isAttacking ? 7.5 : 1.8;
       this.crystalMesh.rotation.y += safeDt * spinSpeed;
+      if (!this.isAttacking) {
+        this.crystalMesh.position.y = 0.89 + Math.sin(this.idlePhase * 2.2) * 0.015;
+        if (this.crystalMesh.material) {
+          this.crystalMesh.material.emissiveIntensity = 0.8 + Math.sin(this.idlePhase * 2.0) * 0.20;
+        }
+      }
+    }
+    if (this.wizardCoreMesh) {
+      this.wizardCoreMesh.rotation.y -= safeDt * (this.isAttacking ? 6.0 : 1.2);
+      if (!this.isAttacking) {
+        this.wizardCoreMesh.position.y = 0.89 + Math.sin(this.idlePhase * 2.2) * 0.015;
+      }
+    }
+    if (this.wizardOrbitalMesh) {
+      this.wizardOrbitalMesh.rotation.z += safeDt * (this.isAttacking ? 5.0 : 1.0);
+      if (!this.isAttacking) {
+        this.wizardOrbitalMesh.position.y = 0.89 + Math.sin(this.idlePhase * 2.2) * 0.015;
+      }
     }
     if (!this.isAttacking && this.guardianRuneMesh?.material) {
       this.guardianRuneMesh.material.emissiveIntensity = 0.6 + Math.sin(this.idlePhase * 2.5) * 0.15;
@@ -482,6 +472,8 @@ export class FirstPersonWeaponRenderer {
       this.currentArmMesh = null;
     }
     this.crystalMesh = null;
+    this.wizardCoreMesh = null;
+    this.wizardOrbitalMesh = null;
     this.guardianRuneMesh = null;
     this.camera.remove(this.group);
   }

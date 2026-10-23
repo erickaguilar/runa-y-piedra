@@ -254,3 +254,55 @@ test('FirstPersonWeaponRenderer: Guardián integra empuñadura bimano, núcleo r
 
   renderer.dispose();
 });
+
+test('FirstPersonWeaponRenderer: Hechicero integra báculo arcano, corona de garras, núcleo de plasma y animación mística', () => {
+  const camera = new THREE.PerspectiveCamera();
+  const renderer = new FirstPersonWeaponRenderer(camera);
+  renderer.setHero('wizard');
+  renderer.setVisible(true);
+
+  // 1. Identificación de componentes arcanos del báculo
+  assert.ok(renderer.crystalMesh, 'Debe identificar el cristal amatista exterior');
+  assert.ok(renderer.wizardCoreMesh, 'Debe identificar el núcleo de plasma arcano');
+  assert.ok(renderer.wizardOrbitalMesh, 'Debe identificar el anillo orbital de resonancia');
+
+  // 2. Traje y brazos en primera persona (manga acampanada, brazalete dorado y mano de conjuración)
+  let armMeshes = 0;
+  renderer.currentArmMesh.traverse((child) => {
+    if (child.isMesh) armMeshes++;
+  });
+  assert.ok(armMeshes >= 4, 'El Hechicero debe contar con túnica acampanada, brazalete y mano mística (>= 4 meshes)');
+
+  // 3. Levitación mística en reposo (idle)
+  const player = { pos: { x: 0, y: 1, z: 0 }, vel: { x: 0, y: 0, z: 0 }, yaw: 0, pitch: 0, onGround: true };
+  const initialCrystalY = renderer.crystalMesh.position.y;
+  for (let i = 0; i < 20; i++) {
+    renderer.update(0.016, player);
+  }
+  assert.notEqual(renderer.crystalMesh.position.y, initialCrystalY, 'El cristal amatista debe levitar senoidalmente en reposo');
+
+  // 4. Secuencia de conjuración y sobrecarga de plasma en ataque
+  renderer.triggerAttack(HERO_WEAPONS[3]);
+  assert.equal(renderer.isAttacking, true);
+
+  // Avanzar al momento de descarga de plasma (~38% del tiempo de ataque)
+  const targetDischargeTime = renderer.attackDuration * 0.38;
+  while (renderer.attackTimer < targetDischargeTime) {
+    renderer.update(0.016, player);
+  }
+
+  assert.ok(renderer.group.position.z < renderer.basePos.z, 'El báculo debe proyectarse hacia el frente en la descarga');
+  assert.ok(
+    renderer.wizardCoreMesh.material.emissiveIntensity > 2.0,
+    'El núcleo de plasma debe emitir un resplandor cegador de sobrecarga en la descarga'
+  );
+
+  // Completar animación
+  while (renderer.isAttacking) {
+    renderer.update(0.016, player);
+  }
+  assert.equal(renderer.isAttacking, false);
+  assert.equal(renderer.wizardCoreMesh.material.emissiveIntensity, 1.5, 'El núcleo debe regresar a su brillo base');
+
+  renderer.dispose();
+});
