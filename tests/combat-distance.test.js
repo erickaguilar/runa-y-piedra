@@ -38,6 +38,8 @@ import {
   getDistanceDamageModifier,
   calculateDamage,
 } from '../src/config/combat.js';
+import { PLAYER_HEROES } from '../src/config/constants.js';
+import { HeroMixin } from '../src/ui/HeroManager.js';
 import { Player } from '../src/entities/Player.js';
 import { CombatManager } from '../src/combat/CombatManager.js';
 import { DummyRenderer, createDummyBadgeSprite, createFloatingDamageSprite } from '../src/render/DummyRenderer.js';
@@ -238,4 +240,26 @@ test('DummyRenderer: Soporta badges enriquecidos y sprites de daño flotante', (
   assert.doesNotThrow(() => {
     renderer.dispose();
   });
+});
+
+test('HeroMixin: renderHeroTraitCard renderiza estadísticas de daño y arma para cada héroe', () => {
+  const expectedStats = [
+    { id: 'adventurer', dmg: 'Daño 1-2', weapon: 'Espada de Explorador' },
+    { id: 'paladin', dmg: 'Daño 2-3', weapon: 'Mandoble de la Luz' },
+    { id: 'ranger', dmg: 'Daño 1-3', weapon: 'Arco Rúnico del Viento' },
+    { id: 'wizard', dmg: 'Daño 2-4', weapon: 'Báculo de Rayo Arcano' },
+    { id: 'guardian', dmg: 'Daño 2-3', weapon: 'Mazo Sísmico Basalto' },
+  ];
+
+  for (const exp of expectedStats) {
+    const hero = PLAYER_HEROES.find(h => h.id === exp.id);
+    assert.ok(hero, `Héroe ${exp.id} debe existir en PLAYER_HEROES`);
+    assert.equal(hero.stats.damage, exp.dmg.replace('Daño ', ''));
+    assert.equal(hero.stats.weapon, exp.weapon);
+
+    const html = HeroMixin.renderHeroTraitCard(hero);
+    assert.ok(html.includes(exp.dmg), `Ficha de ${exp.id} debe incluir "${exp.dmg}"`);
+    assert.ok(html.includes(exp.weapon), `Ficha de ${exp.id} debe incluir tooltip del arma "${exp.weapon}"`);
+    assert.ok(html.includes('hero-stat-badges'), `Ficha de ${exp.id} debe incluir hero-stat-badges`);
+  }
 });
