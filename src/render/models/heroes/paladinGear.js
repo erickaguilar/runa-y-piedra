@@ -1,6 +1,7 @@
 // src/render/models/heroes/paladinGear.js
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildPaladinGreatswordMesh } from './heroWeapons.js';
 import {
   createHeroFaceMaterial,
   createHeroHeadSideMaterial,
@@ -253,7 +254,7 @@ export function buildPaladinGear(a, G, add) {
   add(pauldronR, a.gear);
 
   // ═══════════════════════════════════════════════════════════
-  // 3. ESCUDO — Anclado al brazo izquierdo (armLPivot)
+  // 3. ESCUDO — Anclado al brazo izquierdo (armRPivot)
   //    Sigue el balanceo natural de marcha del brazo
   // ═══════════════════════════════════════════════════════════
   const shieldGroup = new THREE.Group();
@@ -265,11 +266,22 @@ export function buildPaladinGear(a, G, add) {
   const shieldGold = new THREE.Mesh(geo.shieldGoldGeo, goldMat);
   shieldGroup.add(shieldGold);
 
-  if (a.parts?.armLPivot) {
-    add(shieldGroup, a.parts.armLPivot);
+  if (a.parts?.armRPivot) {
+    add(shieldGroup, a.parts.armRPivot);
   } else {
-    shieldGroup.position.set(-0.36, 0.91, 0.14);
+    shieldGroup.position.set(0.36, 0.91, 0.14);
     add(shieldGroup, a.gear);
+  }
+
+  // 3b. MANDOBLE DE LA LUZ — Anclado a la mano derecha (armLPivot)
+  const greatsword = buildPaladinGreatswordMesh();
+  greatsword.position.set(0, -0.45, 0.10);
+  greatsword.rotation.x = Math.PI / 5;
+  if (a.parts?.armLPivot) {
+    add(greatsword, a.parts.armLPivot);
+  } else {
+    greatsword.position.set(-0.30, 0.88, 0.14);
+    add(greatsword, a.gear);
   }
 
   // ═══════════════════════════════════════════════════════════

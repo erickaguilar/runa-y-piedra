@@ -94,7 +94,7 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - Motor de audio procedural sintetizado con Web Audio API (`SoundManager.js`) con cero descarga de ficheros pesados.
     - Ciclo de 3 vidas, peligros ambientales letales (lava y abismo), invulnerabilidad temporal (2.5 s) y Game Over cooperativo.
     - Oscilador armónico amortiguado (`Spring.js`) para animaciones elásticas reactivas de UI.
-    - Suite de 322 pruebas automatizadas nativas con `node:test` sin dependencias externas pesadas.
+    - Suite de 374 pruebas automatizadas nativas con `node:test` sin dependencias externas pesadas.
 
 15. [**15. Flujo de Trabajo Git y Creación de Nuevos Niveles de Mazmorra**](./15-flujo-de-trabajo-git-y-creacion-de-niveles.md)
     - Metodología de ramificación GitFlow (`main`, `develop`, `feature/*`, `hotfix/*`).
@@ -193,4 +193,26 @@ Este directorio contiene el compendio integral de hallazgos técnicos, diseño d
     - 8 fases (0–7): infraestructura local, coherencia documental, type checking real, higiene de logs,
       descomposición de god-objects, CSS con capas `@layer`, extracción de arte y guardarraíles de CI.
     - Métricas objetivo medibles (tests, `!important`, tamaño máximo de archivo, bundle) y reglas de ejecución.
+
+31. [**31. Sala de Combate de Desarrollo (CombatRoom) y Mecánica de Combate Híbrido PvE**](./31-sala-de-combate-dev-y-mecanica-hibrida-pve.md)
+    - Sandbox aislado (`dev_combatroom`) accesible exclusivamente desde `#modal-dev` (`#btn-dev-enter-combatroom`).
+    - Combate PvE híbrido con botón independiente `ATACAR` (`#btn-attack` en HUD táctil Sumi-e y tecla `F`/Click Izquierdo).
+    - Armas canónicas especializadas por clase: Espada de Explorador, Mandoble Sagrado, Arco Rúnico, Báculo Arcano y Mazo Sísmico.
+    - Simulación autoritativa en Host (Listen-Server WebRTC), muñecos de prueba estáticos, autómatas centinela y presupuesto Zero-GC a 60 FPS.
+
+32. [**32. Lore Unificado y Bestiario PvE: 10 Enemigos, 5 Dificultades, Escalado y Balanceo**](./32-lore-y-bestiario-10-enemigos-pve.md)
+    - Lore de la "Piedra Hendida": despertar hostil de los antiguos centinelas minerales y purificación rúnica.
+    - Bestiario canónico de 10 enemigos distribuidos en 5 grados (Autómatas Rústicos, Hostigadores, Defensores Tácticos, Élite del Subsuelo y Titanes Jefes).
+    - Reglas de escalado dinámico de enemigos según aforo de la party (1 a 5 jugadores) y presupuesto Zero-GC.
+    - Palancas de calibración numéricas (`telegraphMs`, `cooldownMs`, `knockbackFactor`, `aggroRange`) y directrices de balanceo.
+
+33. [**33. Armería Ancestral Canónica: Lore, Modelado 3D, Posturas de Guardia y Viewmodel 1ª Persona**](./33-armeria-canonica-lore-y-modelado-de-armas.md)
+    - Mito de las Cinco Armas Forjadas por los Primeros Constructores (Espada, Mandoble, Arco, Báculo y Mazo).
+    - Especificación geométrica 3D modular en `heroWeapons.js` con presupuesto móvil Zero-GC (`userData.isShared`).
+    - Cinemática y corrección anatómica de empuñadura en mano derecha (`armLPivot`) en 3ª persona y orientación frontal ($+Z$).
+    - Viewmodel ergonómico continuo en primera persona (`FirstPersonWeaponRenderer.js`) con calibración por clase (`FP_CONFIGS`).
+    - Matriz de sinergia táctica de combate PvE entre armas de héroe y debilidades del bestiario.
+
+
+
 

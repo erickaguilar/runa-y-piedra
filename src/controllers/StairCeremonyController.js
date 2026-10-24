@@ -220,7 +220,7 @@ export class StairCeremonyController {
         nextFirstDungeon = game.world.levelRegistry.getLevel(nextLevelId);
       }
 
-      if (curLevelId && curLevelId !== 'lobby_tutorial' && curLevelId !== 'dev_showroom') {
+      if (curLevelId && curLevelId !== 'lobby_tutorial' && curLevelId !== 'dev_showroom' && curLevelId !== 'dev_combatroom') {
         game.saveDungeonCompletion?.(curLevelId, true);
       }
 

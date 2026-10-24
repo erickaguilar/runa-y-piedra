@@ -1,6 +1,7 @@
 // src/render/models/heroes/guardianGear.js
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildGuardianHammerMesh } from './heroWeapons.js';
 import {
   createHeroFaceMaterial,
   createHeroHeadSideMaterial,
@@ -298,6 +299,17 @@ export function buildGuardianGear(a, G, add) {
 
   if (a.parts?.armLPivot) buildGauntlet(a.parts.armLPivot);
   if (a.parts?.armRPivot) buildGauntlet(a.parts.armRPivot);
+
+  // 4b. MAZO SÍSMICO DE BASALTO — Empuñado en la mano derecha (armLPivot)
+  const hammer = buildGuardianHammerMesh();
+  hammer.position.set(0, -0.45, 0.08);
+  hammer.rotation.x = Math.PI / 4;
+  if (a.parts?.armLPivot) {
+    add(hammer, a.parts.armLPivot);
+  } else {
+    hammer.position.set(-0.30, 0.88, 0.12);
+    add(hammer, a.gear);
+  }
 
   // ═══════════════════════════════════════════════════════════
   // 5. PECHERA REFORZADA CON ROMBO DORADO (volumen mixto)

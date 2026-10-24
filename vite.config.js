@@ -25,10 +25,13 @@ export default defineConfig({
           if (id.includes('src/audio/')) {
             return 'engine-audio';
           }
-          if (id.includes('src/render/textures/') || id.includes('src/render/models/')) {
+          if (id.includes('src/render/textures/') || id.includes('src/render/models/') || id.includes('FirstPersonWeaponRenderer')) {
             return 'engine-render';
           }
-          if (id.includes('src/levels/data/dev_showroom')) {
+          if (id.includes('src/combat/') || id.includes('src/config/combat') || id.includes('DummyRenderer') || id.includes('ProjectileRenderer') || id.includes('EnemyRenderer')) {
+            return 'engine-combat';
+          }
+          if (id.includes('src/levels/data/dev_showroom') || id.includes('src/levels/data/dev_combatroom')) {
             return 'levels-showroom';
           }
           if (id.includes('src/levels/data/')) {

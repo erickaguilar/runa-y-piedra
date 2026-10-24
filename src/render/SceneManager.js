@@ -23,6 +23,7 @@ export class SceneManager {
       0.05,
       200
     );
+    this.scene.add(this.camera);
 
     // Iluminación ambiental limpia y luminosa para visibilidad perfecta
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.95));

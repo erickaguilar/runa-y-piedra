@@ -1,0 +1,102 @@
+{
+  "id": "dev_combatroom",
+  "name": "Sala de Combate: Pruebas PvE y Armamento",
+  "description": "Entorno sandbox para desarrolladores: pruebas de combate PvE, muñecos de entrenamiento, arena de combate y calibración de armas de clase.",
+  "difficulty": "Dev Arena",
+  "icon": "swords",
+  "isDevOnly": true,
+  "hiddenFromCampaign": true,
+  "dimensions": {
+    "sizeX": 24,
+    "sizeY": 16,
+    "sizeZ": 36
+  },
+  "spawn": {
+    "x": 12.0,
+    "y": 1.2,
+    "z": 4.5,
+    "facing": "north"
+  },
+  "doors": [],
+  "checkpoints": [
+    {
+      "id": "sector_armeria",
+      "name": "Sector 1: Armería y Santuario",
+      "minZ": 0,
+      "maxZ": 10.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 4.5 }
+    },
+    {
+      "id": "sector_dummys",
+      "name": "Sector 2: Zona de Blancos Estáticos",
+      "minZ": 10.1,
+      "maxZ": 21.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 12.5 }
+    },
+    {
+      "id": "sector_arena",
+      "name": "Sector 3: Arena de Combate Activa",
+      "minZ": 21.1,
+      "maxZ": 36.0,
+      "respawn": { "x": 12.0, "y": 1.2, "z": 23.5 }
+    }
+  ],
+  "objectives": [],
+  "enemies": [
+    { "type": "cave_serpent", "x": 8.5, "y": 1.0, "z": 25.0, "id": "cave_serpent_dev" },
+    { "type": "basalt_skitterer", "x": 15.5, "y": 1.0, "z": 26.0, "id": "basalt_skitterer_dev" }
+  ],
+  "chests": [
+    {
+      "id": "cofre_combat_pociones",
+      "x": 16.5,
+      "y": 1.0,
+      "z": 4.5,
+      "facing": "west",
+      "reward": ":potion: Poción de Vida (+1 :heart:)",
+      "message": ":chest: ¡Has abierto el Cofre de Alquimia! Obtenida: :potion: Poción de Vida (+1 :heart:).",
+      "potion": {
+        "id": "pocion_vida",
+        "name": "Poción de Vida",
+        "healAmount": 1,
+        "icon": "potion"
+      }
+    },
+    {
+      "id": "cofre_combat_gemas",
+      "x": 7.5,
+      "y": 1.0,
+      "z": 4.5,
+      "facing": "east",
+      "reward": "150 :gem: Gemas de Combate",
+      "message": ":chest: ¡Has abierto el Cofre de Recompensas! Obtenidas: 150 :gem: Gemas.",
+      "gems": 150
+    }
+  ],
+  "regions": [
+    { "type": "fill", "block": "STONE_FLOOR", "from": [1, 0, 1], "to": [22, 0, 34] },
+    { "type": "perimeter", "height": 6, "block": "WALL" },
+    { "type": "ceiling", "y": 7, "block": "CEILING", "fromX": 1, "toX": 22, "fromZ": 1, "toZ": 34 },
+
+    { "type": "fill", "block": "RESPAWN_PAD", "from": [11, 0, 4], "to": [13, 0, 5] },
+
+    { "type": "divider", "z": 10, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13], "openHeight": 4 },
+
+    { "type": "fill", "block": "PEDESTAL", "from": [7, 0, 15], "to": [8, 0, 15] },
+    { "type": "fill", "block": "PEDESTAL", "from": [11, 0, 15], "to": [12, 0, 15] },
+    { "type": "fill", "block": "PEDESTAL", "from": [15, 0, 15], "to": [16, 0, 15] },
+
+    { "type": "divider", "z": 21, "height": 6, "block": "WALL", "doorOpening": [10, 11, 12, 13], "openHeight": 4 },
+
+    { "type": "pillar", "x": 5, "z": 25, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 25, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 5, "z": 30, "height": 6, "block": "PILLAR" },
+    { "type": "pillar", "x": 18, "z": 30, "height": 6, "block": "PILLAR" },
+
+    { "type": "fill", "block": "JUMP_PAD", "from": [11, 0, 27], "to": [12, 0, 28] },
+
+    { "type": "fill", "block": "WALL", "from": [3, 0, 32], "to": [20, 0, 32] },
+    { "type": "fill", "block": "LAVA", "from": [4, 0, 33], "to": [19, 0, 33] },
+    { "type": "fill", "block": "LAVA", "from": [4, -1, 33], "to": [19, -1, 33] }
+  ]
+}

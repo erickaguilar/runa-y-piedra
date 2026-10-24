@@ -1,6 +1,7 @@
 // src/render/models/heroes/adventurerGear.js
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildAdventurerSwordMesh } from './heroWeapons.js';
 import {
   createHeroFaceMaterial,
   createHeroHeadSideMaterial,
@@ -150,6 +151,17 @@ export function buildAdventurerGear(a, G, add) {
   // ───── 7. Cabello de Aventurero (casquete castaño + mechón fusionados) ─────
   const hair = new THREE.Mesh(geo.hairGeo, hairMat);
   add(hair, a.gear);
+
+  // ───── 8. Espada de Explorador (anclada a la mano derecha armLPivot) ─────
+  const sword = buildAdventurerSwordMesh();
+  sword.position.set(0, -0.45, 0.08);
+  sword.rotation.x = Math.PI / 4;
+  if (a.parts?.armLPivot) {
+    add(sword, a.parts.armLPivot);
+  } else {
+    sword.position.set(-0.30, 0.88, 0.12);
+    add(sword, a.gear);
+  }
 
   // Aplicar texturas Sumi-e de cabeza (360°) y torso propia del Aventurero
   let faceMat = null;

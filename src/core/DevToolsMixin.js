@@ -180,6 +180,16 @@ export const DevToolsMixin = {
       onExitShowroom: () => {
         this.switchLevel('lobby_tutorial', this.mode === 'host');
       },
+      onEnterCombatRoom: async () => {
+        if (!this.mode) {
+          await this.startDevCombatRoomSession();
+        } else {
+          this.switchLevel('dev_combatroom', this.mode === 'host');
+        }
+      },
+      onExitCombatRoom: () => {
+        this.switchLevel('lobby_tutorial', this.mode === 'host');
+      },
       getGameState: () => {
         const local = this.playerManager.localPlayer;
         const curLevel = this.world.levelRegistry?.getCurrentLevel();
