@@ -6,16 +6,15 @@
  * de entrenamiento (Training Dummies) del Sector 2 y el cómputo de daño y DPS.
  */
 import {
-  WEAPON_TYPES,
   TRAINING_DUMMIES,
   getHeroWeapon,
   calculateDamage,
   calculateDps,
   getDistanceDamageModifier,
 } from '../config/combat.js';
-import { isSolid } from '../core/PhysicsAABB.js';
+import { closestPointOnAabb, hasLineOfSight } from './combatGeometry.js';
+import { ProjectilePool } from './ProjectilePool.js';
 
-const MAX_PROJECTILES = 16;
 const RECENT_HITS_WINDOW_MS = 3000;
 
 export class CombatManager {
@@ -24,17 +23,57 @@ export class CombatManager {
    * @param {(hitInfo: Object) => void} [options.onHit] Callback al impactar un blanco
    * @param {(proj: Object, weapon: Object, player: Object) => void} [options.onProjectileSpawn] Callback al disparar proyectil
    * @param {Object} [options.enemyManager] Gestor de enemigos PvE
+   * @param {Object} [options.world] Mundo voxel para línea de visión y colisiones
    */
   constructor(options = {}) {
     this.onHit = options.onHit || null;
     this.onProjectileSpawn = options.onProjectileSpawn || null;
     this.enemyManager = options.enemyManager || null;
+    this.world = options.world || null;
+
+    // Objetos reutilizables para no asignar memoria en la resolución de impactos
+    this._losPoint = { x: 0, y: 0, z: 0 };
 
     // Inicializar blancos de entrenamiento a partir de la configuración canónica
     this.dummies = this._initDummies();
 
-    // Pool de proyectiles Zero-GC pre-asignado
-    this.projectiles = this._initProjectilePool(MAX_PROJECTILES);
+    // Pool de proyectiles Zero-GC y callbacks de impacto (creados una sola vez)
+    this.projectilePool = new ProjectilePool();
+    this.projectiles = this.projectilePool.projectiles;
+    this._projectileHandlers = {
+      onWorldHit: (p, hit, now) => {
+        this._resolveAoeImpact(
+          hit.x,
+          hit.y,
+          hit.z,
+          p.aoeRadius,
+          p.damage,
+          p.weapon || { type: p.type },
+          null,
+          now,
+          p.traveled,
+          this.world
+        );
+      },
+      onDummyHit: (p, dummy, now) => {
+        if (p.aoeRadius > 0) {
+          this._resolveAoeImpact(
+            p.x,
+            p.y,
+            p.z,
+            p.aoeRadius,
+            p.damage,
+            p.weapon || { type: p.type },
+            null,
+            now,
+            p.traveled,
+            this.world
+          );
+        } else {
+          this.applyDamageToDummy(dummy.id, p.damage, p.weapon || { type: p.type }, null, now, p.traveled);
+        }
+      },
+    };
   }
 
   /**
@@ -81,49 +120,22 @@ export class CombatManager {
   }
 
   /**
-   * Pre-asigna las ranuras fijas de memoria para proyectiles activos.
-   * @private
-   */
-  _initProjectilePool(capacity) {
-    const pool = new Array(capacity);
-    for (let i = 0; i < capacity; i++) {
-      pool[i] = {
-        index: i,
-        active: false,
-        type: WEAPON_TYPES.PROJECTILE_ARROW,
-        x: 0,
-        y: 0,
-        z: 0,
-        vx: 0,
-        vy: 0,
-        vz: 0,
-        speed: 0,
-        traveled: 0,
-        maxRange: 0,
-        damage: 1,
-        aoeRadius: 0,
-        knockback: 0,
-        color: '#10b981',
-        sourcePlayerId: 0,
-      };
-    }
-    return pool;
-  }
-
-  /**
    * Ejecuta el ataque de un jugador evaluando su arma canónica según su clase.
    * @param {Object} player Instancia del jugador (Player)
    * @param {number} [now] Timestamp en ms (por defecto Date.now())
+   * @param {Object} [world] Mundo voxel para línea de visión (por defecto el cacheado)
    * @returns {{ weapon: Object, hits: Array<Object>, isProjectile: boolean, projectile?: Object }|null}
    */
-  executePlayerAttack(player, now = Date.now()) {
+  executePlayerAttack(player, now = Date.now(), world = this.world) {
     if (!player) return null;
     if (!player.triggerAttack(now)) return null;
+
+    if (world) this.world = world;
 
     const weapon = player.weapon || getHeroWeapon(player.colorIndex);
 
     if (weapon.category === 'projectile') {
-      const proj = this._spawnProjectile(player, weapon);
+      const proj = this.projectilePool.spawn(player, weapon);
       if (this.onProjectileSpawn) {
         this.onProjectileSpawn(proj, weapon, player);
       }
@@ -131,20 +143,22 @@ export class CombatManager {
     }
 
     // Ataque cuerpo a cuerpo / barrido / onda sísmica
-    const hits = this._resolveMeleeAttack(player, weapon, now);
+    const hits = this._resolveMeleeAttack(player, weapon, now, this.world);
     return { weapon, hits, isProjectile: false };
   }
 
   /**
    * Resuelve el barrido cuerpo a cuerpo contra todos los blancos activos.
+   * Exige línea de visión para que los muros no se puedan atravesar con el filo.
    * @private
    */
-  _resolveMeleeAttack(player, weapon, now) {
+  _resolveMeleeAttack(player, weapon, now, world = this.world) {
     const hits = [];
     const px = player.pos.x;
     const py = player.pos.y;
     const pz = player.pos.z;
     const yaw = player.yaw;
+    const eyeY = py + 1.2;
 
     // Vector unitario de avance del jugador en el plano horizontal XZ
     const fx = -Math.sin(yaw);
@@ -174,77 +188,34 @@ export class CombatManager {
 
       // 3. Test angular según el arco del arma (60°, 180° o 360°)
       const dist = distSq > 0 ? Math.sqrt(distSq) : 0;
-      if (weapon.minDot <= -1) {
-        // Onda sísmica radial de 360°
-        const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now, dist);
-        if (hitResult) hits.push(hitResult);
-      } else if (distSq === 0) {
-        const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now, 0);
-        if (hitResult) hits.push(hitResult);
+      let inArc;
+      if (weapon.minDot <= -1 || distSq === 0) {
+        // Onda sísmica radial de 360° o impacto a quemarropa
+        inArc = true;
       } else {
-        const dot = (fx * dx + fz * dz) / dist;
-        if (dot >= weapon.minDot) {
-          const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now, dist);
-          if (hitResult) hits.push(hitResult);
-        }
+        inArc = (fx * dx + fz * dz) / dist >= weapon.minDot;
       }
+      if (!inArc) continue;
+
+      // 4. Línea de visión: el filo no atraviesa muros ni columnas
+      const target = closestPointOnAabb(aabb, px, eyeY, pz, this._losPoint);
+      if (!hasLineOfSight(world, px, eyeY, pz, target.x, target.y, target.z)) {
+        continue;
+      }
+
+      const hitResult = this.applyDamageToDummy(dummy.id, weapon.damage, weapon, player, now, dist);
+      if (hitResult) hits.push(hitResult);
     }
 
     // Resolver barrido cuerpo a cuerpo contra enemigos vivos
     if (this.enemyManager) {
-      const enemyMeleeHits = this.enemyManager.resolveMeleeAttack(player, weapon, now);
+      const enemyMeleeHits = this.enemyManager.resolveMeleeAttack(player, weapon, now, world);
       for (let j = 0; j < enemyMeleeHits.length; j++) {
         hits.push(enemyMeleeHits[j]);
       }
     }
 
     return hits;
-  }
-
-  /**
-   * Obtiene una ranura libre del pool de proyectiles y la activa con trayectoria 3D.
-   * @private
-   */
-  _spawnProjectile(player, weapon) {
-    let proj = null;
-    for (let i = 0; i < this.projectiles.length; i++) {
-      if (!this.projectiles[i].active) {
-        proj = this.projectiles[i];
-        break;
-      }
-    }
-    if (!proj) return null; // Pool saturado temporalmente (Zero-GC)
-
-    const pitch = player.pitch || 0;
-    const yaw = player.yaw;
-    const cosP = Math.cos(pitch);
-    const sinP = Math.sin(pitch);
-
-    // Vector director 3D de la trayectoria
-    const fx = -Math.sin(yaw) * cosP;
-    const fy = sinP;
-    const fz = -Math.cos(yaw) * cosP;
-
-    proj.active = true;
-    proj.type = weapon.type;
-    // Origen a la altura del pecho / ojos del jugador
-    proj.x = player.pos.x + fx * 0.4;
-    proj.y = player.pos.y + 1.2 + fy * 0.4;
-    proj.z = player.pos.z + fz * 0.4;
-    proj.speed = weapon.speed;
-    proj.vx = fx * weapon.speed;
-    proj.vy = fy * weapon.speed;
-    proj.vz = fz * weapon.speed;
-    proj.traveled = 0;
-    proj.maxRange = weapon.range;
-    proj.damage = weapon.damage;
-    proj.aoeRadius = weapon.aoeRadius || 0;
-    proj.knockback = weapon.knockback || 0;
-    proj.color = weapon.color;
-    proj.sourcePlayerId = player.id;
-    proj.weapon = weapon;
-
-    return proj;
   }
 
   /**
@@ -312,9 +283,10 @@ export class CombatManager {
 
   /**
    * Resuelve el impacto en área (AoE) provocado por proyectiles mágicos.
+   * Aplica oclusión: la explosión no daña a través de muros.
    * @private
    */
-  _resolveAoeImpact(x, y, z, aoeRadius, damage, weapon, sourcePlayer, now, distance = 0) {
+  _resolveAoeImpact(x, y, z, aoeRadius, damage, weapon, sourcePlayer, now, distance = 0, world = this.world) {
     const aoeRadiusSq = aoeRadius * aoeRadius;
     const hits = [];
 
@@ -322,16 +294,14 @@ export class CombatManager {
       const dummy = this.dummies[i];
       const aabb = dummy.aabb;
 
-      const cx = Math.max(aabb.minX, Math.min(x, aabb.maxX));
-      const cy = Math.max(aabb.minY, Math.min(y, aabb.maxY));
-      const cz = Math.max(aabb.minZ, Math.min(z, aabb.maxZ));
+      const closest = closestPointOnAabb(aabb, x, y, z, this._losPoint);
 
-      const dx = cx - x;
-      const dy = cy - y;
-      const dz = cz - z;
+      const dx = closest.x - x;
+      const dy = closest.y - y;
+      const dz = closest.z - z;
       const distSq = dx * dx + dy * dy + dz * dz;
 
-      if (distSq <= aoeRadiusSq) {
+      if (distSq <= aoeRadiusSq && hasLineOfSight(world, x, y, z, closest.x, closest.y, closest.z)) {
         const hit = this.applyDamageToDummy(dummy.id, damage, weapon, sourcePlayer, now, distance);
         if (hit) hits.push(hit);
       }
@@ -339,7 +309,7 @@ export class CombatManager {
 
     // Resolver también impacto en área contra enemigos vivos
     if (this.enemyManager) {
-      const enemyHits = this.enemyManager.resolveAoeImpact(x, y, z, aoeRadius, damage, weapon, sourcePlayer, now);
+      const enemyHits = this.enemyManager.resolveAoeImpact(x, y, z, aoeRadius, damage, weapon, sourcePlayer, now, distance, world);
       for (let j = 0; j < enemyHits.length; j++) {
         hits.push(enemyHits[j]);
       }
@@ -355,6 +325,8 @@ export class CombatManager {
    * @param {number} [now] Timestamp en ms
    */
   update(dt, world = null, now = Date.now()) {
+    if (world) this.world = world;
+
     // 1. Actualizar temporizadores y depurar impactos viejos en maniquíes
     const cutoff = now - RECENT_HITS_WINDOW_MS;
     for (let i = 0; i < this.dummies.length; i++) {
@@ -380,80 +352,7 @@ export class CombatManager {
     }
 
     // 2. Simular proyectiles activos (Zero-GC)
-    for (let i = 0; i < this.projectiles.length; i++) {
-      const p = this.projectiles[i];
-      if (!p.active) continue;
-
-      const stepDist = p.speed * dt;
-      const prevX = p.x;
-      const prevY = p.y;
-      const prevZ = p.z;
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.z += p.vz * dt;
-      p.traveled += stepDist;
-
-      if (p.traveled >= p.maxRange) {
-        p.active = false;
-        continue;
-      }
-
-      // Colisión contra vóxeles sólidos del mapa
-      if (world) {
-        const bx = Math.floor(p.x);
-        const by = Math.floor(p.y);
-        const bz = Math.floor(p.z);
-        if (isSolid(world, bx, by, bz)) {
-          if (p.aoeRadius > 0) {
-            this._resolveAoeImpact(p.x, p.y, p.z, p.aoeRadius, p.damage, p.weapon || { type: p.type }, null, now, p.traveled);
-          }
-          p.active = false;
-          continue;
-        }
-      }
-
-      // Colisión contra cajas AABB de los maniquíes (swept AABB)
-      const projRadius = 0.3;
-      const pMinX = Math.min(prevX, p.x) - projRadius;
-      const pMaxX = Math.max(prevX, p.x) + projRadius;
-      const pMinY = Math.min(prevY, p.y) - projRadius;
-      const pMaxY = Math.max(prevY, p.y) + projRadius;
-      const pMinZ = Math.min(prevZ, p.z) - projRadius;
-      const pMaxZ = Math.max(prevZ, p.z) + projRadius;
-
-      let impacted = false;
-      for (let j = 0; j < this.dummies.length; j++) {
-        const dummy = this.dummies[j];
-        const aabb = dummy.aabb;
-
-        if (
-          pMaxX >= aabb.minX &&
-          pMinX <= aabb.maxX &&
-          pMaxY >= aabb.minY &&
-          pMinY <= aabb.maxY &&
-          pMaxZ >= aabb.minZ &&
-          pMinZ <= aabb.maxZ
-        ) {
-          impacted = true;
-          if (p.aoeRadius > 0) {
-            this._resolveAoeImpact(p.x, p.y, p.z, p.aoeRadius, p.damage, p.weapon || { type: p.type }, null, now, p.traveled);
-          } else {
-            this.applyDamageToDummy(dummy.id, p.damage, p.weapon || { type: p.type }, null, now, p.traveled);
-          }
-          break;
-        }
-      }
-
-      if (!impacted && this.enemyManager) {
-        if (this.enemyManager.testProjectileCollision(p, now, prevX, prevY, prevZ, p.traveled, p.weapon)) {
-          impacted = true;
-        }
-      }
-
-      if (impacted) {
-        p.active = false;
-      }
-    }
+    this.projectilePool.update(dt, this.world, now, this.dummies, this.enemyManager, this._projectileHandlers);
   }
 
   /**

@@ -194,6 +194,21 @@ Para garantizar que los enemigos respeten el presupuesto móvil (Zero-GC y 60 FP
 4. **`HURT` (Impacto recibido):** Animación de retroceso, destello rojo y breve parálisis ($300\text{ ms}$).
 5. **`DEAD` (Derrotado):** Se disuelve en partículas de polvo de cantería y suelta botín de prueba (gemas o una poción de vida).
 
+### 6.1 Reglas de correctitud del combate
+
+Estas reglas se aplican de forma autoritativa en los gestores y están cubiertas por `tests/combat-correctness.test.js`:
+
+| Regla | Comportamiento | Constante / módulo |
+|---|---|---|
+| **Línea de visión** | El melee, las explosiones AoE y los proyectiles no atraviesan muros ni columnas. | `src/combat/combatGeometry.js` (`hasLineOfSight`) |
+| **Altura de agro** | Un enemigo terrestre ignora objetivos con más de $2.5\text{ m}$ de desnivel. | `COMBAT_TUNING.verticalAggroTolerance` |
+| **Altura de ataque** | Solo conecta golpes con un desnivel de hasta $1.25\text{ m}$ (evita golpear a través de plataformas). | `COMBAT_TUNING.verticalAttackTolerance` |
+| **Anti-stunlock** | Tras aplicar un aturdimiento, el enemigo es inmune a nuevos stuns durante $2\text{ s}$. | `COMBAT_TUNING.stunImmunityMs` |
+| **Colisión continua** | Los proyectiles muestrean el tramo recorrido cada $0.25\text{ m}$, sin tunneling en frames largos. | `ProjectilePool` + `traceSolidSegment` |
+| **Separación** | Los enemigos se repelen para no apilarse sobre el mismo punto, sin romper la persecución. | `EnemyNavigation` (`computeSeparation`) |
+
+> La navegación (persecución, wall-sliding, whiskers y separación) vive en `src/combat/EnemyNavigation.js`, y el ciclo de vida de los proyectiles en `src/combat/ProjectilePool.js`, para mantener `BaseEnemy` y `CombatManager` por debajo del límite de 500 líneas del guardarraíl.
+
 ---
 
 ## 7. Protocolo de Red WebRTC y Sincronización Listen-Server

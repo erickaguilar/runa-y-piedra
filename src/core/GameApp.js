@@ -69,6 +69,7 @@ export class VoxelSandboxGame {
     this.pressurePlateRenderer = new PressurePlateRenderer(this.sceneManager.scene);
     this.pressurePlateRenderer.loadPressurePlates(this.world.pressurePlates);
     this.enemyManager = new EnemyManager({
+      world: this.world,
       onEnemyHit: (hit) => {
         this.soundManager?.playHit(hit.soundType);
         const curLevelId = this.world?.levelRegistry?.currentLevelId;
@@ -103,6 +104,7 @@ export class VoxelSandboxGame {
     });
     this.combatManager = new CombatManager({
       enemyManager: this.enemyManager,
+      world: this.world,
       onHit: (hit) => {
         this.soundManager?.playHit(hit.soundType);
         const curLevelId = this.world?.levelRegistry?.currentLevelId;
@@ -309,7 +311,7 @@ export class VoxelSandboxGame {
     const local = this.playerManager?.localPlayer;
     if (!local) return;
 
-    const result = this.combatManager?.executePlayerAttack(local);
+    const result = this.combatManager?.executePlayerAttack(local, Date.now(), this.world);
     if (!result) return;
 
     this.soundManager?.playAttack();

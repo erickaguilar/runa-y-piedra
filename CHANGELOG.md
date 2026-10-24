@@ -22,6 +22,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - `shadow_vault`: se retira la primera fila del muro divisorio central (`z=14`) para despejar el umbral de la Puerta 1; el muro pasa a arrancar en `z=15`, ya anclado sobre el lecho de lava.
   - `shadow_chasm`: la zona segura de entrada de la Sala 2 (El Gran Abismo) se amplía un bloque hacia el foso (`z=11..13`), dando margen antes del primer salto.
   - `shadow_sanctum`: el Cofre del Heraldo Sombrío se desplaza de `x=18.5` a `x=20.5` para sacarlo del eje del vano de la Puerta Reja Este y que no sea lo primero que se ve al entrar.
+- **Sprint de correctitud del combate PvE** (`docs/31-sala-de-combate-dev-y-mecanica-hibrida-pve.md` §6.1):
+  - **Línea de visión**: el melee y las explosiones AoE ya no dañan a través de muros ni columnas (`src/combat/combatGeometry.js`).
+  - **Altura**: el agro y el ataque enemigo respetan un desnivel máximo (2.5 m y 1.25 m), evitando golpes a través de plataformas y pilares.
+  - **Anti-stunlock**: ventana de inmunidad de 2 s tras un aturdimiento, eliminando el bloqueo infinito del Guardián (stun 800 ms < cooldown 750 ms).
+  - **Colisión continua de proyectiles**: el tramo recorrido se muestrea cada 0.25 m, evitando el tunneling contra bloques en frames largos.
+  - **Separación entre enemigos**: steering de repulsión para que no se apilen sobre el mismo punto.
+  - **Descomposición**: navegación extraída a `src/combat/EnemyNavigation.js` y ciclo de vida de proyectiles a `src/combat/ProjectilePool.js` para respetar el límite de 500 líneas.
+  - **Cobertura**: nueva suite `tests/combat-correctness.test.js` (11 pruebas) para LOS, altura, stun, tunneling y separación; total del proyecto: **386 pruebas**.
 
 ## [1.41.0] - 2026-10-18
 

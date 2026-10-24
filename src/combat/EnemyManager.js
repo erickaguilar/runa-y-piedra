@@ -6,6 +6,7 @@
  */
 import { CANONICAL_ENEMIES } from '../config/combat.js';
 import { BaseEnemy, ENEMY_CLASS_REGISTRY } from './BaseEnemy.js';
+import { closestPointOnAabb, hasLineOfSight } from './combatGeometry.js';
 
 export class EnemyManager {
   /**
@@ -13,12 +14,15 @@ export class EnemyManager {
    * @param {(hitInfo: Object) => void} [options.onEnemyHit]
    * @param {(enemy: Object, sourcePlayer: Object) => void} [options.onEnemyDefeated]
    * @param {(player: Object, damage: number, enemy: Object) => void} [options.onPlayerDamaged]
+   * @param {Object} [options.world] Mundo voxel para línea de visión
    */
   constructor(options = {}) {
     this.onEnemyHit = options.onEnemyHit || null;
     this.onEnemyDefeated = options.onEnemyDefeated || null;
     this.onPlayerDamaged = options.onPlayerDamaged || null;
+    this.world = options.world || null;
 
+    this._losPoint = { x: 0, y: 0, z: 0 };
     this.enemies = [];
   }
 
@@ -54,14 +58,16 @@ export class EnemyManager {
    * @param {Object} player
    * @param {Object} weapon
    * @param {number} now
+   * @param {Object} [world] Mundo voxel para línea de visión
    * @returns {Array<Object>}
    */
-  resolveMeleeAttack(player, weapon, now) {
+  resolveMeleeAttack(player, weapon, now, world = this.world) {
     const hits = [];
     const px = player.pos.x;
     const py = player.pos.y;
     const pz = player.pos.z;
     const yaw = player.yaw;
+    const eyeY = py + 1.2;
 
     const fx = -Math.sin(yaw);
     const fz = -Math.cos(yaw);
@@ -92,6 +98,9 @@ export class EnemyManager {
       }
 
       if (inArc) {
+        const target = closestPointOnAabb(aabb, px, eyeY, pz, this._losPoint);
+        if (!hasLineOfSight(world, px, eyeY, pz, target.x, target.y, target.z)) continue;
+
         const hit = this.applyDamage(enemy.id, weapon.damage, weapon, player, now, dist);
         if (hit) hits.push(hit);
       }
@@ -110,9 +119,11 @@ export class EnemyManager {
    * @param {Object} weapon
    * @param {Object} [sourcePlayer]
    * @param {number} [now]
+   * @param {number} [distance]
+   * @param {Object} [world] Mundo voxel para oclusión de la explosión
    * @returns {Array<Object>}
    */
-  resolveProjectileHit(x, y, z, radius, damage, weapon, sourcePlayer = null, now = Date.now(), distance = 0) {
+  resolveProjectileHit(x, y, z, radius, damage, weapon, sourcePlayer = null, now = Date.now(), distance = 0, world = this.world) {
     const hits = [];
     const radiusSq = radius * radius;
 
@@ -121,14 +132,15 @@ export class EnemyManager {
       if (enemy.isDead) continue;
 
       const aabb = enemy.aabb;
-      const cx = Math.max(aabb.minX, Math.min(x, aabb.maxX));
-      const cy = Math.max(aabb.minY, Math.min(y, aabb.maxY));
-      const cz = Math.max(aabb.minZ, Math.min(z, aabb.maxZ));
+      const closest = closestPointOnAabb(aabb, x, y, z, this._losPoint);
 
-      const dx = cx - x;
-      const dy = cy - y;
-      const dz = cz - z;
-      if (dx * dx + dy * dy + dz * dz <= radiusSq) {
+      const dx = closest.x - x;
+      const dy = closest.y - y;
+      const dz = closest.z - z;
+      if (
+        dx * dx + dy * dy + dz * dz <= radiusSq &&
+        hasLineOfSight(world, x, y, z, closest.x, closest.y, closest.z)
+      ) {
         const hit = this.applyDamage(enemy.id, damage, weapon, sourcePlayer, now, distance);
         if (hit) hits.push(hit);
       }
@@ -140,8 +152,8 @@ export class EnemyManager {
   /**
    * Alias para resolución de daño AoE de proyectiles en área.
    */
-  resolveAoeImpact(x, y, z, radius, damage, weapon, sourcePlayer = null, now = Date.now(), distance = 0) {
-    return this.resolveProjectileHit(x, y, z, radius, damage, weapon, sourcePlayer, now, distance);
+  resolveAoeImpact(x, y, z, radius, damage, weapon, sourcePlayer = null, now = Date.now(), distance = 0, world = this.world) {
+    return this.resolveProjectileHit(x, y, z, radius, damage, weapon, sourcePlayer, now, distance, world);
   }
 
   /**
@@ -153,9 +165,10 @@ export class EnemyManager {
    * @param {number} [prevZ]
    * @param {number} [distance=0]
    * @param {Object} [weapon=null]
+   * @param {Object} [world] Mundo voxel para oclusión de la explosión
    * @returns {boolean} True si hubo impacto
    */
-  testProjectileCollision(proj, now, prevX = proj.x, prevY = proj.y, prevZ = proj.z, distance = 0, weapon = null) {
+  testProjectileCollision(proj, now, prevX = proj.x, prevY = proj.y, prevZ = proj.z, distance = 0, weapon = null, world = this.world) {
     const radius = 0.3;
     const pMinX = Math.min(prevX, proj.x) - radius;
     const pMaxX = Math.max(prevX, proj.x) + radius;
@@ -178,7 +191,7 @@ export class EnemyManager {
         pMinZ <= aabb.maxZ
       ) {
         if (proj.aoeRadius > 0) {
-          this.resolveAoeImpact(proj.x, proj.y, proj.z, proj.aoeRadius, proj.damage, weapon || { type: proj.type }, null, now, distance);
+          this.resolveAoeImpact(proj.x, proj.y, proj.z, proj.aoeRadius, proj.damage, weapon || { type: proj.type }, null, now, distance, world);
         } else {
           this.applyDamage(enemy.id, proj.damage, weapon || { type: proj.type, knockback: proj.knockback }, null, now, distance);
         }
@@ -223,8 +236,11 @@ export class EnemyManager {
    * @param {number} now Timestamp actual
    */
   update(dt, world = null, players = [], now = Date.now()) {
+    if (world) this.world = world;
+
     const callbacks = {
       onPlayerDamaged: this.onPlayerDamaged,
+      nearbyEnemies: this.enemies,
     };
 
     for (let i = 0; i < this.enemies.length; i++) {
