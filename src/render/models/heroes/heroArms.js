@@ -53,6 +53,12 @@ export function getArmGeometries() {
     const paladinLeftHand = new THREE.BoxGeometry(0.088, 0.08, 0.088);
     const paladinLeftForearm = new THREE.BoxGeometry(0.082, 0.24, 0.082);
 
+    // Complementos para el aventurero explorador
+    const advBracer = new THREE.BoxGeometry(0.092, 0.16, 0.035);
+    const advStrap = new THREE.BoxGeometry(0.096, 0.03, 0.04);
+    const advLeftHand = new THREE.BoxGeometry(0.08, 0.075, 0.08);
+    const advLeftForearm = new THREE.BoxGeometry(0.08, 0.22, 0.08);
+
     forearm.userData = { isShared: true };
     hand.userData = { isShared: true };
     vambrace.userData = { isShared: true };
@@ -70,12 +76,17 @@ export function getArmGeometries() {
     paladinVambrace.userData = { isShared: true };
     paladinLeftHand.userData = { isShared: true };
     paladinLeftForearm.userData = { isShared: true };
+    advBracer.userData = { isShared: true };
+    advStrap.userData = { isShared: true };
+    advLeftHand.userData = { isShared: true };
+    advLeftForearm.userData = { isShared: true };
 
     _sharedArmGeo = {
       forearm, hand, vambrace, leftHand, leftForearm,
       wizardCuff, wizardBracelet, wizardLeftHand, wizardLeftForearm,
       rangerBracer, rangerBuckle, rangerDrawHand, rangerDrawArm,
       paladinKnuckles, paladinVambrace, paladinLeftHand, paladinLeftForearm,
+      advBracer, advStrap, advLeftHand, advLeftForearm,
     };
   }
   return _sharedArmGeo;
@@ -240,6 +251,34 @@ export function buildHeroArmMesh(heroKey) {
     drawArm.position.set(0.08, grip.gripY - 0.18, -0.15);
     drawArm.rotation.set(-0.70, 0.15, 0.40);
     armGroup.add(drawArm);
+  } else if (heroKey === 'adventurer') {
+    // Protector de antebrazo de explorador en cuero curtido
+    const bracer = setupOverlayMesh(new THREE.Mesh(G.advBracer, M.leatherMat));
+    bracer.name = 'AdventurerBracer';
+    bracer.position.set(0.06, grip.gripY - 0.16, 0.16);
+    bracer.rotation.set(grip.armRotX, 0, grip.armRotZ);
+    armGroup.add(bracer);
+
+    // Correa de sujeción y broche de expedición
+    const strap = setupOverlayMesh(new THREE.Mesh(G.advStrap, M.goldMat));
+    strap.name = 'AdventurerStrap';
+    strap.position.set(0.06, grip.gripY - 0.16, 0.18);
+    strap.rotation.set(grip.armRotX, 0, grip.armRotZ);
+    armGroup.add(strap);
+
+    // Mano izquierda de equilibrio táctico de explorador
+    const lHand = setupOverlayMesh(new THREE.Mesh(G.advLeftHand, M.handMat));
+    lHand.name = 'AdventurerLeftHand';
+    lHand.position.set(-0.10, grip.gripY - 0.14, 0.08);
+    lHand.rotation.set(-0.35, 0.20, -0.22);
+    armGroup.add(lHand);
+
+    // Antebrazo izquierdo con manga celeste
+    const lArm = setupOverlayMesh(new THREE.Mesh(G.advLeftForearm, M.sleeveMat));
+    lArm.name = 'AdventurerLeftArm';
+    lArm.position.set(-0.15, grip.gripY - 0.26, 0.16);
+    lArm.rotation.set(-0.45, 0.25, -0.30);
+    armGroup.add(lArm);
   }
 
   return armGroup;

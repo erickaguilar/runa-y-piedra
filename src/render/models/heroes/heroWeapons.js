@@ -8,8 +8,11 @@ function getWeaponGeoCache() {
   if (_weaponGeoCache) return _weaponGeoCache;
 
   // 1. Espada de Explorador (Aventurero)
-  const swordBlade = new THREE.BoxGeometry(0.06, 0.58, 0.025);
-  const swordGuard = new THREE.BoxGeometry(0.18, 0.035, 0.045);
+  const swordBlade = new THREE.BoxGeometry(0.06, 0.54, 0.025);
+  const swordBladeTip = new THREE.ConeGeometry(0.042, 0.12, 4);
+  const swordFuller = new THREE.BoxGeometry(0.016, 0.44, 0.028);
+  const swordCompass = new THREE.OctahedronGeometry(0.032, 0);
+  const swordGuard = new THREE.BoxGeometry(0.20, 0.035, 0.048);
   const swordGrip = new THREE.BoxGeometry(0.035, 0.14, 0.035);
   const swordPommel = new THREE.BoxGeometry(0.055, 0.04, 0.045);
 
@@ -61,7 +64,7 @@ function getWeaponGeoCache() {
   const hammerTopSpike = new THREE.ConeGeometry(0.055, 0.10, 4);
 
   _weaponGeoCache = {
-    swordBlade, swordGuard, swordGrip, swordPommel,
+    swordBlade, swordBladeTip, swordFuller, swordCompass, swordGuard, swordGrip, swordPommel,
     greatBlade, greatFuller, greatGuard, greatGrip, greatPommel, greatCrossBoss, greatSolarGem, greatQuillonTip,
     bowGrip, bowRiserPlate, bowWindGem, bowLimbUpper, bowLimbLower, bowLimbPlate, bowTipUpper, bowTipLower, bowString, bowArrowShaft, bowArrowTip, bowArrowFletch,
     staffShaft, staffGripWrap, staffPommel, staffBaseGem, staffCollar, staffCrownProng, staffRing, staffCrystal, staffCrystalCore, staffOrbitalRing,
@@ -85,6 +88,8 @@ function getWeaponMatCache() {
     basaltMat: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9, metalness: 0.1 }),
     brassGoldMat: new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4, metalness: 0.7 }),
     holyGoldBrightMat: new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.2, emissive: 0xfacc15, emissiveIntensity: 0.8 }),
+    runicBlueBrightMat: new THREE.MeshStandardMaterial({ color: 0xbae6fd, roughness: 0.1, emissive: 0x0284c7, emissiveIntensity: 1.2 }),
+    compassCoreMat: new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.2, emissive: 0x0369a1, emissiveIntensity: 1.0 }),
     leatherMat: new THREE.MeshLambertMaterial({ color: 0x5c3317 }),
     leatherRedMat: new THREE.MeshLambertMaterial({ color: 0x991b1b }),
     woodMat: new THREE.MeshLambertMaterial({ color: 0x78350f }),
@@ -127,18 +132,39 @@ export function buildAdventurerSwordMesh() {
   const group = new THREE.Group();
   group.name = 'Weapon_AdventurerSword';
 
-  const blade = new THREE.Mesh(G.swordBlade, M.steelMat);
-  blade.position.set(0, 0.36, 0);
+  // Hoja ligera de acero templado
+  const blade = new THREE.Mesh(G.swordBlade, M.steelLightMat);
+  blade.position.set(0, 0.34, 0);
   group.add(blade);
 
+  // Acanaladura central
+  const fuller = new THREE.Mesh(G.swordFuller, M.brassGoldMat);
+  fuller.position.set(0, 0.32, 0);
+  group.add(fuller);
+
+  // Punta de Hoja biselada (bonificación por distancia sweet spot)
+  const tip = new THREE.Mesh(G.swordBladeTip, M.runicBlueBrightMat);
+  tip.name = 'AdventurerBladeTip';
+  tip.position.set(0, 0.64, 0);
+  group.add(tip);
+
+  // Cruceta de expedición con gavilanes
   const guard = new THREE.Mesh(G.swordGuard, M.brassGoldMat);
   guard.position.set(0, 0.08, 0);
   group.add(guard);
 
+  // Micro-brújula rúnica en el centro de la cruz
+  const compass = new THREE.Mesh(G.swordCompass, M.compassCoreMat);
+  compass.name = 'AdventurerCompassCore';
+  compass.position.set(0, 0.08, 0.026);
+  group.add(compass);
+
+  // Empuñadura forrada en cuero
   const grip = new THREE.Mesh(G.swordGrip, M.leatherMat);
   grip.position.set(0, 0, 0);
   group.add(grip);
 
+  // Pomo contrapeso de bronce
   const pommel = new THREE.Mesh(G.swordPommel, M.brassGoldMat);
   pommel.position.set(0, -0.09, 0);
   group.add(pommel);

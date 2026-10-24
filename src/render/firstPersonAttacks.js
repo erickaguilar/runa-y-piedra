@@ -12,26 +12,66 @@ export function evaluateHeroAttack(heroKey, p, refs) {
   let atkRotX = 0, atkRotY = 0, atkRotZ = 0;
 
   if (heroKey === 'adventurer') {
-    // Estocada ágil y corte frontal
-    if (p < 0.20) {
-      const t = p / 0.20;
-      atkZ = t * 0.03;
-      atkRotX = -t * 0.12;
-    } else if (p < 0.55) {
-      const t = (p - 0.20) / 0.35;
-      atkZ = 0.03 - t * 0.20;
-      atkX = -t * 0.06;
-      atkY = t * 0.02;
-      atkRotX = -0.12 + t * 0.45;
-      atkRotY = -t * 0.22;
+    // Espada Ligera: Estocada penetrante en sweet-spot, corte diagonal y recuperación relámpago
+    if (p < 0.16) {
+      // Fase 1: Preparación y retracción de estocada (Quick Thrust Wind-up)
+      const t = p / 0.16;
+      atkZ = t * 0.04;
+      atkX = t * 0.02;
+      atkRotX = -t * 0.16;
+      atkRotY = t * 0.08;
+      if (refs.adventurerTipMesh?.material) {
+        refs.adventurerTipMesh.material.emissiveIntensity = 0.3 + t * 1.1;
+      }
+      if (refs.adventurerCompassMesh?.material) {
+        refs.adventurerCompassMesh.material.emissiveIntensity = 0.3 + t * 0.8;
+      }
+    } else if (p < 0.50) {
+      // Fase 2: Estocada frontal relámpago en el sweet-spot (Piercing Lunge)
+      const t = (p - 0.16) / 0.34;
+      atkZ = 0.04 - t * 0.28;
+      atkX = 0.02 - t * 0.08;
+      atkY = t * 0.03;
+      atkRotX = -0.16 + t * 0.40;
+      atkRotY = 0.08 - t * 0.24;
+      if (refs.adventurerTipMesh?.material) {
+        refs.adventurerTipMesh.material.emissiveIntensity = 1.4 + (1 - Math.abs(t - 0.5) * 2) * 1.2;
+      }
+      if (refs.adventurerCompassMesh?.material) {
+        refs.adventurerCompassMesh.material.emissiveIntensity = 1.1 + (1 - Math.abs(t - 0.5) * 2) * 0.7;
+      }
+    } else if (p < 0.74) {
+      // Fase 3: Corte transversal de seguimiento (Diagonal Cut Sweep)
+      const t = (p - 0.50) / 0.24;
+      const dissipate = 1 - t;
+      atkZ = -0.24 + t * 0.12;
+      atkX = -0.06 + t * 0.12;
+      atkY = 0.03 - t * 0.04;
+      atkRotX = 0.24 - t * 0.12;
+      atkRotY = -0.16 + t * 0.32;
+      atkRotZ = -t * 0.18;
+      if (refs.adventurerTipMesh?.material) {
+        refs.adventurerTipMesh.material.emissiveIntensity = 0.3 + dissipate * 0.8;
+      }
+      if (refs.adventurerCompassMesh?.material) {
+        refs.adventurerCompassMesh.material.emissiveIntensity = 0.3 + dissipate * 0.5;
+      }
     } else {
-      const t = (p - 0.55) / 0.45;
+      // Fase 4: Retorno veloz a posición de guardia (Swift Recovery)
+      const t = (p - 0.74) / 0.26;
       const ease = 1 - t * t;
-      atkZ = -0.17 * ease;
-      atkX = -0.06 * ease;
-      atkY = 0.02 * ease;
-      atkRotX = 0.33 * ease;
-      atkRotY = -0.22 * ease;
+      atkZ = -0.12 * ease;
+      atkX = 0.06 * ease;
+      atkY = -0.01 * ease;
+      atkRotX = 0.12 * ease;
+      atkRotY = 0.16 * ease;
+      atkRotZ = -0.18 * ease;
+      if (refs.adventurerTipMesh?.material) {
+        refs.adventurerTipMesh.material.emissiveIntensity = 0.3;
+      }
+      if (refs.adventurerCompassMesh?.material) {
+        refs.adventurerCompassMesh.material.emissiveIntensity = 0.3;
+      }
     }
   } else if (heroKey === 'paladin') {
     // Mandoble de la Luz: Alzada bimanual pesada, barrido horizontal de 180°, inercia de filo y recuperación
@@ -284,6 +324,8 @@ export function evaluateHeroAttack(heroKey, p, refs) {
  * @param {Object} refs
  */
 export function resetHeroAttackMeshes(refs) {
+  if (refs.adventurerTipMesh?.material) refs.adventurerTipMesh.material.emissiveIntensity = 0.3;
+  if (refs.adventurerCompassMesh?.material) refs.adventurerCompassMesh.material.emissiveIntensity = 0.3;
   if (refs.guardianRuneMesh?.material) refs.guardianRuneMesh.material.emissiveIntensity = 0.6;
   if (refs.paladinCoreMesh?.material) refs.paladinCoreMesh.material.emissiveIntensity = 0.35;
   if (refs.paladinFullerMesh?.material) refs.paladinFullerMesh.material.emissiveIntensity = 0.1;

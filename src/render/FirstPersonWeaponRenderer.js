@@ -34,6 +34,8 @@ export class FirstPersonWeaponRenderer {
     this.rangerStringMesh = null;
     this.paladinCoreMesh = null;
     this.paladinFullerMesh = null;
+    this.adventurerTipMesh = null;
+    this.adventurerCompassMesh = null;
 
     // Configuración base fija
     this.basePos = new THREE.Vector3();
@@ -100,6 +102,8 @@ export class FirstPersonWeaponRenderer {
     this.rangerStringMesh = null;
     this.paladinCoreMesh = null;
     this.paladinFullerMesh = null;
+    this.adventurerTipMesh = null;
+    this.adventurerCompassMesh = null;
 
     // 1. Malla del arma
     this.currentWeaponMesh = buildHeroWeaponMesh(heroIdOrIndex);
@@ -107,6 +111,10 @@ export class FirstPersonWeaponRenderer {
     this.currentWeaponMesh.traverse((child) => {
       if (child.isMesh) {
         setupOverlayMesh(child);
+        if (heroKey === 'adventurer') {
+          if (child.name === 'AdventurerBladeTip') this.adventurerTipMesh = child;
+          if (child.name === 'AdventurerCompassCore') this.adventurerCompassMesh = child;
+        }
         if (heroKey === 'wizard') {
           if (child.name === 'WizardArcaneCrystal' || (!this.crystalMesh && child.geometry?.type === 'OctahedronGeometry')) {
             this.crystalMesh = child;
@@ -289,6 +297,12 @@ export class FirstPersonWeaponRenderer {
     if (!this.isAttacking && this.paladinCoreMesh?.material) {
       this.paladinCoreMesh.material.emissiveIntensity = 0.35 + Math.sin(this.idlePhase * 2.0) * 0.15;
     }
+    if (!this.isAttacking && this.adventurerTipMesh?.material) {
+      this.adventurerTipMesh.material.emissiveIntensity = 0.30 + Math.sin(this.idlePhase * 2.4) * 0.15;
+    }
+    if (!this.isAttacking && this.adventurerCompassMesh?.material) {
+      this.adventurerCompassMesh.material.emissiveIntensity = 0.30 + Math.sin(this.idlePhase * 2.4) * 0.15;
+    }
 
     // 7. Composición directa sobre la transformación de grupo (Zero-GC)
     this.group.position.x = this.basePos.x + idleX + bobX + this.swayPos.x + atkX;
@@ -318,6 +332,8 @@ export class FirstPersonWeaponRenderer {
     this.rangerStringMesh = null;
     this.paladinCoreMesh = null;
     this.paladinFullerMesh = null;
+    this.adventurerTipMesh = null;
+    this.adventurerCompassMesh = null;
     this.camera.remove(this.group);
   }
 }

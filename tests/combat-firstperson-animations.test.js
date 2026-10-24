@@ -410,3 +410,57 @@ test('FirstPersonWeaponRenderer: Paladín integra mandoble colosal, núcleo sagr
 
   renderer.dispose();
 });
+
+test('FirstPersonWeaponRenderer: Aventurero integra espada ligera, punta de hoja reforzada, micro-brújula y estocada veloz', () => {
+  const camera = new THREE.PerspectiveCamera();
+  const renderer = new FirstPersonWeaponRenderer(camera);
+  renderer.setHero('adventurer');
+  renderer.setVisible(true);
+
+  // 1. Identificación de componentes rúnicos y de exploración en la espada
+  assert.ok(renderer.adventurerTipMesh, 'Debe identificar la punta de hoja reforzada del aventurero');
+  assert.ok(renderer.adventurerCompassMesh, 'Debe identificar la micro-brújula de expedición');
+
+  // 2. Traje y brazos de explorador (brazalete de cuero, broche de expedición, mano izquierda libre)
+  let armMeshes = 0;
+  renderer.currentArmMesh.traverse((child) => {
+    if (child.isMesh) armMeshes++;
+  });
+  assert.ok(armMeshes >= 4, 'El Aventurero debe portar brazalete de cuero, hebilla y mano izquierda de apoyo (>= 4 meshes)');
+
+  // 3. Brillo de orientación en reposo (idle)
+  const player = { pos: { x: 0, y: 1, z: 0 }, vel: { x: 0, y: 0, z: 0 }, yaw: 0, pitch: 0, onGround: true };
+  const initialTipEmissive = renderer.adventurerTipMesh.material.emissiveIntensity;
+  for (let i = 0; i < 20; i++) {
+    renderer.update(0.016, player);
+  }
+  assert.notEqual(renderer.adventurerTipMesh.material.emissiveIntensity, initialTipEmissive, 'La punta de hoja debe pulsar sutilmente en reposo');
+
+  // 4. Secuencia de estocada relámpago sweet-spot y corte transversal
+  renderer.triggerAttack(HERO_WEAPONS[0]);
+  assert.equal(renderer.isAttacking, true);
+
+  // Avanzar al clímax de la estocada frontal (~35% del tiempo de ataque)
+  const targetThrustTime = renderer.attackDuration * 0.35;
+  while (renderer.attackTimer < targetThrustTime) {
+    renderer.update(0.016, player);
+  }
+
+  assert.ok(renderer.group.position.z < renderer.basePos.z - 0.10, 'La espada debe penetrar hacia adelante en estocada');
+  assert.ok(
+    renderer.adventurerTipMesh.material.emissiveIntensity > 1.8,
+    'La punta de hoja debe brillar intensamente en el clímax de la estocada sweet-spot'
+  );
+
+  // Completar animación de ataque completa
+  while (renderer.isAttacking) {
+    renderer.update(0.016, player);
+  }
+  assert.equal(renderer.isAttacking, false);
+  assert.ok(
+    Math.abs(renderer.adventurerTipMesh.material.emissiveIntensity - 0.30) < 0.20,
+    'La punta de hoja debe retornar a su rango de brillo base'
+  );
+
+  renderer.dispose();
+});
