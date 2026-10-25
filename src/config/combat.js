@@ -14,6 +14,23 @@ export const WEAPON_TYPES = {
   MELEE_WAVE: 'melee_wave',
 };
 
+/**
+ * Constantes de correctitud y sensación de combate.
+ * Centralizadas aquí para poder calibrarlas sin tocar la lógica de simulación.
+ */
+export const COMBAT_TUNING = {
+  /** Altura máxima (m) de desnivel a la que un enemigo sigue considerando un objetivo. */
+  verticalAggroTolerance: 2.5,
+  /** Altura máxima (m) a la que un ataque cuerpo a cuerpo puede conectar con un jugador. */
+  verticalAttackTolerance: 1.25,
+  /** Tiempo (ms) de inmunidad al aturdimiento tras recibir un stun. */
+  stunImmunityMs: 2000,
+  /** Peso del vector de separación entre enemigos frente al vector hacia el objetivo. */
+  separationWeight: 0.8,
+  /** Radio mínimo de separación como múltiplo de la suma de semianchos de los cuerpos. */
+  separationRadiusFactor: 1.1,
+};
+
 export const HERO_WEAPONS = [
   {
     heroIndex: 0,

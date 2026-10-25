@@ -11,8 +11,9 @@
  * Los enemigos específicos (Serpiente, Esqueleto, etc.) heredan de esta clase y
  * pueden sobreescribir o afinar ganchos como `customCanMove()` o `getMovementSpeed()`.
  */
-import { calculateDamage } from '../config/combat.js';
+import { calculateDamage, COMBAT_TUNING } from '../config/combat.js';
 import { isSolid } from '../core/PhysicsAABB.js';
+import { computeSeparation, moveTowardsTarget } from './EnemyNavigation.js';
 
 export class BaseEnemy {
   /**
@@ -57,6 +58,7 @@ export class BaseEnemy {
     this.lastHitTime = 0;
     this.telegraphTimer = 0;
     this.stunTimer = 0;
+    this.stunImmunityTimer = 0;
     this.flashTimer = 0;
     this.shakeTimer = 0;
     this.knockbackVx = 0;
@@ -67,6 +69,10 @@ export class BaseEnemy {
     // Navegación inteligente y anti-trampa
     this.stuckTimer = 0;
     this.stuckBias = 1;
+
+    // Vector de separación reutilizable para evitar apilamiento entre enemigos
+    this._sepX = 0;
+    this._sepZ = 0;
 
     // Bounding Box AABB
     this.aabb = {
@@ -142,96 +148,25 @@ export class BaseEnemy {
   }
 
   /**
-   * Aplica desplazamiento hacia el objetivo con deslizamiento por paredes y evasión de obstáculos.
+   * Calcula el vector de separación frente a otros enemigos cercanos.
+   * Delegado en EnemyNavigation para mantener la entidad ligera.
+   * @param {Array<Object>} [nearbyEnemies]
+   * @returns {boolean} True si hay una fuerza de separación activa
+   */
+  _computeSeparation(nearbyEnemies) {
+    return computeSeparation(this, nearbyEnemies);
+  }
+
+  /**
+   * Aplica desplazamiento hacia el objetivo con deslizamiento por paredes, evasión de
+   * obstáculos y separación entre enemigos. La lógica vive en EnemyNavigation.
    * @param {Object} targetPlayer
    * @param {number} dt
    * @param {Object} world
+   * @param {Array<Object>} [nearbyEnemies] Lista completa de enemigos de la sesión
    */
-  performMovement(targetPlayer, dt, world) {
-    this.state = 'chase';
-    this.telegraphTimer = 0;
-
-    const dx = targetPlayer.pos.x - this.x;
-    const dz = targetPlayer.pos.z - this.z;
-    const dist = Math.hypot(dx, dz);
-    if (dist <= 0.0001) return;
-
-    const step = Math.min(dist, this.speed * dt);
-    const dirX = dx / dist;
-    const dirZ = dz / dist;
-    const baseAngle = Math.atan2(-dx, -dz);
-
-    // 1. Intento directo hacia el objetivo
-    const directX = this.x + dirX * step;
-    const directZ = this.z + dirZ * step;
-
-    if (!this.isBlocked(directX, this.y, directZ, world) && this.customCanMove(directX, this.y, directZ, world)) {
-      this.x = directX;
-      this.z = directZ;
-      this.yaw = baseAngle;
-      this.updateAABB();
-      this.stuckTimer = 0;
-      return;
-    }
-
-    // 2. Deslizamiento continuo por descomposición de ejes (Wall Sliding)
-    const hasDirX = Math.abs(dirX) > 0.08;
-    const hasDirZ = Math.abs(dirZ) > 0.08;
-
-    const canMoveX = hasDirX && !this.isBlocked(directX, this.y, this.z, world) && this.customCanMove(directX, this.y, this.z, world);
-    const canMoveZ = hasDirZ && !this.isBlocked(this.x, this.y, directZ, world) && this.customCanMove(this.x, this.y, directZ, world);
-
-    if (canMoveX && !canMoveZ) {
-      this.x = directX;
-      this.yaw = dirX > 0 ? -Math.PI / 2 : Math.PI / 2;
-      this.updateAABB();
-      this.stuckTimer = 0;
-      return;
-    }
-
-    if (canMoveZ && !canMoveX) {
-      this.z = directZ;
-      this.yaw = dirZ > 0 ? 0 : Math.PI;
-      this.updateAABB();
-      this.stuckTimer = 0;
-      return;
-    }
-
-    // 3. Sensores de Evasión de Esquinas y Columnas ("Whiskers Steering")
-    // Si choca de frente contra una esquina o columna, prueba desviaciones angulares laterales
-    const bias = this.stuckBias || 1;
-    const probeAngles = [
-      bias * 1.571, // ±90° (paso lateral perpendicular para rodear obstáculo frontal)
-      -bias * 1.571,
-      bias * 1.047, // ±60°
-      -bias * 1.047,
-      bias * 0.785, // ±45°
-      -bias * 0.785,
-    ];
-
-    for (let i = 0; i < probeAngles.length; i++) {
-      const pAngle = baseAngle + probeAngles[i];
-      const pDirX = -Math.sin(pAngle);
-      const pDirZ = -Math.cos(pAngle);
-      const pNextX = this.x + pDirX * step;
-      const pNextZ = this.z + pDirZ * step;
-
-      if (!this.isBlocked(pNextX, this.y, pNextZ, world) && this.customCanMove(pNextX, this.y, pNextZ, world)) {
-        this.x = pNextX;
-        this.z = pNextZ;
-        this.yaw = pAngle;
-        this.updateAABB();
-        this.stuckTimer = 0;
-        return;
-      }
-    }
-
-    // 4. Watchdog anti-trampa para concavidades complejas
-    this.stuckTimer = (this.stuckTimer || 0) + dt;
-    if (this.stuckTimer > 0.3) {
-      this.stuckBias = (this.stuckBias || 1) * -1;
-      this.stuckTimer = 0;
-    }
+  performMovement(targetPlayer, dt, world, nearbyEnemies = null) {
+    moveTowardsTarget(this, targetPlayer, dt, world, nearbyEnemies);
   }
 
   /**
@@ -273,6 +208,8 @@ export class BaseEnemy {
     for (let i = 0; i < players.length; i++) {
       const pl = players[i];
       if (!pl || pl.lives <= 0) continue;
+      // Un enemigo terrestre no persigue objetivos fuera de su altura de alcance
+      if (Math.abs(pl.pos.y - this.y) > COMBAT_TUNING.verticalAggroTolerance) continue;
       const dist = Math.hypot(pl.pos.x - this.x, pl.pos.z - this.z);
       if (dist < minDist) {
         minDist = dist;
@@ -308,8 +245,10 @@ export class BaseEnemy {
       this.knockbackTimer = 0.18;
     }
 
-    if (weapon?.stunMs > 0) {
+    if (weapon?.stunMs > 0 && this.stunImmunityTimer <= 0) {
       this.stunTimer = weapon.stunMs / 1000;
+      // Ventana de inmunidad para impedir el bloqueo infinito por aturdimiento
+      this.stunImmunityTimer = COMBAT_TUNING.stunImmunityMs / 1000;
     }
 
     if (this.hp <= 0) {
@@ -353,6 +292,7 @@ export class BaseEnemy {
         this.knockbackVz = 0;
         this.telegraphTimer = 0;
         this.stunTimer = 0;
+        this.stunImmunityTimer = 0;
         this.stuckTimer = 0;
         this.updateAABB();
       }
@@ -361,6 +301,7 @@ export class BaseEnemy {
 
     if (this.flashTimer > 0) this.flashTimer = Math.max(0, this.flashTimer - dt);
     if (this.shakeTimer > 0) this.shakeTimer = Math.max(0, this.shakeTimer - dt);
+    if (this.stunImmunityTimer > 0) this.stunImmunityTimer = Math.max(0, this.stunImmunityTimer - dt);
     if (this.stunTimer > 0) {
       this.stunTimer = Math.max(0, this.stunTimer - dt);
       return;
@@ -379,10 +320,12 @@ export class BaseEnemy {
     const dx = targetPlayer.pos.x - this.x;
     const dz = targetPlayer.pos.z - this.z;
     const dist = Math.hypot(dx, dz);
+    const verticalGap = Math.abs(targetPlayer.pos.y - this.y);
+    const inAttackHeight = verticalGap <= COMBAT_TUNING.verticalAttackTolerance;
 
     this.yaw = Math.atan2(-dx, -dz);
 
-    if (dist <= this.attackRange) {
+    if (dist <= this.attackRange && inAttackHeight) {
       if (this.state !== 'telegraph') {
         const canAttack = (now - this.lastAttackTime) >= this.attackCooldownMs;
         if (canAttack) {
@@ -396,13 +339,13 @@ export class BaseEnemy {
         if (this.telegraphTimer <= 0) {
           this.state = 'idle';
           this.lastAttackTime = now;
-          if (dist <= this.attackRange + 0.3) {
+          if (dist <= this.attackRange + 0.3 && verticalGap <= COMBAT_TUNING.verticalAttackTolerance + 0.3) {
             callbacks.onPlayerDamaged?.(targetPlayer, this.damage, this);
           }
         }
       }
     } else {
-      this.performMovement(targetPlayer, dt, world);
+      this.performMovement(targetPlayer, dt, world, callbacks.nearbyEnemies || null);
     }
   }
 }
