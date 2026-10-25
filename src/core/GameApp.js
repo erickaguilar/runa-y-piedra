@@ -350,6 +350,10 @@ export class VoxelSandboxGame {
     const result = this.combatManager?.executePlayerAttack(local, Date.now(), this.world);
     if (!result) return;
 
+    // Difundir el ataque del Anfitrión para que los invitados lo perciban
+    // (sonido y proyectil visual, sin daño: la resolución ya ocurrió aquí).
+    this.combatSync?.broadcastAttack?.(local, result);
+
     this.soundManager?.playAttack();
     this.fpWeaponRenderer?.triggerAttack?.(result.weapon);
     const curLevelId = this.world?.levelRegistry?.currentLevelId;

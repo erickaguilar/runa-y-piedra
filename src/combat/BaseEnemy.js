@@ -13,6 +13,7 @@
  */
 import { calculateDamage, COMBAT_TUNING } from '../config/combat.js';
 import { isSolid } from '../core/PhysicsAABB.js';
+import { closestPointOnAabb, hasLineOfSight } from './combatGeometry.js';
 import { computeSeparation, moveTowardsTarget } from './EnemyNavigation.js';
 
 export class BaseEnemy {
@@ -74,6 +75,10 @@ export class BaseEnemy {
     this._sepX = 0;
     this._sepZ = 0;
 
+    // Scratch reutilizable para la línea de visión del mordisco (Zero-GC)
+    this._biteAabb = { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 };
+    this._losPoint = { x: 0, y: 0, z: 0 };
+
     // Bounding Box AABB
     this.aabb = {
       minX: spawnPos.x - template.width / 2,
@@ -97,6 +102,28 @@ export class BaseEnemy {
     this.aabb.maxY = this.y + this.height;
     this.aabb.minZ = this.z - hd;
     this.aabb.maxZ = this.z + hd;
+  }
+
+  /**
+   * Línea de visión del mordisco: los enemigos no dañan a través de muros (mismo
+   * criterio que el melee del jugador, §6.1). Origen a media altura del cuerpo y
+   * blanco en el pecho del jugador; sin mundo se asume visión libre (tests).
+   * @param {Object} targetPlayer
+   * @param {Object|null} world
+   * @returns {boolean}
+   */
+  hasAttackLoS(targetPlayer, world) {
+    if (!world || typeof world.get !== 'function') return true;
+    const aabb = this._biteAabb;
+    aabb.minX = targetPlayer.pos.x - 0.3;
+    aabb.maxX = targetPlayer.pos.x + 0.3;
+    aabb.minY = targetPlayer.pos.y;
+    aabb.maxY = targetPlayer.pos.y + 1.8;
+    aabb.minZ = targetPlayer.pos.z - 0.3;
+    aabb.maxZ = targetPlayer.pos.z + 0.3;
+    const mouthY = this.y + this.height * 0.5;
+    const target = closestPointOnAabb(aabb, this.x, mouthY, this.z, this._losPoint);
+    return hasLineOfSight(world, this.x, mouthY, this.z, target.x, target.y, target.z);
   }
 
   /**
@@ -339,7 +366,9 @@ export class BaseEnemy {
         if (this.telegraphTimer <= 0) {
           this.state = 'idle';
           this.lastAttackTime = now;
-          if (dist <= this.attackRange + 0.3 && verticalGap <= COMBAT_TUNING.verticalAttackTolerance + 0.3) {
+          if (dist <= this.attackRange + 0.3
+            && verticalGap <= COMBAT_TUNING.verticalAttackTolerance + 0.3
+            && this.hasAttackLoS(targetPlayer, world)) {
             callbacks.onPlayerDamaged?.(targetPlayer, this.damage, this);
           }
         }

@@ -30,9 +30,9 @@ Abre dos ventanas del navegador (una normal como **Anfitrión** y una en modo in
 ### 2.1 Ejecución automatizada (headless)
 
 El arnés [`scripts/smoke-mp.mjs`](../scripts/smoke-mp.mjs) abre **dos pestañas** (Anfitrión e
-Invitado) en un Chrome headless por CDP, recorre los 8 pasos y añade tres comprobaciones extra:
-overlay de telemetría (`?debug=1`), predicción local con ~350 ms de latencia y reanudación del
-Invitado como Host.
+Invitado) en un Chrome headless por CDP, recorre los 8 pasos, la **fase cooperativa de la arena
+PvE** (§2.2) y añade tres comprobaciones extra: overlay de telemetría (`?debug=1`), predicción
+local con ~350 ms de latencia y reanudación del Invitado como Host.
 
 ```bash
 npm run dev        # terminal 1 → http://localhost:5173/
@@ -48,7 +48,39 @@ todas las comprobaciones pasan y `1` en caso contrario. Requiere Chrome/Chromium
 **Cobertura:** creación de sala (PIN de 4 dígitos), unión por `?join=PIN`, roster en ambos lados,
 movimiento en ambos sentidos, cofre abierto por el Invitado (con la validación autoritativa de
 distancia del Host), puerta abierta por el Anfitrión, incorporación tardía con estado del mundo
-(nivel + puerta + cofre), `peer-left`, telemetría y migración de Host.
+(nivel + puerta + cofre), `peer-left`, **fase cooperativa PvE (§2.2)**, telemetría y migración de
+Host.
+
+### 2.2 Fase cooperativa de la arena PvE (C1–C6)
+
+Después del Paso 6 (y antes de la telemetría), el Anfitrión entra a `dev_combatroom`
+difundiendo el cambio de nivel y el arnés ejercita el combate cooperativo de
+`docs/31` §7 con autoridad del Anfitrión. Se cierra antes el modal de chat de voz
+(aparece en cada `peer-joined`) para dejar la vista libre en ambas pestañas.
+
+| # | Comprobación | Mecanismo verificado |
+|---|---|---|
+| C1 | **Arena sincronizada** — enemigos con índices estables | Ambas réplicas generan los mismos enemigos en el mismo orden desde `dev_combatroom.json`; los índices de red (`targetId`) son deterministas. |
+| C2 | **Snapshots de enemigos (hot)** | `ENEMY_SNAPSHOT` a 10 Hz posiciona la réplica del Invitado (Δ < 1.5 m; medido ≈ 0.00 m). |
+| C3 | **Ataque del Invitado a un maniquí** | El Invitado camina al maniquí, ataca; el Host resuelve el daño con su posición autoritativa y difunde `HIT_DUMMY`. |
+| C4 | **Derribo de la serpiente** | El Invitado rodea el muro parcial de la arena (z=21, x=5..8) por el pasillo este (x≥9), acerca al enemigo (walk dinámico con anti-atasco), apunta con su réplica y ataca: `HIT_ENEMY` (vida restante) + `ENEMY_DEFEAT` replicados en Host e Invitado. |
+| C5 | **Contraataque del enemigo** | Antes del golpe letal, el arnés mantiene la posición y espera `ENEMY_ATTACK`: la serpiente muerde al Invitado y el evento llega a su cliente (el daño/vidas corren por el `SNAPSHOT` existente). |
+| C6 | **Ataque del propio Anfitrión** | `handleAttack` del Anfitrión difunde `ATTACK` (0x15, `actorId=0`); el Invitado lo percibe. La comprobación exige un evento **nuevo** con actor 0 (los ecos de los ataques del propio Invitado también son kind 1). |
+
+Notas de calibración (por qué el arnés hace lo que hace):
+
+- El **walk es dinámico** hacia la posición autoritativa del enemigo (se relee cada 250 ms):
+  la serpiente persigue (agro 16 m, vel. 2.2 m/s) y un punto fijo la deja fuera del rango de la
+  espada (1.8 m).
+- La arena tiene un **muro parcial en z=21 (x=5..8)**: acercarse en línea recta deja al Invitado
+  a ~1.6 m de la serpiente pero con LOS bloqueada (el melee no atraviesa muros desde el sprint
+  de correctitud, y la serpiente tampoco puede morder a través). Por eso se encamina primero por
+  el pasillo este (x≥9) y el walk dinámico lleva anti-atasco (rodea por el este si el progreso se
+  detiene 2.5 s).
+- La serpiente tiene **1 HP**: el primer golpe conectado la mata. Para que C5 (contraataque) sea
+  alcanzable, la fase A mantiene posición y deja que la serpiente muerda **antes** de atacar.
+- El arnés recarga las vidas del Invitado en el Anfitrión (`recoverHeart(3)`) durante C4/C5 para
+  que el daño de la serpiente no derive en Game Over durante la prueba.
 
 **Límites conocidos** (el resto del protocolo sigue siendo una comprobación manual):
 
@@ -92,8 +124,9 @@ ejecución verificada: 2026-10-18 · v1.41.0.**
 - [x] `npm test`: 322/322 tests pasando con 0 errores.
 - [x] `npm run lint`: 0 errores de sintaxis (`node --check`).
 - [x] `npm run build`: Compilación de producción con Vite terminada con código 0.
-- [x] Smoke Test de 8 pasos ejecutado satisfactoriamente (incluye reanudar como Host) —
-      `npm run smoke:mp` → **11/11** comprobaciones.
+- [x] Smoke Test de 8 pasos + fase cooperativa de la arena PvE ejecutado satisfactoriamente
+      (incluye reanudar como Host) — `npm run smoke:mp` → **17/17** comprobaciones (11 del
+      protocolo + 6 de la fase coop C1–C6, §2.2).
 - [x] Overlay `?debug=1`: la telemetría reporta FPS y draw calls, RTT estable. *(El umbral de
       "FPS ≥55" no es evaluable en headless: SwiftShader sin GPU.)*
 - [x] Prueba con latencia de red (~350 ms + jitter) verificada de forma automatizada (§3); se
