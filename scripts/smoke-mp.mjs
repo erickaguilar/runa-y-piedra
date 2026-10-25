@@ -2,8 +2,10 @@
  * Smoke test multijugador automatizado (Anfitrión + Invitado) vía Chrome DevTools Protocol.
  *
  * Abre DOS pestañas en un Chrome headless y recorre los 8 pasos del protocolo
- * (`docs/smoke-test.md`), el overlay de telemetría (`?debug=1`) y una pasada de latencia
- * (predicción local del cliente con ~350 ms de retardo en el enlace).
+ * (`docs/smoke-test.md`), el overlay de telemetría (`?debug=1`), una pasada de latencia
+ * (predicción local del cliente con ~350 ms de retardo en el enlace) y la fase
+ * cooperativa de la arena PvE (autoridad del Anfitrión, índices de enemigos estables,
+ * daño del Invitado resuelto en el Host y eventos/snapshots de vuelta).
  *
  * Requisitos:
  *   - El servidor de desarrollo levantado: `npm run dev` (por defecto http://localhost:5173/).
@@ -213,6 +215,84 @@ async function walkGuestTo(guest, host, tx, tz, { maxMs = 60000, tol = 2.2 } = {
   return last;
 }
 
+// Recarga las vidas de los jugadores remotos en el Anfitrión (evita el Game Over
+// del Invitado mientras la serpiente le pega durante la prueba).
+async function topUpGuestHearts(host) {
+  await host.ev(`(() => {
+    const pm = window.__game.playerManager;
+    for (const p of pm.players.values()) {
+      if (p !== pm.localPlayer && p.recoverHeart) p.recoverHeart(3);
+    }
+  })(); true`);
+}
+
+// Apunta al Invitado hacia el enemigo del índice dado según su réplica local (10 Hz).
+async function aimGuestAtEnemy(guest, idx = 0) {
+  await guest.ev(`(() => {
+    const e = window.__game.enemyManager.getAllEnemies()[${idx}];
+    const lp = window.__game.playerManager.localPlayer;
+    if (!e || !lp || e.isDead) return;
+    const yaw = Math.atan2(-(e.x - lp.pos.x), -(e.z - lp.pos.z));
+    window.__game.input.yaw = yaw;
+    lp.yaw = yaw;
+  })(); true`);
+}
+
+// Camina al Invitado hacia el ENEMIGO (no a un punto fijo): la serpiente persigue y
+// se mueve (agro 16 m, vel. 2.2), así que el destino se refresca con la posición
+// autoritativa del Anfitrión hasta quedar a distancia de melee (rango espada 1.8 m).
+// Anti-atasco: si un obstáculo (muro de la arena) frena el avance 2.5 s, rodea por
+// un punto lateral despejado (este del par invitado/enemigo) y reanuda la recta.
+async function walkGuestToEnemy(guest, host, idx = 0, { maxMs = 30000, tol = 1.3 } = {}) {
+  const t0 = Date.now();
+  let last = Infinity;
+  let best = Infinity;
+  let stallT0 = 0;
+  let detour = null;
+  let detourDone = false;
+  while (Date.now() - t0 < maxMs) {
+    const info = await host.ev(`(() => {
+      const e = window.__game.enemyManager.getAllEnemies()[${idx}];
+      const pm = window.__game.playerManager;
+      let g = null;
+      for (const p of pm.players.values()) if (p !== pm.localPlayer) g = p;
+      if (!e || !g || e.isDead) return null;
+      const dx = e.x - g.pos.x, dz = e.z - g.pos.z;
+      // LOS plana a nivel del suelo: un muro entre ambos hace que la distancia
+      // euclidiana mienta (el invitado queda emparedado a ~1 m sin poder golpear).
+      let clear = true;
+      const w = window.__game.world;
+      if (w && typeof w.get === 'function') {
+        for (let i = 1; i < 6; i++) {
+          const t = i / 6;
+          if (w.get(Math.floor(g.pos.x + dx * t), 1, Math.floor(g.pos.z + dz * t))) { clear = false; break; }
+        }
+      }
+      return JSON.stringify({ dist: Math.hypot(dx, dz), yaw: Math.atan2(-dx, -dz), gx: g.pos.x, gz: g.pos.z, ex: e.x, clear });
+    })()`);
+    if (!info) break;
+    const { dist, yaw, gx, gz, ex, clear } = JSON.parse(info);
+    last = dist;
+    if (dist <= tol && clear) break;
+
+    if (dist < best - 0.25) { best = dist; stallT0 = 0; } else if (!stallT0) stallT0 = Date.now();
+    if (!detour && !detourDone && stallT0 && Date.now() - stallT0 > 2500) {
+      detour = { x: Math.max(gx, ex) + 2.5, z: gz };
+    }
+    let tyaw = yaw;
+    if (detour) {
+      const ddx = detour.x - gx, ddz = detour.z - gz;
+      if (Math.hypot(ddx, ddz) <= 1.0) { detour = null; detourDone = true; continue; }
+      tyaw = Math.atan2(-ddx, -ddz);
+    }
+    await guest.ev(`window.__game.input.yaw = ${tyaw}; window.__game.playerManager.localPlayer.yaw = ${tyaw}; window.__game.input.keys['KeyW'] = true; true`);
+    await sleep(250);
+  }
+  await guest.ev(`window.__game.input.keys['KeyW'] = false; true`);
+  await sleep(400);
+  return last;
+}
+
 function fin(n) { return Number.isFinite(n) ? n.toFixed(2) : String(n); }
 
 // Desplazamiento observado del jugador remoto (máx. entre posición lógica y de avatar).
@@ -318,6 +398,137 @@ async function main() {
   const peersAfter = (JSON.parse(await host.ev(E.roster))).length;
   check('Paso 6 — desconexión de invitado: el Anfitrión recibe peer-left', peersAfter === peersBefore - 1,
     `roster ${peersBefore} -> ${peersAfter}`);
+
+  // ===== Fase cooperativa: arena PvE con autoridad del Anfitrión =====
+  // Cerrar el modal de chat de voz (aparece en cada peer-joined) para dejar la vista
+  // libre en ambas pestañas antes de la arena.
+  for (const t of [host, guest]) {
+    await t.ev(`document.getElementById('voice-no')?.click(); true`);
+  }
+  // El Anfitrión entra a la arena difundiendo LEVEL_CHANGE; ambas réplicas generan
+  // los enemigos del nivel en el mismo orden (índices de red estables). El combate
+  // corre con autoridad del Anfitrión (CombatSync): intención del Invitado (0x14) ->
+  // resolución en el Host -> eventos (0x15) y snapshots (0x16) de vuelta.
+  await host.ev(`window.__game.switchLevel('dev_combatroom', true); true`);
+  await host.waitFor(`window.__game.world.levelRegistry.currentLevelId === 'dev_combatroom'`, { timeout: 15000 });
+  await guest.waitFor(`window.__game.world.levelRegistry.currentLevelId === 'dev_combatroom'`, { timeout: 15000 });
+  await host.waitFor(`window.__game.enemyManager.getAllEnemies().length === 2`, { timeout: 10000 });
+  await guest.waitFor(`window.__game.enemyManager.getAllEnemies().length === 2`, { timeout: 10000 });
+  const idsHost = JSON.parse(await host.ev(`JSON.stringify(window.__game.enemyManager.getAllEnemies().map((e) => e.id))`));
+  const idsGuest = JSON.parse(await guest.ev(`JSON.stringify(window.__game.enemyManager.getAllEnemies().map((e) => e.id))`));
+  check('Coop C1 — arena sincronizada: enemigos generados con índices estables en ambas réplicas',
+    idsHost.length === 2 && JSON.stringify(idsHost) === JSON.stringify(idsGuest),
+    `host=[${idsHost.join(',')}] guest=[${idsGuest.join(',')}]`);
+  await host.shot('coop-arena-host');
+  await guest.shot('coop-arena-guest');
+
+  // Espías de combate en el Invitado (los eventos de combate no están en NetAudit);
+  // actorId permite distinguir el autor de cada evento (0 = Anfitrión).
+  await guest.ev(`window.__coopKinds = []; window.__coopActors = []; window.__coopSnapshots = 0;
+    window.__game.network.addEventListener('combat-event', (e) => {
+      window.__coopKinds.push(e.detail.kind);
+      window.__coopActors.push(e.detail.actorId);
+    });
+    window.__game.network.addEventListener('enemy-snapshot', () => { window.__coopSnapshots += 1; });
+    true`);
+
+  // C2: snapshots de enemigos (0x16, hot a 10 Hz) posicionan la réplica del Invitado
+  await guest.waitFor(`window.__coopSnapshots > 0`, { timeout: 8000 });
+  const posHost = JSON.parse(await host.ev(`JSON.stringify(window.__game.enemyManager.getAllEnemies().map((e) => ({ x: e.x, z: e.z })))`));
+  const posGuest = JSON.parse(await guest.ev(`JSON.stringify(window.__game.enemyManager.getAllEnemies().map((e) => ({ x: e.x, z: e.z })))`));
+  const maxDiff = Math.max(0, ...posHost.map((p, i) => {
+    const q = posGuest[i];
+    return q ? Math.hypot(p.x - q.x, p.z - q.z) : 99;
+  }));
+  check('Coop C2 — snapshots de enemigos (hot) replican posiciones en el Invitado',
+    posHost.length === 2 && maxDiff < 1.5,
+    `snapshots=${await guest.ev('window.__coopSnapshots')} Δmax=${maxDiff.toFixed(2)} m`);
+
+  // C3: el Invitado ataca un maniquí: intención (0x14) -> resolución en el Host -> HIT_DUMMY
+  const dummyDist = await walkGuestTo(guest, host, 7.5, 15.0, { tol: 1.2 });
+  let dummyDamage = 0;
+  for (let i = 0; i < 6 && dummyDamage <= 0; i++) {
+    await guest.ev(`window.__game.handleAttack(); true`);
+    await sleep(800);
+    dummyDamage = Number(await host.ev(`(() => {
+      const d = window.__game.combatManager.getAllDummies().find((x) => x.id === 'dummy_light');
+      return d ? d.totalDamage : -1;
+    })()`));
+  }
+  const kindsC3 = JSON.parse(await guest.ev(`JSON.stringify(window.__coopKinds)`));
+  check('Coop C3 — ataque del Invitado: el Host resuelve el daño y difunde HIT_DUMMY',
+    dummyDamage > 0 && kindsC3.includes(5),
+    `dist=${fin(dummyDist)} m, daño maniquí=${dummyDamage}, kinds=[${kindsC3.join(',')}]`);
+
+  // C4/C5: el Invitado derriba a la serpiente (1 HP) y recibe su contraataque.
+  // Walk DINÁMICO hacia el enemigo (posición autoritativa del Anfitrión): la serpiente
+  // persigue y se mueve, un punto fijo la deja fuera del rango de la espada (1.8 m).
+  const hpBefore = Number(await host.ev(`window.__game.enemyManager.getAllEnemies()[0].hp`));
+  // La arena tiene un muro parcial en z=21 (x=5..8) entre los maniquíes y la zona de
+  // la serpiente: encaminar primero por el pasillo este (x≥9) para no quedar del
+  // lado opuesto (distancia euclidiana corta pero LOS y camino bloqueados).
+  await walkGuestTo(guest, host, 10.0, 21.5, { tol: 1.2, maxMs: 20000 });
+  const enemyDist = await walkGuestToEnemy(guest, host, 0, { tol: 1.3, maxMs: 30000 });
+
+  // Fase A (C5): mantener posición y dejar que la serpiente golpee primero — el
+  // primer golpe conectado del Invitado la mata (1 HP), así que el contraataque
+  // debe llegar antes. Top-up de vidas por iteración para evitar el Game Over.
+  let enemyAttacked = false;
+  for (let i = 0; i < 6 && !enemyAttacked; i++) {
+    await topUpGuestHearts(host);
+    await aimGuestAtEnemy(guest, 0);
+    await sleep(900);
+    const kinds = JSON.parse(await guest.ev(`JSON.stringify(window.__coopKinds)`));
+    if (kinds.includes(3)) enemyAttacked = true;
+  }
+
+  // Fase B (C4): derribar a la serpiente con ataques del Invitado (intención 0x14 ->
+  // resolución en el Host -> HIT_ENEMY/ENEMY_DEFEAT de vuelta).
+  let enemyDown = false;
+  for (let i = 0; i < 12 && !enemyDown; i++) {
+    await topUpGuestHearts(host);
+    await aimGuestAtEnemy(guest, 0);
+    await guest.ev(`window.__game.handleAttack(); true`);
+    await sleep(800);
+    const hpHost = Number(await host.ev(`window.__game.enemyManager.getAllEnemies()[0].hp`));
+    const hpGuest = Number(await guest.ev(`window.__game.enemyManager.getAllEnemies()[0].hp`));
+    if (hpHost <= 0 && hpGuest <= 0) enemyDown = true;
+  }
+  // Diagnóstico final: distancia invitado↔serpiente y estado según el Anfitrión
+  const diag = JSON.parse(await host.ev(`(() => {
+    const e = window.__game.enemyManager.getAllEnemies()[0];
+    const pm = window.__game.playerManager;
+    let g = null;
+    for (const p of pm.players.values()) if (p !== pm.localPlayer) g = p;
+    const dist = e && g ? Math.hypot(e.x - g.pos.x, e.z - g.pos.z) : -1;
+    return JSON.stringify({ dist, state: e?.state, hp: e?.hp, dead: !!e?.isDead });
+  })()`));
+  const kindsC4 = JSON.parse(await guest.ev(`JSON.stringify(window.__coopKinds)`));
+  const actorsC4 = JSON.parse(await guest.ev(`JSON.stringify(window.__coopActors)`));
+  check('Coop C4 — golpe del Invitado: derrota de la serpiente replicada en Host e Invitado',
+    enemyDown && kindsC4.includes(2) && kindsC4.includes(4),
+    `walk=${fin(enemyDist)} m, hp ${hpBefore} -> ${diag.hp}/${diag.dead ? 'muerta' : diag.state}, dist final=${fin(diag.dist)} m, kinds=[${kindsC4.join(',')}]`);
+  check('Coop C5 — contraataque del enemigo: el Invitado recibe ENEMY_ATTACK',
+    enemyAttacked, `kinds=[${kindsC4.join(',')}]`);
+
+  // C6: el ataque del PROPIO Anfitrión se difunde (ATTACK, actorId=0). Los ecos de
+  // los ataques del Invitado también son kind 1, así que la comprobación exige un
+  // evento NUEVO con actor 0, no solo la presencia de kind 1.
+  const hostAttacksBefore = kindsC4.reduce((n, k, i) => n + ((k === 1 && actorsC4[i] === 0) ? 1 : 0), 0);
+  await host.ev(`window.__game.handleAttack(); true`);
+  await sleep(900);
+  const kindsC6 = JSON.parse(await guest.ev(`JSON.stringify(window.__coopKinds)`));
+  const actorsC6 = JSON.parse(await guest.ev(`JSON.stringify(window.__coopActors)`));
+  const hostAttacksAfter = kindsC6.reduce((n, k, i) => n + ((k === 1 && actorsC6[i] === 0) ? 1 : 0), 0);
+  check('Coop C6 — el ataque del Anfitrión se difunde a los invitados (ATTACK, actorId=0)',
+    hostAttacksAfter > hostAttacksBefore,
+    `ataques del Host vistos por el Invitado: ${hostAttacksBefore} -> ${hostAttacksAfter}`);
+
+  // Volver al lobby para no perturbar la migración de host del Paso 8
+  await host.ev(`window.__game.switchLevel('lobby_tutorial', true); true`);
+  await host.waitFor(`window.__game.world.levelRegistry.currentLevelId === 'lobby_tutorial'`, { timeout: 15000 });
+  await guest.waitFor(`window.__game.world.levelRegistry.currentLevelId === 'lobby_tutorial'`, { timeout: 15000 });
+  await sleep(1000);
 
   // ===== Overlay de telemetría (?debug=1) =====
   await sleep(2500);

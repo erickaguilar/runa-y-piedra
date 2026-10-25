@@ -159,6 +159,31 @@ test('BaseEnemy: no persigue ni golpea a un jugador fuera de su altura de alcanc
   assert.equal(hits, 1, 'Debe conectar el golpe cuando el jugador está a su altura');
 });
 
+test('BaseEnemy: el mordisco no atraviesa muros (línea de visión)', () => {
+  // Serpiente y jugador a rango de mordida (1.0 m) pero con un bloque de la arena
+  // entre ambos (mismo escenario que detectó el smoke cooperativo en dev_combatroom).
+  const wallWorld = makeWorld([[12, 1, 25]]);
+  let hits = 0;
+  const em = new EnemyManager({ onPlayerDamaged: () => { hits += 1; } });
+  const enemy = em.spawnEnemy('cave_serpent', { x: 12.0, y: 1.0, z: 26.0 });
+  const player = new Player(1, 12.0, 1.0, 24.8, 'Emparedado');
+
+  em.update(0.1, wallWorld, [player], 1000);
+  assert.equal(enemy.state, 'telegraph', 'A rango y altura debe telegrafiar aunque haya muro');
+  em.update(0.45, wallWorld, [player], 7450);
+  assert.equal(hits, 0, 'El mordisco no debe conectar a través del muro');
+
+  // Sin el muro, el mismo ataque conecta
+  let hitsOpen = 0;
+  const emOpen = new EnemyManager({ onPlayerDamaged: () => { hitsOpen += 1; } });
+  const enemyOpen = emOpen.spawnEnemy('cave_serpent', { x: 12.0, y: 1.0, z: 26.0 });
+  const playerOpen = new Player(1, 12.0, 1.0, 24.8, 'Al descubierto');
+  emOpen.update(0.1, makeWorld([]), [playerOpen], 1000);
+  emOpen.update(0.45, makeWorld([]), [playerOpen], 7450);
+  assert.equal(hitsOpen, 1, 'A rango, altura y sin muro el mordisco conecta');
+  assert.ok(enemyOpen);
+});
+
 test('BaseEnemy: el aturdimiento tiene ventana de inmunidad y no permite bloqueo infinito', () => {
   const em = new EnemyManager();
   const enemy = em.spawnEnemy('basalt_skitterer', { x: 12.0, y: 1.0, z: 26.0 });
