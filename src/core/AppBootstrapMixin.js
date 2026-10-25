@@ -298,9 +298,14 @@ export const AppBootstrapMixin = {
           this.simulation.integratePlayer(local, FIXED_DT, jumpAction);
         }
 
-        // 4. Simulación autoritativa de combate y enemigos (proyectiles, IA y temporizadores)
+        // 4. Combate PvE: el host simula IA, proyectiles y daño; en cliente el combate
+        // es solo visual (el host posiciona enemigos con ENEMY_SNAPSHOT a 10 Hz).
+        const isCombatAuthority = this.mode !== 'client';
+        this.combatManager?.setAuthoritative?.(isCombatAuthority);
         this.combatManager?.update(FIXED_DT, this.world);
-        this.enemyManager?.update(FIXED_DT, this.world, this.playerManager.getAllPlayers());
+        if (isCombatAuthority) {
+          this.enemyManager?.update(FIXED_DT, this.world, this.playerManager.getAllPlayers());
+        }
       },
       onRender: (dt) => {
         // Perf fase 3: FPS real medido en rAF, push al overlay cada ~0.5s

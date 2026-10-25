@@ -20,6 +20,7 @@ import { EnemyRenderer } from '../render/EnemyRenderer.js';
 import { FirstPersonWeaponRenderer } from '../render/FirstPersonWeaponRenderer.js';
 import { CombatManager } from '../combat/CombatManager.js';
 import { EnemyManager } from '../combat/EnemyManager.js';
+import { CombatSync } from '../combat/CombatSync.js';
 import { World } from './World.js';
 import { PlayerManager } from '../entities/PlayerManager.js';
 import { SimulationEngine } from '../simulation/SimulationEngine.js';
@@ -71,13 +72,15 @@ export class VoxelSandboxGame {
     this.enemyManager = new EnemyManager({
       world: this.world,
       onEnemyHit: (hit) => {
+        this.combatSync?.broadcastEnemyHit?.(hit);
         this.soundManager?.playHit(hit.soundType);
         const curLevelId = this.world?.levelRegistry?.currentLevelId;
         if (curLevelId === 'dev_combatroom') {
           this.ui?.showNarrativeMessage(`:crossed_swords: ¡Golpe a ${hit.enemyName}! Vida: ${hit.hp}/${hit.maxHp}`, 1400);
         }
       },
-      onEnemyDefeated: (enemy) => {
+      onEnemyDefeated: (enemy, sourcePlayer) => {
+        this.combatSync?.broadcastEnemyDefeat?.(enemy, sourcePlayer);
         this.soundManager?.playHit('iron');
         const curLevelId = this.world?.levelRegistry?.currentLevelId;
         if (curLevelId === 'dev_combatroom') {
@@ -87,18 +90,26 @@ export class VoxelSandboxGame {
       onPlayerDamaged: (player, damage, enemy) => {
         if (player.invulnTicks > 0) return;
         const dmg = typeof damage === 'number' ? damage : 1;
+        // Notificar a la víctima remota (su cliente reproduce sonido/mensaje con
+        // el evento ENEMY_ATTACK); el anfitrión gestiona su propio HUD abajo.
+        this.combatSync?.broadcastEnemyAttack?.(player, dmg, enemy);
+        const isLocal = player === this.playerManager?.localPlayer;
         player.damageCounter = (player.damageCounter || 0) + dmg;
         if (player.damageCounter >= 1) {
           player.damageCounter -= 1;
           player.loseLife();
           player.invulnTicks = 45;
-          this.soundManager?.playHurt();
-          this.ui?.updateLives(player.lives, player.maxLives);
-          this.ui?.showNarrativeMessage(`:shield: ¡${enemy.name} te ha golpeado! (${player.lives} vidas)`, 1800);
+          if (isLocal) {
+            this.soundManager?.playHurt();
+            this.ui?.updateLives(player.lives, player.maxLives);
+            this.ui?.showNarrativeMessage(`:shield: ¡${enemy.name} te ha golpeado! (${player.lives} vidas)`, 1800);
+          }
         } else {
           player.invulnTicks = 25;
-          this.soundManager?.playHurt();
-          this.ui?.showNarrativeMessage(`:shield: ¡${enemy.name} te rozó! (${dmg} daño)`, 1400);
+          if (isLocal) {
+            this.soundManager?.playHurt();
+            this.ui?.showNarrativeMessage(`:shield: ¡${enemy.name} te rozó! (${dmg} daño)`, 1400);
+          }
         }
       },
     });
@@ -106,6 +117,7 @@ export class VoxelSandboxGame {
       enemyManager: this.enemyManager,
       world: this.world,
       onHit: (hit) => {
+        this.combatSync?.broadcastDummyHit?.(hit);
         this.soundManager?.playHit(hit.soundType);
         const curLevelId = this.world?.levelRegistry?.currentLevelId;
         if (curLevelId === 'dev_combatroom') {
@@ -218,6 +230,20 @@ export class VoxelSandboxGame {
     this.network = new NetworkManager();
     this.ui = new UIManager();
     this.soundManager = soundManager;
+
+    // Sincronización de combate cooperativo: el host resuelve el daño y difunde
+    // eventos/snapshots; los clientes envían intención de ataque y solo renderizan.
+    this.combatSync = new CombatSync({
+      getMode: () => this.mode,
+      playerManager: this.playerManager,
+      combatManager: this.combatManager,
+      enemyManager: this.enemyManager,
+      world: this.world,
+      network: this.network,
+      ui: this.ui,
+      soundManager: this.soundManager,
+    });
+    this.combatSync.bindNetwork(this.network);
     this.inventory = { keys: [], gems: 0, relics: [], potions: [] };
     this.openedChestKeys = new Set();
     this.openedDoorKeys = new Set();
@@ -310,6 +336,16 @@ export class VoxelSandboxGame {
     if (!this.mode) return;
     const local = this.playerManager?.localPlayer;
     if (!local) return;
+
+    // Cliente cooperativo: el host resuelve el daño autoritativo. Aplicamos el
+    // cooldown local y reproducimos el feedback de forma predictiva mientras el
+    // host confirma el impacto con COMBAT_EVENT / ENEMY_SNAPSHOT.
+    if (this.mode === 'client') {
+      if (!this.combatSync?.requestAttack?.(local)) return;
+      this.soundManager?.playAttack();
+      this.fpWeaponRenderer?.triggerAttack?.(local.weapon);
+      return;
+    }
 
     const result = this.combatManager?.executePlayerAttack(local, Date.now(), this.world);
     if (!result) return;

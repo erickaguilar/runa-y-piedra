@@ -106,6 +106,9 @@ export const NetworkCoordinatorMixin = {
       this.ui.updatePartyList(this.playerManager.getAllPlayers());
       this.broadcastRoster();
 
+      // Estado inicial de combate PvE (enemigos ya dañados/muertos) al recién llegado
+      this.combatSync?.sendStateTo?.(conn);
+
       // Solicitar o iniciar llamada de voz WebRTC en el Host
       if (this.network.isHost && conn?.peer) {
         if (this.network.localStream) {
@@ -445,5 +448,12 @@ export const NetworkCoordinatorMixin = {
         }
       }
     }, 1000 / NET_CONFIG.SNAPSHOT_HZ);
+
+    // Snapshots de enemigos PvE (Host -> Clientes @ 10 Hz, canal hot; un paquete
+    // perdido lo reemplaza el siguiente y el ancho queda bajo 1 KB/s con 5 enemigos)
+    setInterval(() => {
+      if (this.mode !== 'host') return;
+      this.combatSync?.broadcastEnemySnapshot?.();
+    }, 100);
   },
 };

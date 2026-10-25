@@ -44,6 +44,7 @@ export class ProjectilePool {
         knockback: 0,
         color: '#10b981',
         sourcePlayerId: 0,
+        sourcePlayer: null,
       };
     }
     return pool;
@@ -92,6 +93,7 @@ export class ProjectilePool {
     proj.knockback = weapon.knockback || 0;
     proj.color = weapon.color;
     proj.sourcePlayerId = player.id;
+    proj.sourcePlayer = player;
     proj.weapon = weapon;
 
     return proj;
@@ -165,7 +167,7 @@ export class ProjectilePool {
       }
 
       if (!impacted && enemyManager) {
-        if (enemyManager.testProjectileCollision(p, now, prevX, prevY, prevZ, p.traveled, p.weapon, world)) {
+        if (enemyManager.testProjectileCollision(p, now, prevX, prevY, prevZ, p.traveled, p.weapon, world, p.sourcePlayer)) {
           impacted = true;
         }
       }

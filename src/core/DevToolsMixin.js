@@ -168,6 +168,56 @@ export const DevToolsMixin = {
     this.ui.showHudMessage(nextVal ? '🦅 Modo Vuelo (Noclip) ACTIVADO' : '🚶 Modo Vuelo DESACTIVADO');
   },
 
+  /**
+   * Crea una sala PvE cooperativa real (con PIN) sobre la arena dev_combatroom.
+   * El anfitrión queda como autoridad del combate: simula IA y daño, difunde
+   * COMBAT_EVENT/ENEMY_SNAPSHOT y los invitados se unen con el PIN estándar.
+   * (Vive aquí porque SessionManager.js está congelado por el guardarraíl de líneas.)
+   */
+  async startCoopCombatRoomSession() {
+    const name = this.ui.playerName || 'Host';
+    const colorIndex = Number.isFinite(this.ui.selectedColorIndex) ? this.ui.selectedColorIndex : 0;
+    this.playerManager.setLocalProfile(name, colorIndex);
+
+    this.ui.setStatus('Creando arena cooperativa...');
+    try {
+      const pin = await this.network.host();
+      this.mode = 'host';
+      this.playerManager.setLocalId(0);
+      this.avatars.remove(-1);
+      this.lastConnectedPin = pin;
+
+      const hostAddr = localStorage.getItem('dungeon_lan_ip') || window.location.host;
+      this.currentJoinUrl = `${window.location.protocol}//${hostAddr}/?join=${pin}&hh=${colorIndex}`;
+
+      this.ui.currentScreen = 'in_game';
+      this.ui.hideMenu();
+      this.ui.setCrosshairVisible(true);
+      this.ui.setActionButtonsVisible(true);
+      this.ui.setLivesVisible(true);
+      this.resetInventory({ keepGems: false, keepRelics: false });
+
+      const localInit = this.playerManager.localPlayer;
+      localInit.resetLives();
+      this.ui.updateLives(localInit.lives, localInit.maxLives);
+      this.ui.setHasKey(false);
+
+      const hero = PLAYER_HEROES[colorIndex] || PLAYER_HEROES[0];
+      this.avatars.setMetadata(0, name, hero.hex || hero.color, hero.id || null);
+
+      // Cargar la arena difundiendo el cambio de nivel a los invitados presentes
+      this.switchLevel('dev_combatroom', true);
+      this.broadcastRoster();
+      this.network.startWorldSnapshot?.(() => this.collectWorldSnapshot?.());
+
+      this.ui.setStatus(`Sala cooperativa PvE activa (PIN: ${pin})`);
+      this.ui.showNarrativeMessage(`:swords: Arena cooperativa creada (PIN: ${pin}). Los invitados se unen con el PIN.`, 7000);
+    } catch (e) {
+      this.mode = null;
+      this.ui.setStatus('Error al crear la sala cooperativa: ' + (e?.message || e));
+    }
+  },
+
   initDev() {
     this.ui.bindDev({
       onEnterShowroom: async () => {
@@ -182,10 +232,22 @@ export const DevToolsMixin = {
       },
       onEnterCombatRoom: async () => {
         if (!this.mode) {
-          await this.startDevCombatRoomSession();
-        } else {
-          this.switchLevel('dev_combatroom', this.mode === 'host');
+          // Ofrecer sala cooperativa real (PIN, autoridad del host) o la sesión
+          // local de desarrollo sin red.
+          this.ui.showConfirmDialog({
+            title: 'Sala de Combate PvE',
+            message: '¿Crear una sala cooperativa (los invitados se unen con el PIN y el anfitrión simula el combate) o una sesión local de desarrollo?',
+            confirmText: 'Sala Cooperativa (PIN)',
+            cancelText: 'Sesión Local Dev',
+            icon: 'swords',
+            iconColor: '#dc2626',
+            danger: false,
+            onConfirm: () => this.startCoopCombatRoomSession(),
+            onCancel: () => this.startDevCombatRoomSession(),
+          });
+          return;
         }
+        this.switchLevel('dev_combatroom', this.mode === 'host');
       },
       onExitCombatRoom: () => {
         this.switchLevel('lobby_tutorial', this.mode === 'host');

@@ -21,7 +21,11 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const LIMITS = {
   important: 50, // declaraciones !important en src/**/*.css
   lines: 500, // líneas por archivo de lógica de src/
-  entryBytes: 380 * 1000, // bundle de entrada (dist/assets/index-*.js)
+  // 380 KB → 385 KB (sprint cooperativo PvE): el cableado de sesión/UI del combate
+  // cooperativo añadió ~3 KB al entry (el protocolo y CombatSync ya viven en el chunk
+  // engine-combat). Pendiente: carga diferida de las herramientas Dev en el próximo
+  // saneamiento para recuperar margen.
+  entryBytes: 385 * 1000, // bundle de entrada (dist/assets/index-*.js)
 };
 
 // Rutas exentas del límite de líneas (datos o arte, no lógica).

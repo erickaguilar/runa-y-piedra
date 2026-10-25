@@ -56,6 +56,7 @@ declare module '../core/GameApp.js' {
     openDoorInstant(...args: any[]): any;
     startDevShowroomSession(...args: any[]): any;
     startDevCombatRoomSession(...args: any[]): any;
+    startCoopCombatRoomSession(...args: any[]): any;
     selectCampaignChapter(...args: any[]): any;
     buyShopItem(...args: any[]): any;
     sellShopItem(...args: any[]): any;

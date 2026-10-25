@@ -16,6 +16,7 @@ import { closestPointOnAabb, hasLineOfSight } from './combatGeometry.js';
 import { ProjectilePool } from './ProjectilePool.js';
 
 const RECENT_HITS_WINDOW_MS = 3000;
+const EMPTY_LIST = [];
 
 export class CombatManager {
   /**
@@ -24,12 +25,15 @@ export class CombatManager {
    * @param {(proj: Object, weapon: Object, player: Object) => void} [options.onProjectileSpawn] Callback al disparar proyectil
    * @param {Object} [options.enemyManager] Gestor de enemigos PvE
    * @param {Object} [options.world] Mundo voxel para línea de visión y colisiones
+   * @param {boolean} [options.authoritative=true] False en clientes: el host resuelve el daño
    */
   constructor(options = {}) {
     this.onHit = options.onHit || null;
     this.onProjectileSpawn = options.onProjectileSpawn || null;
     this.enemyManager = options.enemyManager || null;
     this.world = options.world || null;
+    // En un cliente el combate es solo visual: el host resuelve el daño autoritativo.
+    this.authoritative = options.authoritative !== false;
 
     // Objetos reutilizables para no asignar memoria en la resolución de impactos
     this._losPoint = { x: 0, y: 0, z: 0 };
@@ -42,6 +46,7 @@ export class CombatManager {
     this.projectiles = this.projectilePool.projectiles;
     this._projectileHandlers = {
       onWorldHit: (p, hit, now) => {
+        if (!this.authoritative) return;
         this._resolveAoeImpact(
           hit.x,
           hit.y,
@@ -49,13 +54,14 @@ export class CombatManager {
           p.aoeRadius,
           p.damage,
           p.weapon || { type: p.type },
-          null,
+          p.sourcePlayer || null,
           now,
           p.traveled,
           this.world
         );
       },
       onDummyHit: (p, dummy, now) => {
+        if (!this.authoritative) return;
         if (p.aoeRadius > 0) {
           this._resolveAoeImpact(
             p.x,
@@ -64,16 +70,36 @@ export class CombatManager {
             p.aoeRadius,
             p.damage,
             p.weapon || { type: p.type },
-            null,
+            p.sourcePlayer || null,
             now,
             p.traveled,
             this.world
           );
         } else {
-          this.applyDamageToDummy(dummy.id, p.damage, p.weapon || { type: p.type }, null, now, p.traveled);
+          this.applyDamageToDummy(dummy.id, p.damage, p.weapon || { type: p.type }, p.sourcePlayer || null, now, p.traveled);
         }
       },
     };
+  }
+
+  /**
+   * Activa o desactiva la resolución autoritativa de daño.
+   * En clientes se desactiva para que solo rendericen proyectiles y eventos del host.
+   * @param {boolean} flag
+   */
+  setAuthoritative(flag) {
+    this.authoritative = !!flag;
+  }
+
+  /**
+   * Crea un proyectil exclusivamente visual (cliente) a partir de un evento del host.
+   * @param {Object} playerLike { id, pos:{x,y,z}, yaw, pitch }
+   * @param {Object} weapon Arma canónica
+   * @returns {Object|null}
+   */
+  spawnVisualProjectile(playerLike, weapon) {
+    if (!playerLike || !weapon || !this.projectilePool) return null;
+    return this.projectilePool.spawn(playerLike, weapon);
   }
 
   /**
@@ -352,7 +378,14 @@ export class CombatManager {
     }
 
     // 2. Simular proyectiles activos (Zero-GC)
-    this.projectilePool.update(dt, this.world, now, this.dummies, this.enemyManager, this._projectileHandlers);
+    this.projectilePool.update(
+      dt,
+      this.world,
+      now,
+      this.authoritative ? this.dummies : EMPTY_LIST,
+      this.authoritative ? this.enemyManager : null,
+      this._projectileHandlers
+    );
   }
 
   /**
