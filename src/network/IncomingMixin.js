@@ -5,6 +5,7 @@
  * contexto de `NetworkManager` (`this.stats`, `this.voiceManager`, `this._links`, ...).
  */
 import * as Proto from './Protocol.js';
+import * as CombatProto from '../combat/CombatProtocol.js';
 import { saveWorldSnapshot } from './HostSnapshot.js';
 
 export const IncomingMixin = {
@@ -216,6 +217,30 @@ export const IncomingMixin = {
         const cs = Proto.deserializeChapterSelect(buf);
         cs.conn = logicalConn;
         this.dispatchEvent(new CustomEvent('chapter-select', { detail: cs }));
+        break;
+      }
+
+      case CombatProto.COMBAT_MSG.PLAYER_ATTACK: {
+        // Solo el host resuelve ataques de invitados (autoridad listen-server).
+        if (!this.isHost) break;
+        const attack = CombatProto.deserializePlayerAttack(buf);
+        attack.conn = logicalConn;
+        this.dispatchEvent(new CustomEvent('player-attack', { detail: attack }));
+        break;
+      }
+
+      case CombatProto.COMBAT_MSG.COMBAT_EVENT: {
+        // El host es la fuente autoritativa: ignora sus propios eventos.
+        if (this.isHost) break;
+        const event = CombatProto.deserializeCombatEvent(buf);
+        if (event) this.dispatchEvent(new CustomEvent('combat-event', { detail: event }));
+        break;
+      }
+
+      case CombatProto.COMBAT_MSG.ENEMY_SNAPSHOT: {
+        if (this.isHost) break;
+        const snapshot = CombatProto.deserializeEnemySnapshot(buf);
+        this.dispatchEvent(new CustomEvent('enemy-snapshot', { detail: snapshot }));
         break;
       }
     }

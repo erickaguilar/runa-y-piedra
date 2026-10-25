@@ -181,6 +181,46 @@ export function getHeroWeapon(heroIdentifier) {
 }
 
 /**
+ * Orden canónico de tipos de arma para serializarlos como un byte en la red.
+ * No cambiar el orden sin versionar el protocolo de combate.
+ */
+export const WEAPON_CODE_ORDER = [
+  WEAPON_TYPES.MELEE_LIGHT,
+  WEAPON_TYPES.MELEE_HEAVY,
+  WEAPON_TYPES.PROJECTILE_ARROW,
+  WEAPON_TYPES.PROJECTILE_MAGIC,
+  WEAPON_TYPES.MELEE_WAVE,
+];
+
+/**
+ * Convierte un tipo de arma textual en su código de red.
+ * @param {string} type
+ * @returns {number} Código 0..4, o 255 si es desconocido
+ */
+export function weaponTypeToCode(type) {
+  const index = WEAPON_CODE_ORDER.indexOf(type);
+  return index >= 0 ? index : 255;
+}
+
+/**
+ * Recupera el tipo de arma textual desde su código de red.
+ * @param {number} code
+ * @returns {string} Tipo canónico o cadena vacía si es desconocido
+ */
+export function weaponTypeFromCode(code) {
+  return WEAPON_CODE_ORDER[code] || '';
+}
+
+/**
+ * Obtiene el arma canónica que usa un tipo de ataque concreto.
+ * @param {string} type Tipo de WEAPON_TYPES
+ * @returns {typeof HERO_WEAPONS[0]}
+ */
+export function getWeaponByType(type) {
+  return HERO_WEAPONS.find(w => w.type === type) || HERO_WEAPONS[0];
+}
+
+/**
  * Catálogo canónico de blancos de entrenamiento en el Sector 2 de dev_combatroom.
  */
 export const TRAINING_DUMMIES = [

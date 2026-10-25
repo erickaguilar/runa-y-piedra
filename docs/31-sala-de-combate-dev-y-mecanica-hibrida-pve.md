@@ -213,21 +213,61 @@ Estas reglas se aplican de forma autoritativa en los gestores y están cubiertas
 
 ## 7. Protocolo de Red WebRTC y Sincronización Listen-Server
 
-El combate introduce dos nuevos opcodes binarios en `Protocol.js` para mantener el ancho de banda por debajo del umbral de $10\text{ KB/s}$:
+El sprint cooperativo implementa el modelo **listen-server** en `src/combat/CombatSync.js`:
+el anfitrión simula la IA, los proyectiles y **todo el daño**; los invitados solo envían
+su **intención de ataque** y renderizan los eventos y snapshots del host. Los mensajes
+viven en `src/combat/CombatProtocol.js` (módulo aparte porque `Protocol.js` está en la
+deuda congelada del guardarraíl de 500 líneas; los opcodes 0x00–0x13 ya estaban ocupados).
 
-### Opcodes de Combate:
-* **`0x05 - MSG_PLAYER_ATTACK` (Cliente $\to$ Host, 10 bytes):**
-  - `[0]` `Uint8`: `0x05`
-  - `[1]` `Uint8`: `attackSeq` (contador rotativo anti-duplicados)
-  - `[2..5]` `Float32`: `yaw` (orientación horizontal)
-  - `[6..9]` `Float32`: `pitch` (elevación vertical para flechas/magia)
-* **`0x06 - MSG_COMBAT_EVENT` (Host $\to$ Clientes, 12 bytes):**
-  - `[0]` `Uint8`: `0x06`
-  - `[1]` `Uint8`: `eventType` (0 = hit_dummy, 1 = hit_enemy, 2 = enemy_attack, 3 = enemy_defeat)
-  - `[2]` `Uint8`: `targetId`
-  - `[3]` `Uint8`: `sourcePlayerIndex`
-  - `[4..7]` `Float32`: `hitPosX`
-  - `[8..11]` `Float32`: `hitPosZ`
+### Opcodes de Combate (`COMBAT_MSG`):
+
+* **`0x14 - PLAYER_ATTACK` (Cliente $\to$ Host, 11 bytes, canal safe):**
+  - `[0]` `Uint8`: `0x14`
+  - `[1..2]` `Uint16`: `attackSeq` (contador rotativo anti-duplicados por jugador)
+  - `[3..6]` `Float32`: `yaw` (orientación horizontal)
+  - `[7..10]` `Float32`: `pitch` (elevación vertical para flechas/magia)
+
+* **`0x15 - COMBAT_EVENT` (Host $\to$ Todos, 26 bytes, canal safe):**
+  - `[0]` `Uint8`: `0x15`
+  - `[1]` `Uint8`: `kind` (`1` ataque ejecutado, `2` impacto en enemigo, `3` golpe de enemigo a jugador, `4` enemigo derrotado, `5` impacto en maniquí)
+  - `[2]` `Uint8`: `actorId` (id del jugador autor del evento, `255` = desconocido)
+  - `[3]` `Uint8`: `targetId` (índice de enemigo o id de jugador según `kind`)
+  - `[4]` `Uint8`: `weaponCode` (índice canónico en `WEAPON_CODE_ORDER`, `255` = n/a)
+  - `[5..20]` `Float32 × 4`: `x`, `y`, `z`, `yaw` (posición del actor o del blanco)
+  - `[21..24]` `Float32`: `pitch`
+  - `[25]` `Uint8`: `value` (para `HIT_ENEMY`: vida **restante**; para `ENEMY_ATTACK`: daño; saturado a `[0, 255]`)
+
+* **`0x16 - ENEMY_SNAPSHOT` (Host $\to$ Todos, 4 + N × 20 bytes, canal hot a 10 Hz):**
+  - `[0]` `Uint8`: `0x16`
+  - `[1..2]` `Uint16`: `seq` rotativo (un paquete perdido lo reemplaza el siguiente)
+  - `[3]` `Uint8`: `count` (N enemigos)
+  - Por enemigo (20 bytes): `index:1`, `x/y/z/yaw: Float32 × 4`, `hp:1`, `maxHp:1`, `state:1` (`idle/chase/telegraph/hurt/dead` codificados con `ENEMY_STATE_ORDER`).
+
+Con 5 enemigos el snapshot mantiene el canal hot por debajo de $1\text{ KB/s}$.
+
+### 7.1 Flujo cooperativo (autoridad del anfitrión)
+
+| Paso | Actor | Mecanismo |
+|---|---|---|
+| 1 | Invitado | `CombatSync.requestAttack()`: cooldown local (`player.canAttack`) y envío de `PLAYER_ATTACK` con `seq` |
+| 2 | Host | `handlePlayerAttack()`: deduplica `seq`, valida conexión (`playerManager.getPlayerByConnection`) y vidas; resuelve con `CombatManager.executePlayerAttack` usando la **posición autoritativa** del jugador y el yaw/pitch recibidos (pitch clampeado a $\pm1.5$) |
+| 3 | Host | Difunde `COMBAT_EVENT(ATTACK)`; los enemigos golpeados generan `HIT_ENEMY`/`ENEMY_DEFEAT` vía los callbacks `onEnemyHit`/`onEnemyDefeated` de `EnemyManager` |
+| 4 | Cliente | `handleCombatEvent()`: aplica `applyRemoteHit`/`applyRemoteDefeat`, reproduce sonido y mensaje solo si el actor es el jugador local, y lanza proyectiles **visuales** (`spawnVisualProjectile`) |
+| 5 | Host | `broadcastEnemySnapshot()` a 10 Hz por canal hot; un late-joiner recibe estado completo vía `sendStateTo()` durante el handshake `peer-joined` |
+| 6 | Cliente | `enemyManager.applySnapshot()`: posiciona enemigos, marca muertos y enciende flash si baja la vida; **no ejecuta IA ni daño** (`CombatManager.authoritative = false`) |
+
+Los índices de enemigos son **estables** entre réplicas porque todos los clientes
+generan los enemigos desde el mismo `dev_combatroom.json` en el mismo orden (`switchLevel`),
+y la vida de los jugadores remotos se sincroniza con el campo `lives` del `SNAPSHOT`
+existente (el mensaje y el sonido local se disparan con `COMBAT_EVENT(ENEMY_ATTACK)`).
+
+### 7.2 Entrada a la sala cooperativa
+
+El botón **Entrar a Sala de Combate PvE** del modal Dev ofrece dos modos cuando no hay
+sesión activa: **Sala Cooperativa (PIN)** — `startCoopCombatRoomSession()` en
+`DevToolsMixin.js`, que crea una sala real con PIN y carga la arena difundiendo el cambio
+de nivel — o **Sesión Local Dev** (sin red, comportamiento previo). Con una sesión ya
+activa, el anfitrión puede cambiar a la arena con `switchLevel('dev_combatroom', true)`.
 
 ---
 
@@ -249,4 +289,6 @@ flowchart TD
 4. **Fase 4:** Definición de armas por clase en `HeroRegistry.js` / `Player.js` y resolución autoritativa de ataques en `SimulationEngine.js`.
 5. **Fase 5:** Creación de `CombatManager.js` para muñecos de prueba y autómatas centinela PvE con pool de proyectiles Zero-GC.
 6. **Fase 6:** Síntesis sonora de golpeo (`playSwordSwing()`, `playBowShot()`, `playSpellCast()`, `playHit()`) en `SoundManager.js`.
-7. **Fase 7:** Pruebas unitarias en `tests/` cubriendo colisiones de ataque, cooldowns y aislamiento del mapa.
+7. **Fase 7 (Completada):** Pruebas unitarias en `tests/` cubriendo colisiones de ataque, cooldowns y aislamiento del mapa.
+8. **Fase 8 (Completada):** Sprint de correctitud PvE: línea de visión, altura de agro/ataque, anti-stunlock, colisión continua de proyectiles y separación entre enemigos (§6.1, `tests/combat-correctness.test.js`).
+9. **Fase 9 (Completada):** Sprint cooperativo: `CombatProtocol.js` (0x14/0x15/0x16), `CombatSync.js` con autoridad del anfitrión, réplica de enemigos por índice estable, entrada `PLAYER_ATTACK` con deduplicación `seq`, snapshots a 10 Hz y suite `tests/coop-combat.test.js`.

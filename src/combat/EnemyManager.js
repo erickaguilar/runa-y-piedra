@@ -166,9 +166,10 @@ export class EnemyManager {
    * @param {number} [distance=0]
    * @param {Object} [weapon=null]
    * @param {Object} [world] Mundo voxel para oclusión de la explosión
+   * @param {Object} [sourcePlayer] Autor del proyectil (para atribuir el impacto)
    * @returns {boolean} True si hubo impacto
    */
-  testProjectileCollision(proj, now, prevX = proj.x, prevY = proj.y, prevZ = proj.z, distance = 0, weapon = null, world = this.world) {
+  testProjectileCollision(proj, now, prevX = proj.x, prevY = proj.y, prevZ = proj.z, distance = 0, weapon = null, world = this.world, sourcePlayer = null) {
     const radius = 0.3;
     const pMinX = Math.min(prevX, proj.x) - radius;
     const pMaxX = Math.max(prevX, proj.x) + radius;
@@ -191,9 +192,9 @@ export class EnemyManager {
         pMinZ <= aabb.maxZ
       ) {
         if (proj.aoeRadius > 0) {
-          this.resolveAoeImpact(proj.x, proj.y, proj.z, proj.aoeRadius, proj.damage, weapon || { type: proj.type }, null, now, distance, world);
+          this.resolveAoeImpact(proj.x, proj.y, proj.z, proj.aoeRadius, proj.damage, weapon || { type: proj.type }, sourcePlayer, now, distance, world);
         } else {
-          this.applyDamage(enemy.id, proj.damage, weapon || { type: proj.type, knockback: proj.knockback }, null, now, distance);
+          this.applyDamage(enemy.id, proj.damage, weapon || { type: proj.type, knockback: proj.knockback }, sourcePlayer, now, distance);
         }
         return true;
       }
@@ -274,6 +275,86 @@ export class EnemyManager {
    */
   getEnemy(id) {
     return this.enemies.find(e => e.id === id) || null;
+  }
+
+  /**
+   * Obtiene un enemigo por su índice de red (orden estable de spawn del nivel).
+   * @param {number} index
+   * @returns {Object|null}
+   */
+  getByIndex(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= this.enemies.length) return null;
+    return this.enemies[index] || null;
+  }
+
+  /**
+   * Aplica un snapshot autoritativo del host sobre la réplica local de enemigos.
+   * No ejecuta IA ni daño: solo sincroniza posición, vida y estado para el render.
+   * @param {Array<{index:number,x:number,y:number,z:number,yaw:number,hp:number,maxHp:number,state:string}>} entries
+   */
+  applySnapshot(entries = []) {
+    if (!Array.isArray(entries)) return;
+    for (let i = 0; i < entries.length; i++) {
+      const snap = entries[i];
+      const enemy = this.getByIndex(snap?.index);
+      if (!enemy) continue;
+
+      const prevHp = enemy.hp;
+      enemy.x = snap.x;
+      enemy.y = snap.y;
+      enemy.z = snap.z;
+      enemy.yaw = snap.yaw;
+      enemy.hp = snap.hp;
+      enemy.maxHp = snap.maxHp;
+      enemy.state = snap.state;
+      enemy.isDead = snap.state === 'dead' || snap.hp <= 0;
+
+      // Feedback visual inmediato cuando el host confirma una pérdida de vida
+      if (snap.hp < prevHp) {
+        enemy.flashTimer = 0.15;
+        enemy.shakeTimer = 0.2;
+      }
+
+      if (enemy.isDead) {
+        enemy.respawnTimer = (enemy.respawnDelayMs || 0) / 1000;
+      }
+      enemy.updateAABB();
+    }
+  }
+
+  /**
+   * Aplica un impacto confirmado por el host sin volver a calcular daño.
+   * @param {number} index Índice de red del enemigo
+   * @param {number} hp Vida restante autoritativa
+   * @returns {Object|null} Enemigo actualizado
+   */
+  applyRemoteHit(index, hp) {
+    const enemy = this.getByIndex(index);
+    if (!enemy) return null;
+    enemy.hp = Math.max(0, hp);
+    enemy.flashTimer = 0.15;
+    enemy.shakeTimer = 0.2;
+    if (enemy.hp <= 0) {
+      enemy.isDead = true;
+      enemy.state = 'dead';
+      enemy.respawnTimer = (enemy.respawnDelayMs || 0) / 1000;
+    }
+    return enemy;
+  }
+
+  /**
+   * Marca un enemigo como derrotado según el evento autoritativo del host.
+   * @param {number} index
+   * @returns {Object|null}
+   */
+  applyRemoteDefeat(index) {
+    const enemy = this.getByIndex(index);
+    if (!enemy) return null;
+    enemy.hp = 0;
+    enemy.isDead = true;
+    enemy.state = 'dead';
+    enemy.respawnTimer = (enemy.respawnDelayMs || 0) / 1000;
+    return enemy;
   }
 
   /**
